@@ -1,7 +1,7 @@
 ﻿namespace Core.Event;
 using System.Text.Json;
 
-public record CapturedEvent<EventDataType>(string EventType, DateTime CapturedAt, string CapturedBy, EventDataType Data)
+public record Event<EventDataType>(string EventType, DateTime CapturedAt, string CapturedBy, EventDataType Data, DateTime? StoredAt)
 {
     public string EventType = EventUtils.ValidateNonEmptyString(EventType);
     public string CapturedBy = EventUtils.ValidateNonEmptyString(CapturedBy);
