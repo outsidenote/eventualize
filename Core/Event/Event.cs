@@ -12,6 +12,11 @@ public record Event<EventDataType>(string EventType, DateTime CapturedAt, string
         return JsonSerializer.Serialize(Data, Data.GetType());
     }
 
+    public Event<string?> SerializeEvent()
+    {
+        return new Event<string?>(EventType, CapturedAt, CapturedBy, SerializeData(), StoredAt);
+    }
+
     public static EventDataType? DeserializeData(string? serializedData)
     {
         if (serializedData == null) return default;
