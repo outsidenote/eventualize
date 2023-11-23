@@ -6,9 +6,16 @@ public record CapturedEvent<EventDataType>(string EventType, DateTime CapturedAt
     public string EventType = EventUtils.ValidateNonEmptyString(EventType);
     public string CapturedBy = EventUtils.ValidateNonEmptyString(CapturedBy);
 
-    public string SerializeEventData(object eventData)
+    public string? SerializeData()
     {
-        return JsonSerializer.Serialize(eventData, eventData.GetType());
+        if (Data == null) return null;
+        return JsonSerializer.Serialize(Data, Data.GetType());
+    }
+
+    public static EventDataType? DeserializeData(string? serializedData)
+    {
+        if (serializedData == null) return default;
+        return JsonSerializer.Deserialize<EventDataType>(serializedData);
     }
 }
 
