@@ -1,3 +1,5 @@
 {
-    "dotnet.defaultSolution": "EventSourcing.sln"
+    "dotnet.defaultSolution": "EventSourcing.sln",
+    "dotnet-test-explorer.testProjectPath": "**/*Tests.csproj",
+    "dotnet-test-explorer.enableTelemetry": false
 }
