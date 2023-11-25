@@ -33,6 +33,11 @@ public class AggregateType
 
     }
 
+    public void AddEventType(EventType eventType, FoldingFunction foldingFunction)
+    {
+        AddEventType(eventType);
+        AddFoldingFunction(eventType.EventTypeName, foldingFunction);
+    }
     private void ValidateFoldingFunction(EventType eventType, FoldingFunction foldingFunction)
     {
         var methodInfo = foldingFunction.GetMethodInfo();
@@ -40,14 +45,4 @@ public class AggregateType
         var parameterInfos = methodInfo.GetParameters();
         Debug.Assert(parameterInfos.Length == 2, "Folding function should have 2 parameters");
     }
-
-    public void AddEventType(EventType eventType, FoldingFunction foldingFunction)
-    {
-        AddEventType(eventType);
-        AddFoldingFunction(eventType.EventTypeName, foldingFunction);
-    }
-
-
-    // public static Dictionary<Type, FoldingFunction<StateType>> FoldingLogic
-    //     = new Dictionary<Type, FoldingFunction<StateType>>();
 }
