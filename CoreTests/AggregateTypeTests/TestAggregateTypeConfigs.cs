@@ -19,10 +19,10 @@ namespace CoreTests.AggregateTypeTests
 
         public static FoldingFunction TestFoldingFunction = new FoldingFunction(UndelegatedTestFoldingFunction);
 
-        private static dynamic UndelegatedTestFoldingFunction(dynamic oldState, dynamic SerializedEvent)
+        private static object UndelegatedTestFoldingFunction(object oldState, Core.Event.Event SerializedEvent)
         {
-            TestAggregateTypeState convertedOldState = Convert.ChangeType(oldState, typeof(TestAggregateTypeState));
-            Core.Event.Event convertedSerializedEvent = Convert.ChangeType(SerializedEvent, typeof(Core.Event.Event));
+            TestAggregateTypeState convertedOldState = (TestAggregateTypeState)oldState;
+            Core.Event.Event convertedSerializedEvent = (Core.Event.Event)SerializedEvent;
             TestEventDataType data = EventTypeTests.TestEventType.ParseData(convertedSerializedEvent);
             return new TestAggregateTypeState(convertedOldState.ACount + 1, convertedOldState.BCount + 1, convertedOldState.BSum + data.B);
         }

@@ -28,7 +28,7 @@ public class AggregateType
         EventType? eventType;
         if (!RegisteredEventTypes.TryGetValue(eventTypeName, out eventType))
             throw new KeyNotFoundException($"Event type name {eventTypeName} was not found.");
-        ValidateFoldingFunction(eventType, foldingFunction);
+        // ValidateFoldingFunction(eventType, foldingFunction);
         FoldingLogic.Add(eventTypeName, foldingFunction);
 
     }
@@ -38,11 +38,16 @@ public class AggregateType
         AddEventType(eventType);
         AddFoldingFunction(eventType.EventTypeName, foldingFunction);
     }
-    private void ValidateFoldingFunction(EventType eventType, FoldingFunction foldingFunction)
+
+    public dynamic FoldEvents(object oldState, List<Event.Event> events)
     {
-        var methodInfo = foldingFunction.GetMethodInfo();
-        Debug.Assert(methodInfo.ReturnType != typeof(void), $"Folding function must return a non-void type");
-        var parameterInfos = methodInfo.GetParameters();
-        Debug.Assert(parameterInfos.Length == 2, "Folding function should have 2 parameters");
+        object currentState = oldState;
+        foreach (var e in events)
+        {
+            FoldingFunction? foldingFunction;
+            if (!FoldingLogic.TryGetValue(e.EventType, out foldingFunction)) throw new ArgumentNullException(nameof(FoldingLogic));
+            currentState = foldingFunction(currentState, e);
+        }
+        return currentState;
     }
 }
