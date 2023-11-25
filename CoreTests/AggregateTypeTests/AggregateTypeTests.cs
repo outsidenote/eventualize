@@ -10,7 +10,7 @@ namespace CoreTests.AggregateTypeTests
         [TestMethod]
         public void AggregateType_WhenAddingEventType_Succeed()
         {
-            AggregateType testAggregateType = GetTestAggregateType();
+            AggregateType testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
             EventType testEventType = EventTypeTests.TestEventType;
             testAggregateType.AddEventType(testEventType);
             Assert.IsTrue(testAggregateType.RegisteredEventTypes.TryGetValue(testEventType.EventTypeName, out _));
@@ -20,18 +20,32 @@ namespace CoreTests.AggregateTypeTests
         [ExpectedException(typeof(ArgumentException))]
         public void AggregateType_WhenAddingEventTypeTwice_ThrowException()
         {
-            AggregateType testAggregateType = GetTestAggregateType();
+            AggregateType testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
             EventType testEventType = EventTypeTests.TestEventType;
             testAggregateType.AddEventType(testEventType);
             testAggregateType.AddEventType(testEventType);
         }
 
-        public static readonly Type TestStateType = typeof(TestAggregateTypeState);
-        public AggregateType GetTestAggregateType()
+        [TestMethod]
+        public void AggregateType_WhenAddginFoldingFunction_Succeed()
         {
-            return new AggregateType(TestStateType);
+            AggregateType testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
+            EventType testEventType = EventTypeTests.TestEventType;
+            testAggregateType.AddEventType(testEventType);
+            testAggregateType.AddFoldingFunction(testEventType.EventTypeName, TestAggregateTypeConfigs.TestFoldingFunction);
+            FoldingFunction storedFunction;
+            Assert.IsTrue(testAggregateType.FoldingLogic.TryGetValue(testEventType.EventTypeName, out storedFunction));
+            Assert.AreEqual(typeof(FoldingFunction), storedFunction.GetType());
         }
 
+
+
+
+
     }
-    record TestAggregateTypeState(int ACount, int BCount, int BSum);
+
+
+
+
+
 }

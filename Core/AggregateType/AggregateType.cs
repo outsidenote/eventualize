@@ -36,13 +36,9 @@ public class AggregateType
     private void ValidateFoldingFunction(EventType eventType, FoldingFunction foldingFunction)
     {
         var methodInfo = foldingFunction.GetMethodInfo();
-        Debug.Assert(methodInfo.ReturnType != StateType, $"Folding logic return type if {methodInfo.ReturnType}, but expected {StateType}");
+        Debug.Assert(methodInfo.ReturnType != typeof(void), $"Folding function must return a non-void type");
         var parameterInfos = methodInfo.GetParameters();
         Debug.Assert(parameterInfos.Length == 2, "Folding function should have 2 parameters");
-        if (StateType == null) throw new ArgumentNullException(nameof(StateType));
-        Debug.Assert(parameterInfos[0].GetType() == StateType, "Wrong 1st parameter type in folding function");
-        Debug.Assert(parameterInfos[1].GetType() == eventType.DataSchemaType, "Wrong 2nd parameter type in folding function");
-
     }
 
     public void AddEventType(EventType eventType, FoldingFunction foldingFunction)
