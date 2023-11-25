@@ -23,4 +23,15 @@ public class EventTypeTests
         await testEventType.CreateEvent(data, "TestMethod");
     }
 
+    [TestMethod]
+    public async Task EventType_WhenEventDataParsed_Succeed()
+    {
+        EventType testEventType = new EventType("testType", typeof(TestEventDataType));
+        TestEventDataType data = new("test", 10);
+        Event testEvent = await testEventType.CreateEvent(data, "TestMethod");
+        TestEventDataType parsedData = testEventType.ParseData(testEvent);
+        Assert.AreEqual(data, parsedData);
+        Assert.IsInstanceOfType(parsedData, data.GetType());
+    }
+
 }

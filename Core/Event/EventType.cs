@@ -6,6 +6,7 @@ using NJsonSchema;
 using System.Text.Json;
 using System.ComponentModel.DataAnnotations;
 using NJsonSchema.Validation;
+using System.Net;
 
 
 namespace Core.Event
@@ -14,7 +15,7 @@ namespace Core.Event
     {
         string EventTypeName;
         private string DataSchemaString;
-        private Type DataSchemaType;
+        public Type DataSchemaType { get; private set; }
         public JsonSchema? DataSchema { get; private set; }
 
         public EventType(string eventTypeName, string dataSchemaString)
@@ -58,5 +59,13 @@ namespace Core.Event
             return new Event(EventTypeName, DateTime.Now, capturedBy, dataString, null);
         }
 
+        public dynamic ParseData(Event eventObj)
+        {
+            if (DataSchemaType == null)
+                throw new ArgumentNullException(nameof(DataSchemaType));
+            var obj = JsonSerializer.Deserialize(eventObj.JsonData, DataSchemaType);
+            if (obj == null) throw new ArgumentNullException(nameof(obj));
+            return obj;
+        }
     }
 }
