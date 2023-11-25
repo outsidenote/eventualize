@@ -1,3 +1,3 @@
 using Core.Event;
 namespace Core.AggregateType;
-// public delegate StateType FoldingFunction<StateType>(StateType oldState, Core.Event.Event SerializedEvent);
+public delegate dynamic FoldingFunction(dynamic oldState, dynamic SerializedEvent);

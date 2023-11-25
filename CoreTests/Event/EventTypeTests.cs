@@ -9,16 +9,16 @@ public class EventTypeTests
     [TestMethod]
     public async Task EventType_WhenCreatingEvent_Succeed()
     {
-        EventType testEventType = new EventType("testType", typeof(TestEventDataType));
+        EventType testEventType = TestEventType;
         TestEventDataType data = new("test", 10);
-        await testEventType.CreateEvent(data, "TestMethod");
+        await GetCorrectTestEvent();
     }
 
     [TestMethod]
     [ExpectedException(typeof(ArgumentException))]
     public async Task EventType_WhenCreatingEventWithWrongDataType_ThrowException()
     {
-        EventType testEventType = new EventType("testType", typeof(TestEventDataType));
+        EventType testEventType = TestEventType;
         string data = "wrong data type";
         await testEventType.CreateEvent(data, "TestMethod");
     }
@@ -26,12 +26,17 @@ public class EventTypeTests
     [TestMethod]
     public async Task EventType_WhenEventDataParsed_Succeed()
     {
-        EventType testEventType = new EventType("testType", typeof(TestEventDataType));
-        TestEventDataType data = new("test", 10);
-        Event testEvent = await testEventType.CreateEvent(data, "TestMethod");
+        EventType testEventType = TestEventType;
+        Event testEvent = await GetCorrectTestEvent();
         TestEventDataType parsedData = testEventType.ParseData(testEvent);
-        Assert.AreEqual(data, parsedData);
-        Assert.IsInstanceOfType(parsedData, data.GetType());
+        Assert.AreEqual(CorrectEventData, parsedData);
+        Assert.IsInstanceOfType(parsedData, CorrectEventData.GetType());
     }
 
+    public static readonly EventType TestEventType = new EventType("testType", typeof(TestEventDataType));
+    public static readonly TestEventDataType CorrectEventData = new("test", 10);
+    public async Task<Event> GetCorrectTestEvent()
+    {
+        return await TestEventType.CreateEvent(CorrectEventData, "TestMethod");
+    }
 }

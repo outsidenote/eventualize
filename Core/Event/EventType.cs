@@ -13,9 +13,9 @@ namespace Core.Event
 {
     public class EventType
     {
-        string EventTypeName;
-        private string DataSchemaString;
-        public Type DataSchemaType { get; private set; }
+        public string EventTypeName { get; private set; }
+        private string? DataSchemaString;
+        public Type? DataSchemaType { get; private set; }
         public JsonSchema? DataSchema { get; private set; }
 
         public EventType(string eventTypeName, string dataSchemaString)
@@ -33,8 +33,10 @@ namespace Core.Event
         {
             if (DataSchemaType != null)
                 DataSchema = JsonSchema.FromType(DataSchemaType);
-            else
+            else if (DataSchemaString != null)
                 DataSchema = await JsonSchema.FromJsonAsync(DataSchemaString);
+            else
+                throw new ArgumentNullException(nameof(DataSchemaType));
         }
 
         public async Task<Event> CreateEvent(object dataObj, string capturedBy)
