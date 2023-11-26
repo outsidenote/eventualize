@@ -27,6 +27,15 @@ namespace Core.Aggregate
             State = AggregateType.FoldEvents(State, events);
         }
 
+        public Aggregate(AggregateType<StateType> aggregateType, string id, StateType? snapshot, List<Event.Event>? events)
+        {
+            AggregateType = aggregateType;
+            Id = id;
+            State = snapshot ?? new StateType();
+            if (events != null)
+                State = AggregateType.FoldEvents(State, events);
+        }
+
         public void AddPendingEvent(Event.Event someEvent)
         {
             EventType? eventType;

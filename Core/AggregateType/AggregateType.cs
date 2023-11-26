@@ -20,6 +20,11 @@ public class AggregateType<StateType> where StateType : notnull, new()
         return new Aggregate<StateType>(this, id, events);
     }
 
+    public Aggregate<StateType> CreateAggregate(string id, StateType? snapshot, List<Event.Event>? events)
+    {
+        return new Aggregate<StateType>(this, id, snapshot, events);
+    }
+
     public void AddEventType(EventType eventType)
     {
         RegisteredEventTypes.Add(eventType.EventTypeName, eventType);

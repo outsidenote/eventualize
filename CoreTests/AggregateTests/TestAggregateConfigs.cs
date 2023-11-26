@@ -14,5 +14,11 @@ namespace CoreTests.AggregateTests
             var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
             return aggregateType.CreateAggregate(Guid.NewGuid().ToString(), events);
         }
+
+        public static Aggregate<TestState> GetTestAggregate(TestState? snapshot, List<Core.Event.Event>? events)
+        {
+            var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
+            return aggregateType.CreateAggregate(Guid.NewGuid().ToString(), snapshot, events);
+        }
     }
 }

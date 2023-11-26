@@ -36,5 +36,26 @@ namespace CoreTests.AggregateTests
             Assert.AreEqual(aggregate.State, new TestState(3, 3, 30));
         }
 
+        [TestMethod]
+        public async Task Aggregate_WhenInstantiatingWithSnapshotAndEvents_Succeed()
+        {
+            List<Core.Event.Event> events = new();
+            for (int i = 0; i < 3; i++)
+            {
+                events.Add(await EventTypeTests.GetCorrectTestEvent());
+            }
+            var aggregate = TestAggregateConfigs.GetTestAggregate(new TestState(3, 3, 30), events);
+            Assert.AreEqual(aggregate.PendingEvents.Count, 0);
+            Assert.AreEqual(aggregate.State, new TestState(6, 6, 60));
+        }
+
+        [TestMethod]
+        public void Aggregate_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
+        {
+            var aggregate = TestAggregateConfigs.GetTestAggregate(new TestState(3, 3, 30), null);
+            Assert.AreEqual(aggregate.PendingEvents.Count, 0);
+            Assert.AreEqual(aggregate.State, new TestState(3, 3, 30));
+        }
+
     }
 }
