@@ -9,9 +9,10 @@ namespace CoreTests.AggregateTests
 {
     public class TestAggregateConfigs
     {
-        public static Aggregate<TestState> GetTestAggregate() {
+        public static Aggregate<TestState> GetTestAggregate(List<Core.Event.Event>? events)
+        {
             var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
-            return aggregateType.CreateAggregate(Guid.NewGuid().ToString());
+            return aggregateType.CreateAggregate(Guid.NewGuid().ToString(), events);
         }
     }
 }

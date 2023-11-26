@@ -16,11 +16,24 @@ namespace CoreTests.AggregateTests
         [TestMethod]
         public async Task Aggregate_WhenAddingPendingEvent_Succeed()
         {
-            var aggregate = TestAggregateConfigs.GetTestAggregate();
+            var aggregate = TestAggregateConfigs.GetTestAggregate(null);
             var e = await EventTypeTests.GetCorrectTestEvent();
             aggregate.AddPendingEvent(e);
             Assert.AreEqual(aggregate.PendingEvents.Count, 1);
             Assert.AreEqual(aggregate.PendingEvents[0], e);
+        }
+
+        [TestMethod]
+        public async Task Aggregate_WhenInstantiatingWithEvents_Succeed()
+        {
+            List<Core.Event.Event> events = new();
+            for (int i = 0; i < 3; i++)
+            {
+                events.Add(await EventTypeTests.GetCorrectTestEvent());
+            }
+            var aggregate = TestAggregateConfigs.GetTestAggregate(events);
+            Assert.AreEqual(aggregate.PendingEvents.Count, 0);
+            Assert.AreEqual(aggregate.State, new TestState(3, 3, 30));
         }
 
     }

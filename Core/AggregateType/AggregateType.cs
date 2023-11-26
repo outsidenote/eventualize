@@ -7,15 +7,17 @@ using Core.Aggregate;
 namespace Core.AggregateType;
 
 
-public class AggregateType<StateType> where StateType: notnull, new()
+public class AggregateType<StateType> where StateType : notnull, new()
 {
     public Dictionary<string, EventType> RegisteredEventTypes { get; private set; } = new();
 
     public Dictionary<string, IFoldingFunction<StateType>> FoldingLogic = new();
 
-    public Aggregate<StateType> CreateAggregate(string id)
+    public Aggregate<StateType> CreateAggregate(string id, List<Event.Event>? events)
     {
-        return new Aggregate<StateType>(this, id);
+        if (events == null)
+            return new Aggregate<StateType>(this, id);
+        return new Aggregate<StateType>(this, id, events);
     }
 
     public void AddEventType(EventType eventType)

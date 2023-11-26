@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Core.AggregateType;
 using CoreTests.Event;
+using System.Text.Json;
 
 namespace CoreTests.AggregateTypeTests
 {
@@ -36,6 +37,10 @@ namespace CoreTests.AggregateTypeTests
             return ACount == other.ACount && BCount == other.BCount && BSum == other.BSum;
         }
 
+        public override string ToString()
+        {
+            return $"(ACount={ACount}, BCount={BCount}, BSum={BSum})";
+        }
     };
     public static class TestAggregateTypeConfigs
     {
