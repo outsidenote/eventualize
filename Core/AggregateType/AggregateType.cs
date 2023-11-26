@@ -44,10 +44,17 @@ public class AggregateType
         object currentState = oldState;
         foreach (var e in events)
         {
-            FoldingFunction? foldingFunction;
-            if (!FoldingLogic.TryGetValue(e.EventType, out foldingFunction)) throw new ArgumentNullException(nameof(FoldingLogic));
-            currentState = foldingFunction(currentState, e);
+            currentState = FoldEvent(currentState, e);
         }
+        return currentState;
+    }
+
+    public dynamic FoldEvent(object oldState, Event.Event someEvent)
+    {
+        object currentState = oldState;
+        FoldingFunction? foldingFunction;
+        if (!FoldingLogic.TryGetValue(someEvent.EventType, out foldingFunction)) throw new ArgumentNullException(nameof(FoldingLogic));
+        currentState = foldingFunction(currentState, someEvent);
         return currentState;
     }
 }
