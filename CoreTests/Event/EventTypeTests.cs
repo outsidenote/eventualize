@@ -12,6 +12,7 @@ public class EventTypeTests
         EventType testEventType = TestEventType;
         TestEventDataType data = new("test", 10);
         await GetCorrectTestEvent();
+        return;
     }
 
     [TestMethod]
