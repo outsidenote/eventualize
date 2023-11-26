@@ -1,0 +1,27 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Core.AggregateType;
+using CoreTests.AggregateTypeTests;
+using CoreTests.Event;
+using Core.Event;
+
+
+namespace CoreTests.AggregateTests
+{
+    [TestClass]
+    public class AggregateTests
+    {
+        [TestMethod]
+        public async Task Aggregate_WhenAddingPendingEvent_Succeed()
+        {
+            var aggregate = TestAggregateConfigs.GetTestAggregate();
+            var e = await EventTypeTests.GetCorrectTestEvent();
+            aggregate.AddPendingEvent(e);
+            Assert.AreEqual(aggregate.PendingEvents.Count, 1);
+            Assert.AreEqual(aggregate.PendingEvents[0], e);
+        }
+
+    }
+}

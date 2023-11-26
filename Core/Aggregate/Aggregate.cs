@@ -1,26 +1,33 @@
-﻿// using System.Text.Json;
-// using Core.Aggregate;
-// using Core.AggregateType;
-// using Core.Event;
+﻿using Core.AggregateType;
+using Core.Event;
 
-// namespace Core
-// {
-//     public class Aggregate<StateType>
-//     {
-//         public readonly AggregateType<StateType> AggregateType;
-//         public PendingEvent[] PendingEvents { get; private set; } = Array.Empty<PendingEvent>();
-//         public int LastStoredSequenceId { get; private set; } = 0;
+namespace Core.Aggregate
+{
+    public class Aggregate<StateType> where StateType : notnull, new()
+    {
+        public readonly string Id;
+        public readonly AggregateType<StateType> AggregateType;
+        public List<Event.Event> PendingEvents { get; private set; } = new List<Event.Event>();
+        public int LastStoredSequenceId { get; private set; } = 0;
 
-//         public Aggregate(AggregateType<StateType> aggregateType)
-//         {
-//             AggregateType = aggregateType;
-//         }
+        public StateType State { get; private set; }
 
-//         public void AddPendingEvent<EventDataType>(Event<EventDataType> someEvent)
-//         {
-//             PendingEvent pendingEvent = PendingEvent.create<EventDataType>(someEvent);
-//             PendingEvents.Append(pendingEvent);
-//         }
-//     }
-// }
+        public Aggregate(AggregateType<StateType> aggregateType, string id)
+        {
+            AggregateType = aggregateType;
+            Id = id;
+            State = new StateType();
+        }
+
+        public void AddPendingEvent(Event.Event someEvent)
+        {
+            EventType? eventType;
+            if (!AggregateType.RegisteredEventTypes.TryGetValue(someEvent.EventType, out eventType))
+                throw new KeyNotFoundException($"No registered event of type {someEvent.EventType}");
+            eventType.ParseData(someEvent);
+            PendingEvents.Add(someEvent);
+            State = AggregateType.FoldEvent(State, someEvent);
+        }
+    }
+}
 

@@ -2,20 +2,20 @@
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using Core.Event;
+using Core.Aggregate;
 
 namespace Core.AggregateType;
 
 
-public class AggregateType
+public class AggregateType<StateType> where StateType: notnull, new()
 {
-    public Type StateType { get; private set; }
-    public Dictionary<string, EventType> RegisteredEventTypes { get; private set; }
-        = new Dictionary<string, EventType>();
+    public Dictionary<string, EventType> RegisteredEventTypes { get; private set; } = new();
 
-    public Dictionary<string, FoldingFunction> FoldingLogic = new Dictionary<string, FoldingFunction>();
-    public AggregateType(Type stateType)
+    public Dictionary<string, IFoldingFunction<StateType>> FoldingLogic = new();
+
+    public Aggregate<StateType> CreateAggregate(string id)
     {
-        StateType = stateType;
+        return new Aggregate<StateType>(this, id);
     }
 
     public void AddEventType(EventType eventType)
@@ -23,25 +23,24 @@ public class AggregateType
         RegisteredEventTypes.Add(eventType.EventTypeName, eventType);
     }
 
-    public void AddFoldingFunction(string eventTypeName, FoldingFunction foldingFunction)
+    public void AddFoldingFunction(string eventTypeName, IFoldingFunction<StateType> foldingFunction)
     {
         EventType? eventType;
         if (!RegisteredEventTypes.TryGetValue(eventTypeName, out eventType))
             throw new KeyNotFoundException($"Event type name {eventTypeName} was not found.");
-        // ValidateFoldingFunction(eventType, foldingFunction);
         FoldingLogic.Add(eventTypeName, foldingFunction);
 
     }
 
-    public void AddEventType(EventType eventType, FoldingFunction foldingFunction)
+    public void AddEventType(EventType eventType, IFoldingFunction<StateType> foldingFunction)
     {
         AddEventType(eventType);
         AddFoldingFunction(eventType.EventTypeName, foldingFunction);
     }
 
-    public dynamic FoldEvents(object oldState, List<Event.Event> events)
+    public StateType FoldEvents(StateType oldState, List<Event.Event> events)
     {
-        object currentState = oldState;
+        StateType currentState = oldState;
         foreach (var e in events)
         {
             currentState = FoldEvent(currentState, e);
@@ -49,12 +48,12 @@ public class AggregateType
         return currentState;
     }
 
-    public dynamic FoldEvent(object oldState, Event.Event someEvent)
+    public StateType FoldEvent(StateType oldState, Event.Event someEvent)
     {
-        object currentState = oldState;
-        FoldingFunction? foldingFunction;
-        if (!FoldingLogic.TryGetValue(someEvent.EventType, out foldingFunction)) throw new ArgumentNullException(nameof(FoldingLogic));
-        currentState = foldingFunction(currentState, someEvent);
+        StateType currentState = oldState;
+        IFoldingFunction<StateType>? foldingFunction;
+        if (!FoldingLogic.TryGetValue(someEvent.EventType, out foldingFunction)) throw new ArgumentNullException(nameof(someEvent));
+        currentState = foldingFunction.Fold(currentState, someEvent);
         return currentState;
     }
 }

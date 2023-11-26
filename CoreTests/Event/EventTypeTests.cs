@@ -36,7 +36,7 @@ public class EventTypeTests
 
     public static readonly EventType TestEventType = new EventType("testType", typeof(TestEventDataType));
     public static readonly TestEventDataType CorrectEventData = new("test", 10);
-    public async Task<Event> GetCorrectTestEvent()
+    public static async Task<Event> GetCorrectTestEvent()
     {
         return await TestEventType.CreateEvent(CorrectEventData, "TestMethod");
     }

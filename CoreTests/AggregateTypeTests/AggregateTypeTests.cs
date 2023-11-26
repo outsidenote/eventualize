@@ -11,7 +11,7 @@ namespace CoreTests.AggregateTypeTests
         [TestMethod]
         public void AggregateType_WhenAddingEventType_Succeed()
         {
-            AggregateType testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
+            var testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
             EventType testEventType = EventTypeTests.TestEventType;
             testAggregateType.AddEventType(testEventType);
             Assert.IsTrue(testAggregateType.RegisteredEventTypes.TryGetValue(testEventType.EventTypeName, out _));
@@ -21,7 +21,7 @@ namespace CoreTests.AggregateTypeTests
         [ExpectedException(typeof(ArgumentException))]
         public void AggregateType_WhenAddingEventTypeTwice_ThrowException()
         {
-            AggregateType testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
+            var testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
             EventType testEventType = EventTypeTests.TestEventType;
             testAggregateType.AddEventType(testEventType);
             testAggregateType.AddEventType(testEventType);
@@ -30,40 +30,24 @@ namespace CoreTests.AggregateTypeTests
         [TestMethod]
         public void AggregateType_WhenAddginFoldingFunction_Succeed()
         {
-            AggregateType testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
-            EventType testEventType = EventTypeTests.TestEventType;
-            testAggregateType.AddEventType(testEventType);
-            testAggregateType.AddFoldingFunction(testEventType.EventTypeName, TestAggregateTypeConfigs.TestFoldingFunction);
-            FoldingFunction storedFunction;
-            Assert.IsTrue(testAggregateType.FoldingLogic.TryGetValue(testEventType.EventTypeName, out storedFunction));
-            Assert.AreEqual(typeof(FoldingFunction), storedFunction.GetType());
+            var testAggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
+            IFoldingFunction<TestState>? storedFunction;
+            Assert.IsTrue(testAggregateType.FoldingLogic.TryGetValue(EventTypeTests.TestEventType.EventTypeName, out storedFunction));
+            Assert.IsTrue(storedFunction is IFoldingFunction<TestState>);
         }
 
         [TestMethod]
         public async Task AggregateType_WhenFoldingEvents_Succeed()
         {
-            AggregateType testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
-            EventType testEventType = EventTypeTests.TestEventType;
-            testAggregateType.AddEventType(testEventType, TestAggregateTypeConfigs.TestFoldingFunction);
+            var testAggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
             List<Core.Event.Event> events = new List<Core.Event.Event>();
             for (var i = 0; i < 3; i++)
             {
-                events.Add(await testEventType.CreateEvent(EventTypeTests.CorrectEventData, "AggregateType test method"));
+                events.Add(await EventTypeTests.TestEventType.CreateEvent(EventTypeTests.CorrectEventData, "AggregateType test method"));
             }
-            TestAggregateTypeState foldedState = testAggregateType.FoldEvents(new TestAggregateTypeState(), events);
-            TestAggregateTypeState expectedState = new TestAggregateTypeState(3, 3, 30);
-            Assert.AreEqual(foldedState, expectedState);
-
+            TestState foldedState = testAggregateType.FoldEvents(new TestState(), events);
+            TestState expectedState = new TestState(3, 3, 30);
+            Assert.IsTrue(foldedState.EqualsTo(expectedState));
         }
-
-
-
-
-
     }
-
-
-
-
-
 }
