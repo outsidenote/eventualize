@@ -47,7 +47,7 @@ namespace CoreTests.AggregateTypeTests
             }
             TestState foldedState = testAggregateType.FoldEvents(new TestState(), events);
             TestState expectedState = new TestState(3, 3, 30);
-            Assert.IsTrue(foldedState.EqualsTo(expectedState));
+            Assert.AreEqual(foldedState, expectedState);
         }
     }
 }

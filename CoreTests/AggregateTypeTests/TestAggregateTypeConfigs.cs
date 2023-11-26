@@ -9,7 +9,7 @@ using CoreTests.Event;
 
 namespace CoreTests.AggregateTypeTests
 {
-    public class TestState
+    public class TestState : IEquatable<TestState>
     {
         public readonly int ACount = 0;
         public readonly int BCount = 0;
@@ -30,11 +30,12 @@ namespace CoreTests.AggregateTypeTests
             BSum = bSum;
         }
 
-        public bool EqualsTo(TestState? x)
+        public bool Equals(TestState? other)
         {
-            if (x == null) return false;
-            return ACount == x.ACount && BCount == x.BCount && BSum == x.BSum;
+            if (other == null) return false;
+            return ACount == other.ACount && BCount == other.BCount && BSum == other.BSum;
         }
+
     };
     public static class TestAggregateTypeConfigs
     {
