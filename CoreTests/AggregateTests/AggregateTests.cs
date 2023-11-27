@@ -44,7 +44,7 @@ namespace CoreTests.AggregateTests
             {
                 events.Add(await EventTypeTests.GetCorrectTestEvent());
             }
-            var aggregate = TestAggregateConfigs.GetTestAggregate(new TestState(3, 3, 30), events);
+            var aggregate = TestAggregateConfigs.GetTestAggregateFromStore(new TestState(3, 3, 30), events);
             Assert.AreEqual(aggregate.PendingEvents.Count, 0);
             Assert.AreEqual(aggregate.State, new TestState(6, 6, 60));
         }
@@ -52,7 +52,7 @@ namespace CoreTests.AggregateTests
         [TestMethod]
         public void Aggregate_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
         {
-            var aggregate = TestAggregateConfigs.GetTestAggregate(new TestState(3, 3, 30), null);
+            var aggregate = TestAggregateConfigs.GetTestAggregate(new TestState(3, 3, 30), new List<Core.Event.Event>());
             Assert.AreEqual(aggregate.PendingEvents.Count, 0);
             Assert.AreEqual(aggregate.State, new TestState(3, 3, 30));
         }

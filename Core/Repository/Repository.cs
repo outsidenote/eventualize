@@ -29,15 +29,21 @@ namespace Core.Repository
         public async Task<Aggregate<T>> Get<T>(AggregateType<T> aggregateType, string id) where T : notnull, new()
         {
             List<Event.Event> events;
-            var snapshotData = await StorageAdapter.GetLatestSnapshot<T>(nameof(aggregateType), id);
+            var snapshotData = await StorageAdapter.GetLatestSnapshot<T>(aggregateType.Name, id);
             if (snapshotData == null)
             {
-                events = await StorageAdapter.GetStoredEvents(0);
+                events = await StorageAdapter.GetStoredEvents(aggregateType.Name, id, 0);
                 return aggregateType.CreateAggregate(id, events);
             }
             long nextSequenceId = GetNextSequenceId(snapshotData.SnapshotSequenceId);
-            events = await StorageAdapter.GetStoredEvents(nextSequenceId);
-            return aggregateType.CreateAggregate(id, snapshotData.Snapshot, events);
+            events = await StorageAdapter.GetStoredEvents(aggregateType.Name, id, nextSequenceId);
+            return aggregateType.CreateAggregate(id, snapshotData.Snapshot, snapshotData.SnapshotSequenceId, events);
+        }
+
+        public async Task Store<T>(Aggregate<T> aggregate) where T : notnull, new()
+        {
+            aggregate.ClearPendingEvents();
+            await Task.FromResult(true);
         }
     }
 }

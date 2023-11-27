@@ -8,7 +8,7 @@ namespace Core.Aggregate
         public readonly string Id;
         public readonly AggregateType<StateType> AggregateType;
         public List<Event.Event> PendingEvents { get; private set; } = new List<Event.Event>();
-        public int LastStoredSequenceId { get; private set; } = 0;
+        public long LastStoredSequenceId { get; private set; } = 0;
 
         public StateType State { get; private set; }
 
@@ -23,14 +23,16 @@ namespace Core.Aggregate
         {
             AggregateType = aggregateType;
             Id = id;
+            LastStoredSequenceId = events.Count - 1;
             State = new StateType();
             State = AggregateType.FoldEvents(State, events);
         }
 
-        public Aggregate(AggregateType<StateType> aggregateType, string id, StateType? snapshot, List<Event.Event>? events)
+        public Aggregate(AggregateType<StateType> aggregateType, string id, StateType snapshot, long snapshotSequenceId, List<Event.Event> events)
         {
             AggregateType = aggregateType;
             Id = id;
+            LastStoredSequenceId = snapshotSequenceId + events.Count;
             State = snapshot ?? new StateType();
             if (events != null)
                 State = AggregateType.FoldEvents(State, events);

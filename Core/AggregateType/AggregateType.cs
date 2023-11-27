@@ -13,6 +13,13 @@ public class AggregateType<StateType> where StateType : notnull, new()
 
     public Dictionary<string, IFoldingFunction<StateType>> FoldingLogic = new();
 
+    public readonly string Name;
+
+    public AggregateType(string name)
+    {
+        Name = name;
+    }
+
     public Aggregate<StateType> CreateAggregate(string id, List<Event.Event>? events)
     {
         if (events == null)
@@ -20,9 +27,9 @@ public class AggregateType<StateType> where StateType : notnull, new()
         return new Aggregate<StateType>(this, id, events);
     }
 
-    public Aggregate<StateType> CreateAggregate(string id, StateType? snapshot, List<Event.Event>? events)
+    public Aggregate<StateType> CreateAggregate(string id, StateType snapshot, long lastStoredSequenceId, List<Event.Event> events)
     {
-        return new Aggregate<StateType>(this, id, snapshot, events);
+        return new Aggregate<StateType>(this, id, snapshot, lastStoredSequenceId, events);
     }
 
     public void AddEventType(EventType eventType)
