@@ -45,6 +45,11 @@ namespace Core.Aggregate
             PendingEvents.Add(someEvent);
             State = AggregateType.FoldEvent(State, someEvent);
         }
+
+        public void ClearPendingEvents()
+        {
+            PendingEvents = new();
+        }
     }
 }
 
