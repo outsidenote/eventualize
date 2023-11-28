@@ -37,9 +37,16 @@ namespace CoreTests.RepositoryTests
             var aggregateTypeName = aggregate.AggregateType.Name;
             var events = await storageAdapter.GetStoredEvents(aggregateTypeName, aggregate.Id, 0);
             Assert.AreEqual(3, events.Count);
+            Assert.AreEqual(events.Count - 1, aggregate.LastStoredSequenceId);
+            Assert.AreEqual(0, aggregate.PendingEvents.Count);
+
             var snapshotData = await storageAdapter.GetLatestSnapshot<TestState>(aggregateTypeName, aggregate.Id);
             Assert.AreEqual(!isSnapshotStored, snapshotData is null);
-            Assert.AreEqual(0, aggregate.PendingEvents.Count);
+            if (isSnapshotStored)
+            {
+                long expectedLastStoredSequenceId = events.Count - 1;
+                Assert.AreEqual(expectedLastStoredSequenceId, aggregate.LastStoredSequenceId);
+            }
         }
 
     }

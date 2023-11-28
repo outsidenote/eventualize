@@ -53,7 +53,6 @@ namespace Core.Repository
             bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
             await StorageAdapter.Store(aggregate, shouldStoreSnapshot);
             aggregate.ClearPendingEvents();
-
         }
     }
 }

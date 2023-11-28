@@ -9,7 +9,7 @@ namespace Core.Aggregate
         public string Id { get; private set; }
         public AggregateType<StateType> AggregateType { get; private set; }
         public List<Event.Event> PendingEvents { get; private set; } = new List<Event.Event>();
-        public long LastStoredSequenceId { get; private set; } = 0;
+        public long LastStoredSequenceId { get; private set; } = -1;
         public int MinEventsBetweenSnapshots { get; private set; } = 0;
 
         public StateType State { get; private set; }
@@ -56,6 +56,7 @@ namespace Core.Aggregate
 
         public void ClearPendingEvents()
         {
+            LastStoredSequenceId += PendingEvents.Count;
             PendingEvents = new();
         }
     }
