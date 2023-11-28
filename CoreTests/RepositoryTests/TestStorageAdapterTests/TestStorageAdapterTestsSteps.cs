@@ -14,7 +14,7 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
     {
         public static async Task<Aggregate<TestState>> PrepareAggregateWithPendingEvents()
         {
-            var aggregate = TestAggregateConfigs.GetTestAggregate(new());
+            var aggregate = TestAggregateConfigs.GetTestAggregate();
             for (int i = 0; i < 3; i++)
                 aggregate.AddPendingEvent(await Event.EventTypeTests.GetCorrectTestEvent());
             return aggregate;
@@ -34,14 +34,9 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
             List<Core.Event.Event> events = new();
             for (int i = 0; i < 3; i++)
                 events.Add(await Event.EventTypeTests.GetCorrectTestEvent());
-            return TestAggregateConfigs.GetTestAggregate(events);
+            return TestAggregateConfigs.GetTestAggregate(events, true);
         }
 
-        public static void AssertPendingEventsAreCleared(Aggregate<TestState> aggregate)
-        {
-            Assert.AreEqual(aggregate.PendingEvents.Count, 0);
-
-        }
         public static void AssertEventsAreStored(TestStorageAdapter testStorageAdapter, Aggregate<TestState> aggregate, List<Core.Event.Event>? events)
         {
             Assert.IsNotNull(events);

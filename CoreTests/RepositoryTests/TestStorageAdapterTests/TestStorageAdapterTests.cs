@@ -7,6 +7,7 @@ using Core.Aggregate;
 using CoreTests.Event;
 using CoreTests.AggregateTypeTests;
 using CoreTests.RepositoryTests;
+using System.Diagnostics;
 
 namespace CoreTests.RepositoryTests.TestStorageAdapterTests
 {
@@ -16,18 +17,18 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
         [TestMethod]
         public async Task TestStorageAdapter_WhenStoringAggregateWithoutSnapshot_Succeed()
         {
-            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithEvents();
+            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             TestStorageAdapter testStorageAdapter = new();
             var testEvents = await testStorageAdapter.StorePendingEvents(aggregate);
-            TestStorageAdapterTestsSteps.AssertPendingEventsAreCleared(aggregate);
             TestStorageAdapterTestsSteps.AssertEventsAreStored(testStorageAdapter, aggregate, testEvents);
         }
+        
+        [TestMethod]
         public async Task TestStorageAdapter_WhenStoringAggregateWithSnapshot_Succeed()
         {
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithEvents();
             TestStorageAdapter testStorageAdapter = new();
             var testEvents = await testStorageAdapter.Store(aggregate, true);
-            TestStorageAdapterTestsSteps.AssertPendingEventsAreCleared(aggregate);
             TestStorageAdapterTestsSteps.AssertEventsAreStored(testStorageAdapter, aggregate, testEvents);
             TestStorageAdapterTestsSteps.AssertSnapshotIsStored(testStorageAdapter, aggregate);
         }

@@ -9,13 +9,26 @@ namespace CoreTests.AggregateTests
 {
     public class TestAggregateConfigs
     {
-        public static Aggregate<TestState> GetTestAggregate(List<Core.Event.Event>? events)
+        public static Aggregate<TestState> GetTestAggregate()
         {
             var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
-            if (events == null)
-                return aggregateType.CreateAggregate(Guid.NewGuid().ToString());
-            else
+            return aggregateType.CreateAggregate(Guid.NewGuid().ToString());
+        }
+        public static Aggregate<TestState> GetTestAggregate(List<Core.Event.Event> events, bool isPendingEvents)
+        {
+            var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
+            if (!isPendingEvents)
                 return aggregateType.CreateAggregate(Guid.NewGuid().ToString(), events);
+            else
+            {
+                var aggregate = aggregateType.CreateAggregate(Guid.NewGuid().ToString());
+                foreach (var e in events)
+                {
+                    aggregate.AddPendingEvent(e);
+                }
+                return aggregate;
+            }
+
         }
 
         public static Aggregate<TestState> GetTestAggregate(List<Core.Event.Event>? events, int? minEventsBetweenSnapshots)

@@ -26,21 +26,22 @@ namespace CoreTests.RepositoryTests
 
         public Task<List<Core.Event.Event>?> StorePendingEvents<T>(Aggregate<T> aggregate) where T : notnull, new()
         {
-            List<Core.Event.Event>? eventsList;
-            List<Core.Event.Event>? pendingEventsWithStoreTs = new();
+            if (aggregate.PendingEvents.Count == 0)
+                return Task.FromResult(default(List<Core.Event.Event>));
+            List<Core.Event.Event> pendingEventsWithStoreTs = new();
             DateTime storeTs = DateTime.Now;
             foreach (var pendingEvent in aggregate.PendingEvents)
             {
                 pendingEventsWithStoreTs.Add(new Core.Event.Event(pendingEvent, storeTs));
             }
             string key = GetKeyValue(aggregate);
-            if (!Events.TryGetValue(key, out eventsList))
+            if (!Events.TryGetValue(key, out List<Core.Event.Event>? eventsList))
             {
                 Events.Add(key, pendingEventsWithStoreTs);
             }
             else
             {
-                eventsList = (List<Core.Event.Event>)eventsList.Concat(pendingEventsWithStoreTs);
+                eventsList.AddRange(pendingEventsWithStoreTs);
             }
             return Task.FromResult(pendingEventsWithStoreTs ?? default);
         }
@@ -51,7 +52,14 @@ namespace CoreTests.RepositoryTests
             long sequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;
             JsonDocument serializedSnapshot = JsonDocument.Parse(JsonSerializer.Serialize<T>(aggregate.State));
             StoredSnapshotData<JsonDocument> value = new(serializedSnapshot, sequenceId);
-            Snapshots.Add(key, value);
+            if (!Snapshots.TryGetValue(key, out var storedSnapshotData))
+            {
+                Snapshots.Add(key, value);
+            }
+            else
+            {
+                Snapshots[key] = value;
+            }
             return Task.FromResult(true);
         }
 
@@ -84,6 +92,16 @@ namespace CoreTests.RepositoryTests
         public Task Init()
         {
             return Task.FromResult(true);
+        }
+
+        public Task<long> GetLastStoredSequenceId<T>(Aggregate<T> aggregate) where T : notnull, new()
+        {
+            string key = GetKeyValue(aggregate.AggregateType.Name, aggregate.Id);
+            if (!Events.TryGetValue(key, out var events))
+            {
+                return Task.FromResult((long)-1);
+            }
+            return Task.FromResult((long)events.Count - 1);
         }
     }
 }

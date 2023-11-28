@@ -47,6 +47,9 @@ namespace Core.Repository
                 await Task.FromResult(true);
                 return;
             }
+            long lastStoredSequenceId = await StorageAdapter.GetLastStoredSequenceId(aggregate);
+            if (lastStoredSequenceId != aggregate.LastStoredSequenceId)
+                throw new OCCException<T>(aggregate, lastStoredSequenceId);
             bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
             await StorageAdapter.Store(aggregate, shouldStoreSnapshot);
             aggregate.ClearPendingEvents();

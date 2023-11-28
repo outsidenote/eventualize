@@ -16,7 +16,7 @@ namespace CoreTests.AggregateTests
         [TestMethod]
         public async Task Aggregate_WhenAddingPendingEvent_Succeed()
         {
-            var aggregate = TestAggregateConfigs.GetTestAggregate(null);
+            var aggregate = TestAggregateConfigs.GetTestAggregate();
             var e = await EventTypeTests.GetCorrectTestEvent();
             aggregate.AddPendingEvent(e);
             Assert.AreEqual(aggregate.PendingEvents.Count, 1);
@@ -31,7 +31,7 @@ namespace CoreTests.AggregateTests
             {
                 events.Add(await EventTypeTests.GetCorrectTestEvent());
             }
-            var aggregate = TestAggregateConfigs.GetTestAggregate(events);
+            var aggregate = TestAggregateConfigs.GetTestAggregate(events, false);
             Assert.AreEqual(aggregate.PendingEvents.Count, 0);
             Assert.AreEqual(aggregate.State, new TestState(3, 3, 30));
         }
