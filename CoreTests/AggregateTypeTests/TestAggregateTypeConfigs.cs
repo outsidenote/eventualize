@@ -61,6 +61,14 @@ namespace CoreTests.AggregateTypeTests
             return aggregate;
         }
 
+        public static AggregateType<TestState> GetTestAggregateTypeWithEventTypeAndFoldingLogicAndMinEvents(int? minEvents)
+        {
+            var aggregate = new AggregateType<TestState>(AggregateTypeName, minEvents ?? 3);
+            var testEventType = EventTypeTests.TestEventType;
+            aggregate.AddEventType(testEventType, FoldingFunctionInstance);
+            return aggregate;
+        }
+
         public static FoldingFunction TestFoldingFunction = new FoldingFunction(UndelegatedTestFoldingFunction);
 
         public static IFoldingFunction<TestState> FoldingFunctionInstance = new TestFoldingFunction();

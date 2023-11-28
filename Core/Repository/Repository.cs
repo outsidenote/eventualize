@@ -47,8 +47,10 @@ namespace Core.Repository
                 await Task.FromResult(true);
                 return;
             }
-            await StorageAdapter.Store<T>(aggregate, false);
+            bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
+            await StorageAdapter.Store(aggregate, shouldStoreSnapshot);
             aggregate.ClearPendingEvents();
+
         }
     }
 }

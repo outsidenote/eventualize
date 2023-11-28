@@ -20,6 +20,15 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
             return aggregate;
 
         }
+
+        public static async Task<Aggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
+        {
+            var aggregate = TestAggregateConfigs.GetTestAggregate(new(), minEventsBetweenSnapshots);
+            for (int i = 0; i < 3; i++)
+                aggregate.AddPendingEvent(await Event.EventTypeTests.GetCorrectTestEvent());
+            return aggregate;
+
+        }
         public static async Task<Aggregate<TestState>> PrepareAggregateWithEvents()
         {
             List<Core.Event.Event> events = new();

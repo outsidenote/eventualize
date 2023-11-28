@@ -30,10 +30,19 @@ namespace CoreTests.RepositoryTests
             //     Thread.Sleep(100);
             // }
             var repoTestSteps = new RepositoryTestsSteps();
-            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(10);
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
             await repository.Store(aggregate);
             await repoTestSteps.AssertStoredAggregateIsCorrect(aggregate, false);
+        }
+
+        [TestMethod]
+        public async Task Repository_WhenStoringAggregateWithSnapshot_Succeed() {
+            var repoTestSteps = new RepositoryTestsSteps();
+            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(3);
+            var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
+            await repository.Store(aggregate);
+            await repoTestSteps.AssertStoredAggregateIsCorrect(aggregate, true);
         }
 
     }
