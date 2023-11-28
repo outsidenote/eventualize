@@ -42,8 +42,13 @@ namespace Core.Repository
 
         public async Task Store<T>(Aggregate<T> aggregate) where T : notnull, new()
         {
+            if (aggregate.PendingEvents.Count == 0)
+            {
+                await Task.FromResult(true);
+                return;
+            }
+            await StorageAdapter.Store<T>(aggregate, false);
             aggregate.ClearPendingEvents();
-            await Task.FromResult(true);
         }
     }
 }

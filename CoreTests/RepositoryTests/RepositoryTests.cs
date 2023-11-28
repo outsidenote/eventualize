@@ -15,10 +15,6 @@ namespace CoreTests.RepositoryTests
         [TestMethod]
         public async Task Repository_WhenGettingAggregate_Succeed()
         {
-            // while (!Debugger.IsAttached)
-            // {
-            //     Thread.Sleep(100);
-            // }
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
@@ -26,13 +22,18 @@ namespace CoreTests.RepositoryTests
             repoTestSteps.AssertFetchedAggregateIsCorrecrt(aggregate, fetchedAggregate);
         }
 
+        [TestMethod]
         public async Task Repository_WhenStoringAggregateWithoutSnapshot_Scceed()
         {
+            // while (!Debugger.IsAttached)
+            // {
+            //     Thread.Sleep(100);
+            // }
             var repoTestSteps = new RepositoryTestsSteps();
-            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithEvents();
+            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
             await repository.Store(aggregate);
-
+            await repoTestSteps.AssertStoredAggregateIsCorrect(aggregate, false);
         }
 
     }

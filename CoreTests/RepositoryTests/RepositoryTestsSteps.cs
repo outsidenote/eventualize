@@ -32,13 +32,15 @@ namespace CoreTests.RepositoryTests
             Assert.AreEqual(2, fetchedAggregate.LastStoredSequenceId);
         }
 
-        public async Task AssertStoredAggregateIsCorrect(Aggregate<TestState> aggregate)
+        public async Task AssertStoredAggregateIsCorrect(Aggregate<TestState> aggregate, bool isSnapshotStored)
         {
             var aggregateTypeName = aggregate.AggregateType.Name;
             var events = await storageAdapter.GetStoredEvents(aggregateTypeName, aggregate.Id, 0);
-            Assert.AreEqual(events.Count, 3);
-            var snapshot = await storageAdapter.GetLatestSnapshot<TestState>(aggregateTypeName, aggregate.Id);
-            Assert.IsNull(snapshot);
+            Assert.AreEqual(3, events.Count);
+            var snapshotData = await storageAdapter.GetLatestSnapshot<TestState>(aggregateTypeName, aggregate.Id);
+            Assert.AreEqual(!isSnapshotStored, snapshotData is null);
+            Assert.AreEqual(0, aggregate.PendingEvents.Count);
         }
+
     }
 }
