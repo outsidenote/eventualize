@@ -1,41 +1,47 @@
-﻿using Core.AggregateType;
+﻿using System.Diagnostics.CodeAnalysis;
+using Core.AggregateType;
 using Core.Event;
 
 namespace Core.Aggregate
 {
     public class Aggregate<StateType> where StateType : notnull, new()
     {
-        public readonly string Id;
-        public readonly AggregateType<StateType> AggregateType;
+        public string Id { get; private set; }
+        public AggregateType<StateType> AggregateType { get; private set; }
         public List<Event.Event> PendingEvents { get; private set; } = new List<Event.Event>();
         public long LastStoredSequenceId { get; private set; } = 0;
+        public int MinEventsBetweenSnapshots { get; private set; } = 0;
 
         public StateType State { get; private set; }
 
-        public Aggregate(AggregateType<StateType> aggregateType, string id)
+        [MemberNotNull(nameof(Id), nameof(AggregateType), nameof(MinEventsBetweenSnapshots), nameof(State))]
+        private void BaseInit(AggregateType<StateType> aggregateType, string id, int minEventsBetweenSnapshots)
         {
             AggregateType = aggregateType;
             Id = id;
+            MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
             State = new StateType();
+
         }
 
-        public Aggregate(AggregateType<StateType> aggregateType, string id, List<Event.Event> events)
+        public Aggregate(AggregateType<StateType> aggregateType, string id, int minEventsBetweenSnapshots)
         {
-            AggregateType = aggregateType;
-            Id = id;
-            LastStoredSequenceId = events.Count - 1;
-            State = new StateType();
+            BaseInit(aggregateType, id, minEventsBetweenSnapshots);
+        }
+
+        public Aggregate(AggregateType<StateType> aggregateType, string id, int minEventsBetweenSnapshots, List<Event.Event> events)
+        {
+            BaseInit(aggregateType, id, minEventsBetweenSnapshots);
             State = AggregateType.FoldEvents(State, events);
+            LastStoredSequenceId = events.Count - 1;
         }
 
-        public Aggregate(AggregateType<StateType> aggregateType, string id, StateType snapshot, long snapshotSequenceId, List<Event.Event> events)
+        public Aggregate(AggregateType<StateType> aggregateType, string id, int minEventsBetweenSnapshots, StateType snapshot, long snapshotSequenceId, List<Event.Event> events)
         {
-            AggregateType = aggregateType;
-            Id = id;
+            BaseInit(aggregateType, id, minEventsBetweenSnapshots);
+            State = snapshot;
+            State = AggregateType.FoldEvents(State, events);
             LastStoredSequenceId = snapshotSequenceId + events.Count;
-            State = snapshot ?? new StateType();
-            if (events != null)
-                State = AggregateType.FoldEvents(State, events);
         }
 
         public void AddPendingEvent(Event.Event someEvent)

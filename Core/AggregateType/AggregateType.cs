@@ -15,21 +15,33 @@ public class AggregateType<StateType> where StateType : notnull, new()
 
     public readonly string Name;
 
+    public readonly int MinEventsBetweenSnapshots;
+
     public AggregateType(string name)
     {
         Name = name;
+        MinEventsBetweenSnapshots = 0;
     }
 
-    public Aggregate<StateType> CreateAggregate(string id, List<Event.Event>? events)
+    public AggregateType(string name, int minEventsBetweenSnapshots)
     {
-        if (events == null)
-            return new Aggregate<StateType>(this, id);
-        return new Aggregate<StateType>(this, id, events);
+        Name = name;
+        MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
+    }
+
+    public Aggregate<StateType> CreateAggregate(string id)
+    {
+        return new Aggregate<StateType>(this, id, MinEventsBetweenSnapshots);
+    }
+
+    public Aggregate<StateType> CreateAggregate(string id, List<Event.Event> events)
+    {
+        return new Aggregate<StateType>(this, id, MinEventsBetweenSnapshots, events);
     }
 
     public Aggregate<StateType> CreateAggregate(string id, StateType snapshot, long lastStoredSequenceId, List<Event.Event> events)
     {
-        return new Aggregate<StateType>(this, id, snapshot, lastStoredSequenceId, events);
+        return new Aggregate<StateType>(this, id, MinEventsBetweenSnapshots, snapshot, lastStoredSequenceId, events);
     }
 
     public void AddEventType(EventType eventType)
