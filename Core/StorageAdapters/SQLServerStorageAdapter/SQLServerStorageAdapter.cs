@@ -12,7 +12,7 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
 {
     public class SQLServerStorageAdapter : IStorageAdapter
     {
-        private readonly SqlConnection SQLConnection;
+        public readonly SqlConnection SQLConnection;
         private StorageAdapterContextId ContextId;
 
         public SQLServerStorageAdapter(string connectionString)
@@ -47,7 +47,9 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
                 DataSource = connectionData.DataSource,
                 UserID = connectionData.UserID,
                 Password = connectionData.Password,
-                InitialCatalog = connectionData.InitialCatalog
+                InitialCatalog = connectionData.InitialCatalog,
+                TrustServerCertificate = connectionData.TrustServerCertificate,
+                MultipleActiveResultSets = connectionData.MultipleActiveResultSets
             };
 
             SQLConnection = new SqlConnection(connectionBuilder.ConnectionString);

@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 namespace Core.StorageAdapters.SQLServerStorageAdapter;
 public record SQLServerConnectionData
 (
-    string DataSource = "127.0.0.1",
+    string DataSource = "localhost",
     string UserID = "sa",
     string Password = "MasadNetunim12!@",
-    string InitialCatalog = "master"
+    string InitialCatalog = "master",
+    bool TrustServerCertificate = true,
+    bool MultipleActiveResultSets = true
 );
 

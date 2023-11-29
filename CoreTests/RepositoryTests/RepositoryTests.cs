@@ -15,10 +15,6 @@ namespace CoreTests.RepositoryTests
         [TestMethod]
         public async Task Repository_WhenGettingAggregate_Succeed()
         {
-            // while (!Debugger.IsAttached)
-            // {
-            //     Thread.Sleep(100);
-            // }
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);

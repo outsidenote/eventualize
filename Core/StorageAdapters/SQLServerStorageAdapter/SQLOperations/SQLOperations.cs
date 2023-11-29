@@ -10,22 +10,21 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
 {
     public static class SQLOperations
     {
-        private static string InterpolateFromFile(string filePath, StorageAdapterContextId contextId)
-        {
-            string fileContent = File.ReadAllText(filePath);
-            return string.Format(fileContent, contextId.ContextId);
-
-        }
         public static string GetCreateEnvironmentQuery(StorageAdapterContextId contextId)
         {
-            return InterpolateFromFile("./CreateEnvironmentTable.sql", contextId);
+            return CreateEnvironmentQuery.GetSqlString(GetContextIdPrefix(contextId));
         }
 
         public static string GetDestroyEnvironmentQuery(StorageAdapterContextId contextId)
         {
-            return InterpolateFromFile("./DestroyEnvironmentTable.sql", contextId);
+            return DestroyEnvironmentQuery.GetSqlString(GetContextIdPrefix(contextId));
         }
-
+        public static string GetContextIdPrefix(StorageAdapterContextId contextId)
+        {
+            if (contextId.ContextId == "live")
+                return "";
+            return "testcontextid_" + contextId.ContextId.Replace("-", "_") + "_";
+        }
 
     }
 }
