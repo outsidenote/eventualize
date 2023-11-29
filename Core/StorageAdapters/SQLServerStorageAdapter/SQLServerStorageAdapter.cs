@@ -6,6 +6,7 @@ using Core.Aggregate;
 using Core.Repository;
 using Microsoft.Data.SqlClient;
 using Core.StorageAdapters;
+using Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
 
 namespace Core.StorageAdapters.SQLServerStorageAdapter
 {
@@ -66,6 +67,31 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
         {
             throw new NotImplementedException();
         }
+
+        public Task CreateTestEnvironment()
+        {
+            if (ContextId.ContextId == "live")
+                throw new ArgumentException("Cannot create a test environment for StorageAdapterContextId='live'");
+            return Task.Run(() =>
+            {
+                string sqlString = SQLOperations.SQLOperations.GetCreateEnvironmentQuery(ContextId);
+                SqlCommand command = new SqlCommand(sqlString, SQLConnection);
+                command.ExecuteNonQuery();
+            });
+        }
+
+        public Task DestroyTestEnvironment()
+        {
+            if (ContextId.ContextId == "live")
+                throw new ArgumentException("Cannot destroy a test environment for StorageAdapterContextId='live'");
+            return Task.Run(() =>
+            {
+                string sqlString = SQLOperations.SQLOperations.GetDestroyEnvironmentQuery(ContextId);
+                SqlCommand command = new SqlCommand(sqlString, SQLConnection);
+                command.ExecuteNonQuery();
+            });
+        }
+
 
         public Task Init()
         {
