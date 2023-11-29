@@ -25,6 +25,13 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
                 return "";
             return "testcontextid_" + contextId.ContextId.Replace("-", "_") + "_";
         }
+        public static SqlCommand? GetStoreCommand<State>(SqlConnection connection,StorageAdapterContextId contextId, Aggregate.Aggregate<State> aggregate) where State : notnull, new()
+        {
+            string? sqlString = StoreQuery.GetSqlString<State>(GetContextIdPrefix(contextId), aggregate);
+            if (string.IsNullOrEmpty(sqlString))
+                return null;
+            return new SqlCommand(sqlString, connection);
+        }
 
     }
 }

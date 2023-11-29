@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Formats.Asn1;
 using System.Diagnostics;
 using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
+using CoreTests.RepositoryTests.TestStorageAdapterTests;
 
 
 
@@ -37,18 +38,27 @@ public class SQLServerStorageAdapterTests
     }
 
     [TestMethod]
-    public void SQLStorageAdapterTests_WhenCreatingTestEnvironment_Succeed()
+    public void SQLStorageAdapter_WhenCreatingTestEnvironment_Succeed()
     {
-        // while (!Debugger.IsAttached)
-        // {
-        //     Thread.Sleep(100);
-        // }
         var world = GetWorld();
         var command = AssertEnvironmentWasCreated.GetSqlCommand(world);
         var reader = command.ExecuteReader();
         reader.Read();
         bool isEnvExist = reader.GetBoolean(0);
         Assert.AreEqual(true, isEnvExist);
+    }
+
+    [TestMethod]
+    public async Task SQLStorageAdapter_WhenStoringAggregateWithPendingEventsWithoutSnapshot_Succeed()
+    {
+        // while (!Debugger.IsAttached)
+        // {
+        //     Thread.Sleep(100);
+        // }
+        var world = GetWorld();
+        var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        await world.StorageAdapter.Store(aggregate, false);
+
     }
 
     private string GetTestName()

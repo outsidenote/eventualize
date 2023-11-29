@@ -17,6 +17,5 @@ SELECT CAST(CASE WHEN OBJECT_ID('{prefix}event', 'U') IS NOT NULL THEN 1 ELSE 0 
             ";
             return new SqlCommand(queryString, world.StorageAdapter.SQLConnection);
         }
-
     }
 }
