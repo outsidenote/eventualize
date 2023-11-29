@@ -47,8 +47,8 @@ public class SQLServerStorageAdapterTests
         var command = AssertEnvironmentWasCreated.GetSqlCommand(world);
         var reader = command.ExecuteReader();
         reader.Read();
-        bool isTestOk = reader.GetBoolean(0);
-        Assert.AreEqual(true, isTestOk);
+        bool isEnvExist = reader.GetBoolean(0);
+        Assert.AreEqual(true, isEnvExist);
     }
 
     private string GetTestName()
