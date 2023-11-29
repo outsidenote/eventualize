@@ -25,7 +25,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
             sqlCommand = GetStoredSnapshotSqlCommand(world,aggregate);
             reader = sqlCommand.ExecuteReader();
             reader.Read();
-            var snapshotSequenceId = reader.GetInt32(0);
+            var snapshotSequenceId = reader.GetInt64(0);
             Assert.AreEqual(aggregate.LastStoredSequenceId+aggregate.PendingEvents.Count,snapshotSequenceId);
 
 

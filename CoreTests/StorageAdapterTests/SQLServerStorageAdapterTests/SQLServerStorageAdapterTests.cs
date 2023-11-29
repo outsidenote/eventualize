@@ -57,7 +57,7 @@ public class SQLServerStorageAdapterTests
         AssertAggregateStoredSuccessfully.assert(world, aggregate, false);
     }
 
-    [Ignore]
+    // [Ignore]
     [TestMethod]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithPendingEventsWithSnapshot_Succeed()
     {

@@ -105,7 +105,7 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
 
         public Task<List<Event.Event>?> Store<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
         {
-            var command = SQLOperations.SQLOperations.GetStoreCommand<T>(SQLConnection, ContextId, aggregate);
+            var command = SQLOperations.SQLOperations.GetStoreCommand<T>(SQLConnection, ContextId, aggregate, storeSnapshot);
             if (command == null)
                 return Task.FromResult(default(List<Event.Event>));
             command.ExecuteNonQuery();

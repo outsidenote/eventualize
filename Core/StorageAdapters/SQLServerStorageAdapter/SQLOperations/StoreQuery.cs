@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 
@@ -8,7 +9,7 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
 {
     public static class StoreQuery
     {
-        public static string? GetSqlString<State>(string contextIdPrefix, Aggregate.Aggregate<State> aggregate) where State : notnull, new()
+        public static string? GetStorePendingEventsSqlString<State>(string contextIdPrefix, Aggregate.Aggregate<State> aggregate) where State : notnull, new()
         {
             var events = aggregate.PendingEvents;
             if (events.Count == 0)
@@ -23,6 +24,16 @@ VALUES
 
             return sqlString;
 
+        }
+
+        public static string? GetStoreSnapshotSqlString<State>(string contextIdPrefix, Aggregate.Aggregate<State> aggregate) where State : notnull, new()
+        {
+            var snapshotData = JsonSerializer.Serialize(aggregate.State, typeof(State));
+            var sequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;
+            var sqlString = $@"
+INSERT INTO {contextIdPrefix}snapshot (domain, aggregate_type, aggregate_id,sequence_id,json_data)
+VALUES ('default', '{aggregate.AggregateType.Name}', '{aggregate.Id}',{sequenceId},'{snapshotData}');";
+            return sqlString;
         }
 
     }
