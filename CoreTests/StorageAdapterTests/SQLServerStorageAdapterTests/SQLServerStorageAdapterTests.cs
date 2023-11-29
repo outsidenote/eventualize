@@ -58,6 +58,7 @@ public class SQLServerStorageAdapterTests
         var world = GetWorld();
         var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
         await world.StorageAdapter.Store(aggregate, false);
+        AssertAggregateStoredSuccessfully.assert(world,aggregate);
 
     }
 

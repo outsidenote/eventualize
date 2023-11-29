@@ -16,7 +16,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
             var sqlCommand = GetSqlCommand(world, aggregate);
             var reader = sqlCommand.ExecuteReader();
             reader.Read();
-            var numStoredEvents = reader.GetInt16(0);
+            var numStoredEvents = reader.GetInt32(0);
             Assert.AreEqual(3, numStoredEvents);
         }
         private static SqlCommand GetSqlCommand(SQLServerAdapterTestWorld world, Aggregate<TestState> aggregate)
@@ -28,8 +28,8 @@ SELECT COUNT(*)
 FROM {prefix}event
 WHERE
     domain = 'default'
-    AND aggregate_type = {aggregate.AggregateType.Name}
-    AND aggregate_id = {aggregate.Id}
+    AND aggregate_type = '{aggregate.AggregateType.Name}'
+    AND aggregate_id = '{aggregate.Id}'
             ";
             return new SqlCommand(queryString, world.StorageAdapter.SQLConnection);
 
