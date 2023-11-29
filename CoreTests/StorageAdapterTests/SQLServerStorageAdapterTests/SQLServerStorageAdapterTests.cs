@@ -51,15 +51,24 @@ public class SQLServerStorageAdapterTests
     [TestMethod]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithPendingEventsWithoutSnapshot_Succeed()
     {
+        var world = GetWorld();
+        var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        await world.StorageAdapter.Store(aggregate, false);
+        AssertAggregateStoredSuccessfully.assert(world, aggregate, false);
+    }
+
+    [Ignore]
+    [TestMethod]
+    public async Task SQLStorageAdapter_WhenStoringAggregateWithPendingEventsWithSnapshot_Succeed()
+    {
         // while (!Debugger.IsAttached)
         // {
         //     Thread.Sleep(100);
         // }
         var world = GetWorld();
         var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
-        await world.StorageAdapter.Store(aggregate, false);
-        AssertAggregateStoredSuccessfully.assert(world,aggregate);
-
+        await world.StorageAdapter.Store(aggregate, true);
+        AssertAggregateStoredSuccessfully.assert(world, aggregate, true);
     }
 
     private string GetTestName()
