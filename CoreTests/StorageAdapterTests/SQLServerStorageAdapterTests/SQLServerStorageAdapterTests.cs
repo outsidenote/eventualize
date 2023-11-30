@@ -11,6 +11,7 @@ using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
 using CoreTests.RepositoryTests.TestStorageAdapterTests;
 using Core.Aggregate;
 using CoreTests.AggregateTypeTests;
+using Core.Repository;
 
 
 
@@ -72,9 +73,8 @@ public class SQLServerStorageAdapterTests
         AssertAggregateStoredSuccessfully.assert(world, aggregate, true);
     }
 
-    [Ignore]
     [TestMethod]
-    [ExpectedException(typeof(Exception))]
+    [ExpectedException(typeof(OCCException<TestState>))]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithStaleState_ThrowException()
     {
         // while (!Debugger.IsAttached)

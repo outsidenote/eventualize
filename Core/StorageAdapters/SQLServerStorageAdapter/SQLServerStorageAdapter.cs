@@ -108,7 +108,15 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
             var command = SQLOperations.SQLOperations.GetStoreCommand<T>(SQLConnection, ContextId, aggregate, storeSnapshot);
             if (command == null)
                 return Task.FromResult(default(List<Event.Event>));
-            command.ExecuteNonQuery();
+            try
+            {
+                command.ExecuteNonQuery();
+            }
+            catch (SqlException e)
+            {
+                if (e.Message.Contains("Violation of PRIMARY KEY constraint"))
+                    throw new OCCException<T>();
+            }
             return Task.FromResult(aggregate.PendingEvents ?? default(List<Event.Event>));
         }
     }
