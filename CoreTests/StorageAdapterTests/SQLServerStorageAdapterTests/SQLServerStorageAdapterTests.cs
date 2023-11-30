@@ -12,6 +12,7 @@ using CoreTests.RepositoryTests.TestStorageAdapterTests;
 using Core.Aggregate;
 using CoreTests.AggregateTypeTests;
 using Core.Repository;
+using Azure.Identity;
 
 
 
@@ -114,6 +115,22 @@ public class SQLServerStorageAdapterTests
         var latestSnapshotSequenceId = await world.StorageAdapter.GetLastStoredSequenceId(aggregate);
         var expectedSequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;
         Assert.AreEqual(expectedSequenceId, latestSnapshotSequenceId);
+    }
+
+    [Ignore]
+    [TestMethod]
+    public async Task SQLStorageAdapter_WhenGettingLatestSnapshot_Succeed()
+    {
+        // while (!Debugger.IsAttached)
+        // {
+        //     Thread.Sleep(100);
+        // }
+        var world = GetWorld();
+        var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(world.StorageAdapter);
+        var latestSnapshot = await world.StorageAdapter.GetLatestSnapshot<TestState>(aggregate.AggregateType.Name, aggregate.Id);
+        Assert.IsNotNull(latestSnapshot);
+        Assert.AreEqual(aggregate.State, latestSnapshot.Snapshot);
+        // TODO: Refactor GetLatestSnapshot to use Aggregate<T> as parameter
     }
 
     private string GetTestName()
