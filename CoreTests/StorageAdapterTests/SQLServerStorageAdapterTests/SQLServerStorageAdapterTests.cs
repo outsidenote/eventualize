@@ -143,13 +143,7 @@ public class SQLServerStorageAdapterTests
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(world.StorageAdapter);
         var events = await world.StorageAdapter.GetStoredEvents(aggregate.AggregateType.Name, aggregate.Id, aggregate.LastStoredSequenceId + 1);
         Assert.IsNotNull(events);
-        Assert.AreEqual(aggregate.PendingEvents.Count, events.Count);
-        events.Select((e, index) =>
-        {
-            Assert.AreEqual(aggregate.PendingEvents[index], e);
-            return true;
-        });
-        Assert.AreEqual(true, events.SequenceEqual(aggregate.PendingEvents));
+        SQLServerStorageAdapterTestsSteps.AssertEventsAreEqual(events,aggregate.PendingEvents);
 
     }
 

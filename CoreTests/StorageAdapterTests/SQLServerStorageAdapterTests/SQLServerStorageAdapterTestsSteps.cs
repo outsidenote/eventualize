@@ -7,6 +7,7 @@ using Core.Aggregate;
 using Core.StorageAdapters.SQLServerStorageAdapter;
 using CoreTests.AggregateTypeTests;
 using CoreTests.RepositoryTests.TestStorageAdapterTests;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 
 namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests
 {
@@ -23,5 +24,15 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests
             return aggregate2;
         }
 
+        public static void AssertEventsAreEqual(List<Core.Event.Event> events1, List<Core.Event.Event> events2)
+        {
+            Assert.AreEqual(events1.Count, events2.Count);
+            events1.Select((e, index) =>
+            {
+                Assert.AreEqual(e, events2[index]);
+                return true;
+            });
+        }
     }
+
 }
