@@ -89,6 +89,21 @@ public class SQLServerStorageAdapterTests
 
     [Ignore]
     [TestMethod]
+    [ExpectedException(typeof(OCCException<TestState>))]
+    public async Task SQLStorageAdapter_WhenStoringAggregateWithFutureState_ThrowException()
+    {
+        // while (!Debugger.IsAttached)
+        // {
+        //     Thread.Sleep(100);
+        // }
+        var world = GetWorld();
+        var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        var aggregate2 = new Aggregate<TestState>(aggregate.AggregateType, aggregate.Id, aggregate.MinEventsBetweenSnapshots, aggregate.PendingEvents);
+        await world.StorageAdapter.Store(aggregate2, true);
+    }
+
+    [Ignore]
+    [TestMethod]
     [ExpectedException(typeof(Exception))]
     public async Task SQLStorageAdapter_WhenGettingLastSnapshotId_Succeed()
     {
