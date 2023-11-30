@@ -9,6 +9,8 @@ using System.Formats.Asn1;
 using System.Diagnostics;
 using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
 using CoreTests.RepositoryTests.TestStorageAdapterTests;
+using Core.Aggregate;
+using CoreTests.AggregateTypeTests;
 
 
 
@@ -57,7 +59,6 @@ public class SQLServerStorageAdapterTests
         AssertAggregateStoredSuccessfully.assert(world, aggregate, false);
     }
 
-    // [Ignore]
     [TestMethod]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithPendingEventsWithSnapshot_Succeed()
     {
@@ -69,6 +70,39 @@ public class SQLServerStorageAdapterTests
         var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
         await world.StorageAdapter.Store(aggregate, true);
         AssertAggregateStoredSuccessfully.assert(world, aggregate, true);
+    }
+
+    [Ignore]
+    [TestMethod]
+    [ExpectedException(typeof(Exception))]
+    public async Task SQLStorageAdapter_WhenStoringAggregateWithStaleState_ThrowException()
+    {
+        // while (!Debugger.IsAttached)
+        // {
+        //     Thread.Sleep(100);
+        // }
+        var world = GetWorld();
+        var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        await world.StorageAdapter.Store(aggregate, true);
+        await world.StorageAdapter.Store(aggregate, true);
+    }
+
+    [Ignore]
+    [TestMethod]
+    [ExpectedException(typeof(Exception))]
+    public async Task SQLStorageAdapter_WhenGettingLastSnapshotId_Succeed()
+    {
+        // while (!Debugger.IsAttached)
+        // {
+        //     Thread.Sleep(100);
+        // }
+        var world = GetWorld();
+        var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        await world.StorageAdapter.Store(aggregate, true);
+        var aggregate2 = new Aggregate<TestState>(aggregate.AggregateType, aggregate.Id, aggregate.MinEventsBetweenSnapshots, aggregate.PendingEvents);
+        await world.StorageAdapter.Store(aggregate2, true);
+        var latestSnapshotSequenceId = await world.StorageAdapter.GetLastStoredSequenceId(aggregate);
+        Assert.AreEqual(aggregate2.PendingEvents.Count - 1, latestSnapshotSequenceId);
     }
 
     private string GetTestName()
