@@ -117,7 +117,6 @@ public class SQLServerStorageAdapterTests
         Assert.AreEqual(expectedSequenceId, latestSnapshotSequenceId);
     }
 
-    [Ignore]
     [TestMethod]
     public async Task SQLStorageAdapter_WhenGettingLatestSnapshot_Succeed()
     {
@@ -130,7 +129,7 @@ public class SQLServerStorageAdapterTests
         var latestSnapshot = await world.StorageAdapter.GetLatestSnapshot<TestState>(aggregate.AggregateType.Name, aggregate.Id);
         Assert.IsNotNull(latestSnapshot);
         Assert.AreEqual(aggregate.State, latestSnapshot.Snapshot);
-        // TODO: Refactor GetLatestSnapshot to use Aggregate<T> as parameter
+        Assert.AreEqual(aggregate.LastStoredSequenceId+aggregate.PendingEvents.Count, latestSnapshot.SnapshotSequenceId);
     }
 
     private string GetTestName()

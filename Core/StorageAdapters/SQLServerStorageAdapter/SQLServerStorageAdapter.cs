@@ -7,6 +7,7 @@ using Core.Repository;
 using Microsoft.Data.SqlClient;
 using Core.StorageAdapters;
 using Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
+using System.Text.Json;
 
 namespace Core.StorageAdapters.SQLServerStorageAdapter
 {
@@ -68,7 +69,17 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
 
         public Task<StoredSnapshotData<T>?> GetLatestSnapshot<T>(string aggregateTypeName, string id) where T : notnull, new()
         {
-            throw new NotImplementedException();
+            var command = SQLOperations.SQLOperations.GetLatestSnapshotCommand<T>(SQLConnection, ContextId, aggregateTypeName, id);
+            if (command == null)
+                return Task.FromResult(default(StoredSnapshotData<T>));
+            var reader = command.ExecuteReader();
+            reader.Read();
+            var jsonData = reader.GetString(0);
+            var sequenceId = reader.GetInt64(1);
+            var snapshot = JsonSerializer.Deserialize<T>(jsonData);
+            if (snapshot == null)
+                return Task.FromResult(default(StoredSnapshotData<T>));
+            return Task.FromResult(new StoredSnapshotData<T>(snapshot, sequenceId) ?? default(StoredSnapshotData<T>));
         }
 
         public Task<List<Event.Event>> GetStoredEvents(string aggregateTypeName, string id, long startSequenceId)

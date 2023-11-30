@@ -44,5 +44,13 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
             return new SqlCommand(sqlString, connection);
         }
 
+        public static SqlCommand? GetLatestSnapshotCommand<State>(SqlConnection connection, StorageAdapterContextId contextId, string aggregateTypeName, string id) where State : notnull, new()
+        {
+            var sqlString = GetLatestSnapshotQuery.GetSqlString<State>(GetContextIdPrefix(contextId), aggregateTypeName, id);
+            if (string.IsNullOrEmpty(sqlString))
+                return null;
+            return new SqlCommand(sqlString, connection);
+        }
+
     }
 }
