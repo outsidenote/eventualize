@@ -57,7 +57,13 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
         }
         public Task<long> GetLastStoredSequenceId<T>(Aggregate<T> aggregate) where T : notnull, new()
         {
-            throw new NotImplementedException();
+            var command = SQLOperations.SQLOperations.GetLastStoredSnapshotSequenceIdCommand(SQLConnection, ContextId, aggregate);
+            if (command == null)
+                return Task.FromResult(default(long));
+            var reader = command.ExecuteReader();
+            reader.Read();
+            var sequenceId = reader.GetInt64(0);
+            return Task.FromResult(sequenceId);
         }
 
         public Task<StoredSnapshotData<T>?> GetLatestSnapshot<T>(string aggregateTypeName, string id) where T : notnull, new()

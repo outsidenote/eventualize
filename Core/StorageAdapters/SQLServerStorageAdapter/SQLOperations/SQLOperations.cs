@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
@@ -25,13 +26,21 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
                 return "";
             return "testcontextid_" + contextId.ContextId.Replace("-", "_") + "_";
         }
-        public static SqlCommand? GetStoreCommand<State>(SqlConnection connection,StorageAdapterContextId contextId, Aggregate.Aggregate<State> aggregate, bool isSnapshotStored) where State : notnull, new()
+        public static SqlCommand? GetStoreCommand<State>(SqlConnection connection, StorageAdapterContextId contextId, Aggregate.Aggregate<State> aggregate, bool isSnapshotStored) where State : notnull, new()
         {
             string? sqlString = StoreQuery.GetStorePendingEventsSqlString(GetContextIdPrefix(contextId), aggregate);
             if (string.IsNullOrEmpty(sqlString))
                 return null;
-            if(isSnapshotStored)
+            if (isSnapshotStored)
                 sqlString += StoreQuery.GetStoreSnapshotSqlString(GetContextIdPrefix(contextId), aggregate);
+            return new SqlCommand(sqlString, connection);
+        }
+
+        public static SqlCommand? GetLastStoredSnapshotSequenceIdCommand<State>(SqlConnection connection, StorageAdapterContextId contextId, Aggregate.Aggregate<State> aggregate) where State : notnull, new()
+        {
+            var sqlString = GetLastStoredSnapshotSequenceIdQuery.GetSqlString(GetContextIdPrefix(contextId), aggregate);
+            if (string.IsNullOrEmpty(sqlString))
+                return null;
             return new SqlCommand(sqlString, connection);
         }
 

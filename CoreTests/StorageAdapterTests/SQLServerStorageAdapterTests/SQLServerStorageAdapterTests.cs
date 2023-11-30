@@ -102,9 +102,7 @@ public class SQLServerStorageAdapterTests
         await world.StorageAdapter.Store(aggregate2, true);
     }
 
-    [Ignore]
     [TestMethod]
-    [ExpectedException(typeof(Exception))]
     public async Task SQLStorageAdapter_WhenGettingLastSnapshotId_Succeed()
     {
         // while (!Debugger.IsAttached)
@@ -115,9 +113,12 @@ public class SQLServerStorageAdapterTests
         var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
         await world.StorageAdapter.Store(aggregate, true);
         var aggregate2 = new Aggregate<TestState>(aggregate.AggregateType, aggregate.Id, aggregate.MinEventsBetweenSnapshots, aggregate.PendingEvents);
+        foreach (var pendingEvet in aggregate.PendingEvents)
+            aggregate2.AddPendingEvent(pendingEvet);
         await world.StorageAdapter.Store(aggregate2, true);
-        var latestSnapshotSequenceId = await world.StorageAdapter.GetLastStoredSequenceId(aggregate);
-        Assert.AreEqual(aggregate2.PendingEvents.Count - 1, latestSnapshotSequenceId);
+        var latestSnapshotSequenceId = await world.StorageAdapter.GetLastStoredSequenceId(aggregate2);
+        var expectedSequenceId = aggregate2.LastStoredSequenceId + aggregate2.PendingEvents.Count;
+        Assert.AreEqual(expectedSequenceId, latestSnapshotSequenceId);
     }
 
     private string GetTestName()
