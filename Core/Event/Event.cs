@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-public class Event
+public class Event : IEquatable<Event>
 {
     public readonly string EventType;
     public readonly DateTime CapturedAt;
@@ -24,6 +24,19 @@ public class Event
         CapturedBy = pendingEvent.CapturedBy;
         JsonData = pendingEvent.JsonData;
         StoredAt = storedAt;
+    }
+
+    public bool Equals(Event? other)
+    {
+        if (other == null)
+            return false;
+
+        var capturedAtSkew = (CapturedAt - other.CapturedAt).Duration();
+        return
+            EventType == other.EventType &&
+            CapturedBy == other.CapturedBy &&
+            JsonData == other.JsonData &&
+            capturedAtSkew < TimeSpan.FromSeconds(0.5);
     }
 };
 

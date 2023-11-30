@@ -84,7 +84,21 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
 
         public Task<List<Event.Event>> GetStoredEvents(string aggregateTypeName, string id, long startSequenceId)
         {
-            throw new NotImplementedException();
+            List<Event.Event> events = new();
+            var command = SQLOperations.SQLOperations.GetStoredEventsCommand(SQLConnection, ContextId, aggregateTypeName, id, startSequenceId);
+            if (command == null)
+                return Task.FromResult(events);
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var eventType = reader.GetString(0);
+                var capturedAt = reader.GetDateTime(1);
+                var capturedBy = reader.GetString(2);
+                var jsonData = reader.GetString(3);
+                var storedAt = reader.GetDateTime(4);
+                events.Add(new Event.Event(eventType, capturedAt, capturedBy, jsonData, storedAt));
+            }
+            return Task.FromResult(events);
         }
 
         public Task CreateTestEnvironment()

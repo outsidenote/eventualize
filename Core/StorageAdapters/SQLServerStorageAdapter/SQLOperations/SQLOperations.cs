@@ -52,5 +52,13 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
             return new SqlCommand(sqlString, connection);
         }
 
+        public static SqlCommand? GetStoredEventsCommand(SqlConnection connection, StorageAdapterContextId contextId, string aggregateTypeName, string id, long startSequenceId)
+        {
+            var sqlString = GetStoredEventsQuery.GetSqlString(GetContextIdPrefix(contextId), aggregateTypeName, id, startSequenceId);
+            if (string.IsNullOrEmpty(sqlString))
+                return null;
+            return new SqlCommand(sqlString, connection);
+        }
+
     }
 }
