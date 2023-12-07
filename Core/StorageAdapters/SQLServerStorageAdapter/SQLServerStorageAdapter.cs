@@ -56,7 +56,7 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
             SQLConnection = new SqlConnection(connectionBuilder.ConnectionString);
             ContextId = contextId;
         }
-        public async Task<long> GetLastStoredSequenceId<T>(Aggregate<T> aggregate) where T : notnull, new()
+        public async Task<long> GetLastSequenceIdAsync<T>(Aggregate<T> aggregate) where T : notnull, new()
         {
             var command = SQLOperations.SQLOperations.GetLastStoredSnapshotSequenceIdCommand(SQLConnection, ContextId, aggregate);
             if (command == null)
@@ -67,7 +67,7 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
             return sequenceId;
         }
 
-        public async Task<StoredSnapshotData<T>?> GetLatestSnapshot<T>(string aggregateTypeName, string id) where T : notnull, new()
+        public async Task<StoredSnapshotData<T>?> TryGetSnapshotAsync<T>(string aggregateTypeName, string id) where T : notnull, new()
         {
             var command = SQLOperations.SQLOperations.GetLatestSnapshotCommand<T>(SQLConnection, ContextId, aggregateTypeName, id);
             if (command == null)
@@ -82,9 +82,9 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
             return new StoredSnapshotData<T>(snapshot, sequenceId);
         }
 
-        public async Task<List<Event.Event>> GetStoredEvents(string aggregateTypeName, string id, long startSequenceId)
+        public async Task<List<EventEntity>> GetAsync(string aggregateTypeName, string id, long startSequenceId)
         {
-            List<Event.Event> events = new();
+            List<EventEntity> events = new();
             var command = SQLOperations.SQLOperations.GetStoredEventsCommand(SQLConnection, ContextId, aggregateTypeName, id, startSequenceId);
             if (command == null) 
                 return events;
@@ -96,7 +96,7 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
                 var capturedBy = reader.GetString(2);
                 var jsonData = reader.GetString(3);
                 var storedAt = reader.GetDateTime(4);
-                events.Add(new Event.Event(eventType, capturedAt, capturedBy, jsonData, storedAt));
+                events.Add(new EventEntity(eventType, capturedAt, capturedBy, jsonData, storedAt));
             }
             return events;
         }
@@ -122,7 +122,7 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
 
         public Task Init() => SQLConnection.OpenAsync();
 
-        public async Task<List<Event.Event>?> Store<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
+        public async Task<List<EventEntity>?> SaveAsync<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
         {
             var command = SQLOperations.SQLOperations.GetStoreCommand<T>(SQLConnection, ContextId, aggregate, storeSnapshot);
             if (command == null)

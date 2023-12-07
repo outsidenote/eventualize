@@ -16,15 +16,15 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests
         public static async Task<Aggregate<TestState>> StoreAggregateTwice(SQLServerStorageAdapter storageAdapter)
         {
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
-            await storageAdapter.Store(aggregate, true);
+            await storageAdapter.SaveAsync(aggregate, true);
             var aggregate2 = new Aggregate<TestState>(aggregate.AggregateType, aggregate.Id, aggregate.MinEventsBetweenSnapshots, aggregate.PendingEvents);
             foreach (var pendingEvet in aggregate.PendingEvents)
                 aggregate2.AddPendingEvent(pendingEvet);
-            await storageAdapter.Store(aggregate2, true);
+            await storageAdapter.SaveAsync(aggregate2, true);
             return aggregate2;
         }
 
-        public static void AssertEventsAreEqual(List<Core.Event.Event> events1, List<Core.Event.Event> events2)
+        public static void AssertEventsAreEqual(List<Core.EventEntity> events1, List<Core.EventEntity> events2)
         {
             Assert.AreEqual(events1.Count, events2.Count);
             events1.Select((e, index) =>

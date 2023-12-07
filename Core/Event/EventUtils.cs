@@ -1,4 +1,4 @@
-namespace Core.Event;
+namespace Core;
 
 public static class EventUtils
 {

@@ -16,7 +16,7 @@ namespace CoreTests.RepositoryTests
         public async Task<Repository> PrepareTestRepositoryWithStoredAggregate(Aggregate<TestState>? aggregate)
         {
             if (aggregate != null)
-                await storageAdapter.Store(aggregate, true);
+                await storageAdapter.SaveAsync(aggregate, true);
             return new Repository(storageAdapter);
         }
 
@@ -35,12 +35,12 @@ namespace CoreTests.RepositoryTests
         public async Task AssertStoredAggregateIsCorrect(Aggregate<TestState> aggregate, bool isSnapshotStored)
         {
             var aggregateTypeName = aggregate.AggregateType.Name;
-            var events = await storageAdapter.GetStoredEvents(aggregateTypeName, aggregate.Id, 0);
+            var events = await storageAdapter.GetAsync(aggregateTypeName, aggregate.Id, 0);
             Assert.AreEqual(3, events.Count);
             Assert.AreEqual(events.Count - 1, aggregate.LastStoredSequenceId);
             Assert.AreEqual(0, aggregate.PendingEvents.Count);
 
-            var snapshotData = await storageAdapter.GetLatestSnapshot<TestState>(aggregateTypeName, aggregate.Id);
+            var snapshotData = await storageAdapter.TryGetSnapshotAsync<TestState>(aggregateTypeName, aggregate.Id);
             Assert.AreEqual(!isSnapshotStored, snapshotData is null);
             if (isSnapshotStored)
             {

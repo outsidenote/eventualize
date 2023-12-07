@@ -73,10 +73,10 @@ namespace CoreTests.AggregateTypeTests
 
         public static IFoldingFunction<TestState> FoldingFunctionInstance = new TestFoldingFunction();
 
-        private static object UndelegatedTestFoldingFunction(object oldState, Core.Event.Event SerializedEvent)
+        private static object UndelegatedTestFoldingFunction(object oldState, Core.EventEntity SerializedEvent)
         {
             TestState convertedOldState = (TestState)oldState;
-            Core.Event.Event convertedSerializedEvent = (Core.Event.Event)SerializedEvent;
+            Core.EventEntity convertedSerializedEvent = (Core.EventEntity)SerializedEvent;
             TestEventDataType data = EventTypeTests.TestEventType.ParseData(convertedSerializedEvent);
             return new TestState(convertedOldState.ACount + 1, convertedOldState.BCount + 1, convertedOldState.BSum + data.B);
         }
@@ -84,7 +84,7 @@ namespace CoreTests.AggregateTypeTests
 
     class TestFoldingFunction : IFoldingFunction<TestState>
     {
-        public TestState Fold(TestState oldState, Core.Event.Event SerializedEvent)
+        public TestState Fold(TestState oldState, Core.EventEntity SerializedEvent)
         {
             TestEventDataType data = EventTypeTests.TestEventType.ParseData(SerializedEvent);
             return new TestState(oldState.ACount + 1, oldState.BCount + 1, oldState.BSum + data.B);

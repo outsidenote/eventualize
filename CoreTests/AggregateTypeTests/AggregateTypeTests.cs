@@ -1,6 +1,6 @@
 using System.Security.Cryptography.X509Certificates;
 using Core.AggregateType;
-using Core.Event;
+using Core;
 using CoreTests.Event;
 
 namespace CoreTests.AggregateTypeTests
@@ -40,7 +40,7 @@ namespace CoreTests.AggregateTypeTests
         public async Task AggregateType_WhenFoldingEvents_Succeed()
         {
             var testAggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
-            List<Core.Event.Event> events = new List<Core.Event.Event>();
+            List<Core.EventEntity> events = new List<Core.EventEntity>();
             for (var i = 0; i < 3; i++)
             {
                 events.Add(await EventTypeTests.TestEventType.CreateEvent(EventTypeTests.CorrectEventData, "AggregateType test method"));

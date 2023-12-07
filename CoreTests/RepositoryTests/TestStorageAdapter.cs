@@ -12,8 +12,8 @@ namespace CoreTests.RepositoryTests
     public class TestStorageAdapter : IStorageAdapter
     {
         public Dictionary<string, StoredSnapshotData<JsonDocument>> Snapshots = new();
-        public Dictionary<string, List<Core.Event.Event>> Events = new();
-        public Task<StoredSnapshotData<T>?> GetLatestSnapshot<T>(string aggregateTypeName, string id) where T : notnull, new()
+        public Dictionary<string, List<Core.EventEntity>> Events = new();
+        public Task<StoredSnapshotData<T>?> TryGetSnapshotAsync<T>(string aggregateTypeName, string id) where T : notnull, new()
         {
             var key = GetKeyValue(aggregateTypeName, id);
             StoredSnapshotData<JsonDocument>? value;
@@ -24,18 +24,18 @@ namespace CoreTests.RepositoryTests
             return Task.FromResult(result);
         }
 
-        public Task<List<Core.Event.Event>?> StorePendingEvents<T>(Aggregate<T> aggregate) where T : notnull, new()
+        public Task<List<Core.EventEntity>?> StorePendingEvents<T>(Aggregate<T> aggregate) where T : notnull, new()
         {
             if (aggregate.PendingEvents.Count == 0)
-                return Task.FromResult(default(List<Core.Event.Event>));
-            List<Core.Event.Event> pendingEventsWithStoreTs = new();
+                return Task.FromResult(default(List<Core.EventEntity>));
+            List<Core.EventEntity> pendingEventsWithStoreTs = new();
             DateTime storeTs = DateTime.Now;
             foreach (var pendingEvent in aggregate.PendingEvents)
             {
-                pendingEventsWithStoreTs.Add(new Core.Event.Event(pendingEvent, storeTs));
+                pendingEventsWithStoreTs.Add(new Core.EventEntity(pendingEvent, storeTs));
             }
             string key = GetKeyValue(aggregate);
-            if (!Events.TryGetValue(key, out List<Core.Event.Event>? eventsList))
+            if (!Events.TryGetValue(key, out List<Core.EventEntity>? eventsList))
             {
                 Events.Add(key, pendingEventsWithStoreTs);
             }
@@ -63,7 +63,7 @@ namespace CoreTests.RepositoryTests
             return Task.FromResult(true);
         }
 
-        public async Task<List<Core.Event.Event>?> Store<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
+        public async Task<List<Core.EventEntity>?> SaveAsync<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
         {
             var events = await StorePendingEvents<T>(aggregate);
             if (storeSnapshot == true)
@@ -74,18 +74,18 @@ namespace CoreTests.RepositoryTests
         private static string GetKeyValue(string aggregateTypeName, string id) => $"{aggregateTypeName}_{id}";
         public static string GetKeyValue<T>(Aggregate<T> aggregate) where T : notnull, new() => GetKeyValue(aggregate.AggregateType.Name, aggregate.Id);
 
-        public Task<List<Core.Event.Event>> GetStoredEvents(string aggregateTypeName, string id, long startSequenceId)
+        public Task<List<Core.EventEntity>> GetAsync(string aggregateTypeName, string id, long startSequenceId)
         {
             var key = GetKeyValue(aggregateTypeName, id);
-            if (!Events.TryGetValue(key, out List<Core.Event.Event>? events) || events == null)
-                return Task.FromResult(new List<Core.Event.Event>());
+            if (!Events.TryGetValue(key, out List<Core.EventEntity>? events) || events == null)
+                return Task.FromResult(new List<Core.EventEntity>());
             try
             {
                 return Task.FromResult(events.GetRange((int)startSequenceId, events.Count - (int)startSequenceId));
             }
             catch (ArgumentOutOfRangeException)
             {
-                return Task.FromResult(new List<Core.Event.Event>());
+                return Task.FromResult(new List<Core.EventEntity>());
             }
         }
 
@@ -94,7 +94,7 @@ namespace CoreTests.RepositoryTests
             return Task.FromResult(true);
         }
 
-        public Task<long> GetLastStoredSequenceId<T>(Aggregate<T> aggregate) where T : notnull, new()
+        public Task<long> GetLastSequenceIdAsync<T>(Aggregate<T> aggregate) where T : notnull, new()
         {
             string key = GetKeyValue(aggregate.AggregateType.Name, aggregate.Id);
             if (!Events.TryGetValue(key, out var events))

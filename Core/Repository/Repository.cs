@@ -28,15 +28,15 @@ namespace Core.Repository
 
         public async Task<Aggregate<T>> Get<T>(AggregateType<T> aggregateType, string id) where T : notnull, new()
         {
-            List<Event.Event> events;
-            var snapshotData = await StorageAdapter.GetLatestSnapshot<T>(aggregateType.Name, id);
+            List<EventEntity> events;
+            var snapshotData = await StorageAdapter.TryGetSnapshotAsync<T>(aggregateType.Name, id);
             if (snapshotData == null)
             {
-                events = await StorageAdapter.GetStoredEvents(aggregateType.Name, id, 0);
+                events = await StorageAdapter.GetAsync(aggregateType.Name, id, 0);
                 return aggregateType.CreateAggregate(id, events);
             }
             long nextSequenceId = GetNextSequenceId(snapshotData.SnapshotSequenceId);
-            events = await StorageAdapter.GetStoredEvents(aggregateType.Name, id, nextSequenceId);
+            events = await StorageAdapter.GetAsync(aggregateType.Name, id, nextSequenceId);
             return aggregateType.CreateAggregate(id, snapshotData.Snapshot, snapshotData.SnapshotSequenceId, events);
         }
 
@@ -47,11 +47,11 @@ namespace Core.Repository
                 await Task.FromResult(true);
                 return;
             }
-            long lastStoredSequenceId = await StorageAdapter.GetLastStoredSequenceId(aggregate);
+            long lastStoredSequenceId = await StorageAdapter.GetLastSequenceIdAsync(aggregate);
             if (lastStoredSequenceId != aggregate.LastStoredSequenceId)
                 throw new OCCException<T>(aggregate, lastStoredSequenceId);
             bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
-            await StorageAdapter.Store(aggregate, shouldStoreSnapshot);
+            await StorageAdapter.SaveAsync(aggregate, shouldStoreSnapshot);
             aggregate.ClearPendingEvents();
         }
     }

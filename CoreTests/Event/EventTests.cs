@@ -1,5 +1,5 @@
 // namespace CoreTests.Event;
-// using Core.Event;
+// using Core;
 
 // [TestClass]
 // public class EventTests

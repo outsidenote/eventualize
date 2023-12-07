@@ -28,7 +28,7 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
         {
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithEvents();
             TestStorageAdapter testStorageAdapter = new();
-            var testEvents = await testStorageAdapter.Store(aggregate, true);
+            var testEvents = await testStorageAdapter.SaveAsync(aggregate, true);
             TestStorageAdapterTestsSteps.AssertEventsAreStored(testStorageAdapter, aggregate, testEvents);
             TestStorageAdapterTestsSteps.AssertSnapshotIsStored(testStorageAdapter, aggregate);
         }
