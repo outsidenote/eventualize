@@ -56,40 +56,40 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
             SQLConnection = new SqlConnection(connectionBuilder.ConnectionString);
             ContextId = contextId;
         }
-        public Task<long> GetLastStoredSequenceId<T>(Aggregate<T> aggregate) where T : notnull, new()
+        public async Task<long> GetLastStoredSequenceId<T>(Aggregate<T> aggregate) where T : notnull, new()
         {
             var command = SQLOperations.SQLOperations.GetLastStoredSnapshotSequenceIdCommand(SQLConnection, ContextId, aggregate);
             if (command == null)
-                return Task.FromResult(default(long));
-            var reader = command.ExecuteReader();
+                return default; // TODO: [bnaya 2023-12-07] default of long = 0, is it a valid value? shouldn't we throw an exception?
+            var reader = await command.ExecuteReaderAsync();
             reader.Read();
             var sequenceId = reader.GetInt64(0);
-            return Task.FromResult(sequenceId);
+            return sequenceId;
         }
 
-        public Task<StoredSnapshotData<T>?> GetLatestSnapshot<T>(string aggregateTypeName, string id) where T : notnull, new()
+        public async Task<StoredSnapshotData<T>?> GetLatestSnapshot<T>(string aggregateTypeName, string id) where T : notnull, new()
         {
             var command = SQLOperations.SQLOperations.GetLatestSnapshotCommand<T>(SQLConnection, ContextId, aggregateTypeName, id);
             if (command == null)
-                return Task.FromResult(default(StoredSnapshotData<T>));
-            var reader = command.ExecuteReader();
-            reader.Read();
+                return default;
+            var reader = await command.ExecuteReaderAsync();
+            await reader.ReadAsync();
             var jsonData = reader.GetString(0);
             var sequenceId = reader.GetInt64(1);
             var snapshot = JsonSerializer.Deserialize<T>(jsonData);
             if (snapshot == null)
-                return Task.FromResult(default(StoredSnapshotData<T>));
-            return Task.FromResult(new StoredSnapshotData<T>(snapshot, sequenceId) ?? default(StoredSnapshotData<T>));
+                return default;
+            return new StoredSnapshotData<T>(snapshot, sequenceId);
         }
 
-        public Task<List<Event.Event>> GetStoredEvents(string aggregateTypeName, string id, long startSequenceId)
+        public async Task<List<Event.Event>> GetStoredEvents(string aggregateTypeName, string id, long startSequenceId)
         {
             List<Event.Event> events = new();
             var command = SQLOperations.SQLOperations.GetStoredEventsCommand(SQLConnection, ContextId, aggregateTypeName, id, startSequenceId);
-            if (command == null)
-                return Task.FromResult(events);
-            var reader = command.ExecuteReader();
-            while (reader.Read())
+            if (command == null) 
+                return events;
+            var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
                 var eventType = reader.GetString(0);
                 var capturedAt = reader.GetDateTime(1);
@@ -98,51 +98,45 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
                 var storedAt = reader.GetDateTime(4);
                 events.Add(new Event.Event(eventType, capturedAt, capturedBy, jsonData, storedAt));
             }
-            return Task.FromResult(events);
+            return events;
         }
 
-        public Task CreateTestEnvironment()
+        public async Task CreateTestEnvironment()
         {
             if (ContextId.ContextId == "live")
                 throw new ArgumentException("Cannot create a test environment for StorageAdapterContextId='live'");
-            return Task.Run(() =>
-            {
-                string sqlString = SQLOperations.SQLOperations.GetCreateEnvironmentQuery(ContextId);
-                SqlCommand command = new SqlCommand(sqlString, SQLConnection);
-                command.ExecuteNonQuery();
-            });
+            string sqlString = SQLOperations.SQLOperations.GetCreateEnvironmentQuery(ContextId);
+            SqlCommand command = new SqlCommand(sqlString, SQLConnection);
+            await command.ExecuteNonQueryAsync();
         }
 
-        public Task DestroyTestEnvironment()
+        public async Task DestroyTestEnvironment()
         {
             if (ContextId.ContextId == "live")
                 throw new ArgumentException("Cannot destroy a test environment for StorageAdapterContextId='live'");
-            return Task.Run(() =>
-            {
-                string sqlString = SQLOperations.SQLOperations.GetDestroyEnvironmentQuery(ContextId);
-                SqlCommand command = new SqlCommand(sqlString, SQLConnection);
-                command.ExecuteNonQuery();
-            });
+            string sqlString = SQLOperations.SQLOperations.GetDestroyEnvironmentQuery(ContextId);
+            SqlCommand command = new SqlCommand(sqlString, SQLConnection);
+            await command.ExecuteNonQueryAsync();
         }
 
 
         public Task Init() => SQLConnection.OpenAsync();
 
-        public Task<List<Event.Event>?> Store<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
+        public async Task<List<Event.Event>?> Store<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
         {
             var command = SQLOperations.SQLOperations.GetStoreCommand<T>(SQLConnection, ContextId, aggregate, storeSnapshot);
             if (command == null)
-                return Task.FromResult(default(List<Event.Event>));
+                return default;
             try
             {
-                command.ExecuteNonQuery();
+                await command.ExecuteNonQueryAsync();
             }
             catch (SqlException e)
             {
                 if (e.Message.Contains("Violation of PRIMARY KEY constraint"))
                     throw new OCCException<T>();
             }
-            return Task.FromResult(aggregate.PendingEvents ?? default(List<Event.Event>));
+            return aggregate.PendingEvents ?? default;
         }
     }
 }
