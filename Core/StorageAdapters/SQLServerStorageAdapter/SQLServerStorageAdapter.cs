@@ -126,13 +126,7 @@ namespace Core.StorageAdapters.SQLServerStorageAdapter
         }
 
 
-        public Task Init()
-        {
-            return Task.Run(() =>
-            {
-                SQLConnection.Open();
-            });
-        }
+        public Task Init() => SQLConnection.OpenAsync();
 
         public Task<List<Event.Event>?> Store<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
         {
