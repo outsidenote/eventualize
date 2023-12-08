@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.2" />
-    <PackageReference Include="NJsonSchema" Version="11.0.0-preview006" />
+    <PackageReference Include="NJsonSchema" Version="10.9.0" />
   </ItemGroup>
 
 		<ItemGroup>
