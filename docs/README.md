@@ -47,11 +47,11 @@ We have captured the fact itself (user 5 earned 5 points):
 
 ```mermaid
 flowchart LR;
-a(<i>Record Before the UPDATE<i/><table><tr><th>user_id</th><th>event_type</th><th>data</th></tr><tr><td>5</td><td>user_created</td><td>name: ''John Smith''</td></tr>
-<tr><td>5</td><td>user_earned_points</td><td>points: 3</td></tr></table>);
-b(<i>Record After the UPDATE<i/><table><tr><th>user_id</th><th>event_type</th><th>data</th></tr><tr><td>5</td><td>user_created</td><td>name: ''John Smith''</td></tr>
+a("<i>Record Before the UPDATE<i/><table><tr><th>user_id</th><th>event_type</th><th>data</th></tr><tr><td>5</td><td>user_created</td><td>name: ''John Smith''</td></tr>
+<tr><td>5</td><td>user_earned_points</td><td>points: 3</td></tr></table>");
+b("<i>Record After the UPDATE<i/><table><tr><th>user_id</th><th>event_type</th><th>data</th></tr><tr><td>5</td><td>user_created</td><td>name: ''John Smith''</td></tr>
 <tr><td>5</td><td>user_earned_points</td><td>points: 3</td></tr>
-<tr><td>5</td><td>user_earned_points</td><td>points: 5</td></tr></table>);
+<tr><td>5</td><td>user_earned_points</td><td>points: 5</td></tr></table>");
 a -->|"<code><b>INSERT</b>...</code>"| b;
 ```
 
@@ -64,9 +64,9 @@ Getting the total amount of points for a user:
 
 ```mermaid
 flowchart LR;
-b(<i>Record After the UPDATE<i/><table><tr><th>user_id</th><th>event_type</th><th>data</th></tr><tr><td>5</td><td>user_created</td><td>name: ''John Smith''</td></tr>
+b("<i>Record After the UPDATE<i/><table><tr><th>user_id</th><th>event_type</th><th>data</th></tr><tr><td>5</td><td>user_created</td><td>name: ''John Smith''</td></tr>
 <tr><td>5</td><td>user_earned_points</td><td>points: 3</td></tr>
-<tr><td>5</td><td>user_earned_points</td><td>points: 5</td></tr></table>);
+<tr><td>5</td><td>user_earned_points</td><td>points: 5</td></tr></table>");
 l(("For each<br>event of type
 <b>user_earned_points</b>:
 total_points+=event.points"))
@@ -79,9 +79,9 @@ Geting the maximum amount of points a user earned in a single time:
 
 ```mermaid
 flowchart LR;
-b(<i>Record After the UPDATE<i/><table><tr><th>user_id</th><th>event_type</th><th>data</th></tr><tr><td>5</td><td>user_created</td><td>name: ''John Smith''</td></tr>
+b("<i>Record After the UPDATE<i/><table><tr><th>user_id</th><th>event_type</th><th>data</th></tr><tr><td>5</td><td>user_created</td><td>name: ''John Smith''</td></tr>
 <tr><td>5</td><td>user_earned_points</td><td>points: 3</td></tr>
-<tr><td>5</td><td>user_earned_points</td><td>points: 5</td></tr></table>);
+<tr><td>5</td><td>user_earned_points</td><td>points: 5</td></tr></table>");
 l(("For each<br>event of type
 <b>user_earned_points</b>:
 max_points=max(
