@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+
+using Core;
 using Core.Aggregate;
 using Core.Repository;
 
@@ -32,7 +34,8 @@ namespace CoreTests.RepositoryTests
             DateTime storeTs = DateTime.Now;
             foreach (var pendingEvent in aggregate.PendingEvents)
             {
-                pendingEventsWithStoreTs.Add(new Core.EventEntity(pendingEvent, storeTs));
+                var e = pendingEvent with { StoredAt = storeTs };
+                pendingEventsWithStoreTs.Add(e);
             }
             string key = GetKeyValue(aggregate);
             if (!Events.TryGetValue(key, out List<Core.EventEntity>? eventsList))
