@@ -18,7 +18,7 @@ namespace CoreTests.RepositoryTests
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-            var fetchedAggregate = await repository.Get(aggregate.AggregateType, aggregate.Id);
+            var fetchedAggregate = await repository.GetAsync(aggregate.AggregateType, aggregate.Id);
             repoTestSteps.AssertFetchedAggregateIsCorrecrt(aggregate, fetchedAggregate);
         }
 
@@ -28,7 +28,7 @@ namespace CoreTests.RepositoryTests
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(10);
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
-            await repository.Store(aggregate);
+            await repository.SaveAsync(aggregate);
             await repoTestSteps.AssertStoredAggregateIsCorrect(aggregate, false);
         }
 
@@ -38,7 +38,7 @@ namespace CoreTests.RepositoryTests
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(1);
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
-            await repository.Store(aggregate);
+            await repository.SaveAsync(aggregate);
             await repoTestSteps.AssertStoredAggregateIsCorrect(aggregate, true);
         }
 
@@ -49,7 +49,7 @@ namespace CoreTests.RepositoryTests
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(3);
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-            await repository.Store(aggregate);
+            await repository.SaveAsync(aggregate);
         }
 
     }

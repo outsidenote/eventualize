@@ -1,13 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-  </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\Eventualize.Core.Abstractions\Eventualize.Core.Abstractions.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <None Update="icon.png">
       <PackagePath></PackagePath>
       <Pack>True</Pack>
     </None>
   </ItemGroup>
-
 </Project>
