@@ -8,10 +8,12 @@ using Eventualize.Core.AggregateType;
 using CoreTests.Event;
 using System.Text.Json.Serialization;
 using Eventualize.Core;
+using Generator.Equals;
 
 namespace CoreTests.AggregateTypeTests
 {
-    public class TestState : IEquatable<TestState>
+    [Equatable]
+    public partial class TestState
     {
         public int ACount { get; private set; }
         public int BCount { get; private set; }
@@ -31,12 +33,6 @@ namespace CoreTests.AggregateTypeTests
             ACount = aCount;
             BCount = bCount;
             BSum = bSum;
-        }
-
-        public bool Equals(TestState? other)
-        {
-            if (other == null) return false;
-            return ACount == other.ACount && BCount == other.BCount && BSum == other.BSum;
         }
 
         public override string ToString()
