@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Aggregate;
-using Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
+using Eventualize.Core.Aggregate;
+using Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
 using CoreTests.AggregateTypeTests;
 using Microsoft.Data.SqlClient;
 

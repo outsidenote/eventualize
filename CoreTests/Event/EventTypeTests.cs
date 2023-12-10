@@ -1,5 +1,5 @@
 namespace CoreTests.Event;
-using Core.Event;
+using Eventualize.Core;
 using NJsonSchema;
 
 [TestClass]
@@ -28,7 +28,7 @@ public class EventTypeTests
     public async Task EventType_WhenEventDataParsed_Succeed()
     {
         EventType testEventType = TestEventType;
-        Event testEvent = await GetCorrectTestEvent();
+        EventEntity testEvent = await GetCorrectTestEvent();
         TestEventDataType parsedData = testEventType.ParseData(testEvent);
         Assert.AreEqual(CorrectEventData, parsedData);
         Assert.IsInstanceOfType(parsedData, CorrectEventData.GetType());
@@ -36,7 +36,7 @@ public class EventTypeTests
 
     public static readonly EventType TestEventType = new EventType("testType", typeof(TestEventDataType));
     public static readonly TestEventDataType CorrectEventData = new("test", 10);
-    public static async Task<Event> GetCorrectTestEvent()
+    public static async Task<EventEntity> GetCorrectTestEvent()
     {
         return await TestEventType.CreateEvent(CorrectEventData, "TestMethod");
     }

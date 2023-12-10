@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
-using Core.Event;
-using Core.Aggregate;
+using Eventualize.Core;
+using Eventualize.Core.Aggregate;
 
-namespace Core.AggregateType;
+namespace Eventualize.Core.AggregateType;
 
 
 public class AggregateType<StateType> where StateType : notnull, new()
@@ -34,12 +34,12 @@ public class AggregateType<StateType> where StateType : notnull, new()
         return new Aggregate<StateType>(this, id, MinEventsBetweenSnapshots);
     }
 
-    public Aggregate<StateType> CreateAggregate(string id, List<Event.Event> events)
+    public Aggregate<StateType> CreateAggregate(string id, List<EventEntity> events)
     {
         return new Aggregate<StateType>(this, id, MinEventsBetweenSnapshots, events);
     }
 
-    public Aggregate<StateType> CreateAggregate(string id, StateType snapshot, long lastStoredSequenceId, List<Event.Event> events)
+    public Aggregate<StateType> CreateAggregate(string id, StateType snapshot, long lastStoredSequenceId, List<EventEntity> events)
     {
         return new Aggregate<StateType>(this, id, MinEventsBetweenSnapshots, snapshot, lastStoredSequenceId, events);
     }
@@ -64,7 +64,7 @@ public class AggregateType<StateType> where StateType : notnull, new()
         AddFoldingFunction(eventType.EventTypeName, foldingFunction);
     }
 
-    public StateType FoldEvents(StateType oldState, List<Event.Event> events)
+    public StateType FoldEvents(StateType oldState, List<EventEntity> events)
     {
         StateType currentState = oldState;
         foreach (var e in events)
@@ -74,7 +74,7 @@ public class AggregateType<StateType> where StateType : notnull, new()
         return currentState;
     }
 
-    public StateType FoldEvent(StateType oldState, Event.Event someEvent)
+    public StateType FoldEvent(StateType oldState, EventEntity someEvent)
     {
         StateType currentState = oldState;
         IFoldingFunction<StateType>? foldingFunction;

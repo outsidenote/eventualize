@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.StorageAdapters;
-using Core.StorageAdapters.SQLServerStorageAdapter;
+using Eventualize.Core.StorageAdapters;
+using Eventualize.Core.StorageAdapters.SQLServerStorageAdapter;
 
 namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests
 {

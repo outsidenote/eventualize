@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
+using Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
 using Microsoft.Data.SqlClient;
 
 namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries

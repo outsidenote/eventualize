@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.AggregateType;
+using Eventualize.Core.AggregateType;
 using CoreTests.AggregateTypeTests;
 using CoreTests.Event;
-using Core.Event;
+using Eventualize.Core;
 
 
 namespace CoreTests.AggregateTests
@@ -26,7 +26,7 @@ namespace CoreTests.AggregateTests
         [TestMethod]
         public async Task Aggregate_WhenInstantiatingWithEvents_Succeed()
         {
-            List<Core.Event.Event> events = new();
+            List<EventEntity> events = new();
             for (int i = 0; i < 3; i++)
             {
                 events.Add(await EventTypeTests.GetCorrectTestEvent());
@@ -39,7 +39,7 @@ namespace CoreTests.AggregateTests
         [TestMethod]
         public async Task Aggregate_WhenInstantiatingWithSnapshotAndEvents_Succeed()
         {
-            List<Core.Event.Event> events = new();
+            List<EventEntity> events = new();
             for (int i = 0; i < 3; i++)
             {
                 events.Add(await EventTypeTests.GetCorrectTestEvent());
@@ -52,7 +52,7 @@ namespace CoreTests.AggregateTests
         [TestMethod]
         public void Aggregate_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
         {
-            var aggregate = TestAggregateConfigs.GetTestAggregate(new TestState(3, 3, 30), new List<Core.Event.Event>());
+            var aggregate = TestAggregateConfigs.GetTestAggregate(new TestState(3, 3, 30), new List<EventEntity>());
             Assert.AreEqual(aggregate.PendingEvents.Count, 0);
             Assert.AreEqual(aggregate.State, new TestState(3, 3, 30));
         }

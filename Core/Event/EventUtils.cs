@@ -1,4 +1,4 @@
-namespace Core.Event;
+namespace Eventualize.Core;
 
 public static class EventUtils
 {

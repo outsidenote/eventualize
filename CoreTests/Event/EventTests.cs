@@ -1,5 +1,5 @@
 // namespace CoreTests.Event;
-// using Core.Event;
+// using Eventualize.Core;
 
 // [TestClass]
 // public class EventTests

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CoreTests.AggregateTests;
-using Core.Aggregate;
+using Eventualize.Core.Aggregate;
 using CoreTests.Event;
 using CoreTests.AggregateTypeTests;
 using CoreTests.RepositoryTests;
@@ -28,7 +28,7 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
         {
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithEvents();
             TestStorageAdapter testStorageAdapter = new();
-            var testEvents = await testStorageAdapter.Store(aggregate, true);
+            var testEvents = await testStorageAdapter.SaveAsync(aggregate, true);
             TestStorageAdapterTestsSteps.AssertEventsAreStored(testStorageAdapter, aggregate, testEvents);
             TestStorageAdapterTestsSteps.AssertSnapshotIsStored(testStorageAdapter, aggregate);
         }

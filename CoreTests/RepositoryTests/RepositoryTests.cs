@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CoreTests.RepositoryTests.TestStorageAdapterTests;
-using Core.Repository;
+using Eventualize.Core.Repository;
 using CoreTests.AggregateTypeTests;
 using System.Diagnostics;
 
