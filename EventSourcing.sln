@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreTests", "CoreTests\CoreTests.csproj", "{0C7CD4FA-9A2C-4D73-B0DF-5D5A14CEABC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eventualize.Core.Abstractions", "Eventualize.Core.Abstractions\Eventualize.Core.Abstractions.csproj", "{F9FD2738-8D6D-4356-BCB2-697A841B80E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eventualize.Core.Abstractions", "Eventualize.Core.Abstractions\Eventualize.Core.Abstractions.csproj", "{F9FD2738-8D6D-4356-BCB2-697A841B80E4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{16E10BBC-8BCD-422B-8E3D-0C8D24BD4459}"
 	ProjectSection(SolutionItems) = preProject
@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
+		docs\README.md = docs\README.md
 	EndProjectSection
 EndProject
 Global
