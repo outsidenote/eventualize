@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 
-namespace Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
+namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
 {
     public static class StoreQuery
     {

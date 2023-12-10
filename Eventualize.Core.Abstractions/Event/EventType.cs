@@ -9,7 +9,7 @@ using NJsonSchema.Validation;
 using System.Net;
 
 
-namespace Core;
+namespace Eventualize.Core;
 
 public class EventType
 {

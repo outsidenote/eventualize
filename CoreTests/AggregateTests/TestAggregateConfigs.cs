@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Aggregate;
+using Eventualize.Core;
+using Eventualize.Core.Aggregate;
 using CoreTests.AggregateTypeTests;
 
 namespace CoreTests.AggregateTests
@@ -14,7 +15,7 @@ namespace CoreTests.AggregateTests
             var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
             return aggregateType.CreateAggregate(Guid.NewGuid().ToString());
         }
-        public static Aggregate<TestState> GetTestAggregate(List<Core.EventEntity> events, bool isPendingEvents)
+        public static Aggregate<TestState> GetTestAggregate(List<EventEntity> events, bool isPendingEvents)
         {
             var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
             if (!isPendingEvents)
@@ -31,7 +32,7 @@ namespace CoreTests.AggregateTests
 
         }
 
-        public static Aggregate<TestState> GetTestAggregate(List<Core.EventEntity>? events, int? minEventsBetweenSnapshots)
+        public static Aggregate<TestState> GetTestAggregate(List<EventEntity>? events, int? minEventsBetweenSnapshots)
         {
             var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogicAndMinEvents(minEventsBetweenSnapshots);
             if (events == null)
@@ -40,17 +41,17 @@ namespace CoreTests.AggregateTests
                 return aggregateType.CreateAggregate(Guid.NewGuid().ToString(), events);
         }
 
-        public static Aggregate<TestState> GetTestAggregate(TestState snapshot, List<Core.EventEntity> events)
+        public static Aggregate<TestState> GetTestAggregate(TestState snapshot, List<EventEntity> events)
         {
             var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
-            var aggregate = aggregateType.CreateAggregate(Guid.NewGuid().ToString(), snapshot, (long)0, new List<Core.EventEntity>());
+            var aggregate = aggregateType.CreateAggregate(Guid.NewGuid().ToString(), snapshot, (long)0, new List<EventEntity>());
             foreach (var e in events)
             {
                 aggregate.AddPendingEvent(e);
             }
             return aggregate;
         }
-        public static Aggregate<TestState> GetTestAggregateFromStore(TestState snapshot, List<Core.EventEntity> events)
+        public static Aggregate<TestState> GetTestAggregateFromStore(TestState snapshot, List<EventEntity> events)
         {
             var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
             return aggregateType.CreateAggregate(Guid.NewGuid().ToString(), snapshot, (long)0, events);

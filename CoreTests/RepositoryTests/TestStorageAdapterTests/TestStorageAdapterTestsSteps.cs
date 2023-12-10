@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Aggregate;
+using Eventualize.Core.Aggregate;
 using CoreTests.AggregateTypeTests;
 using CoreTests.AggregateTests;
-using Core.Repository;
+using Eventualize.Core.Repository;
 using System.Text.Json;
+using Eventualize.Core;
 
 namespace CoreTests.RepositoryTests.TestStorageAdapterTests
 {
@@ -31,16 +32,16 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
         }
         public static async Task<Aggregate<TestState>> PrepareAggregateWithEvents()
         {
-            List<Core.EventEntity> events = new();
+            List<EventEntity> events = new();
             for (int i = 0; i < 3; i++)
                 events.Add(await Event.EventTypeTests.GetCorrectTestEvent());
             return TestAggregateConfigs.GetTestAggregate(events, true);
         }
 
-        public static void AssertEventsAreStored(TestStorageAdapter testStorageAdapter, Aggregate<TestState> aggregate, List<Core.EventEntity>? events)
+        public static void AssertEventsAreStored(TestStorageAdapter testStorageAdapter, Aggregate<TestState> aggregate, List<EventEntity>? events)
         {
             Assert.IsNotNull(events);
-            List<Core.EventEntity>? storedEvents;
+            List<EventEntity>? storedEvents;
             string key = TestStorageAdapter.GetKeyValue(aggregate);
             if (!testStorageAdapter.Events.TryGetValue(key, out storedEvents))
                 throw new KeyNotFoundException(key);

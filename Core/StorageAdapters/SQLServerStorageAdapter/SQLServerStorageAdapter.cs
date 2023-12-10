@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Aggregate;
-using Core.Repository;
+using Eventualize.Core.Aggregate;
+using Eventualize.Core.Repository;
 using Microsoft.Data.SqlClient;
-using Core.StorageAdapters;
-using Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
+using Eventualize.Core.StorageAdapters;
+using Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
 using System.Text.Json;
 
-namespace Core.StorageAdapters.SQLServerStorageAdapter
+namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter
 {
     public class SQLServerStorageAdapter : IStorageAdapter
     {

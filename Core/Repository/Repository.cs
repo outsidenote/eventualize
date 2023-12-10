@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.AggregateType;
-using Core.Aggregate;
+using Eventualize.Core.AggregateType;
+using Eventualize.Core.Aggregate;
 
-namespace Core.Repository
+namespace Eventualize.Core.Repository
 {
     public class Repository
     {

@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
-using Core;
-using Core.Aggregate;
+using Eventualize.Core;
+using Eventualize.Core.Aggregate;
 
-namespace Core.AggregateType;
+namespace Eventualize.Core.AggregateType;
 
 
 public class AggregateType<StateType> where StateType : notnull, new()

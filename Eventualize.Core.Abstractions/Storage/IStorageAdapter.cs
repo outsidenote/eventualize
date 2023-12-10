@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Core.Aggregate;
+using Eventualize.Core.Aggregate;
 
-namespace Core.Repository
+namespace Eventualize.Core.Repository
 {
     public interface IStorageAdapter
     {

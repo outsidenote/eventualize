@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Core.AggregateType;
-using Core;
+using Eventualize.Core.AggregateType;
+using Eventualize.Core;
 
-namespace Core.Aggregate;
+namespace Eventualize.Core.Aggregate;
 
 public class Aggregate<StateType> where StateType : notnull, new()
 {

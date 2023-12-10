@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.StorageAdapters.SQLServerStorageAdapter;
-using Core.StorageAdapters;
+using Eventualize.Core.StorageAdapters.SQLServerStorageAdapter;
+using Eventualize.Core.StorageAdapters;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Formats.Asn1;
 using System.Diagnostics;
 using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
 using CoreTests.RepositoryTests.TestStorageAdapterTests;
-using Core.Aggregate;
+using Eventualize.Core.Aggregate;
 using CoreTests.AggregateTypeTests;
-using Core.Repository;
+using Eventualize.Core.Repository;
 using Azure.Identity;
 
 

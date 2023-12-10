@@ -1,6 +1,6 @@
 ﻿using Generator.Equals;
 
-namespace Core;
+namespace Eventualize.Core;
 
 // TODO: Json data -> JsonElement if needed at all
 [Equatable]

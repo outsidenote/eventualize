@@ -4,9 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-using Core.AggregateType;
+using Eventualize.Core.AggregateType;
 using CoreTests.Event;
 using System.Text.Json.Serialization;
+using Eventualize.Core;
 
 namespace CoreTests.AggregateTypeTests
 {
@@ -73,10 +74,10 @@ namespace CoreTests.AggregateTypeTests
 
         public static IFoldingFunction<TestState> FoldingFunctionInstance = new TestFoldingFunction();
 
-        private static object UndelegatedTestFoldingFunction(object oldState, Core.EventEntity SerializedEvent)
+        private static object UndelegatedTestFoldingFunction(object oldState, EventEntity SerializedEvent)
         {
             TestState convertedOldState = (TestState)oldState;
-            Core.EventEntity convertedSerializedEvent = (Core.EventEntity)SerializedEvent;
+            EventEntity convertedSerializedEvent = (EventEntity)SerializedEvent;
             TestEventDataType data = EventTypeTests.TestEventType.ParseData(convertedSerializedEvent);
             return new TestState(convertedOldState.ACount + 1, convertedOldState.BCount + 1, convertedOldState.BSum + data.B);
         }
@@ -84,7 +85,7 @@ namespace CoreTests.AggregateTypeTests
 
     class TestFoldingFunction : IFoldingFunction<TestState>
     {
-        public TestState Fold(TestState oldState, Core.EventEntity SerializedEvent)
+        public TestState Fold(TestState oldState, EventEntity SerializedEvent)
         {
             TestEventDataType data = EventTypeTests.TestEventType.ParseData(SerializedEvent);
             return new TestState(oldState.ACount + 1, oldState.BCount + 1, oldState.BSum + data.B);

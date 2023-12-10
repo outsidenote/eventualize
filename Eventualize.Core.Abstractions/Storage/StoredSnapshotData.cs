@@ -1,4 +1,4 @@
-﻿namespace Core.Repository
+﻿namespace Eventualize.Core.Repository
 {
     public class StoredSnapshotData<T>
     {

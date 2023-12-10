@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
+namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
 {
     public static class CreateEnvironmentQuery
     {

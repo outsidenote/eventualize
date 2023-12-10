@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Aggregate;
+using Eventualize.Core.Aggregate;
 
-namespace Core.Repository
+namespace Eventualize.Core.Repository
 {
     public class OCCException<T> : Exception where T : notnull, new()
     {

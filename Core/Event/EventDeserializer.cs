@@ -5,7 +5,7 @@
 // using System.Text.Json.Nodes;
 // using System.Xml.Schema;
 
-// namespace Core.Event
+// namespace Eventualize.Core.Event
 // {
 //     public static class EventDeserializer
 //     {

@@ -7,7 +7,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Identity.Client.Extensions.Msal;
 using Microsoft.SqlServer.Server;
 
-namespace Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
+namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
 {
     public static class SQLOperations
     {

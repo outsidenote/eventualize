@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Aggregate;
-using Core.Repository;
+using Eventualize.Core.Aggregate;
+using Eventualize.Core.Repository;
 using CoreTests.AggregateTypeTests;
 
 namespace CoreTests.RepositoryTests
