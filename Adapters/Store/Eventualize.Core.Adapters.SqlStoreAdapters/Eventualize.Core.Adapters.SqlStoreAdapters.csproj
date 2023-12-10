@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+    <ProjectReference Include="..\..\..\Eventualize.Core.Abstractions\Eventualize.Core.Abstractions.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Update="icon.png">
+      <PackagePath></PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>

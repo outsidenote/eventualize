@@ -13,7 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Adapters\Store\Eventualize.Core.Adapters.SqlStoreAdapters\Eventualize.Core.Adapters.SqlStoreAdapters.csproj" />
+    <ProjectReference Include="..\Eventualize.Core\Eventualize.Core.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

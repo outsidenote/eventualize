@@ -1,6 +1,5 @@
 <Project>
 	<PropertyGroup>
-		<Version>1.2.157</Version>
 		<PackageReleaseNotes>
 		</PackageReleaseNotes>
 	</PropertyGroup>
@@ -16,7 +15,7 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Configurations>Debug;Release;Gen</Configurations>
+		<Configurations>Debug;Release</Configurations>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<PackageIcon>icon.png</PackageIcon>
 	</PropertyGroup>

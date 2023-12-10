@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations
+namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
+
+// TODO: [bnaya 2023-12-10] migration should move to a different project 
+// TODO: [bnaya 2023-12-10] should be internal class, the implementation should be abstract behind IStorageAdapter
+public static class CreateEnvironmentQuery
 {
-    public static class CreateEnvironmentQuery
+    public static string GetSqlString(string contextIdPrefix)
     {
-        public static string GetSqlString(string contextIdPrefix)
-        {
-            return $@"
+        // TODO: [bnaya 2023-12-10] SQL injection, should use command parameters 
+        return $@"
             -- Create the event table
 CREATE TABLE {contextIdPrefix}event (
     domain NVARCHAR(40) NOT NULL,
@@ -69,7 +72,6 @@ CREATE TABLE {contextIdPrefix}snapshot (
 CREATE INDEX IX_snapshot_earlier_stored_at
 ON {contextIdPrefix}snapshot (domain, aggregate_type, aggregate_id, stored_at);
             ";
-        }
-
     }
+
 }
