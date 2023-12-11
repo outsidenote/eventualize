@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 
 namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
 
@@ -24,15 +19,15 @@ VALUES
 ('default', '{aggregate.AggregateType.Name}', '{aggregate.Id}',{aggregate.LastStoredSequenceId + index + 1},'{e.CapturedAt.ToString("s", System.Globalization.CultureInfo.InvariantCulture)}','{e.EventType}','{e.CapturedBy}','{e.JsonData}')"));
         sqlString += valuesString + ";";
 
-//             var occFutureConstraintString = $@"
-// WHERE {aggregate.LastStoredSequenceId} = (
-//             SELECT MAX(sequence_id)
-//             FROM {contextIdPrefix}event
-//             WHERE domain = 'example_domain'
-//                 AND aggregate_type = 'example_aggregate_type'
-//                 AND aggregate_id = 'example_aggregate_id'
-//         )";
-//             sqlString += occFutureConstraintString + ';';
+        //             var occFutureConstraintString = $@"
+        // WHERE {aggregate.LastStoredSequenceId} = (
+        //             SELECT MAX(sequence_id)
+        //             FROM {contextIdPrefix}event
+        //             WHERE domain = 'example_domain'
+        //                 AND aggregate_type = 'example_aggregate_type'
+        //                 AND aggregate_id = 'example_aggregate_id'
+        //         )";
+        //             sqlString += occFutureConstraintString + ';';
 
         return sqlString;
 

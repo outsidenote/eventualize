@@ -1,5 +1,3 @@
-using System.Data;
-using Eventualize.Core;
 namespace Eventualize.Core.AggregateType;
 public delegate object FoldingFunction(object oldState, EventEntity SerializedEvent);
 

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter;
 
 // TODO: [bnaya 2023-12-07] get it from environment variable

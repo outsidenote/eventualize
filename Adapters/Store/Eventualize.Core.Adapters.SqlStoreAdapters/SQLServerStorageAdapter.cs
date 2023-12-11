@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Eventualize.Core.Aggregate;
 using Eventualize.Core.Repository;
 using Microsoft.Data.SqlClient;
-using Eventualize.Core.StorageAdapters;
-using Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
 using System.Text.Json;
 
 namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter;
@@ -87,7 +81,7 @@ public class SQLServerStorageAdapter : IStorageAdapter
     {
         List<EventEntity> events = new();
         var command = SQLOperations.SQLOperations.GetStoredEventsCommand(SQLConnection, ContextId, aggregateTypeName, id, startSequenceId);
-        if (command == null) 
+        if (command == null)
             return events;
         var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())

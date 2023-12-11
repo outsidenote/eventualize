@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
 
 // TODO: [bnaya 2023-12-10] should be internal class, the implementation should be abstract behind IStorageAdapter

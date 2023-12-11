@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Eventualize.Core.Aggregate;
 
 #pragma warning disable S1133 // Deprecated code should be removed
@@ -10,9 +6,9 @@ namespace Eventualize.Core.Repository
 {
     public class OCCException<T> : Exception where T : notnull, new()
     {
-        [Obsolete("Shouldn't be used directly, used by the serialization",  true)]
+        [Obsolete("Shouldn't be used directly, used by the serialization", true)]
         public OCCException() { }
-        [Obsolete("Shouldn't be used directly, used by the serialization",  true)]
+        [Obsolete("Shouldn't be used directly, used by the serialization", true)]
         public OCCException(string message) : base(message) { }
         public OCCException(Aggregate<T> aggregate) : this(aggregate, -1)
         {
