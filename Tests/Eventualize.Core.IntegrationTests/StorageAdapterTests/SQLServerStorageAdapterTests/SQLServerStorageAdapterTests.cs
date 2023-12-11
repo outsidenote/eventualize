@@ -108,4 +108,4 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         Assert.NotNull(events);
         SQLServerStorageAdapterTestsSteps.AssertEventsAreEqual(events, aggregate.PendingEvents);
     }
-}
+  }
