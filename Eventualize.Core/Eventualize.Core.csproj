@@ -1,8 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">	
 	<ItemGroup>
-		<ProjectReference Include="..\Eventualize.Core.Abstractions\Eventualize.Core.Abstractions.csproj" />
-	</ItemGroup>
-	
+	  <ProjectReference Include="..\Eventualize.Core.Abstractions\Eventualize.Core.Abstractions.csproj" />
+	</ItemGroup>	
 	<ItemGroup>
 		<None Update="icon.png">
 			<PackagePath></PackagePath>

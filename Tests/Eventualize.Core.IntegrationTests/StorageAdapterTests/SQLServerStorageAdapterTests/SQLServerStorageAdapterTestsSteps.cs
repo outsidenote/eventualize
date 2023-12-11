@@ -1,5 +1,4 @@
 using Eventualize.Core;
-using Eventualize.Core.Aggregate;
 using Eventualize.Core.StorageAdapters.SQLServerStorageAdapter;
 using Eventualize.Core.Tests;
 using System.Data;

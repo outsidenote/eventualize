@@ -1,5 +1,3 @@
-using Eventualize.Core.Aggregate;
-
 namespace Eventualize.Core.Tests
 {
     public class TestAggregateConfigs

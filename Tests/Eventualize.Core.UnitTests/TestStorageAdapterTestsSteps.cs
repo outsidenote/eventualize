@@ -1,6 +1,4 @@
 using Eventualize.Core;
-using Eventualize.Core.Aggregate;
-using Eventualize.Core.Repository;
 using Eventualize.Core.Tests;
 using System.Text.Json;
 using static Eventualize.Core.Tests.TestAggregateConfigs;

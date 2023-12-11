@@ -1,5 +1,5 @@
 using CoreTests.RepositoryTests.TestStorageAdapterTests;
-using Eventualize.Core.Repository;
+using Eventualize.Core;
 using Eventualize.Core.Tests;
 
 namespace CoreTests.RepositoryTests
@@ -13,11 +13,11 @@ namespace CoreTests.RepositoryTests
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
             var fetchedAggregate = await repository.GetAsync(aggregate.AggregateType, aggregate.Id);
-            repoTestSteps.AssertFetchedAggregateIsCorrecrt(aggregate, fetchedAggregate);
+            repoTestSteps.AssertFetchedAggregateIsCorrect(aggregate, fetchedAggregate);
         }
 
         [Fact]
-        public async Task Repository_WhenStoringAggregateWithoutSnapshot_Scceed()
+        public async Task Repository_WhenStoringAggregateWithoutSnapshot_Succeed()
         {
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(10);
@@ -37,7 +37,7 @@ namespace CoreTests.RepositoryTests
         }
 
         [Fact]
-        public async Task Respotory_WhenStoringStaleAggregate_ThrowException()
+        public async Task Repository_WhenStoringStaleAggregate_ThrowException()
         {
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(3);

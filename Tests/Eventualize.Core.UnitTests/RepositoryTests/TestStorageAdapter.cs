@@ -1,6 +1,4 @@
 using Eventualize.Core;
-using Eventualize.Core.Aggregate;
-using Eventualize.Core.Repository;
 using System.Text.Json;
 
 namespace CoreTests.RepositoryTests
@@ -20,10 +18,10 @@ namespace CoreTests.RepositoryTests
             return Task.FromResult(result);
         }
 
-        public Task<List<EventEntity>?> StorePendingEvents<T>(Aggregate<T> aggregate) where T : notnull, new()
+        public async Task<List<EventEntity>?> StorePendingEvents<T>(Aggregate<T> aggregate) where T : notnull, new()
         {
             if (aggregate.PendingEvents.Count == 0)
-                return Task.FromResult(default(List<EventEntity>));
+                return default;
             List<EventEntity> pendingEventsWithStoreTs = new();
             DateTime storeTs = DateTime.Now;
             foreach (var pendingEvent in aggregate.PendingEvents)
@@ -40,7 +38,8 @@ namespace CoreTests.RepositoryTests
             {
                 eventsList.AddRange(pendingEventsWithStoreTs);
             }
-            return Task.FromResult(pendingEventsWithStoreTs ?? default);
+            await Task.Yield();
+            return pendingEventsWithStoreTs;
         }
 
         public Task StoreSnapshot<T>(Aggregate<T> aggregate) where T : notnull, new()
@@ -63,7 +62,7 @@ namespace CoreTests.RepositoryTests
         public async Task<List<EventEntity>?> SaveAsync<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
         {
             var events = await StorePendingEvents<T>(aggregate);
-            if (storeSnapshot == true)
+            if (storeSnapshot)
                 await StoreSnapshot(aggregate);
             return events;
         }

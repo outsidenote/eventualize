@@ -1,5 +1,3 @@
-using Eventualize.Core.AggregateType;
-
 using static Eventualize.Core.Tests.TestHelper;
 
 namespace Eventualize.Core.Tests

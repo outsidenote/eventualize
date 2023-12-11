@@ -1,12 +1,10 @@
-using Eventualize.Core.Aggregate;
-using Eventualize.Core.AggregateType;
-
-namespace Eventualize.Core.Repository;
+namespace Eventualize.Core;
 
 // TODO: [bnaya 2023-12-10] make it DI friendly (have an interface and DI registration)
 public class Repository
 {
-    IStorageAdapter StorageAdapter;
+    private readonly IStorageAdapter StorageAdapter;
+
     public Repository(IStorageAdapter storageAdapter)
     {
         StorageAdapter = storageAdapter;

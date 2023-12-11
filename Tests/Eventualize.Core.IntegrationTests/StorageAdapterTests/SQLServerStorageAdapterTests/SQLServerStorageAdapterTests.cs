@@ -1,6 +1,5 @@
 using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
-using Eventualize.Core.Aggregate;
-using Eventualize.Core.Repository;
+using Eventualize.Core;
 using Eventualize.Core.Tests;
 using Xunit.Abstractions;
 using static Eventualize.Core.Tests.TestContext;

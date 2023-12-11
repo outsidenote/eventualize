@@ -1,6 +1,4 @@
-﻿using Eventualize.Core.Aggregate;
-
-namespace Eventualize.Core.AggregateType;
+﻿namespace Eventualize.Core;
 
 
 public class AggregateType<StateType> where StateType : notnull, new()

@@ -36,7 +36,7 @@ public class AggregateTests
             events.Add(await GetCorrectTestEvent());
         }
         var aggregate = TestAggregateConfigs.GetTestAggregateFromStore(new TestState(3, 3, 30), events);
-        Assert.Empty( aggregate.PendingEvents);
+        Assert.Empty(aggregate.PendingEvents);
         Assert.Equal(aggregate.State, new TestState(6, 6, 60));
     }
 

@@ -1,5 +1,4 @@
-using Eventualize.Core.Aggregate;
-using Eventualize.Core.Repository;
+using Eventualize.Core;
 using Eventualize.Core.Tests;
 
 namespace CoreTests.RepositoryTests

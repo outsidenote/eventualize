@@ -5,7 +5,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Eventualize.Core.Abstractions\Eventualize.Core.Abstractions.csproj" />
+	  <ProjectReference Include="..\..\..\Eventualize.Core\Eventualize.Core.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

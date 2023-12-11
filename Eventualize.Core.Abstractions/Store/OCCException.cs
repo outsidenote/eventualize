@@ -1,8 +1,6 @@
-using Eventualize.Core.Aggregate;
-
 #pragma warning disable S1133 // Deprecated code should be removed
 
-namespace Eventualize.Core.Repository
+namespace Eventualize.Core
 {
     public class OCCException<T> : Exception where T : notnull, new()
     {

@@ -1,5 +1,3 @@
-using Eventualize.Core.Aggregate;
-using Eventualize.Core.Repository;
 using Microsoft.Data.SqlClient;
 using System.Text.Json;
 
