@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
-using Microsoft.Identity.Client.Extensions.Msal;
-using Microsoft.SqlServer.Server;
 
 namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
 
@@ -29,7 +22,7 @@ public static class SQLOperations
             return "";
         return "testcontextid_" + contextId.ContextId.Replace("-", "_") + "_";
     }
-    public static SqlCommand? GetStoreCommand<State>(SqlConnection connection, StorageAdapterContextId contextId, Aggregate.Aggregate<State> aggregate, bool isSnapshotStored) where State : notnull, new()
+    public static SqlCommand? GetStoreCommand<State>(SqlConnection connection, StorageAdapterContextId contextId, Aggregate<State> aggregate, bool isSnapshotStored) where State : notnull, new()
     {
         string? sqlString = StoreQuery.GetStorePendingEventsSqlString(GetContextIdPrefix(contextId), aggregate);
         if (string.IsNullOrEmpty(sqlString))
@@ -39,7 +32,7 @@ public static class SQLOperations
         return new SqlCommand(sqlString, connection);
     }
 
-    public static SqlCommand? GetLastStoredSnapshotSequenceIdCommand<State>(SqlConnection connection, StorageAdapterContextId contextId, Aggregate.Aggregate<State> aggregate) where State : notnull, new()
+    public static SqlCommand? GetLastStoredSnapshotSequenceIdCommand<State>(SqlConnection connection, StorageAdapterContextId contextId, Aggregate<State> aggregate) where State : notnull, new()
     {
         var sqlString = GetLastStoredSnapshotSequenceIdQuery.GetSqlString(GetContextIdPrefix(contextId), aggregate);
         if (string.IsNullOrEmpty(sqlString))

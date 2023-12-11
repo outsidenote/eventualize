@@ -1,16 +1,12 @@
-﻿using System.Diagnostics;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using Eventualize.Core;
-using Eventualize.Core.Aggregate;
-
-namespace Eventualize.Core.AggregateType;
+﻿namespace Eventualize.Core;
 
 
 public class AggregateType<StateType> where StateType : notnull, new()
 {
+    // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     public Dictionary<string, EventType> RegisteredEventTypes { get; private set; } = new();
 
+    // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     public Dictionary<string, IFoldingFunction<StateType>> FoldingLogic = new();
 
     public readonly string Name;
@@ -64,7 +60,7 @@ public class AggregateType<StateType> where StateType : notnull, new()
         AddFoldingFunction(eventType.EventTypeName, foldingFunction);
     }
 
-    public StateType FoldEvents(StateType oldState, List<EventEntity> events)
+    public StateType FoldEvents(StateType oldState, IEnumerable<EventEntity> events)
     {
         StateType currentState = oldState;
         foreach (var e in events)

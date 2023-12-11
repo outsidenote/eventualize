@@ -1,5 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\Eventualize.Core.Abstractions\Eventualize.Core.Abstractions.csproj" />
-  </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">	
+	<ItemGroup>
+	  <ProjectReference Include="..\Eventualize.Core.Abstractions\Eventualize.Core.Abstractions.csproj" />
+	</ItemGroup>	
+	<ItemGroup>
+		<None Update="icon.png">
+			<PackagePath></PackagePath>
+			<Pack>True</Pack>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+	</ItemGroup>
 </Project>

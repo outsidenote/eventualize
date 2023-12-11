@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using NJsonSchema;
-using System.Text.Json;
-using System.ComponentModel.DataAnnotations;
 using NJsonSchema.Validation;
-using System.Net;
+using System.Text.Json;
 
 
 namespace Eventualize.Core;
