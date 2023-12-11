@@ -3,38 +3,41 @@ using System.Text.Json;
 
 namespace Eventualize.Core.StorageAdapters.SQLServerStorageAdapter;
 
+
 // TODO: [bnaya 2023-12-10] base it on a shared logic (ADO.NET factory, Db...)
+// TODO: [bnaya 2023-12-11] init from configuration
 public class SQLServerStorageAdapter : IStorageAdapter
 {
-    public readonly SqlConnection SQLConnection;
-    private StorageAdapterContextId ContextId;
+    public readonly SqlConnection _connection;
+    private readonly StorageAdapterContextId _contextId;
+    private readonly Task _init;
 
-    public SQLServerStorageAdapter(string connectionString)
-    {
-        SQLConnection = new SqlConnection(connectionString);
-        ContextId = new StorageAdapterContextId();
-    }
+    #region ctor
 
-    public SQLServerStorageAdapter(string connectionString, StorageAdapterContextId contextId)
+    public SQLServerStorageAdapter(string connectionString, StorageAdapterContextId? contextId = null) : this(new SqlConnection(connectionString), contextId)
     {
-        SQLConnection = new SqlConnection(connectionString);
-        ContextId = contextId;
     }
 
     public SQLServerStorageAdapter(SQLServerConnectionData connectionData)
+        : this(CreateConnection(connectionData))
     {
-        SqlConnectionStringBuilder connectionBuilder = new SqlConnectionStringBuilder
-        {
-            DataSource = connectionData.DataSource,
-            UserID = connectionData.UserID,
-            Password = connectionData.Password,
-            InitialCatalog = connectionData.InitialCatalog
-        };
-
-        SQLConnection = new SqlConnection(connectionBuilder.ConnectionString);
-        ContextId = new StorageAdapterContextId();
     }
-    public SQLServerStorageAdapter(SQLServerConnectionData connectionData, StorageAdapterContextId contextId)
+
+    public SQLServerStorageAdapter(SQLServerConnectionData connectionData, StorageAdapterContextId contextId) 
+        : this(CreateConnection(connectionData), contextId)
+    {
+    }
+
+    public SQLServerStorageAdapter(SqlConnection connection, StorageAdapterContextId? contextId = null)
+    { 
+        _connection = connection;
+        _contextId = contextId ?? new StorageAdapterContextId();
+        _init = _connection.OpenAsync();
+    }
+
+    #endregion // ctor   
+
+    private static SqlConnection CreateConnection(SQLServerConnectionData connectionData)
     {
         SqlConnectionStringBuilder connectionBuilder = new SqlConnectionStringBuilder
         {
@@ -46,12 +49,14 @@ public class SQLServerStorageAdapter : IStorageAdapter
             MultipleActiveResultSets = connectionData.MultipleActiveResultSets
         };
 
-        SQLConnection = new SqlConnection(connectionBuilder.ConnectionString);
-        ContextId = contextId;
+        var conn = new SqlConnection(connectionBuilder.ConnectionString);
+        return conn;
     }
+
     public async Task<long> GetLastSequenceIdAsync<T>(Aggregate<T> aggregate) where T : notnull, new()
     {
-        var command = SQLOperations.SQLOperations.GetLastStoredSnapshotSequenceIdCommand(SQLConnection, ContextId, aggregate);
+        await _init;
+        var command = SQLOperations.SQLOperations.GetLastStoredSnapshotSequenceIdCommand(_connection, _contextId, aggregate);
         if (command == null)
             return default; // TODO: [bnaya 2023-12-07] default of long = 0, is it a valid value? shouldn't we throw an exception?
         var reader = await command.ExecuteReaderAsync();
@@ -62,7 +67,8 @@ public class SQLServerStorageAdapter : IStorageAdapter
 
     public async Task<StoredSnapshotData<T>?> TryGetSnapshotAsync<T>(string aggregateTypeName, string id) where T : notnull, new()
     {
-        var command = SQLOperations.SQLOperations.GetLatestSnapshotCommand<T>(SQLConnection, ContextId, aggregateTypeName, id);
+        await _init;
+        var command = SQLOperations.SQLOperations.GetLatestSnapshotCommand<T>(_connection, _contextId, aggregateTypeName, id);
         if (command == null)
             return default;
         var reader = await command.ExecuteReaderAsync();
@@ -77,8 +83,9 @@ public class SQLServerStorageAdapter : IStorageAdapter
 
     public async Task<List<EventEntity>> GetAsync(string aggregateTypeName, string id, long startSequenceId)
     {
+        await _init;
         List<EventEntity> events = new();
-        var command = SQLOperations.SQLOperations.GetStoredEventsCommand(SQLConnection, ContextId, aggregateTypeName, id, startSequenceId);
+        var command = SQLOperations.SQLOperations.GetStoredEventsCommand(_connection, _contextId, aggregateTypeName, id, startSequenceId);
         if (command == null)
             return events;
         var reader = await command.ExecuteReaderAsync();
@@ -96,28 +103,27 @@ public class SQLServerStorageAdapter : IStorageAdapter
 
     public async Task CreateTestEnvironment()
     {
-        if (ContextId.ContextId == "live")
+        await _init;
+        if (_contextId.ContextId == "live")
             throw new ArgumentException("Cannot create a test environment for StorageAdapterContextId='live'");
-        string sqlString = SQLOperations.SQLOperations.GetCreateEnvironmentQuery(ContextId);
-        SqlCommand command = new SqlCommand(sqlString, SQLConnection);
+        string sqlString = SQLOperations.SQLOperations.GetCreateEnvironmentQuery(_contextId);
+        SqlCommand command = new SqlCommand(sqlString, _connection);
         await command.ExecuteNonQueryAsync();
     }
 
     public async Task DestroyTestEnvironment()
     {
-        if (ContextId.ContextId == "live")
+        await _init;
+        if (_contextId.ContextId == "live")
             throw new ArgumentException("Cannot destroy a test environment for StorageAdapterContextId='live'");
-        string sqlString = SQLOperations.SQLOperations.GetDestroyEnvironmentQuery(ContextId);
-        SqlCommand command = new SqlCommand(sqlString, SQLConnection);
+        string sqlString = SQLOperations.SQLOperations.GetDestroyEnvironmentQuery(_contextId);
+        SqlCommand command = new SqlCommand(sqlString, _connection);
         await command.ExecuteNonQueryAsync();
     }
 
-
-    public Task Init() => SQLConnection.OpenAsync();
-
     public async Task<List<EventEntity>?> SaveAsync<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
     {
-        var command = SQLOperations.SQLOperations.GetStoreCommand<T>(SQLConnection, ContextId, aggregate, storeSnapshot);
+        var command = SQLOperations.SQLOperations.GetStoreCommand<T>(_connection, _contextId, aggregate, storeSnapshot);
         if (command == null)
             return default;
         try

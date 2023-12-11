@@ -38,7 +38,7 @@ WHERE
     AND aggregate_type = '{aggregate.AggregateType.Name}'
     AND aggregate_id = '{aggregate.Id}'
             ";
-            return new SqlCommand(queryString, world.StorageAdapter.SQLConnection);
+            return new SqlCommand(queryString, world.StorageAdapter._connection);
 
         }
 
@@ -54,7 +54,7 @@ WHERE
     AND aggregate_type = '{aggregate.AggregateType.Name}'
     AND aggregate_id = '{aggregate.Id}'
             ";
-            return new SqlCommand(queryString, world.StorageAdapter.SQLConnection);
+            return new SqlCommand(queryString, world.StorageAdapter._connection);
 
         }
 

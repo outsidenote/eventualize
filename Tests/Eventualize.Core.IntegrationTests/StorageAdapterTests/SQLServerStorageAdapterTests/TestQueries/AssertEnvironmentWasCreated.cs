@@ -11,7 +11,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
             var queryString = $@"
 SELECT CAST(CASE WHEN OBJECT_ID('{prefix}event', 'U') IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS [test];
             ";
-            return new SqlCommand(queryString, world.StorageAdapter.SQLConnection);
+            return new SqlCommand(queryString, world.StorageAdapter._connection);
         }
     }
 }

@@ -30,7 +30,6 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
 
     private async Task BeforeEach()
     {
-        await _world.StorageAdapter.Init();
         await _world.StorageAdapter.CreateTestEnvironment();
     }
 
