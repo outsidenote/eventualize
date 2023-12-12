@@ -1,0 +1,4 @@
+{
+    "securityLevel": 'loose',
+    "theme": 'dark',
+};
