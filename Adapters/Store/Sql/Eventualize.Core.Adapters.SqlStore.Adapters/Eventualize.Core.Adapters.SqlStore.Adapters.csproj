@@ -2,4 +2,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Eventualize.Core.Adapters.SqlStore.Common\Eventualize.Core.Adapters.SqlStore.Common.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="icon.png">
+      <PackagePath></PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
 </Project>

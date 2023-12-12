@@ -1,31 +1,11 @@
-# Eventualize
+---
+layout: default
+title: Why Should I Use It?
+nav_order: 1
+parent: Learn More
+---
 
-<img src="images/eventualize-icon.png" width="250"/>
-
-Eventualize is an opinionated event-sourcing framework that unlocks the untapped potential of transactional data while eliminating many challenges related to management of transactional data and its schema.
-Eventualize is quick & easy to integrate, and while it is working with new paradigms and patterns under the hood, it abstracts most of it away and does not distrupt development.
-
-## Install
-
-## Quick Start
-
-// TODO:
-
-1. Install CLI
-2. Create template
-3. Spin Docker or having a connection string to cloud/on-prem DB
-
-```bash
-docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=MasadNetunim12!@" -p 1433:1433 --name sql --hostname sql -d  mcr.microsoft.com/mssql/server:2022-latest
-```
-
-4. run tests
-5. Run the sample code (F5)
-6. Check the Telemetry
-7. Manual deploy NuGet to nuget.org (first time)
-8. CI/CD Set the permission & secret (will deploy NuGet on each push)
-
-## Why is it needed?
+# Why Should I Use It?
 
 In most production applications, transactional data is captured and used to update the state of the system.
 
@@ -123,5 +103,3 @@ You might be thinking: 'OK, pretty cool. But what happens when there are many ev
 Good question!
 This is why `Eventualize` implements a more efficient mechanism that eliminates the performance issues of the naive approach.
 This mechanism would be explained in the next section.
-
-## Snapshots - Making Folding Logic Run Fast and Efficiently
