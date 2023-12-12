@@ -3,8 +3,7 @@ description: A simple & powerful event sourcing framework
 theme: just-the-docs
 logo: images/eventualize-icon-with-text.png
 
-url: https://outsidenote.github.io/eventualize
-
+url: https://eventualizedb.com
 
 mermaid:
   # Version of mermaid library
