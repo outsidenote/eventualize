@@ -23,6 +23,13 @@
     <ProjectReference Include="..\Eventualize.Core.TestsHelper\Eventualize.Core.TestsHelper.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="icon.png">
+      <PackagePath></PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
 	</ItemGroup>

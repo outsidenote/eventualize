@@ -2,7 +2,7 @@ using static Eventualize.Core.Tests.TestHelper;
 
 namespace Eventualize.Core.Tests;
 
-public class AggregateTypeTests
+public sealed class AggregateTypeTests
 {
     [Fact]
     public void AggregateType_WhenAddingEventType_Succeed()

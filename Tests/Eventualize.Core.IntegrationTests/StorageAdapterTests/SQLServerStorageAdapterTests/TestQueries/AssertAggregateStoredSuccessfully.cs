@@ -1,7 +1,7 @@
 using Eventualize.Core;
-using Eventualize.Core.StorageAdapters.SQLServerStorageAdapter.SQLOperations;
 using Eventualize.Core.Tests;
 using Microsoft.Data.SqlClient;
+using System.Data.Common;
 
 namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
 {
@@ -23,13 +23,12 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
             reader.Read();
             var snapshotSequenceId = reader.GetInt64(0);
             Assert.Equal(aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count, snapshotSequenceId);
-
-
         }
-        private static SqlCommand GetStoredEventsSqlCommand(SQLServerAdapterTestWorld world, Aggregate<TestState> aggregate)
+
+        private static DbCommand GetStoredEventsSqlCommand(SQLServerAdapterTestWorld world, Aggregate<TestState> aggregate)
         {
 
-            string prefix = SQLOperations.GetContextIdPrefix(world.ContextId);
+            var prefix = world.ContextId;
             var queryString = $@"
 SELECT COUNT(*)
 FROM {prefix}event
@@ -38,14 +37,15 @@ WHERE
     AND aggregate_type = '{aggregate.AggregateType.Name}'
     AND aggregate_id = '{aggregate.Id}'
             ";
-            return new SqlCommand(queryString, world.StorageAdapter.SQLConnection);
-
+            var command = world.Connection.CreateCommand();
+            command.CommandText = queryString;
+            return command;
         }
 
-        private static SqlCommand GetStoredSnapshotSqlCommand(SQLServerAdapterTestWorld world, Aggregate<TestState> aggregate)
+        private static DbCommand GetStoredSnapshotSqlCommand(SQLServerAdapterTestWorld world, Aggregate<TestState> aggregate)
         {
 
-            string prefix = SQLOperations.GetContextIdPrefix(world.ContextId);
+            var prefix = world.ContextId;
             var queryString = $@"
 SELECT sequence_id
 FROM {prefix}snapshot
@@ -54,8 +54,9 @@ WHERE
     AND aggregate_type = '{aggregate.AggregateType.Name}'
     AND aggregate_id = '{aggregate.Id}'
             ";
-            return new SqlCommand(queryString, world.StorageAdapter.SQLConnection);
-
+            var command = world.Connection.CreateCommand();
+            command.CommandText = queryString;
+            return command;
         }
 
     }
