@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace CoreTests.RepositoryTests
 {
-    public class TestStorageAdapter : IStorageAdapter
+    public sealed class TestStorageAdapter : IStorageAdapter
     {
         public Dictionary<string, StoredSnapshotData<JsonDocument>> Snapshots = new();
         public Dictionary<string, List<EventEntity>> Events = new();
@@ -99,5 +99,10 @@ namespace CoreTests.RepositoryTests
             }
             return Task.FromResult((long)events.Count - 1);
         }
+
+
+        ValueTask IAsyncDisposable.DisposeAsync() => ValueTask.CompletedTask;
+
+        void IDisposable.Dispose() { }
     }
 }

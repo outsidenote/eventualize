@@ -1,5 +1,4 @@
 using Eventualize.Core;
-using Eventualize.Core.StorageAdapters.SQLServerStorageAdapter;
 using Eventualize.Core.Tests;
 using System.Data;
 using static Eventualize.Core.Tests.TestHelper;
@@ -8,7 +7,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests
 {
     public static class SQLServerStorageAdapterTestsSteps
     {
-        public static async Task<Aggregate<TestState>> StoreAggregateTwice(SQLServerStorageAdapter storageAdapter)
+        public static async Task<Aggregate<TestState>> StoreAggregateTwice(IStorageAdapter storageAdapter)
         {
             var aggregate = await PrepareAggregateWithPendingEvents();
             await storageAdapter.SaveAsync(aggregate, true);
