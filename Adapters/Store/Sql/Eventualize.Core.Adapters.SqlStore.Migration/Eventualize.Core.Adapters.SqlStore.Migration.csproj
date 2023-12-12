@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.2" />
 	</ItemGroup>
-
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\Eventualize.Core\Eventualize.Core.csproj" />
+	  <ProjectReference Include="..\Eventualize.Core.Adapters.SqlStore.Common\Eventualize.Core.Adapters.SqlStore.Common.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

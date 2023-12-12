@@ -1,7 +1,7 @@
 using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
 using Eventualize.Core;
 using Eventualize.Core.Tests;
-using Xunit.Abstractions;
+using Microsoft.Extensions.Configuration;
 using static Eventualize.Core.Tests.TestHelper;
 
 
@@ -11,32 +11,30 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests;
 
 public sealed class SQLServerStorageAdapterTests : IDisposable
 {
-    public Dictionary<string, SQLServerAdapterTestWorld> Worlds = [];
-#pragma warning disable S4487 // Unread "private" fields should be removed
-    private readonly ITestOutputHelper _output;
-#pragma warning restore S4487 // Unread "private" fields should be removed
-
     private readonly SQLServerAdapterTestWorld _world;
+    public StorageAdapterContextId _contextId = new(Guid.NewGuid());
 
-    public SQLServerStorageAdapterTests(ITestOutputHelper output)
+    private readonly IConfigurationRoot _configuration;
+
+    public SQLServerStorageAdapterTests()
     {
-        _output = output;
+        _configuration = new ConfigurationBuilder()
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
 
-        _world = new SQLServerAdapterTestWorld();
-        BeforeEach().Wait();
+
+        _world = new SQLServerAdapterTestWorld(_configuration);
+        Task t = _world.StorageMigration.CreateTestEnvironmentAsync();
+        t.Wait();
     }
 
-    public void Dispose() => AfterEach().Wait();
-
-    private async Task BeforeEach()
+    // TODO: [bnaya 2023-12-11] check if xunit support IAsyncDisposable
+    public void Dispose()
     {
-        await _world.StorageAdapter.CreateTestEnvironment();
+        _world.StorageMigration.DestroyTestEnvironmentAsync().Wait();
     }
 
-    private async Task AfterEach()
-    {
-        await _world.StorageAdapter.DestroyTestEnvironment();
-    }
 
     [Fact]
     public void SQLStorageAdapter_WhenCreatingTestEnvironment_Succeed()
