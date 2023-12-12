@@ -1,9 +1,93 @@
 {"0": {
+    "doc": "Code Contribution",
+    "title": "Code Contribution",
+    "content": " ",
+    "url": "/contribution/code-contribution.html",
+    
+    "relUrl": "/contribution/code-contribution.html"
+  },"1": {
+    "doc": "Code Contribution",
+    "title": "Quick Start",
+    "content": "// TODO: . | Install CLI | Create template | Spin Docker or having a connection string to cloud/on-prem DB | . docker run -e \"ACCEPT_EULA=Y\" -e \"MSSQL_SA_PASSWORD=MasadNetunim12!@\" -p 1433:1433 --name sql --hostname sql -d mcr.microsoft.com/mssql/server:2022-latest . | run tests | Run the sample code (F5) | Check the Telemetry | Manual deploy NuGet to nuget.org (first time) | CI/CD Set the permission &amp; secret (will deploy NuGet on each push) | . ",
+    "url": "/contribution/code-contribution.html#quick-start",
+    
+    "relUrl": "/contribution/code-contribution.html#quick-start"
+  },"2": {
+    "doc": "Learn More",
+    "title": "Learn More",
+    "content": "In this section you can get familiar with the Event Sourcing principal of Eentualize and how you can quickly and easly use it yourself. ",
+    "url": "/learn-more/",
+    
+    "relUrl": "/learn-more/"
+  },"3": {
+    "doc": "Contribution",
+    "title": "Contribution",
+    "content": "Eventualize is a project that is meant to not only help integrate event sourcing on a technical level, but also change the paradaigm in which we all think about software systems. There are plenty of ways you can assist us in our mission. Here are some ways that we have thought about. If you don’t find something here that feets you and would like to contribute, contact us at TODO: add email address. ",
+    "url": "/contribution/",
+    
+    "relUrl": "/contribution/"
+  },"4": {
+    "doc": "Home",
+    "title": "Eventualize",
+    "content": ". Eventualize is an opinionated event-sourcing framework that unlocks the untapped potential of transactional data while eliminating many challenges related to management of transactional data and its schema. Eventualize is quick &amp; easy to integrate, and while it is working with new paradigms and patterns under the hood, it abstracts most of it away and does not distrupt development. ",
+    "url": "/#eventualize",
+    
+    "relUrl": "/#eventualize"
+  },"5": {
+    "doc": "Home",
+    "title": "Quick Start",
+    "content": "If you want to jump right into it, go to Quick Start . ",
+    "url": "/#quick-start",
+    
+    "relUrl": "/#quick-start"
+  },"6": {
+    "doc": "Home",
+    "title": "Learn More",
+    "content": "If you want to learn more, go to Learn More. ",
+    "url": "/#learn-more",
+    
+    "relUrl": "/#learn-more"
+  },"7": {
+    "doc": "Home",
+    "title": "Contribute",
+    "content": "You can contribute to this project in many ways (not just coding)! If you are interested to learn more about how you can do this, please visit the Contribution page. ",
+    "url": "/#contribute",
+    
+    "relUrl": "/#contribute"
+  },"8": {
     "doc": "Home",
     "title": "Home",
-    "content": "TODO: Change this… This is a bare-minimum template to create a Jekyll site that uses the Just the Docs theme. You can easily set the created site to be published on GitHub Pages – the README file explains how to do that, along with other details. If Jekyll is installed on your computer, you can also build and preview the created site locally. This lets you test changes before committing them, and avoids waiting for GitHub Pages.1 And you will be able to deploy your local build to a different platform than GitHub Pages. More specifically, the created site: . | uses a gem-based approach, i.e. uses a Gemfile and loads the just-the-docs gem | uses the GitHub Pages / Actions workflow to build and publish the site on GitHub Pages | . Other than that, you’re free to customize sites that you create with this template, however you like. You can easily change the versions of just-the-docs and Jekyll it uses, as well as adding further plugins. Browse our documentation to learn more about how to use this theme. To get started with creating a site, simply: . | click “use this template” to create a GitHub repository | go to Settings &gt; Pages &gt; Build and deployment &gt; Source, and select GitHub Actions | . If you want to maintain your docs in the docs directory of an existing project repo, see Hosting your docs from an existing project repo in the template README. | It can take up to 10 minutes for changes to your site to publish after you push the changes to GitHub. &#8617; . | . ",
+    "content": " ",
     "url": "/",
     
     "relUrl": "/"
+  },"9": {
+    "doc": "Quick Start",
+    "title": "Quick Start",
+    "content": " ",
+    "url": "/quick-start.html",
+    
+    "relUrl": "/quick-start.html"
+  },"10": {
+    "doc": "Snapshots",
+    "title": "Snapshots",
+    "content": " ",
+    "url": "/learn-more/snapshots.html",
+    
+    "relUrl": "/learn-more/snapshots.html"
+  },"11": {
+    "doc": "Snapshots",
+    "title": "Making Folding Logic Run Fast and Efficiently",
+    "content": " ",
+    "url": "/learn-more/snapshots.html#making-folding-logic-run-fast-and-efficiently",
+    
+    "relUrl": "/learn-more/snapshots.html#making-folding-logic-run-fast-and-efficiently"
+  },"12": {
+    "doc": "Why Should I Use It?",
+    "title": "Why Should I Use It?",
+    "content": "In most production applications, transactional data is captured and used to update the state of the system. Here is such an example for a application that updates the amount of points a user has: . flowchart LR; U[Application Code]--&gt;|\"&lt;code&gt;&lt;b&gt;UPDATE&lt;/b&gt; user&lt;br&gt;&lt;b&gt;SET&lt;/b&gt; points = points + 5&lt;br&gt;&lt;b&gt;WHERE&lt;/b&gt; user_id = 5&lt;/code&gt;\"| D[(Database)]; . The application update the state of the relevant user record by additional more points: . flowchart LR; a(\"&lt;i&gt;Record Before the UPDATE&lt;i/&gt; &lt;table&gt;&lt;tr&gt;&lt;th&gt;user_id&lt;/th&gt;&lt;th&gt;name&lt;/th&gt;&lt;th&gt;points&lt;/th&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;John Smith&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;\"); b(\"&lt;i&gt;Record After the UPDATE&lt;i/&gt; &lt;table&gt;&lt;tr&gt;&lt;th&gt;user_id&lt;/th&gt;&lt;th&gt;name&lt;/th&gt;&lt;th&gt;points&lt;/th&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;John Smith&lt;/td&gt;&lt;td&gt;&lt;mark&gt;8&lt;/mark&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;\"); a --&gt;|\"&lt;code&gt;&lt;b&gt;UPDATE&lt;/b&gt;...&lt;code&gt;\"| b; . It’s great for keeping track of the overall points each user has. However what if down the line we’d like to see the maximum number of points that a user have earned at any single time? Oh… shoot. Too bad we didn’t store this kind of information in the first place. But that is just it! You can’t anticipate all the things you’d like to do with your data. And along the way you are bound to encounter new data driven questions you haven’t thought of when you were just starting out. Eventualize solves this by storing the actual facts that the system captured over time. We call those Events. So, following the previous example, working with Eventualize in pricnciple looks something like this: . flowchart LR; U[Application Code]--&gt;|\"&lt;code&gt;&lt;b&gt;INSERT INTO&lt;/b&gt; user_event (user_id, event_type, data) &lt;b&gt;VALUES&lt;/b&gt; (5, 'user_earned_points', '{ points: 5 }');&lt;/code&gt;\"| D[(Database)]; . We have captured the fact itself (user 5 earned 5 points): . flowchart LR; a(\"&lt;i&gt;Records Before the UPDATE&lt;i/&gt;&lt;table&gt;&lt;tr&gt;&lt;th&gt;user_id&lt;/th&gt;&lt;th&gt;event_type&lt;/th&gt;&lt;th&gt;data&lt;/th&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_created&lt;/td&gt;&lt;td&gt;name: ''John Smith''&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_earned_points&lt;/td&gt;&lt;td&gt;points: 3&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;\"); b(\"&lt;i&gt;Records After the UPDATE&lt;i/&gt;&lt;table&gt;&lt;tr&gt;&lt;th&gt;user_id&lt;/th&gt;&lt;th&gt;event_type&lt;/th&gt;&lt;th&gt;data&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_created&lt;/td&gt;&lt;td&gt;name: ''John Smith''&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_earned_points&lt;/td&gt;&lt;td&gt;points: 3&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_earned_points&lt;/td&gt;&lt;td&gt;points: 5&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;\"); a --&gt;|\"&lt;code&gt;&lt;b&gt;INSERT&lt;/b&gt;...&lt;/code&gt;\"| b; . This is great, beacuse now we can calculate many different things based on these events, without changing the way you store the data. All we need to do is scan of the relevant events that were captured and are related to the user, and aggregate them into the state we are interested in. We call this kind of aggregation a folding logic, and you can have multiple floding logics for the same events in order to derive diiferent states for the system. So, continuing our example, getting the information we want would something like this: . Getting the total amount of points for a user: . flowchart LR; b(\"&lt;i&gt;Records After the UPDATE&lt;i/&gt;&lt;table&gt;&lt;tr&gt;&lt;th&gt;user_id&lt;/th&gt;&lt;th&gt;event_type&lt;/th&gt;&lt;th&gt;data&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_created&lt;/td&gt;&lt;td&gt;name: ''John Smith''&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_earned_points&lt;/td&gt;&lt;td&gt;points: 3&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_earned_points&lt;/td&gt;&lt;td&gt;points: 5&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;\"); l((\"For each&lt;br&gt;event of type &lt;b&gt;user_earned_points&lt;/b&gt;: total_points+=event.points\")) b --&gt;|\"&lt;code&gt;SELECT data FROM user_event WHERE user_id=5&lt;/code&gt;\"| l --&gt; x[total_points=8]; . Geting the maximum amount of points a user earned in a single time: . flowchart LR; b(\"&lt;i&gt;Records After the UPDATE&lt;i/&gt;&lt;table&gt;&lt;tr&gt;&lt;th&gt;user_id&lt;/th&gt;&lt;th&gt;event_type&lt;/th&gt;&lt;th&gt;data&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_created&lt;/td&gt;&lt;td&gt;name: ''John Smith''&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_earned_points&lt;/td&gt;&lt;td&gt;points: 3&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;user_earned_points&lt;/td&gt;&lt;td&gt;points: 5&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;\"); l((\"For each&lt;br&gt;event of type &lt;b&gt;user_earned_points&lt;/b&gt;: max_points=max( event.points, max_points)\")) b --&gt;|\"&lt;code&gt;SELECT data FROM user_event WHERE user_id=5&lt;code&gt;\"| l --&gt; x[max_points=5]; . It’s that easy. Each round node that use saw above is a folding logic. You might be thinking: ‘OK, pretty cool. But what happens when there are many events that need to be scanned? Wouldn’t that take too long and hurt performance?’. Good question! This is why Eventualize implements a more efficient mechanism that eliminates the performance issues of the naive approach. This mechanism would be explained in the next section. ",
+    "url": "/learn-more/why-should-i-use-it.html",
+    
+    "relUrl": "/learn-more/why-should-i-use-it.html"
   }
 }
