@@ -12,7 +12,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests;
 public sealed class SQLServerStorageAdapterTests : IDisposable
 {
     private readonly SQLServerAdapterTestWorld _world;
-    public StorageAdapterContextId _contextId = new(Guid.NewGuid());
+    public StorageContext _contextId = StorageContext.CreateUnique();
 
     private readonly IConfigurationRoot _configuration;
 
@@ -29,7 +29,6 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         t.Wait();
     }
 
-    // TODO: [bnaya 2023-12-11] check if xunit support IAsyncDisposable
     public void Dispose()
     {
         _world.StorageMigration.DestroyTestEnvironmentAsync().Wait();

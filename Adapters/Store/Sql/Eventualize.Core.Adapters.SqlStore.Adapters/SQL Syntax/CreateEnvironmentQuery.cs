@@ -5,7 +5,7 @@ namespace Eventualize.Core.Adapters.SqlStore;
 // TODO: [bnaya 2023-12-10] after using parameters all `GetSqlString` should be unified (consider builder pattern)
 internal static class CreateEnvironmentQuery
 {
-    public static string GetSqlString(StorageAdapterContextId contextIdPrefix)
+    public static string GetSqlString(StorageContext contextIdPrefix)
     {
         // TODO: [bnaya 2023-12-10] SQL injection, should use command parameters 
         return $"""
