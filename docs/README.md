@@ -9,6 +9,7 @@ Eventualize is quick & easy to integrate, and while it is working with new parad
 > Watch a 1 minute explaination [video on our site](https://eventualizedb.com)!
 
 ## Quick Start
+If you want to jump right into it, go to [Quick Start](quick-start)
 
 If you want to jump right into it, go to [Quick Start](https://eventualizedb.com/quick-start)
 
