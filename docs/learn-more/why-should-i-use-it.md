@@ -28,11 +28,11 @@ And along the way you are bound to encounter new data driven questions you haven
 
 `Eventualize` solves this by storing the actual facts that the system captured over time. We call those **Events**. So, following the previous example, working with `Eventualize` in pricnciple looks something like this:
 
-<img src="../images/event-insert-example.png" width="600"/>
+<img src="../images/event-insert-example.png" width="800"/>
 
 We have captured the fact itself (user 5 earned 5 points):
 
-<img src="../images/record-insert-example.png" width="600"/>
+<img src="../images/record-insert-example.png" width="800"/>
 
 This is great, beacuse now we can calculate many different things based on these events, without changing the way you store the data.
 All we need to do is scan of the relevant events that were captured and are related to the user, and aggregate them into the state we are interested in. We call this kind of aggregation a **folding logic**, and you can have multiple floding logics for the same events in order to derive diiferent states for the system.
@@ -41,12 +41,12 @@ So, continuing our example, getting the information we want would something like
 
 Total amount of points:
 
-<img src="../images/totalpoints-folding-example.png" width="600"/>
+<img src="../images/totalpoints-folding-example.png" width="900"/>
 
 
 Average points per earning:
 
-<img src="../images/avgpoints-folding-example.png" width="600"/>
+<img src="../images/avgpoints-folding-example.png" width="900"/>
 
 It's that easy.
 
