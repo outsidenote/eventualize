@@ -8,7 +8,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests;
 
 public class SQLServerAdapterTestWorld : IDisposable, IAsyncDisposable
 {
-    public StorageAdapterContextId ContextId { get; } = new(Guid.NewGuid());
+    public StorageContext ContextId { get; } = StorageContext.CreateUnique();
     public IStorageAdapter StorageAdapter { get; }
     public IStorageMigration StorageMigration { get; }
     public DbConnection Connection { get; }

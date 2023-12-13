@@ -5,12 +5,12 @@ namespace Eventualize.Core.Adapters.SqlStore;
 // TODO: [bnaya 2023-12-10] consider to put the context into the DI
 internal static class SqlOperations
 {
-    public static string GetCreateEnvironmentQuery(StorageAdapterContextId contextId)
+    public static string GetCreateEnvironmentQuery(StorageContext contextId)
     {
         return CreateEnvironmentQuery.GetSqlString(contextId);
     }
 
-    public static string GetDestroyEnvironmentQuery(StorageAdapterContextId contextId)
+    public static string GetDestroyEnvironmentQuery(StorageContext contextId)
     {
         return DestroyEnvironmentQuery.GetSqlString(contextId);
     }

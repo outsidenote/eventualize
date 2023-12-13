@@ -8,7 +8,7 @@ public abstract class RelationalStorageAdapterBase : RelationalStorageBase, ISto
 {
     public RelationalStorageAdapterBase(
         Func<DbConnection> factory,
-        StorageAdapterContextId? contextId = null): base(factory, contextId)
+        StorageContext? contextId = null) : base(factory, contextId)
     {
     }
 

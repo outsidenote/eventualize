@@ -1,22 +1,18 @@
-﻿using Microsoft.Data.SqlClient;
-using Namotion.Reflection;
-using System.Data;
-using System.Data.Common;
-using System.Text.Json;
+﻿using System.Data.Common;
 
 namespace Eventualize.Core.Adapters.SqlStore;
 
-public abstract class RelationalStorageBase: IDisposable, IAsyncDisposable
+public abstract class RelationalStorageBase : IDisposable, IAsyncDisposable
 {
     protected readonly DbConnection _connection;
-    protected readonly StorageAdapterContextId _contextId;
+    protected readonly StorageContext _contextId;
     protected readonly Task _init;
 
     public RelationalStorageBase(
         Func<DbConnection> factory,
-        StorageAdapterContextId? contextId = null)
+        StorageContext? contextId = null)
     {
-        _contextId = contextId ?? new StorageAdapterContextId();
+        _contextId = contextId ?? StorageContext.Default;
         _connection = factory() ?? throw new ArgumentNullException($"{nameof(factory)}.Connection");
         _init = InitAsync();
     }
@@ -28,11 +24,11 @@ public abstract class RelationalStorageBase: IDisposable, IAsyncDisposable
 
     void IDisposable.Dispose()
     {
-        DisposeAsync(true ).Wait();
+        DisposeAsync(true).Wait();
         GC.SuppressFinalize(this);
     }
 
-    protected  async virtual Task DisposeAsync(bool disposed)
+    protected async virtual Task DisposeAsync(bool disposed)
     {
         await _connection.DisposeAsync();
     }

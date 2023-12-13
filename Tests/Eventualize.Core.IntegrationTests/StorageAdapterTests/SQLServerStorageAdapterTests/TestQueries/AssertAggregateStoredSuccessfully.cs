@@ -1,6 +1,5 @@
 using Eventualize.Core;
 using Eventualize.Core.Tests;
-using Microsoft.Data.SqlClient;
 using System.Data.Common;
 
 namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
