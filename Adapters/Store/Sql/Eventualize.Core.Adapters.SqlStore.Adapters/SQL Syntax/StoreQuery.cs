@@ -8,7 +8,7 @@ namespace Eventualize.Core.Adapters.SqlStore;
 // TODO: [bnaya 2023-12-10] use parameters (not concatenation)
 internal static class StoreQuery
 {
-    public static string? GetStorePendingEventsSqlString<State>(StorageAdapterContextId contextIdPrefix, Aggregate<State> aggregate) where State : notnull, new()
+    public static string? GetStorePendingEventsSqlString<State>(StorageContext contextIdPrefix, Aggregate<State> aggregate) where State : notnull, new()
     {
         var events = aggregate.PendingEvents;
         if (events.Count == 0)
@@ -27,7 +27,7 @@ internal static class StoreQuery
 
     }
 
-    public static string? GetStoreSnapshotSqlString<State>(StorageAdapterContextId contextIdPrefix, Aggregate<State> aggregate) where State : notnull, new()
+    public static string? GetStoreSnapshotSqlString<State>(StorageContext contextIdPrefix, Aggregate<State> aggregate) where State : notnull, new()
     {
         var snapshotData = JsonSerializer.Serialize(aggregate.State, typeof(State));
         var sequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;

@@ -9,7 +9,7 @@ internal static class SqlOperations
 {
     public static DbCommand GetStoreCommand<State>(
         DbConnection connection,
-        StorageAdapterContextId contextId,
+        StorageContext contextId,
         Aggregate<State> aggregate,
         bool isSnapshotStored) where State : notnull, new()
     {
@@ -25,7 +25,7 @@ internal static class SqlOperations
 
     public static DbCommand GetLastStoredSnapshotSequenceIdCommand<State>(
         DbConnection connection,
-        StorageAdapterContextId contextId,
+        StorageContext contextId,
         Aggregate<State> aggregate) where State : notnull, new()
     {
         var sqlString = GetLastStoredSnapshotSequenceIdQuery.GetSqlString(contextId, aggregate);
@@ -38,7 +38,7 @@ internal static class SqlOperations
 
     public static DbCommand GetLatestSnapshotCommand(
         DbConnection connection,
-        StorageAdapterContextId contextId,
+        StorageContext contextId,
         string aggregateTypeName,
         string id)
     {
@@ -52,7 +52,7 @@ internal static class SqlOperations
 
     public static DbCommand GetStoredEventsCommand(
         DbConnection connection,
-        StorageAdapterContextId contextId,
+        StorageContext contextId,
         string aggregateTypeName,
         string id,
         long startSequenceId)

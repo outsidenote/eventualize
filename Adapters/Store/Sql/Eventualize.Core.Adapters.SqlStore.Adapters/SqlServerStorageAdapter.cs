@@ -1,4 +1,3 @@
-using Microsoft.Data.SqlClient;
 using System.Data.Common;
 
 namespace Eventualize.Core.Adapters.SqlStore;
@@ -7,7 +6,7 @@ namespace Eventualize.Core.Adapters.SqlStore;
 // TODO: [bnaya 2023-12-11] init from configuration
 public sealed class SqlServerStorageAdapter : RelationalStorageAdapterBase
 {
-    public SqlServerStorageAdapter(Func<DbConnection> factory, StorageAdapterContextId? contextId = null) : base(factory, contextId)
+    public SqlServerStorageAdapter(Func<DbConnection> factory, StorageContext? contextId = null) : base(factory, contextId)
     {
     }
 

@@ -6,7 +6,7 @@ namespace Eventualize.Core.Adapters.SqlStore;
 // TODO: [bnaya 2023-12-10] use parameters (not concatenation)
 internal static class GetStoredEventsQuery
 {
-    public static string GetSqlString(StorageAdapterContextId contextIdPrefix, string aggregateTypeName, string id, long startSequenceId)
+    public static string GetSqlString(StorageContext contextIdPrefix, string aggregateTypeName, string id, long startSequenceId)
     {
         // TODO: [bnaya 2023-12-10] SQL injection, should use command parameters 
         return $"""
