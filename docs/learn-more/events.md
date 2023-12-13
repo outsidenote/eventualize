@@ -7,6 +7,8 @@ parent: Learn More
 
 # Events
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/pGU7sRABo7M?si=nFXtiCOsOONL3eGK" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 Events are facts that happened and are of interest to the software system.
 In principal, anythings that is detected by the software system is an event.
 Events can be detected from outside of the system, for example:
