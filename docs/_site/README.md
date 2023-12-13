@@ -5,11 +5,11 @@
 Eventualize is an opinionated event-sourcing framework that unlocks the untapped potential of transactional data while eliminating many challenges related to management of transactional data and its schema.
 Eventualize is quick & easy to integrate, and while it is working with new paradigms and patterns under the hood, it abstracts most of it away and does not distrupt development.
 
-> [!NOTE]
-> Watch a 1 minute explaination [video on our site](https://eventualizedb.com)!
+## Watch a Short Intro Video on The Website
+
+[<img src="images/watch-video-cta.png" width="600">](https://eventualizedb.com/)
 
 ## Quick Start
-If you want to jump right into it, go to [Quick Start](quick-start)
 
 If you want to jump right into it, go to [Quick Start](https://eventualizedb.com/quick-start)
 
