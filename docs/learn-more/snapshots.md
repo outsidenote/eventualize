@@ -33,3 +33,5 @@ Let's see how `Eventualize` would fetch the "Total Points" for the user "john" n
 <img src="../images/fetch-with-snapshot-example.png" width="900"/>
 
 ## When does a Snapshot get created?
+Every aggregate has a specification of `maximum events between snapshots`.
+When event are stored and the latest snapshot is more than this specification's number of events - the state of the aggregate is stored as a new snapshot, that is relevant up to the latest event that is now being stored.

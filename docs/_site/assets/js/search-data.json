@@ -113,7 +113,7 @@
   },"16": {
     "doc": "Snapshots",
     "title": "When does a Snapshot get created?",
-    "content": " ",
+    "content": "Every aggregate has a specification of maximum events between snapshots. When event are stored and the latest snapshot is more than this specification’s number of events - the state of the aggregate is stored as a new snapshot, that is relevant up to the latest event that is now being stored. ",
     "url": "/learn-more/snapshots.html#when-does-a-snapshot-get-created",
     
     "relUrl": "/learn-more/snapshots.html#when-does-a-snapshot-get-created"
