@@ -1,7 +1,7 @@
 {"0": {
     "doc": "Aggregates",
     "title": "Aggregates",
-    "content": "Events that are captured, stored in Aggregates. As their name implies, they aggregate in once place, events that belong to the same entity. In order to easily locate an aggregate, it has an Aggregate Type and an Aggregate Id. The combination of both need to be unique across the system. For example, you can define an aggregate of type user with an id of john. Now you can store all events that belong to the user “John” in that aggregates. When you ask Eventualize to read the state of an aggregate, in principal what it does is fetching all the aggregate’s events and “folding” them one on top of the other to derive the current state. Folding means taking a sequence of events and based on their content perform an aggregative calculation. So when a service wants to read the state of an aggregate, it needs to provide to Eventualize the identification of the aggregate in terms of Aggregate Type and Aggregate ID, and a Folding Logic, which is the mapping between an Event Type and the function that holds the desired calculation of its content. That means that you can read the same aggregate using different folding logics, and derive different states from the same data! . ",
+    "content": "Events that are captured, stored in Aggregates. As their name implies, they aggregate in once place, events that belong to the same entity. In order to easily locate an aggregate, it has an Aggregate Type and an Aggregate Id. The combination of both need to be unique across the system. For example, you can define an aggregate of type user with an id of john. Now you can store all events that belong to the user “John” in that aggregates. When you ask Eventualize to read the state of an aggregate, in principal what it does is fetching all the aggregate’s events and “folding” them one on top of the other to derive the current state. Folding means taking a sequence of events and based on their content perform an aggregative calculation. So when a service wants to read the state of an aggregate, it needs to provide to Eventualize the identification of the aggregate in terms of Aggregate Type and Aggregate ID, and a Folding Logic, which is the mapping between an Event Type and the function that holds the desired calculation of its content. That means that you can read the same aggregate using different folding logics, and derive different states from the same data! . Another important advantage of this approach is the it provides strong consistency when reading an aggregates’s state. Because immediately after strong an event, you’ll be able to read an up-to-date state of the aggregate that includes that event! . However in order to use it in large scale production systems there are 2 more important considerations: . | Read Time - What if there are many events in an aggregate? Wouldn’t reading all of them in order to derive the state take a long time? For that we have Snaphots. | Strong Consistency with Writes - How can an service or application store an event, only if the state hasn’t changed since tha last time it was read? For that we have Optimistic Concurrency Control. | . ",
     "url": "/learn-more/aggregates.html",
     
     "relUrl": "/learn-more/aggregates.html"
@@ -90,27 +90,34 @@
     
     "relUrl": "/"
   },"13": {
+    "doc": "Optimistic Concurrency Control (OCC)",
+    "title": "Optimistic Concurrency Control (OCC)",
+    "content": " ",
+    "url": "/learn-more/occ.html",
+    
+    "relUrl": "/learn-more/occ.html"
+  },"14": {
     "doc": "Quick Start",
     "title": "Quick Start",
     "content": " ",
     "url": "/quick-start.html",
     
     "relUrl": "/quick-start.html"
-  },"14": {
+  },"15": {
     "doc": "Snapshots",
     "title": "Snapshots",
     "content": " ",
     "url": "/learn-more/snapshots.html",
     
     "relUrl": "/learn-more/snapshots.html"
-  },"15": {
+  },"16": {
     "doc": "Snapshots",
     "title": "Making Folding Logic Run Fast and Efficiently",
     "content": " ",
     "url": "/learn-more/snapshots.html#making-folding-logic-run-fast-and-efficiently",
     
     "relUrl": "/learn-more/snapshots.html#making-folding-logic-run-fast-and-efficiently"
-  },"16": {
+  },"17": {
     "doc": "Why Should I Use It?",
     "title": "Why Should I Use It?",
     "content": "In most production applications, transactional data is captured and used to update the state of the system. Here is such an example for a application that updates the amount of points a user has: . The application updates the state of the relevant user record by increasing the points of the user with the additional points: . It’s great for keeping track of the overall points each user has. However, each time we update users points, we overwrite the previous amount of points they had. What if down the line we’d like to see the average number of daily points that earned by the user? Oh… shoot. Too bad we didn’t store the previous amounts in the first place. But that is just it! You can’t anticipate all the things you’d like to do with your data. And along the way you are bound to encounter new data driven questions you haven’t thought of when you were just starting out. Eventualize solves this by storing the actual facts that the system captured over time. We call those Events. So, following the previous example, working with Eventualize in pricnciple looks something like this: . We have captured the fact itself (user 5 earned 5 points): . This is great, beacuse now we can calculate many different things based on these events, without changing the way you store the data. All we need to do is scan of the relevant events that were captured and are related to the user, and aggregate them into the state we are interested in. We call this kind of aggregation a folding logic, and you can have multiple floding logics for the same events in order to derive diiferent states for the system. So, continuing our example, getting the information we want would something like this: . Total amount of points: . Average points per earning: . It’s that easy. Each round node that use saw above is a folding logic, and each box after that node is the resulting state. At this points you probably have some questions. Like: ‘What happens when there are many events that need to be scanned? Wouldn’t that take too long and hurt performance?’ ‘What if the events are stored in the wrong order?’ and many more. There are several mechanisms that needs to be put in place in order for event sourcing to work not only in principal but also in real life. This is why we have built Eventualize - so you wouldn’t have to! The next sections should give you a pretty good understanding on how it all works. So let’s go to the next section! . ",
