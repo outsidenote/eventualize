@@ -30,3 +30,6 @@ The latest state the Snapshot holds is up to event 990.<br>
 That means it is missing the last 10 events.
 
 Let's see how `Eventualize` would fetch the "Total Points" for the user "john" now:
+<img src="../images/fetch-with-snapshot-example.png" width="900"/>
+
+## When does a Snapshot get created?
