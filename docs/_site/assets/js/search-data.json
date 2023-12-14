@@ -1,7 +1,7 @@
 {"0": {
     "doc": "Aggregates",
     "title": "Aggregates",
-    "content": " ",
+    "content": "Events that are captured, stored in Aggregates. As their name implies, they aggregate in once place, events that belong to the same entity. In order to easily locate an aggregate, it has an Aggregate Type and an Aggregate Id. The combination of both need to be unique across the system. For example, you can define an aggregate of type user with an id of john. Now you can store all events that belong to the user “John” in that aggregates. ",
     "url": "/learn-more/aggregates.html",
     
     "relUrl": "/learn-more/aggregates.html"
