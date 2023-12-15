@@ -50,3 +50,11 @@ Here is an illustration for that:
 As you can see, the event was added to the pending events collection, and the state was updated by folding the event on top of the previous state.
 
 ## Storing a local aggregate
+The application code captured some events and stored them as pending events in the local aggregate.
+The state of the local aggregate also have been updated.
+Now we'd like to store our local aggregate.
+It is really simply actually:
+1. The pending events are added to the stored aggregate and removed from the local aggregate (as they are no longer pending storage).
+2. If a snapshot should be created, the current state of the local aggregate is stored as a snapshot for the relevant folding logic and event.
+Here is an illustration of that:
+<img src="../images/store-local-aggregate-example.png" width="900"/>
