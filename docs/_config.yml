@@ -22,3 +22,6 @@ mermaid:
 heading_anchors: true
 
 color_scheme: dark
+
+ga_tracking: G-W6M7DSFF4B
+ga_tracking_anonymize_ip: true # Use GDPR compliant Google Analytics settings (true/nil by default)
