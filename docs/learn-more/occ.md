@@ -31,3 +31,6 @@ How can we let the second serivce know that it's going to store events based on 
 
 ## Last Stored Sequence Id
 When a local aggregate is created, it stores the sequence id of the latest event that was read into the **Last Stored Sequence Id** property.
+
+<img src="../images/fetch-aggregate-with-occ-example.png" width="900"/>
+
