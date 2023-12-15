@@ -35,3 +35,4 @@ Then `Eventualize` locates the relevant stored aggregate, and the latest snapsho
 * **Pending Events** - An empty collection
 
 Here is an illustration of the process:
+<img src="../images/create-local-aggregate-example.png" width="900"/>
