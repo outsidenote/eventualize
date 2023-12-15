@@ -36,3 +36,17 @@ Then `Eventualize` locates the relevant stored aggregate, and the latest snapsho
 
 Here is an illustration of the process:
 <img src="../images/create-local-aggregate-example.png" width="900"/>
+
+The simpler case is when there is no existing stored aggregate.
+I that case, the local storage is instantly create with an empty state.
+
+## Capturing events in a local aggregate
+Throughout the application's execution, it'll capture or create one or more events.<br>
+Those events will be appended in the local aggregate to the collection of pending events.
+This is a very fast operation that can support a high frequency of appends.
+Here is an illustration for that:
+<img src="../images/add-pending-event-example.png" width="900"/>
+
+As you can see, the event was added to the pending events collection, and the state was updated by folding the event on top of the previous state.
+
+## Storing a local aggregate
