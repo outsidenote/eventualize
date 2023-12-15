@@ -14,7 +14,8 @@ In order to easily locate an aggregate, it has an **Aggregate Type** and an **Ag
 The combination of both need to be unique across the system.
 
 For example, you can define an aggregate of type `user` with an id of `john`.
-Now you can store all events that belong to the user "John" in that aggregates.
+Now you can store all events that belong to the user "John" in that aggregates.<br>
+Each stored event gets a **sequence id** which is just a incrementing integer that expresses the position of the event within the aggregate.
 
 <img src="../images/aggregate-example.png" width="500"/>
 
