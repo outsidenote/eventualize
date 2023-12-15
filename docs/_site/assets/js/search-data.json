@@ -139,27 +139,34 @@
     
     "relUrl": "/learn-more/occ.html#the-issue-of-multiple-writers"
   },"20": {
+    "doc": "Optimistic Concurrency Control (OCC)",
+    "title": "Last Stored Sequence Id",
+    "content": "When a local aggregate is created, it stores the sequence id of the latest event that was read into the Last Stored Sequence Id property. ",
+    "url": "/learn-more/occ.html#last-stored-sequence-id",
+    
+    "relUrl": "/learn-more/occ.html#last-stored-sequence-id"
+  },"21": {
     "doc": "Quick Start",
     "title": "Quick Start",
     "content": " ",
     "url": "/quick-start.html",
     
     "relUrl": "/quick-start.html"
-  },"21": {
+  },"22": {
     "doc": "Snapshots",
     "title": "Snapshots",
     "content": "The purpose of a Snapshot is accelarating getting an Aggregate’s state. It does so by optimizing the excution of the FoldingLogic. In essense, a Snapshot is a calculated state that is based on a specific Folding Logic. Whenever events are starting to pile up within an Aggregate, a Snpashot is created. So the next time this aggregate is fetched, the state already exist with no required calculations. If more events are stored since the moment the Snapshot was created, only they are folded unto the the Snapshot’s state. For example, The aggregate of the user “john” holds 1,000 events: . Scanning and folding all these events might take too much time, which can be unreasonable for some use cases. Let’s see what happens when we introduce a Snapshot for the calculating “total points”: . As you can see, a Snapshot is like another type of aggregate. The difference is, that it stores the state across different points in time for a cpecific folding logic of a particular aggregate. In our example, the snapshot stores the different states of folding logic “Total Points” for the user “john” aggregate. The latest state the Snapshot holds is up to event 990. That means it is missing the last 10 events. Let’s see how Eventualize would fetch the “Total Points” for the user “john” now: . ",
     "url": "/learn-more/snapshots.html",
     
     "relUrl": "/learn-more/snapshots.html"
-  },"22": {
+  },"23": {
     "doc": "Snapshots",
     "title": "When does a Snapshot get created?",
     "content": "Every aggregate has a specification of maximum events between snapshots. When event are stored and the latest snapshot is more than this specification’s number of events - the state of the aggregate is stored as a new snapshot, that is relevant up to the latest event that is now being stored. ",
     "url": "/learn-more/snapshots.html#when-does-a-snapshot-get-created",
     
     "relUrl": "/learn-more/snapshots.html#when-does-a-snapshot-get-created"
-  },"23": {
+  },"24": {
     "doc": "Why Should I Use It?",
     "title": "Why Should I Use It?",
     "content": "In most production applications, transactional data is captured and used to update the state of the system. Here is such an example for a application that updates the amount of points a user has: . The application updates the state of the relevant user record by increasing the points of the user with the additional points: . It’s great for keeping track of the overall points each user has. However, each time we update users points, we overwrite the previous amount of points they had. What if down the line we’d like to see the average number of daily points that earned by the user? Oh… shoot. Too bad we didn’t store the previous amounts in the first place. But that is just it! You can’t anticipate all the things you’d like to do with your data. And along the way you are bound to encounter new data driven questions you haven’t thought of when you were just starting out. Eventualize solves this by storing the actual facts that the system captured over time. We call those Events. So, following the previous example, working with Eventualize in pricnciple looks something like this: . We have captured the fact itself (user 5 earned 5 points): . This is great, beacuse now we can calculate many different things based on these events, without changing the way you store the data. All we need to do is scan of the relevant events that were captured and are related to the user, and aggregate them into the state we are interested in. We call this kind of aggregation a folding logic, and you can have multiple floding logics for the same events in order to derive diiferent states for the system. So, continuing our example, getting the information we want would something like this: . Total amount of points: . Average points per earning: . It’s that easy. Each round node that use saw above is a folding logic, and each box after that node is the resulting state. At this points you probably have some questions. Like: ‘What happens when there are many events that need to be scanned? Wouldn’t that take too long and hurt performance?’ ‘What if the events are stored in the wrong order?’ and many more. There are several mechanisms that needs to be put in place in order for event sourcing to work not only in principal but also in real life. This is why we have built Eventualize - so you wouldn’t have to! The next sections should give you a pretty good understanding on how it all works. So let’s go to the next section! . ",

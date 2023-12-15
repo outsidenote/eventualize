@@ -28,3 +28,6 @@ If service 1 stores its event fisrt, than the event from service 2 will cancel t
 
 How can we know which service should store its events first?
 How can we let the second serivce know that it's going to store events based on a stale knowledge of the current state?
+
+## Last Stored Sequence Id
+When a local aggregate is created, it stores the sequence id of the latest event that was read into the **Last Stored Sequence Id** property.
