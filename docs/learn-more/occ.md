@@ -18,9 +18,13 @@ Both services created a local aggregate from the same stored aggregate "User: jo
 Service 1 added the event "user earned points".<br>
 Service 2 added the event "user's last earning cancelled".<br>
 
-As you can see, the order of stored events is important.
-If service 2 stores its event first, it'll cancel the points earned before service 1's event.
+<img src="../images/multiple-writers-example.png" width="900"/>
+
+As you can see, the order of stored events is important.<br>
+If service 2 stores its event first, it'll cancel the points earned before service 1's event.<br>
 If service 1 stores its event fisrt, than the event from service 2 will cancel these earned points.
+
+<img src="../images/multiple-writers-events-sequence-example.png" width="900"/>
 
 How can we know which service should store its events first?
 How can we let the second serivce know that it's going to store events based on a stale knowledge of the current state?
