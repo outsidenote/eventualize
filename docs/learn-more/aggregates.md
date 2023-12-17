@@ -5,7 +5,7 @@ nav_order: 4
 parent: Learn More
 ---
 
-## Aggregates
+# Aggregates
 
 An **Aggregate** represents a local copy of an Entity's state.<br>
 It is derived from a the entity's Stream.<br>
