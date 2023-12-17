@@ -1,9 +1,8 @@
 ---
 layout: default
-title: Local Aggregate
-nav_order: 2
-parent: Aggregates
-grand_parent: Learn More
+title: Working With Stream & Aggregates
+nav_order: 5
+parent: Learn More
 ---
 
 # Local Aggregate
@@ -12,14 +11,6 @@ This is the stored aggregate.<br>
 However for code to effectively execute, it needs to have a local representation of the aggregate, a **local aggregate**, which can differ, throughout the code's execution, from the stored aggregate.
 
 Let's see how it looks like and how it is used.
-
-## The structure of a local aggregate
-A local aggregate has the following:
-* **Aggregate Type** - The type of the aggregate
-* **Aggregate Id** - The identification of the aggregate
-* **State** - The current state the aggregate holds
-* **Folding Logic** - The folding logic that computed the state
-* **Pending Events** - Events that the local aggregate holds that have not yet been stored in the stored aggregate.
 
 ## Creation of local aggregate from a stored aggregate
 In order to create a local aggregate, the application code provides to the `Eventualize` SDK:
