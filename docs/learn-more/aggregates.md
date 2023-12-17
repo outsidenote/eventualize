@@ -36,7 +36,29 @@ That means that you can read the same Stream using different Folding Logics, and
 
 Another important advantage of this approach is the it provides [strong consistency](https://en.wikipedia.org/wiki/Strong_consistency) when creating an Aggregate. This is because immediately after storing an Event, you'll be able to read it, as the Stream includes that Event!
 
-However in order to use it in large scale production systems, there are 2 additional considerations:
+## Capturing Events in an Aggregate
+Throughout the application's execution, it'll capture or create one or more events.<br>
+Those events will be appended to the ordered collection of Pending Events in the Aggregate.
+The Folding Logic will also execute the relevant Folding Function, based on the Event's type. This will update the Aggregate's State.
+Capturing Events a very fast operation that can support a high frequency of appends.
+Here is an illustration for that:
+<img src="../images/add-pending-event-example.png" width="500"/>
+
+As you can see, the Event was added to the Pending Events collection, and the State was updated by folding the Event on top of the previous State.
+
+## Storing a local Aggregate
+The application code captured some Events and appeneded them to the Aggregate's Pending Events.<br>
+The state of Aggregate also have been updated.
+Now we'd like to store those Pending Events into to the respective Stream.
+It is really simply actually:
+1. The Pending Events are added to the Stream and removed from the Aggregate (as they are no longer pending).
+2. If a Snapshot should be created, the current State of the Aggregate is stored as a Snapshot and assigned with the Offset of the latest stored Event.
+Here is an illustration of that:
+<img src="../images/store-local-aggregate-example.png" width="900"/>
+
+## Production Workload
+
+In order to use Aggregates in a high performing production system, there are 2 additional considerations:
 
 1. **Read Time** - What if there are many events in an Stream? Wouldn't reading all of them in order to derive the state take a long time? For that we have [Snaphots](snapshots).
 2. **Strong Consistency with Writes** - How can an service or application store an event, only if the Stream hasn't been updated since tha last time it was read? For that we have [Optimistic Concurrency Control](occ).
