@@ -5,7 +5,7 @@ nav_order: 3
 parent: Learn More
 ---
 
-## Streams
+# Streams
 Events that are captured, stored in **Streams**.
 A Stream holds in once place events that belong to the same entity.
 A Stream uses an underlying transactional database of your choice (e.g. SQL Server) to store its events.
