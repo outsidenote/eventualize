@@ -1,20 +1,21 @@
-﻿using System.Data.Common;
+﻿using Microsoft.Extensions.Logging;
+using System.Data.Common;
 
-namespace Eventualize.Core.Adapters.SqlStore;
+namespace Eventualize.Core.Adapters;
 
 public abstract class RelationalStorageBase : IDisposable, IAsyncDisposable
 {
     protected readonly DbConnection _connection;
-    protected readonly StorageContext _contextId;
     protected readonly Task _init;
+    protected readonly ILogger _logger;
 
     public RelationalStorageBase(
-        Func<DbConnection> factory,
-        StorageContext? contextId = null)
+        ILogger logger,
+        Func<DbConnection> factory)
     {
-        _contextId = contextId ?? StorageContext.Default;
         _connection = factory() ?? throw new ArgumentNullException($"{nameof(factory)}.Connection");
         _init = InitAsync();
+        _logger = logger;
     }
 
     private async Task InitAsync()

@@ -2,6 +2,7 @@ using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
 using Eventualize.Core;
 using Eventualize.Core.Tests;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Immutable;
 using static Eventualize.Core.Tests.TestHelper;
 
 
@@ -12,7 +13,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests;
 public sealed class SQLServerStorageAdapterTests : IDisposable
 {
     private readonly SQLServerAdapterTestWorld _world;
-    public StorageContext _contextId = StorageContext.CreateUnique();
+    public EventualizeStorageContext _contextId = EventualizeStorageContext.CreateUnique();
 
     private readonly IConfigurationRoot _configuration;
 
@@ -48,7 +49,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     [Fact]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithPendingEventsWithoutSnapshot_Succeed()
     {
-        var aggregate = await PrepareAggregateWithPendingEvents();
+        EventualizeAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
         await _world.StorageAdapter.SaveAsync(aggregate, false);
         AssertAggregateStoredSuccessfully.assert(_world, aggregate, false);
     }
@@ -56,7 +57,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     [Fact]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithPendingEventsWithSnapshot_Succeed()
     {
-        var aggregate = await PrepareAggregateWithPendingEvents();
+        EventualizeAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
         await _world.StorageAdapter.SaveAsync(aggregate, true);
         AssertAggregateStoredSuccessfully.assert(_world, aggregate, true);
     }
@@ -64,7 +65,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     [Fact]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithStaleState_ThrowException()
     {
-        var aggregate = await PrepareAggregateWithPendingEvents();
+        EventualizeAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
         await _world.StorageAdapter.SaveAsync(aggregate, true);
         await Assert.ThrowsAsync<OCCException<TestState>>(async () => await _world.StorageAdapter.SaveAsync(aggregate, true));
     }
@@ -72,8 +73,15 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     [Fact(Skip = "not active")]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithFutureState_ThrowException()
     {
-        var aggregate = await PrepareAggregateWithPendingEvents();
-        var aggregate2 = new Aggregate<TestState>(aggregate.AggregateType, aggregate.Id, aggregate.MinEventsBetweenSnapshots, aggregate.PendingEvents);
+        EventualizeAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
+        IAsyncEnumerable<EventualizeEvent> events =
+                            aggregate.PendingEvents.ToAsync();
+        var aggregate2 =
+            await EventualizeAggregate.CreateAsync(
+                aggregate.AggregateType,
+                aggregate.Id, 
+                aggregate.MinEventsBetweenSnapshots,
+                events);
         await Assert.ThrowsAsync<OCCException<TestState>>(async () => await _world.StorageAdapter.SaveAsync(aggregate2, true));
     }
 
@@ -100,8 +108,9 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     public async Task SQLStorageAdapter_WhenGettingStoredEvents_Succeed()
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
-        var events = await _world.StorageAdapter.GetAsync(aggregate.AggregateType.Name, aggregate.Id, aggregate.LastStoredSequenceId + 1);
-        Assert.NotNull(events);
-        SQLServerStorageAdapterTestsSteps.AssertEventsAreEqual(events, aggregate.PendingEvents);
+        var asyncEvents = _world.StorageAdapter.GetAsync(aggregate.AggregateType.Name, aggregate.Id, aggregate.LastStoredSequenceId + 1);
+        Assert.NotNull(asyncEvents);
+        var events = await asyncEvents.ToEnumerableAsync();
+        Assert.True(events.SequenceEqual(aggregate.PendingEvents));
     }
 }

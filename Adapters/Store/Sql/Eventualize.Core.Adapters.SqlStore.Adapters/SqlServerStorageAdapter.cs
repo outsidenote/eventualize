@@ -1,37 +1,56 @@
+using Microsoft.Extensions.Logging;
 using System.Data.Common;
+using System.Data.SqlClient;
 
 namespace Eventualize.Core.Adapters.SqlStore;
 
-// TODO: [bnaya 2023-12-10] base it on a shared logic (ADO.NET factory, Db...)
-// TODO: [bnaya 2023-12-11] init from configuration
-public sealed class SqlServerStorageAdapter : RelationalStorageAdapterBase
+public static class SqlServerStorageAdapter
 {
-    public SqlServerStorageAdapter(Func<DbConnection> factory, StorageContext? contextId = null) : base(factory, contextId)
+    public static IEventualizeStorageAdapter Create(
+        ILogger logger,
+        IEventualizeConnectionFactory factory,
+        EventualizeStorageContext context)
     {
+        IEventualizeStorageAdapter result = 
+            EventualizeRelationalStorageAdapter.Create(
+                    logger,
+                    QueryTemplatesFactory.Create(context),
+                    factory);
+        return result;
     }
 
-    protected override DbCommand GetLastStoredSnapshotSequenceIdCommand<TState>(Aggregate<TState> aggregate)
+    public static IEventualizeStorageAdapter Create(
+        ILogger logger,
+        string connectionString,
+        EventualizeStorageContext context) 
     {
-        return SqlOperations.GetLastStoredSnapshotSequenceIdCommand(_connection, _contextId, aggregate);
+        IEventualizeConnectionFactory factory = new EventualizeSqlConnectionFactory(connectionString);
+
+        IEventualizeStorageAdapter result = 
+            EventualizeRelationalStorageAdapter.Create(
+                    logger,
+                    QueryTemplatesFactory.Create(context),
+                    factory);
+        return result;
+
     }
 
-    protected override DbCommand GetLatestSnapshotCommand(string aggregateTypeName, string id)
+    #region class EventualizeSqlConnectionFactory : EventualizeConnectionFactory
+
+    private sealed class EventualizeSqlConnectionFactory : EventualizeConnectionFactory
     {
-        return SqlOperations.GetLatestSnapshotCommand(_connection, _contextId, aggregateTypeName, id);
+        private readonly string _connectionString;
+
+        public EventualizeSqlConnectionFactory(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
+        public override DbConnection CreateConnection()
+        {
+            return new SqlConnection(_connectionString);
+        }
     }
 
-    protected override DbCommand GetStoreCommand<TState>(
-        Aggregate<TState> aggregate,
-        bool isSnapshotStored)
-    {
-        return SqlOperations.GetStoreCommand(_connection, _contextId, aggregate, isSnapshotStored);
-    }
-
-    protected override DbCommand GetStoredEventsCommand(
-        string aggregateTypeName,
-        string id,
-        long startSequenceId)
-    {
-        return SqlOperations.GetStoredEventsCommand(_connection, _contextId, aggregateTypeName, id, startSequenceId);
-    }
+    #endregion // class EventualizeSqlConnectionFactory : EventualizeConnectionFactory
 }

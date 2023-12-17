@@ -8,7 +8,7 @@ public sealed class AggregateTypeTests
     public void AggregateType_WhenAddingEventType_Succeed()
     {
         var testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
-        EventType testEventType = TestEventType;
+        EventualizeEventType testEventType = TestEventType;
         testAggregateType.AddEventType(testEventType);
         Assert.True(testAggregateType.RegisteredEventTypes.TryGetValue(testEventType.EventTypeName, out _));
     }
@@ -17,13 +17,13 @@ public sealed class AggregateTypeTests
     public void AggregateType_WhenAddingEventTypeTwice_ThrowException()
     {
         var testAggregateType = TestAggregateTypeConfigs.GetTestAggregateType();
-        EventType testEventType = TestEventType;
+        EventualizeEventType testEventType = TestEventType;
         testAggregateType.AddEventType(testEventType);
         Assert.Throws<ArgumentException>(() => testAggregateType.AddEventType(testEventType));
     }
 
     [Fact]
-    public void AggregateType_WhenAddginFoldingFunction_Succeed()
+    public void AggregateType_WhenAddingFoldingFunction_Succeed()
     {
         var testAggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
         IFoldingFunction<TestState>? storedFunction;
@@ -35,13 +35,21 @@ public sealed class AggregateTypeTests
     public async Task AggregateType_WhenFoldingEvents_Succeed()
     {
         var testAggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
-        List<EventEntity> events = new List<EventEntity>();
-        for (var i = 0; i < 3; i++)
+        async IAsyncEnumerable<EventualizeEvent> GetEventsAsync()
         {
-            events.Add(await TestEventType.CreateEvent(CorrectEventData, "AggregateType test method"));
+            for (var i = 0; i < 3; i++)
+            {
+                await Task.Yield();
+                EventualizeEvent e = TestEventType.CreateEvent(CorrectEventData, "AggregateType test method");
+                yield return e;
+            }
         }
-        TestState foldedState = testAggregateType.FoldEvents(new TestState(), events);
+        var events = GetEventsAsync();
+        var (foldedState, count) = await testAggregateType.FoldEventsAsync(
+                                        new TestState(), 
+                                        events);
         TestState expectedState = new TestState(3, 3, 30);
-        Assert.Equal(foldedState, expectedState);
+        Assert.Equal(expectedState, foldedState);
+        Assert.Equal(3, count);
     }
 }

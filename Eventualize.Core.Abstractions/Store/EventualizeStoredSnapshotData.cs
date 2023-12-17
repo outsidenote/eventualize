@@ -1,11 +1,11 @@
 ﻿namespace Eventualize.Core
 {
-    public class StoredSnapshotData<T>
+    public class EventualizeStoredSnapshotData<T>
     {
         public readonly T Snapshot;
         public readonly long SnapshotSequenceId;
 
-        public StoredSnapshotData(T snapshot, long snapshotSequenceId)
+        public EventualizeStoredSnapshotData(T snapshot, long snapshotSequenceId)
         {
             Snapshot = snapshot;
             SnapshotSequenceId = snapshotSequenceId;

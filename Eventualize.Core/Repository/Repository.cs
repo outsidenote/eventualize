@@ -3,9 +3,9 @@ namespace Eventualize.Core;
 // TODO: [bnaya 2023-12-10] make it DI friendly (have an interface and DI registration)
 public class Repository : IRepository
 {
-    private readonly IStorageAdapter _storageAdapter;
+    private readonly IEventualizeStorageAdapter _storageAdapter;
 
-    public Repository(IStorageAdapter storageAdapter)
+    public Repository(IEventualizeStorageAdapter storageAdapter)
     {
         _storageAdapter = storageAdapter;
     }
@@ -16,21 +16,21 @@ public class Repository : IRepository
         return (long)sequenceId + 1;
     }
 
-    public async Task<Aggregate<T>> GetAsync<T>(AggregateType<T> aggregateType, string id) where T : notnull, new()
+    public async Task<EventualizeAggregate<T>> GetAsync<T>(EventualizeAggregateType<T> aggregateType, string id) where T : notnull, new()
     {
-        List<EventEntity> events;
+        IAsyncEnumerable<EventualizeEvent> events;
         var snapshotData = await _storageAdapter.TryGetSnapshotAsync<T>(aggregateType.Name, id);
         if (snapshotData == null)
         {
-            events = await _storageAdapter.GetAsync(aggregateType.Name, id, 0);
-            return aggregateType.CreateAggregate(id, events);
+            events = _storageAdapter.GetAsync(aggregateType.Name, id, 0);
+            return await aggregateType.CreateAggregateAsync(id, events);
         }
         long nextSequenceId = GetNextSequenceId(snapshotData.SnapshotSequenceId);
-        events = await _storageAdapter.GetAsync(aggregateType.Name, id, nextSequenceId);
-        return aggregateType.CreateAggregate(id, snapshotData.Snapshot, snapshotData.SnapshotSequenceId, events);
+        events = _storageAdapter.GetAsync(aggregateType.Name, id, nextSequenceId);
+        return await aggregateType.CreateAggregateAsync(id, events, snapshotData.Snapshot, snapshotData.SnapshotSequenceId);
     }
 
-    public async Task SaveAsync<T>(Aggregate<T> aggregate) where T : notnull, new()
+    public async Task SaveAsync<T>(EventualizeAggregate<T> aggregate) where T : notnull, new()
     {
         if (aggregate.PendingEvents.Count == 0)
         {

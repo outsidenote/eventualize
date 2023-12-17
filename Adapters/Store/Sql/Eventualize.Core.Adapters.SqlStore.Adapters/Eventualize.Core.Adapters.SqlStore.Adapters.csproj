@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\Eventualize.Core.Adapters.SqlStore.Common\Eventualize.Core.Adapters.SqlStore.Common.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="icon.png">
-      <PackagePath></PackagePath>
-      <Pack>True</Pack>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Eventualize.Core.Adapters.RelationalStore.Adapters\Eventualize.Core.Adapters.RelationalStore.Adapters.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+	</ItemGroup>
 </Project>

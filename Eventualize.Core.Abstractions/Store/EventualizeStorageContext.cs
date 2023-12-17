@@ -1,20 +1,20 @@
 namespace Eventualize.Core;
 
-public record StorageContext
+public record EventualizeStorageContext
 {
-    public static StorageContext Default { get; } = new StorageContext();
-    public static StorageContext CreateWithEnvironment(string prefix = "_eventualize_")
+    public static EventualizeStorageContext Default { get; } = new EventualizeStorageContext();
+    public static EventualizeStorageContext CreateWithEnvironment(string prefix = "_eventualize_")
     {
         Env env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT ");
         string id = string.IsNullOrEmpty(env)
                             ? prefix
                             : $"_{prefix}_{env}_";
-        return new StorageContext
+        return new EventualizeStorageContext
         {
             Id = id,
         };
     }
-    public static StorageContext CreateUnique(bool withEnvironment = true, string prefix = "_eventualize_")
+    public static EventualizeStorageContext CreateUnique(bool withEnvironment = true, string prefix = "_eventualize_")
     {
         Env env = withEnvironment
             ? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT ") ?? string.Empty
@@ -23,13 +23,13 @@ public record StorageContext
         string unique = string.IsNullOrEmpty(env)
                             ? $"{prefix}{guid:N}_"
                             : $"{prefix}{env}_{guid:N}_";
-        return new StorageContext
+        return new EventualizeStorageContext
         {
             Id = unique,
         };
     }
 
-    private StorageContext()
+    private EventualizeStorageContext()
     {
     }
 
@@ -45,7 +45,7 @@ public record StorageContext
 
     //public static implicit operator StorageContext(string id) => new StorageContext { Id = id };
 
-    public static implicit operator string(StorageContext context) => context.ToString();
+    public static implicit operator string(EventualizeStorageContext context) => context.ToString();
 
     #endregion // Cast overloads 
 

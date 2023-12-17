@@ -1,37 +1,56 @@
+using Microsoft.Extensions.Logging;
 using System.Data.Common;
+using System.Data.SqlClient;
 
 namespace Eventualize.Core.Adapters.SqlStore;
 
-
-// TODO: [bnaya 2023-12-10] base it on a shared logic (ADO.NET factory, Db...)
-// TODO: [bnaya 2023-12-11] init from configuration
-public class SqlServerStorageMigration : RelationalStorageBase, IStorageMigration
+public static class SqlServerStorageMigration
 {
-    public SqlServerStorageMigration(
-        Func<DbConnection> factory,
-        StorageContext? contextId = null) : base(factory, contextId)
+    public static IEventualizeStorageMigration Create(
+        ILogger logger,
+        IEventualizeConnectionFactory factory,
+        EventualizeStorageContext context)
     {
+        IEventualizeStorageMigration result = 
+            EventualizeRelationalStorageMigration.Create(
+                    logger,
+                    QueryTemplatesFactory.Create(context),
+                    factory);
+        return result;
     }
 
-    async Task IStorageMigration.CreateTestEnvironmentAsync()
+    public static IEventualizeStorageMigration Create(
+        ILogger logger,
+        string connectionString,
+        EventualizeStorageContext context) 
     {
-        await _init;
-        if (_contextId.Id == "live")
-            throw new ArgumentException("Cannot create a test environment for StorageAdapterContextId='live'");
-        string sqlString = SqlOperations.GetCreateEnvironmentQuery(_contextId);
-        DbCommand command = _connection.CreateCommand();
-        command.CommandText = sqlString;
-        await command.ExecuteNonQueryAsync();
+        IEventualizeConnectionFactory factory = new EventualizeSqlConnectionFactory(connectionString);
+
+        IEventualizeStorageMigration result = 
+            EventualizeRelationalStorageMigration.Create(
+                    logger,
+                    QueryTemplatesFactory.Create(context),
+                    factory);
+        return result;
+
     }
 
-    async Task IStorageMigration.DestroyTestEnvironmentAsync()
+    #region class EventualizeSqlConnectionFactory : EventualizeConnectionFactory
+
+    private sealed class EventualizeSqlConnectionFactory : EventualizeConnectionFactory
     {
-        await _init;
-        if (_contextId.Id == "live")
-            throw new ArgumentException("Cannot destroy a test environment for StorageAdapterContextId='live'");
-        string sqlString = SqlOperations.GetDestroyEnvironmentQuery(_contextId);
-        DbCommand command = _connection.CreateCommand();
-        command.CommandText = sqlString;
-        await command.ExecuteNonQueryAsync();
+        private readonly string _connectionString;
+
+        public EventualizeSqlConnectionFactory(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
+        public override DbConnection CreateConnection()
+        {
+            return new SqlConnection(_connectionString);
+        }
     }
+
+    #endregion // class EventualizeSqlConnectionFactory : EventualizeConnectionFactory
 }

@@ -1,8 +1,10 @@
-﻿using System.Text.Json.Serialization;
+﻿using Generator.Equals;
+using System.Text.Json.Serialization;
 
 namespace Eventualize.Core.Tests;
 
-public class TestState : IEquatable<TestState>
+[Equatable]
+public partial class TestState 
 {
     public int ACount { get; private set; }
     public int BCount { get; private set; }
@@ -22,12 +24,6 @@ public class TestState : IEquatable<TestState>
         ACount = aCount;
         BCount = bCount;
         BSum = bSum;
-    }
-
-    public bool Equals(TestState? other)
-    {
-        if (other == null) return false;
-        return ACount == other.ACount && BCount == other.BCount && BSum == other.BSum;
     }
 
     public override string ToString()

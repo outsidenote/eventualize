@@ -5,19 +5,19 @@ using System.Text.Json;
 
 namespace Eventualize.Core;
 
-public class EventType
+public class EventualizeEventType
 {
     public string EventTypeName { get; private set; }
     private string? DataSchemaString;
     public Type? DataSchemaType { get; private set; }
     public JsonSchema? DataSchema { get; private set; }
 
-    public EventType(string eventTypeName, string dataSchemaString)
+    public EventualizeEventType(string eventTypeName, string dataSchemaString)
     {
         EventTypeName = eventTypeName;
         DataSchemaString = dataSchemaString;
     }
-    public EventType(string eventTypeName, Type dataSchemaType)
+    public EventualizeEventType(string eventTypeName, Type dataSchemaType)
     {
         EventTypeName = eventTypeName;
         DataSchemaType = dataSchemaType;
@@ -33,11 +33,14 @@ public class EventType
             throw new ArgumentNullException(nameof(DataSchemaType));
     }
 
-    public async Task<EventEntity> CreateEvent(object dataObj, string capturedBy)
+    // TODO: [bnaya 2023-12-13] Remove the schema!
+    public  EventualizeEvent CreateEvent(
+                                object dataObj,
+                                string capturedBy)
     {
         if (DataSchema == null)
         {
-            await CreateShcmea();
+            CreateShcmea().Wait();
             if (DataSchema == null) throw new ArgumentNullException(nameof(DataSchema));
         }
         string dataString = JsonSerializer.Serialize(dataObj, dataObj.GetType());
@@ -52,10 +55,10 @@ public class EventType
             }
             throw new ArgumentException($"Event Data Validation Error: {JsonSerializer.Serialize(validationErrors)}");
         }
-        return new EventEntity(EventTypeName, DateTime.Now, capturedBy, dataString, null);
+        return new EventualizeEvent(EventTypeName, DateTime.Now, capturedBy, dataString, null);
     }
 
-    public dynamic ParseData(EventEntity eventObj)
+    public dynamic ParseData(EventualizeEvent eventObj)
     {
         if (DataSchemaType == null)
             throw new ArgumentNullException(nameof(DataSchemaType));

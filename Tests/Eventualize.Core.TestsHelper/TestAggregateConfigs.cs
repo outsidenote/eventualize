@@ -2,22 +2,25 @@ namespace Eventualize.Core.Tests;
 
 public static class TestAggregateConfigs
 {
-    public static Aggregate<TestState> GetTestAggregate()
+    public static EventualizeAggregate<TestState> GetTestAggregate()
     {
         var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
         return aggregateType.CreateAggregate(Guid.NewGuid().ToString());
     }
 
-    public static Aggregate<TestState> GetTestAggregate(List<EventEntity> events, bool isPendingEvents)
+    public static async Task<EventualizeAggregate<TestState>> GetTestAggregateAsync(IAsyncEnumerable<EventualizeEvent> events, bool isPendingEvents)
     {
         var id = Guid.NewGuid().ToString();
         var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
         if (!isPendingEvents)
-            return aggregateType.CreateAggregate(id, events);
+        {
+            var result = await aggregateType.CreateAggregateAsync(id, events);
+            return result;
+        }
         else
         {
             var aggregate = aggregateType.CreateAggregate(id);
-            foreach (var e in events)
+            await foreach (var e in events)
             {
                 aggregate.AddPendingEvent(e);
             }
@@ -26,28 +29,33 @@ public static class TestAggregateConfigs
 
     }
 
-    public static Aggregate<TestState> GetTestAggregate(List<EventEntity>? events, int? minEventsBetweenSnapshots)
+    public static async Task<EventualizeAggregate<TestState>> GetTestAggregateAsync(IAsyncEnumerable<EventualizeEvent>? events, int? minEventsBetweenSnapshots)
     {
         var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogicAndMinEvents(minEventsBetweenSnapshots);
         if (events == null)
             return aggregateType.CreateAggregate(Guid.NewGuid().ToString());
         else
-            return aggregateType.CreateAggregate(Guid.NewGuid().ToString(), events);
+            return await aggregateType.CreateAggregateAsync(Guid.NewGuid().ToString(), events);
     }
 
-    public static Aggregate<TestState> GetTestAggregate(TestState snapshot, List<EventEntity> events)
+    public static async Task<EventualizeAggregate<TestState>> GetTestAggregateAsync(TestState snapshot, IAsyncEnumerable<EventualizeEvent> events)
     {
         var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
-        var aggregate = aggregateType.CreateAggregate(Guid.NewGuid().ToString(), snapshot, (long)0, new List<EventEntity>());
-        foreach (var e in events)
+        var aggregate = await aggregateType.CreateAggregateAsync(
+                            Guid.NewGuid().ToString(),
+                            new List<EventualizeEvent>().ToAsync(),
+                            snapshot,
+                            (long)0);
+        await foreach (var e in events)
         {
             aggregate.AddPendingEvent(e);
         }
         return aggregate;
     }
-    public static Aggregate<TestState> GetTestAggregateFromStore(TestState snapshot, List<EventEntity> events)
+
+    public static async Task<EventualizeAggregate<TestState>> GetTestAggregateFromStore(TestState snapshot, IAsyncEnumerable<EventualizeEvent> events)
     {
         var aggregateType = TestAggregateTypeConfigs.GetTestAggregateTypeWithEventTypeAndFoldingLogic();
-        return aggregateType.CreateAggregate(Guid.NewGuid().ToString(), snapshot, (long)0, events);
+        return await aggregateType.CreateAggregateAsync(Guid.NewGuid().ToString(), events, snapshot, (long)0);
     }
 }
