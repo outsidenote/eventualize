@@ -7,17 +7,36 @@ parent: Learn More
 
 ## Aggregates
 
-An **Aggregate** is a calculated entity state, derived from a single Stream..<br>
-When you ask `EventualizeDB` to fetch the state of an entity, in principal what it does is fetching all the Entity's Stream's events and "folding" them one on top of the other to derive the current state.
-Folding means taking a sequence of events and based on their content perform an aggregative calculation.
+An **Aggregate** represents a local copy of an Entity's state.<br>
+It is derived from a the entity's Stream.<br>
+Usually, the application code will fetch use aggregate to:
 
-So when a service wants to create an aggregate, it needs to provide to `EventualizeDB` the identification of the relevant Stream in terms of **Stream Type** and **Stream ID**, and a **Folding Logic**, which is the mapping between an **Event Type** and the function that holds the desired calculation of its content. That means that you can read the same Stream using different folding logics, and derive different states from the same data!
+1. Fetch the current state on an Entity.
+2. Store new events to the Entity's Stream.
+
+## Creating an Aggregate
+
+You create an aggregate in order to fetch the current state of an Entity.
+When you ask `EventualizeDB` to create an aggregate, what it does is:
+
+1. Fetch all the events that are stored in the Entity's Stream
+2. "Fold" the fetched events one on top of the other to derive the current state.
+
+To **Fold** means taking a sequence of events and based on their content perform an aggregative calculation. The result of this calculation is the State.
+
+So when a service wants to create an aggregate, it needs to provide to `EventualizeDB`:
+
+1.  The identification of the Entity's Stream in terms of **Stream Type** and **Stream ID**
+2.  **Folding Logic**, which is the mapping between an **Event Type** and the **Folding Function** that holds the desired calculation the state based on the event's content.
+
+That means that you can read the same Stream using different Folding Logics, and derive different States from the same Stream!
 
 <img src="../images/aggregate-naive-read-example.png" width="900"/>
+<br>
 
-Another important advantage of this approach is the it provides [strong consistency](https://en.wikipedia.org/wiki/Strong_consistency) when fetching an aggregate. Because immediately after storing an event, you'll be able to read it, as the Stream includes that event!
+Another important advantage of this approach is the it provides [strong consistency](https://en.wikipedia.org/wiki/Strong_consistency) when creating an Aggregate. This is because immediately after storing an Event, you'll be able to read it, as the Stream includes that Event!
 
-However in order to use it in large scale production systems there are 2 more important considerations:
+However in order to use it in large scale production systems, there are 2 additional considerations:
 
 1. **Read Time** - What if there are many events in an Stream? Wouldn't reading all of them in order to derive the state take a long time? For that we have [Snaphots](snapshots).
 2. **Strong Consistency with Writes** - How can an service or application store an event, only if the Stream hasn't been updated since tha last time it was read? For that we have [Optimistic Concurrency Control](occ).
