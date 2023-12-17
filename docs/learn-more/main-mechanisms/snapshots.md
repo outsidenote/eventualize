@@ -2,7 +2,7 @@
 layout: default
 title: Snapshots
 nav_order: 1
-parent: Aggregates
+parent: Main Mechanisms
 grand_parent: Learn More
 ---
 

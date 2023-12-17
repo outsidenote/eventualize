@@ -2,7 +2,7 @@
 layout: default
 title: Optimistic Concurrency Control (OCC)
 nav_order: 3
-parent: Aggregates
+parent: Main Mechanisms
 grand_parent: Learn More
 ---
 
