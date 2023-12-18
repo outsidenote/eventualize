@@ -77,117 +77,110 @@
     "relUrl": "/learn-more/events.html#creating-a-new-event"
   },"11": {
     "doc": "Home",
-    "title": "Eventualize",
-    "content": ". Eventualize is an opinionated event-sourcing framework that unlocks the untapped potential of transactional data while eliminating many challenges related to management of transactional data and its schema. Eventualize is quick &amp; easy to integrate, and while it is working with new paradigms and patterns under the hood, it abstracts most of it away and does not distrupt development. ",
-    "url": "/#eventualize",
-    
-    "relUrl": "/#eventualize"
-  },"12": {
-    "doc": "Home",
     "title": "Quick Start",
     "content": "If you want to jump right into it, go to Quick Start . ",
     "url": "/#quick-start",
     
     "relUrl": "/#quick-start"
-  },"13": {
+  },"12": {
     "doc": "Home",
     "title": "Learn More",
     "content": "If you want to learn more, go to Learn More. ",
     "url": "/#learn-more",
     
     "relUrl": "/#learn-more"
-  },"14": {
+  },"13": {
     "doc": "Home",
     "title": "Contribute",
     "content": "You can contribute to this project in many ways (not just coding)! If you are interested to learn more about how you can do this, please visit the Contribution page. ",
     "url": "/#contribute",
     
     "relUrl": "/#contribute"
-  },"15": {
+  },"14": {
     "doc": "Home",
     "title": "Home",
-    "content": " ",
+    "content": ". Eventualize is an opinionated event-sourcing framework that unlocks the untapped potential of transactional data while eliminating many challenges related to management of transactional data and its schema. Eventualize is quick &amp; easy to integrate, and while it is working with new paradigms and patterns under the hood, it abstracts most of it away and does not distrupt development. ",
     "url": "/",
     
     "relUrl": "/"
-  },"16": {
+  },"15": {
     "doc": "Learn More",
     "title": "Learn More",
     "content": "In this section you can get familiar with the Event Sourcing principal of Eentualize and how you can quickly and easly use it yourself. ",
     "url": "/learn-more/",
     
     "relUrl": "/learn-more/"
-  },"17": {
+  },"16": {
     "doc": "Contribution",
     "title": "Contribution",
     "content": "Eventualize is a project that is meant to not only help integrate event sourcing on a technical level, but also change the paradaigm in which we all think about software systems. There are plenty of ways you can assist us in our mission. Here are some ways that we have thought about. If you don’t find something here that feets you and would like to contribute, contact us at TODO: add email address. ",
     "url": "/contribution/",
     
     "relUrl": "/contribution/"
-  },"18": {
+  },"17": {
     "doc": "Main Mechanisms",
     "title": "Main Mechanisms",
     "content": "This section describes the main mechanisms that are good to be familiar with in order to better understand how EventualizeDB works. ",
     "url": "/learn-more/main-mechanisms/main-mechanisms.html",
     
     "relUrl": "/learn-more/main-mechanisms/main-mechanisms.html"
-  },"19": {
+  },"18": {
     "doc": "Optimistic Concurrency Control (OCC)",
     "title": "Optimistic Concurrency Control (OCC)",
     "content": "Optimistic Concurrency Control is a mechanism Eventualize uses in order to handle the a situation where multiple local aggregates would like to store events into the same stored aggregate. First, let’s understand why is that an issue that needs special handling. ",
     "url": "/learn-more/main-mechanisms/occ.html",
     
     "relUrl": "/learn-more/main-mechanisms/occ.html"
-  },"20": {
+  },"19": {
     "doc": "Optimistic Concurrency Control (OCC)",
     "title": "The Issue of Multiple Writers",
     "content": "Lets assume we have 2 service: service 1 and service 2. Both services created a local aggregate from the same stored aggregate “User: john”. Service 1 added the event “user earned points”. Service 2 added the event “user’s last earning cancelled”. As you can see, the order of stored events is important. If service 2 stores its event first, it’ll cancel the points earned before service 1’s event. If service 1 stores its event fisrt, than the event from service 2 will cancel these earned points. How can we know which service should store its events first? How can we let the second serivce know that it’s going to store events based on a stale knowledge of the current state? . ",
     "url": "/learn-more/main-mechanisms/occ.html#the-issue-of-multiple-writers",
     
     "relUrl": "/learn-more/main-mechanisms/occ.html#the-issue-of-multiple-writers"
-  },"21": {
+  },"20": {
     "doc": "Optimistic Concurrency Control (OCC)",
     "title": "Last Stored Sequence Id",
     "content": "When a local aggregate is created, it stores the sequence id of the latest event that was read into the Last Stored Sequence Id property. Last Stored Sequence Id comes in handy when we want to store the local aggregate and make sure its state is up-to-date. Before actually performing the store operation, Eventualize checks that Last Stored Sequence Id is equal to the sequence id of the latest stored event. If it’s not, that mean that the local aggregate’s request to store pending events is based on a stale knowledge of the current state. Let’s return to our 2 application services example, and add a Last Stored Sequence Id to each local aggregate: . Both local aggregate has a Last Stored Sequence Id with a value of 4. When both of the services try to store their pending events at the same time, one of them bound to be the first to succeed (race conditions). After a successful first store operation, the newly added event will receive the sequence id of 5. That means that the seond service to try and store its pending events will fail, because its Last Stored Sequence Id will still be 4. The mechanism described here is called Optimistic Concurrency Control. The service that fails to store, will receive an OCC Exception. In that case it can refetch the up-to-date state and retry storing the event. ",
     "url": "/learn-more/main-mechanisms/occ.html#last-stored-sequence-id",
     
     "relUrl": "/learn-more/main-mechanisms/occ.html#last-stored-sequence-id"
-  },"22": {
+  },"21": {
     "doc": "Optimistic Concurrency Control (OCC)",
     "title": "Many Multiple Writers",
     "content": "What happens if instead of 2 services writes to the same Aggregate, we have 1,000? An example for that can be a service that receives IoT telemetries at large scale, and might have many instances of itself in order to injust the incoming traffic. If we perform an OCC check for each write, it’ll let a single instance succeed, but will fail the rest of 999 writers. In the next retry 998 writers would fail. And this is neglecting additional writes that might come in during this time. It’ll take forever to complete all the store operations! . Usually, when we have a lot of different writers to the same aggregate, the events can be safely stored regardless of what the previous events are (unlike our 2 services example where the order of storage mattered a lot). For cases like this, you can let Eventualize know that a certain store operation can disregard OCC. When that happens, the events are stored with a sequence id that is incremented automatically for them based on the last sequence id that is already stored in the aggregate. ",
     "url": "/learn-more/main-mechanisms/occ.html#many-multiple-writers",
     
     "relUrl": "/learn-more/main-mechanisms/occ.html#many-multiple-writers"
-  },"23": {
+  },"22": {
     "doc": "Quick Start",
     "title": "Quick Start",
     "content": " ",
     "url": "/quick-start.html",
     
     "relUrl": "/quick-start.html"
-  },"24": {
+  },"23": {
     "doc": "Snapshots",
     "title": "Snapshots",
     "content": "The purpose of a Snapshot is accelarating getting an Aggregate’s state. It does so by optimizing the excution of the FoldingLogic. In essense, a Snapshot is a calculated state that is based on a specific Folding Logic. Whenever events are starting to pile up within an Aggregate, a Snpashot is created. So the next time this aggregate is fetched, the state already exist with no required calculations. If more events are stored since the moment the Snapshot was created, only they are folded unto the the Snapshot’s state. For example, The aggregate of the user “john” holds 1,000 events: . Scanning and folding all these events might take too much time, which can be unreasonable for some use cases. Let’s see what happens when we introduce a Snapshot for the calculating “total points”: . As you can see, a Snapshot is like another type of aggregate. The difference is, that it stores the state across different points in time for a cpecific folding logic of a particular aggregate. In our example, the snapshot stores the different states of folding logic “Total Points” for the user “john” aggregate. The latest state the Snapshot holds is up to event 990. That means it is missing the last 10 events. Let’s see how Eventualize would fetch the “Total Points” for the user “john” now: . ",
     "url": "/learn-more/main-mechanisms/snapshots.html",
     
     "relUrl": "/learn-more/main-mechanisms/snapshots.html"
-  },"25": {
+  },"24": {
     "doc": "Snapshots",
     "title": "When does a Snapshot get created?",
     "content": "Every aggregate has a specification of maximum events between snapshots. When event are stored and the latest snapshot is more than this specification’s number of events - the state of the aggregate is stored as a new snapshot, that is relevant up to the latest event that is now being stored. ",
     "url": "/learn-more/main-mechanisms/snapshots.html#when-does-a-snapshot-get-created",
     
     "relUrl": "/learn-more/main-mechanisms/snapshots.html#when-does-a-snapshot-get-created"
-  },"26": {
+  },"25": {
     "doc": "Streams",
     "title": "Streams",
     "content": "Events that are captured, stored in Streams. A Stream holds in once place events that belong to the same entity. A Stream uses an underlying transactional database of your choice (e.g. SQL Server) to store its events. In order to easily locate an Stream, it has a Stream Type and an Stream Id. The combination of both need to be unique across the system. For example, you can define an Stream of type user with an id of john. Now you can store all events that belong to the user “John” in that Stream. Each stored event gets an Offset which is just a incrementing (long) integer that represents the position of the event within the Stream. ",
     "url": "/learn-more/streams.html",
     
     "relUrl": "/learn-more/streams.html"
-  },"27": {
+  },"26": {
     "doc": "Why Should I Use It?",
     "title": "Why Should I Use It?",
     "content": "In most production applications, transactional data is captured and used to update the state of the system. Here is such an example for a application that updates the amount of points a user has: . The application updates the state of the relevant user record by increasing the points of the user with the additional points: . It’s great for keeping track of the overall points each user has. However, each time we update users points, we overwrite the previous amount of points they had. What if down the line we’d like to see the average number of daily points that earned by the user? Oh… shoot. Too bad we didn’t store the previous amounts in the first place. But that is just it! You can’t anticipate all the things you’d like to do with your data. And along the way you are bound to encounter new data driven questions you haven’t thought of when you were just starting out. Eventualize solves this by storing the actual facts that the system captured over time. We call those Events. So, following the previous example, working with Eventualize in pricnciple looks something like this: . We have captured the fact itself (user 5 earned 5 points): . This is great, beacuse now we can calculate many different things based on these events, without changing the way you store the data. All we need to do is scan of the relevant events that were captured and are related to the user, and aggregate them into the state we are interested in. We call this kind of aggregation a folding logic, and you can have multiple floding logics for the same events in order to derive diiferent states for the system. So, continuing our example, getting the information we want would something like this: . Total amount of points: . Average points per earning: . It’s that easy. Each round node that use saw above is a folding logic, and each box after that node is the resulting state. At this points you probably have some questions. Like: ‘What happens when there are many events that need to be scanned? Wouldn’t that take too long and hurt performance?’ ‘What if the events are stored in the wrong order?’ and many more. There are several mechanisms that needs to be put in place in order for event sourcing to work not only in principal but also in real life. This is why we have built Eventualize - so you wouldn’t have to! The next sections should give you a pretty good understanding on how it all works. So let’s go to the next section! . ",
