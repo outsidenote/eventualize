@@ -50,7 +50,7 @@ Average points per earning:
 
 It's that easy.
 
-Each pink circle that use saw above is a folding logic, and each box after that node is the resulting state.
+Each pink circle that you saw above is a folding logic, and each box after that node is the resulting state.
 
 At this point, you probably have some questions.
 Like: 
