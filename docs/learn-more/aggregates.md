@@ -9,7 +9,7 @@ parent: Learn More
 
 An **Aggregate** represents a local copy of an Entity's state.<br>
 It is derived from a the entity's Stream.<br>
-Usually, the application code will fetch use aggregate to:
+Usually, the application code will fetch an aggregate to:
 
 1. Fetch the current state on an Entity.
 2. Store new events to the Entity's Stream.
@@ -38,9 +38,11 @@ Another important advantage of this approach is the it provides [strong consiste
 
 ## Capturing Events in an Aggregate
 Throughout the application's execution, it'll capture or create one or more events.<br>
-Those events will be appended to the ordered collection of Pending Events in the Aggregate.
-The Folding Logic will also execute the relevant Folding Function, based on the Event's type. This will update the Aggregate's State.
-Capturing Events a very fast operation that can support a high frequency of appends.
+Captured events are not stored directly into the Stream, because it can heart performance.
+Those events will be appended to the ordered collection of **Pending Events** in the Aggregate.<br>
+**Pending Events** are events that were captured locally and not yet stored in the Stream.<br>
+The Folding Logic will also execute the relevant Folding Function, based on the Event's type. This will update the Aggregate's State.<br>
+Capturing Events is a fast operation that can support a high frequency of appends.
 Here is an illustration for that:
 <img src="../images/add-pending-event-example.png" width="500"/>
 
@@ -60,8 +62,8 @@ Here is an illustration of that:
 
 In order to use Aggregates in a high performing production system, there are 2 additional considerations:
 
-1. **Read Time** - What if there are many events in an Stream? Wouldn't reading all of them in order to derive the state take a long time? For that we have [Snaphots](snapshots).
-2. **Strong Consistency with Writes** - How can an service or application store an event, only if the Stream hasn't been updated since tha last time it was read? For that we have [Optimistic Concurrency Control](occ).
+1. **Read Time** - What if there are many events in an Stream? Wouldn't reading all of them in order to derive the state take a long time? For that we have [Snaphots](main-mechanisms/snapshots).
+2. **Strong Consistency with Writes** - How can an service or application store an event, only if the Stream hasn't been updated since tha last time it was read? For that we have [Optimistic Concurrency Control](main-mechanisms/occ).
 
 ## The structure of an Aggregate
 
