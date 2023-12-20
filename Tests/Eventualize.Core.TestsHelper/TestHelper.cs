@@ -6,18 +6,18 @@ public static class TestHelper
 
     public static async IAsyncEnumerable<T> ToAsync<T>(this IEnumerable<T> self)
     {
-        foreach (var item in self) 
+        foreach (var item in self)
         {
             await Task.Yield();
             yield return item;
         }
-    }    
-    
+    }
+
 #pragma warning disable S5034 // "ValueTask" should be consumed correctly
     public static async Task<ICollection<T>> ToEnumerableAsync<T>(this IAsyncEnumerable<T> self)
     {
         var list = new List<T>();
-        await foreach (var item in self) 
+        await foreach (var item in self)
         {
             list.Add(item);
         }
@@ -44,7 +44,7 @@ public static class TestHelper
 
     public static async Task<EventualizeAggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
     {
-        var aggregate =  await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
+        var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
         for (int i = 0; i < 3; i++)
             aggregate.AddPendingEvent(GetCorrectTestEvent());
         return aggregate;

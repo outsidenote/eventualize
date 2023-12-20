@@ -43,7 +43,7 @@ public class AggregateTests
     [Fact]
     public async Task Aggregate_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
     {
-        TestState state = new (3, 3, 30);
+        TestState state = new(3, 3, 30);
         var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(state, AsyncEnumerable<EventualizeEvent>.Empty);
         Assert.Empty(aggregate.PendingEvents);
         Assert.Equal(aggregate.State, new TestState(3, 3, 30));

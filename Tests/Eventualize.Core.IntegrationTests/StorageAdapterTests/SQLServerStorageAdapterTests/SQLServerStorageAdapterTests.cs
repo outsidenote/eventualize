@@ -2,7 +2,7 @@ using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
 using Eventualize.Core;
 using Eventualize.Core.Tests;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Immutable;
+using Xunit.Abstractions;
 using static Eventualize.Core.Tests.TestHelper;
 
 
@@ -16,16 +16,18 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     public EventualizeStorageContext _contextId = EventualizeStorageContext.CreateUnique();
 
     private readonly IConfigurationRoot _configuration;
+    private readonly ITestOutputHelper _testLogger;
 
-    public SQLServerStorageAdapterTests()
+    public SQLServerStorageAdapterTests(ITestOutputHelper testLogger)
     {
+        _testLogger = testLogger;
         _configuration = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
 
 
-        _world = new SQLServerAdapterTestWorld(_configuration);
+        _world = new SQLServerAdapterTestWorld(_configuration, testLogger);
         Task t = _world.StorageMigration.CreateTestEnvironmentAsync();
         t.Wait();
     }
@@ -77,11 +79,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         IAsyncEnumerable<EventualizeEvent> events =
                             aggregate.PendingEvents.ToAsync();
         var aggregate2 =
-            await EventualizeAggregate.CreateAsync(
-                aggregate.AggregateType,
-                aggregate.Id, 
-                aggregate.MinEventsBetweenSnapshots,
-                events);
+            await aggregate.CreateAsync(events);
         await Assert.ThrowsAsync<OCCException<TestState>>(async () => await _world.StorageAdapter.SaveAsync(aggregate2, true));
     }
 
@@ -98,7 +96,9 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     public async Task SQLStorageAdapter_WhenGettingLatestSnapshot_Succeed()
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
-        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.AggregateType.Name, aggregate.Id);
+
+        AggregateParameter parameter = new(aggregate.Id, aggregate.Type);
+        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(parameter);
         Assert.NotNull(latestSnapshot);
         Assert.Equal(aggregate.State, latestSnapshot.Snapshot);
         Assert.Equal(aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count, latestSnapshot.SnapshotSequenceId);
@@ -108,9 +108,12 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     public async Task SQLStorageAdapter_WhenGettingStoredEvents_Succeed()
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
-        var asyncEvents = _world.StorageAdapter.GetAsync(aggregate.AggregateType.Name, aggregate.Id, aggregate.LastStoredSequenceId + 1);
+
+        AggregateSequenceParameter parameter = new(aggregate);
+
+        var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
         Assert.NotNull(asyncEvents);
         var events = await asyncEvents.ToEnumerableAsync();
-        Assert.True(events.SequenceEqual(aggregate.PendingEvents));
+        Assert.True(aggregate.PendingEvents.SequenceEqual(events));
     }
 }

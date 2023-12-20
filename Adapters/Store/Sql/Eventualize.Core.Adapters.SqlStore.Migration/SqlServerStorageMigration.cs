@@ -11,7 +11,7 @@ public static class SqlServerStorageMigration
         IEventualizeConnectionFactory factory,
         EventualizeStorageContext context)
     {
-        IEventualizeStorageMigration result = 
+        IEventualizeStorageMigration result =
             EventualizeRelationalStorageMigration.Create(
                     logger,
                     QueryTemplatesFactory.Create(context),
@@ -22,11 +22,11 @@ public static class SqlServerStorageMigration
     public static IEventualizeStorageMigration Create(
         ILogger logger,
         string connectionString,
-        EventualizeStorageContext context) 
+        EventualizeStorageContext context)
     {
         IEventualizeConnectionFactory factory = new EventualizeSqlConnectionFactory(connectionString);
 
-        IEventualizeStorageMigration result = 
+        IEventualizeStorageMigration result =
             EventualizeRelationalStorageMigration.Create(
                     logger,
                     QueryTemplatesFactory.Create(context),

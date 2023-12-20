@@ -11,7 +11,7 @@ public static class SqlServerStorageAdapter
         IEventualizeConnectionFactory factory,
         EventualizeStorageContext context)
     {
-        IEventualizeStorageAdapter result = 
+        IEventualizeStorageAdapter result =
             EventualizeRelationalStorageAdapter.Create(
                     logger,
                     QueryTemplatesFactory.Create(context),
@@ -22,11 +22,11 @@ public static class SqlServerStorageAdapter
     public static IEventualizeStorageAdapter Create(
         ILogger logger,
         string connectionString,
-        EventualizeStorageContext context) 
+        EventualizeStorageContext context)
     {
         IEventualizeConnectionFactory factory = new EventualizeSqlConnectionFactory(connectionString);
 
-        IEventualizeStorageAdapter result = 
+        IEventualizeStorageAdapter result =
             EventualizeRelationalStorageAdapter.Create(
                     logger,
                     QueryTemplatesFactory.Create(context),

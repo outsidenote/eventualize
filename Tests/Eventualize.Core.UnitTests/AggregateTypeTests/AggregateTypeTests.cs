@@ -46,7 +46,7 @@ public sealed class AggregateTypeTests
         }
         var events = GetEventsAsync();
         var (foldedState, count) = await testAggregateType.FoldEventsAsync(
-                                        new TestState(), 
+                                        new TestState(),
                                         events);
         TestState expectedState = new TestState(3, 3, 30);
         Assert.Equal(expectedState, foldedState);

@@ -10,9 +10,9 @@ namespace CoreTests.RepositoryTests
         public async Task Repository_WhenGettingAggregate_Succeed()
         {
             var repoTestSteps = new RepositoryTestsSteps();
-            var aggregate =  TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+            var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-            var fetchedAggregate = await repository.GetAsync(aggregate.AggregateType, aggregate.Id);
+            var fetchedAggregate = await repository.GetAsync(aggregate);
             repoTestSteps.AssertFetchedAggregateIsCorrect(aggregate, fetchedAggregate);
         }
 

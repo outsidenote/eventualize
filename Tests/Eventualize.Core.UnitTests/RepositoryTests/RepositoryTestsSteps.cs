@@ -6,7 +6,7 @@ namespace CoreTests.RepositoryTests
     public class RepositoryTestsSteps
     {
 
-        public TestStorageAdapter _storageAdapter = new();
+        public IEventualizeStorageAdapter _storageAdapter = new TestStorageAdapter();
         public async Task<Repository> PrepareTestRepositoryWithStoredAggregate(EventualizeAggregate<TestState>? aggregate)
         {
             if (aggregate != null)
@@ -28,18 +28,17 @@ namespace CoreTests.RepositoryTests
 
         public async Task AssertStoredAggregateIsCorrect(EventualizeAggregate<TestState> aggregate, bool isSnapshotStored)
         {
-            var aggregateTypeName = aggregate.AggregateType.Name;
-            IAsyncEnumerable<EventualizeEvent>? eventsAsync = _storageAdapter.GetAsync(aggregateTypeName, aggregate.Id);
-            //await foreach (var item in eventsAsync)
-            //{
-
-            //}
+            var aggregateTypeName = aggregate.Type;
+            AggregateParameter parameter1 = new AggregateParameter(aggregate.Id, aggregateTypeName);
+            AggregateSequenceParameter parameter2 = parameter1.ToSequence();
+            IAsyncEnumerable<EventualizeEvent>? eventsAsync = _storageAdapter.GetAsync(parameter2);
             var events = await eventsAsync.ToEnumerableAsync();
             Assert.Equal(3, events.Count);
             Assert.Equal(events.Count - 1, aggregate.LastStoredSequenceId);
             Assert.Empty(aggregate.PendingEvents);
 
-            var snapshotData = await _storageAdapter.TryGetSnapshotAsync<TestState>(aggregateTypeName, aggregate.Id);
+
+            var snapshotData = await _storageAdapter.TryGetSnapshotAsync<TestState>(parameter1);
             Assert.Equal(!isSnapshotStored, snapshotData is null);
             if (isSnapshotStored)
             {

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace Eventualize.Core.Tests;
 
 [Equatable]
-public partial class TestState 
+public partial class TestState
 {
     public int ACount { get; private set; }
     public int BCount { get; private set; }

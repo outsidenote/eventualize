@@ -33,7 +33,7 @@ SELECT COUNT(*)
 FROM {prefix}event
 WHERE
     domain = 'default'
-    AND aggregate_type = '{aggregate.AggregateType.Name}'
+    AND aggregate_type = '{aggregate.Type}'
     AND aggregate_id = '{aggregate.Id}'
             ";
             var command = world.Connection.CreateCommand();
@@ -50,7 +50,7 @@ SELECT sequence_id
 FROM {prefix}snapshot
 WHERE
     domain = 'default'
-    AND aggregate_type = '{aggregate.AggregateType.Name}'
+    AND aggregate_type = '{aggregate.Type}'
     AND aggregate_id = '{aggregate.Id}'
             ";
             var command = world.Connection.CreateCommand();

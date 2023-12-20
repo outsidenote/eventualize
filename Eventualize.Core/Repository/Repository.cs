@@ -16,18 +16,24 @@ public class Repository : IRepository
         return (long)sequenceId + 1;
     }
 
-    public async Task<EventualizeAggregate<T>> GetAsync<T>(EventualizeAggregateType<T> aggregateType, string id) where T : notnull, new()
+    public async Task<EventualizeAggregate<T>> GetAsync<T>(EventualizeAggregate<T> aggregate) where T : notnull, new()
     {
+        string id = aggregate.Id;
+        // TODO: [bnaya 2023-12-20] transaction, 
+        string type = aggregate.Type;
+        AggregateParameter parameter = new(id, type);
         IAsyncEnumerable<EventualizeEvent> events;
-        var snapshotData = await _storageAdapter.TryGetSnapshotAsync<T>(aggregateType.Name, id);
+        var snapshotData = await _storageAdapter.TryGetSnapshotAsync<T>(parameter);
         if (snapshotData == null)
         {
-            events = _storageAdapter.GetAsync(aggregateType.Name, id, 0);
-            return await aggregateType.CreateAggregateAsync(id, events);
+            AggregateSequenceParameter prm1 = new(parameter, 0);
+            events = _storageAdapter.GetAsync(prm1);
+            return await aggregate.CreateAsync(events);
         }
         long nextSequenceId = GetNextSequenceId(snapshotData.SnapshotSequenceId);
-        events = _storageAdapter.GetAsync(aggregateType.Name, id, nextSequenceId);
-        return await aggregateType.CreateAggregateAsync(id, events, snapshotData.Snapshot, snapshotData.SnapshotSequenceId);
+        AggregateSequenceParameter prm2 = new(parameter, nextSequenceId);
+        events = _storageAdapter.GetAsync(prm2);
+        return await aggregate.CreateAsync(id, events, snapshotData.Snapshot, snapshotData.SnapshotSequenceId);
     }
 
     public async Task SaveAsync<T>(EventualizeAggregate<T> aggregate) where T : notnull, new()

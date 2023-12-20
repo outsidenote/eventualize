@@ -1,12 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Dapper;
+using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlTypes;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Eventualize.Core.Adapters;
+
+// TODO: [bnaya 2023-12-19] all parameters and field should be driven from nameof or const
+// TODO: [bnaya 2023-12-20] how do we get the domain?, shouldn't it be a parameter in each and every query?
 
 /// <summary>
 /// Store adapter for rational database
@@ -14,15 +16,21 @@ namespace Eventualize.Core.Adapters;
 /// <seealso cref="Eventualize.Core.IEventualizeStorageAdapter" />
 public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAdapter
 {
-    private readonly Task<Commands> _commandsTask;
+    private readonly Task<DbConnection> _connectionTask;
+    private readonly ILogger _logger;
+    private readonly EventualizeAdapterQueryTemplates _queries;
+
+    #region Create
 
     public static IEventualizeStorageAdapter Create(
         ILogger logger,
-        EventualizeAdapterQueryTemplates queryTemplates,
+        EventualizeAdapterQueryTemplates queries,
         IEventualizeConnectionFactory factory)
     {
-        return new EventualizeRelationalStorageAdapter(logger, queryTemplates, factory);
+        return new EventualizeRelationalStorageAdapter(logger, queries, factory);
     }
+
+    #endregion // Create
 
     #region Ctor
 
@@ -31,13 +39,15 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         EventualizeAdapterQueryTemplates queryTemplates,
         IEventualizeConnectionFactory factory)
     {
-        _commandsTask = InitAsync();
-        async Task<Commands> InitAsync()
+        _logger = logger;
+        _queries = queryTemplates;
+        _connectionTask = InitAsync();
+
+        async Task<DbConnection> InitAsync()
         {
             DbConnection connection = factory.CreateConnection();
-            var commands = new Commands(connection, queryTemplates);
             await connection.OpenAsync();
-            return commands;
+            return connection;
         }
     }
 
@@ -47,66 +57,33 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
 
     async Task<long> IEventualizeStorageAdapter.GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate)
     {
-        var commands = await _commandsTask;
-        DbCommand command = commands.GetLastSnapshotSequenceId;
-
-        var type = command.CreateParameter();
-        type.DbType = DbType.String;
-        type.IsNullable = false;
-        type.Value = aggregate.AggregateType.Name;
-        type.ParameterName = EventualizeAdapterParametersConstants.type;
-
-        var id = command.CreateParameter();
-        id.DbType = DbType.String;
-        id.IsNullable = false;
-        id.Value = aggregate.Id;
-        id.ParameterName = EventualizeAdapterParametersConstants.id;
-
-        DbDataReader reader = await command.ExecuteReaderAsync();
-        if (! await reader.ReadAsync())
-            return -1;
-        var sequenceId = reader.GetInt64(0);
+        DbConnection conn = await _connectionTask;
+        string query = _queries.GetLastSnapshotSequenceId;
+        AggregateParameter parameter = new AggregateParameter(aggregate.Id, aggregate.Type);
+        long sequenceId = await conn.ExecuteScalarAsync<long>(query, parameter);
         return sequenceId;
     }
 
     async Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
-        string aggregateTypeName,
-        string id)
+        AggregateParameter parameter)
     {
-        var commands = await _commandsTask;
-        DbCommand command = commands.TryGetSnapshot;
-        // TODO: [bnaya 2023-12-13] set parameters
+        DbConnection conn = await _connectionTask;
 
-        DbDataReader reader = await command.ExecuteReaderAsync();
-        if(!await reader.ReadAsync())
-            return null;
-        var jsonData = reader.GetString(0);
-        var sequenceId = reader.GetInt64(1);
-        var snapshot = JsonSerializer.Deserialize<T>(jsonData); 
-        if (snapshot == null)
-            return default;
-        return new EventualizeStoredSnapshotData<T>(snapshot, sequenceId);
+        string query = _queries.TryGetSnapshot;
+        var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshotData<T>>(query, parameter);
+        return result;
     }
 
-    async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(
-                            string aggregateTypeName,
-                            string id,
-                            long startSequenceId)
+    async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter)
     {
-        var commands = await _commandsTask;
-        DbCommand command = commands.GetEvents;
-        // TODO: [bnaya 2023-12-13] set parameters
+        DbConnection conn = await _connectionTask;
+        string query = _queries.GetEvents;
 
-        DbDataReader reader = await command.ExecuteReaderAsync();
+        DbDataReader reader = await conn.ExecuteReaderAsync(query, parameter);
+        var parser = reader.GetRowParser<EventualizeEvent>();
         while (await reader.ReadAsync())
         {
-            // TODO: [bnaya 2023-12-13] get by name
-            var eventType = reader.GetString(0);
-            var capturedAt = reader.GetDateTime(1);
-            var capturedBy = reader.GetString(2);
-            var jsonData = reader.GetString(3);
-            var storedAt = reader.GetDateTime(4);
-            var e = new EventualizeEvent(eventType, capturedAt, capturedBy, jsonData, storedAt);
+            var e = parser(reader);
             yield return e;
         }
     }
@@ -114,18 +91,40 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
     // TODO: [bnaya 2023-12-13] avoid racing
     async Task<IImmutableList<EventualizeEvent>> IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot)
     {
-        var commands = await _commandsTask;
-        DbCommand command = commands.Save;
+        DbConnection conn = await _connectionTask;
+        string query = _queries.Save;
+        string snapQuery = _queries.SaveSnapshot;
 
+        // TODO: [bnaya 2023-12-20] Thread safety (lock async) clear the pending on succeed?, transaction?,  
         // TODO: [bnaya 2023-12-13] set parameters
         try
         {
-            await command.ExecuteNonQueryAsync();
+            var parameter = new AggregateSaveParameterCollection<T>(aggregate/*, domain? */);
+
+            int affected = await conn.ExecuteAsync(query, parameter);
+            if (storeSnapshot)
+            {
+                var sequenceId = aggregate.LastStoredSequenceId + parameter.Events.Count;
+                // TODO: [bnaya 2023-12-20] serialization?
+                // TODO: [bnaya 2023-12-20] domain
+                var payload = JsonSerializer.Serialize(aggregate.State);
+                SnapshotSaveParameter snapshotSaveParameter = new SnapshotSaveParameter(
+                                            aggregate.Id,
+                                            aggregate.Type,
+                                            sequenceId,
+                                            payload,
+                                            "default");
+                int snapshot = await conn.ExecuteAsync(snapQuery, snapshotSaveParameter);
+                if (snapshot != 1)
+                    throw new DataException("Snapshot not saved");
+            }
+            // TODO: [bnaya 2023-12-20] do the logging right
+            _logger.LogDebug("{count} events saved", affected);
         }
-        catch (DataException e)
+        catch (DbException e) 
+            when (e.Message.Contains("Violation of PRIMARY KEY constraint"))
         {
-            if (e.Message.Contains("Violation of PRIMARY KEY constraint"))
-                throw new OCCException<T>(aggregate);
+            throw new OCCException<T>(aggregate);
         }
         return aggregate.PendingEvents;
     }
@@ -136,7 +135,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
 
     void IDisposable.Dispose()
     {
-        IDisposable commands = _commandsTask.Result;
+        IDisposable commands = _connectionTask.Result;
         commands.Dispose();
         GC.SuppressFinalize(this);
     }
@@ -144,7 +143,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
     public async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
-        var commands = await _commandsTask;
+        var commands = await _connectionTask;
         await commands.DisposeAsync();
     }
 
@@ -154,64 +153,4 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
     }
 
     #endregion // Dispose Pattern
-
-    #region class Commands
-
-    private sealed class Commands: IDisposable, IAsyncDisposable
-    {
-        private readonly DbConnection _connection;
-
-        public Commands(
-            DbConnection connection,
-            EventualizeAdapterQueryTemplates queryTemplates)
-        {
-            GetLastSnapshotSequenceId = connection.CreateCommand();
-            GetLastSnapshotSequenceId.CommandText = queryTemplates.GetLastSnapshotSequenceId;
-
-            TryGetSnapshot = connection.CreateCommand();
-            TryGetSnapshot.CommandText = queryTemplates.TryGetSnapshot;
-
-            GetEvents = connection.CreateCommand();
-            GetEvents.CommandText = queryTemplates.GetEvents;
-
-            Save = connection.CreateCommand();
-            Save.CommandText = queryTemplates.Save;
-            _connection = connection;
-        }
-
-        /// <summary>
-        /// Get last snapshot sequence identifier.
-        /// </summary>
-        public DbCommand GetLastSnapshotSequenceId { get;  }
-        /// <summary>
-        /// Get latest snapshot.
-        /// </summary>
-        public DbCommand TryGetSnapshot { get;  }
-        /// <summary>
-        /// Get events.
-        /// </summary>
-        public DbCommand GetEvents { get;  }
-        /// <summary>
-        /// Save.
-        /// </summary>
-        public DbCommand Save { get; }
-
-        #region Dispose Pattern
-
-        void IDisposable.Dispose()
-        {
-            _connection.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            GC.SuppressFinalize(this);
-            await _connection.DisposeAsync();
-        }
-
-        #endregion // Dispose Pattern
-    }
-
-    #endregion // class Commands
 }

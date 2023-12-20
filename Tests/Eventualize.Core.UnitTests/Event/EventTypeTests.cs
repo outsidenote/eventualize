@@ -9,7 +9,7 @@ public class EventTypeTests
     public void EventType_WhenCreatingEvent_Succeed()
     {
         EventualizeEventType testEventType = TestEventType;
-        TestEventDataType data = new ("test", 10);
+        TestEventDataType data = new("test", 10);
         EventualizeEvent e = GetCorrectTestEvent();
     }
 

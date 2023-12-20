@@ -24,4 +24,8 @@ public readonly partial record struct EventualizeAdapterQueryTemplates
     /// Save.
     /// </summary>
     public string Save { get; init; }
+    /// <summary>
+    /// Save snapshot.
+    /// </summary>
+    public string SaveSnapshot { get; init; }
 }

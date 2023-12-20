@@ -6,88 +6,39 @@ using System.Diagnostics;
 
 namespace Eventualize.Core;
 
-public class EventualizeAggregate
+[DebuggerDisplay("LastStoredSequenceId: {LastStoredSequenceId}, State: {State}")]
+public abstract class EventualizeAggregate
 {
-    internal static EventualizeAggregate<T> Create<T>(
-            EventualizeAggregateType<T> aggregateType,
-            string id,
-            int minEventsBetweenSnapshots)
-                where T : notnull, new()
+    #region Ctor
+
+    internal EventualizeAggregate(
+        string id,
+        int minEventsBetweenSnapshots,
+        long lastStoredSequenceId)
     {
-        EventualizeAggregate<T> aggregate = new( aggregateType, id, minEventsBetweenSnapshots );
-        return aggregate;        
+        Id = id;
+        MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
+        LastStoredSequenceId = lastStoredSequenceId;
     }
 
-    public static async Task<EventualizeAggregate<T>> CreateAsync<T>(
-            EventualizeAggregateType<T> aggregateType,
-            string id,
-            int minEventsBetweenSnapshots,
-            IAsyncEnumerable<EventualizeEvent> events)
-                where T : notnull, new() 
-    {
-        var result = 
-                        await CreateAsync(
-                                aggregateType, 
-                                id,
-                                minEventsBetweenSnapshots, 
-                                events, new T());
-        return result;
-    }
+    #endregion // Ctor
 
-    public static async Task<EventualizeAggregate<T>> CreateAsync<T>(
-            EventualizeAggregateType<T> aggregateType,
-            string id,
-            int minEventsBetweenSnapshots,
-            IAsyncEnumerable<EventualizeEvent> events,
-            T snapshot,
-            long snapshotSequenceId = -1)
-                where T : notnull, new()
-    {
-        var (state, count) = await aggregateType.FoldEventsAsync(snapshot, events);
-        long lastStoredSequenceId = snapshotSequenceId + count;
-        EventualizeAggregate<T> aggregate = new(
-                                        state,
-                                        aggregateType,
-                                        id, 
-                                        minEventsBetweenSnapshots,
-                                        lastStoredSequenceId);
-        return aggregate;        
-    }
+    public string Id { get; }
 
-    public static EventualizeAggregate<T> Create<T>(
-            EventualizeAggregateType<T> aggregateType,
-            string id,
-            int minEventsBetweenSnapshots,
-            T snapshot,
-            long snapshotSequenceId)
-                where T : notnull, new()
-    {
-        EventualizeAggregate<T> aggregate = new(
-                                                snapshot, 
-                                                aggregateType, 
-                                                id,
-                                                minEventsBetweenSnapshots,
-                                                snapshotSequenceId);
-        return aggregate;        
-    }
+    // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
+    protected internal ConcurrentQueue<EventualizeEvent> _pendingEvents = new ConcurrentQueue<EventualizeEvent>();
+    public IImmutableList<EventualizeEvent> PendingEvents => _pendingEvents.ToImmutableArray();
+
+    public long LastStoredSequenceId { get; protected set; } = -1;
+    // TODO: [bnaya 2023-12-11] Use Min Duration or Count between snapshots
+    public int MinEventsBetweenSnapshots { get; } = 0;
+
+    public abstract string Type { get; }
 }
 
 [DebuggerDisplay("LastStoredSequenceId: {LastStoredSequenceId}, State: {State}")]
-public class EventualizeAggregate<T> where T : notnull, new()
+public class EventualizeAggregate<T>: EventualizeAggregate where T : notnull, new()
 {
-    public string Id { get; private set; }
-
-    public EventualizeAggregateType<T> AggregateType { get; private set; }
-    // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
-    private ConcurrentQueue<EventualizeEvent> _pendingEvents = new ConcurrentQueue<EventualizeEvent>();
-    public IImmutableList<EventualizeEvent> PendingEvents => _pendingEvents.ToImmutableArray();
-
-    public long LastStoredSequenceId { get; private set; } = -1;
-    // TODO: [bnaya 2023-12-11] Use Min Duration or Count between snapshots
-    public int MinEventsBetweenSnapshots { get; private set; } = 0;
-
-    public T State { get; private set; }
-
     #region Ctor
 
     internal EventualizeAggregate(
@@ -95,7 +46,7 @@ public class EventualizeAggregate<T> where T : notnull, new()
         string id,
         int minEventsBetweenSnapshots,
         long lastStoredSequenceId = -1)
-            : this (new T(), aggregateType, id, minEventsBetweenSnapshots, lastStoredSequenceId)
+            : this(new T(), aggregateType, id, minEventsBetweenSnapshots, lastStoredSequenceId)
     {
     }
 
@@ -104,67 +55,57 @@ public class EventualizeAggregate<T> where T : notnull, new()
         EventualizeAggregateType<T> aggregateType,
         string id,
         int minEventsBetweenSnapshots,
-        long lastStoredSequenceId)
+        long lastStoredSequenceId) 
+        : base(id, minEventsBetweenSnapshots, lastStoredSequenceId)
     {
-        Id = id;
         State = state;
-        AggregateType = aggregateType;
-        MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
-        LastStoredSequenceId = lastStoredSequenceId; 
+        _aggregateType = aggregateType;
     }
 
-    //private EventualizeAggregate(
-    //    EventualizeAggregateType<T> aggregateType,
-    //    string id,
-    //    int minEventsBetweenSnapshots)
-    //{
-    //    AggregateType = aggregateType;
-    //    Id = id;
-    //    MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
-    //    State = new T();
-    //}
-
-    //public EventualizeAggregate(
-    //    EventualizeAggregateType<T> aggregateType,
-    //    string id,
-    //    int minEventsBetweenSnapshots,
-    //    ICollection<EventualizeEvent> events)
-    //        : this(aggregateType, id, minEventsBetweenSnapshots)
-    //{
-    //    State = AggregateType.FoldEvents(State, events);
-    //    LastStoredSequenceId = events.Count - 1;
-    //}
-
-    //public EventualizeAggregate(
-    //    EventualizeAggregateType<T> aggregateType,
-    //    string id,
-    //    int minEventsBetweenSnapshots,
-    //    ICollection<EventualizeEvent> events)
-    //        : this(aggregateType, id, minEventsBetweenSnapshots)
-    //{
-    //    State = AggregateType.FoldEvents(State, events);
-    //    LastStoredSequenceId = events.Count - 1;
-    //}
-
-    //public EventualizeAggregate(
-    //    EventualizeAggregateType<T> aggregateType,
-    //    string id,
-    //    int minEventsBetweenSnapshots,
-    //    T snapshot,
-    //    long snapshotSequenceId,
-    //    ICollection<EventualizeEvent> events)
-    //        : this(aggregateType, id, minEventsBetweenSnapshots)
-    //{
-    //    State = AggregateType.FoldEvents(snapshot, events);
-    //    LastStoredSequenceId = snapshotSequenceId + events.Count;
-    //}
-
     #endregion // Ctor
+
+    public async Task<EventualizeAggregate<T>> CreateAsync(string id, IAsyncEnumerable<EventualizeEvent> events)
+    {
+        var result = await EventualizeAggregateFactory.CreateAsync(
+                                _aggregateType,
+                                id,
+                                MinEventsBetweenSnapshots,
+                                events);
+        return result;
+    }
+
+    public async Task<EventualizeAggregate<T>> CreateAsync(IAsyncEnumerable<EventualizeEvent> events)
+    {
+        var result = await CreateAsync(Id, events);
+        return result;
+    }
+
+    public async Task<EventualizeAggregate<T>> CreateAsync(
+                    string id,
+                    IAsyncEnumerable<EventualizeEvent> events, 
+                    T snapshot,
+                    long lastStoredSequenceId)
+    {
+        var result = await EventualizeAggregateFactory.CreateAsync(
+                                   _aggregateType,
+                                   id,
+                                   MinEventsBetweenSnapshots,
+                                   events,
+                                   snapshot,
+                                   lastStoredSequenceId);
+        return result;
+    }
+
+    private readonly EventualizeAggregateType<T> _aggregateType;
+ 
+    public T State { get; private set; }
+
+    public override string Type => _aggregateType.Name;
 
     public void AddPendingEvent(EventualizeEvent someEvent)
     {
         EventualizeEventType? eventType;
-        if (!AggregateType.RegisteredEventTypes.TryGetValue(someEvent.EventType, out eventType))
+        if (!_aggregateType.RegisteredEventTypes.TryGetValue(someEvent.EventType, out eventType))
             throw new KeyNotFoundException($"No registered event of type {someEvent.EventType}");
 
         // TODO: [bnaya 2023-12-18] @Roma what is it for?
@@ -172,13 +113,13 @@ public class EventualizeAggregate<T> where T : notnull, new()
 
         _pendingEvents.Enqueue(someEvent);
         // TODO: [bnaya 2023-12-19] thread safe
-        State = AggregateType.FoldEvent(State, someEvent);
+        State = _aggregateType.FoldEvent(State, someEvent);
     }
 
     public void ClearPendingEvents()
     {
         LastStoredSequenceId += PendingEvents.Count;
-        _pendingEvents.Clear(); 
+        _pendingEvents.Clear();
     }
 }
 

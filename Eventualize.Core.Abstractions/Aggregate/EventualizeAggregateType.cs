@@ -10,7 +10,7 @@ public class EventualizeAggregateType<T> where T : notnull, new()
 
     public readonly string Name;
 
-    public readonly int MinEventsBetweenSnapshots;  
+    public readonly int MinEventsBetweenSnapshots;
 
     public EventualizeAggregateType(string name)
     {
@@ -24,49 +24,39 @@ public class EventualizeAggregateType<T> where T : notnull, new()
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
     }
 
+    [Obsolete("Deprecated use aggregate directly")]
     public EventualizeAggregate<T> CreateAggregate(string id)
     {
-        return EventualizeAggregate.Create(this, id, MinEventsBetweenSnapshots);
+        return EventualizeAggregateFactory.Create(this, id, MinEventsBetweenSnapshots);
     }
 
+    [Obsolete("Deprecated use aggregate directly")]
     public async Task<EventualizeAggregate<T>> CreateAggregateAsync(
                                 string id,
                                 IAsyncEnumerable<EventualizeEvent> events)
     {
-        var result = await EventualizeAggregate.CreateAsync(
+        var result = await EventualizeAggregateFactory.CreateAsync(
                                 this,
-                                id, 
-                                MinEventsBetweenSnapshots, 
+                                id,
+                                MinEventsBetweenSnapshots,
                                 events);
         return result;
     }
 
-    public EventualizeAggregate<T> CreateAggregate(
-                    string id,
-                    T snapshot,
-                    long lastStoredSequenceId = 0)
-    {
-        var result = EventualizeAggregate.Create(
-                                    this,
-                                    id,
-                                    MinEventsBetweenSnapshots,
-                                    snapshot,
-                                    lastStoredSequenceId);
-        return result;
-    }
+    [Obsolete("Deprecated use aggregate directly")]
     public async Task<EventualizeAggregate<T>> CreateAggregateAsync(
                     string id,
                     IAsyncEnumerable<EventualizeEvent> events,
                     T snapshot,
                     long lastStoredSequenceId)
     {
-        var result = await EventualizeAggregate.CreateAsync(
+        var result = await EventualizeAggregateFactory.CreateAsync(
                                     this,
                                     id,
-                                    MinEventsBetweenSnapshots, 
+                                    MinEventsBetweenSnapshots,
                                     events,
-                                    snapshot, 
-                                    lastStoredSequenceId );
+                                    snapshot,
+                                    lastStoredSequenceId);
         return result;
     }
 
@@ -76,7 +66,7 @@ public class EventualizeAggregateType<T> where T : notnull, new()
     }
 
     public void AddFoldingFunction(
-                            string eventTypeName, 
+                            string eventTypeName,
                             IFoldingFunction<T> foldingFunction)
     {
         EventualizeEventType? eventType;
@@ -87,7 +77,7 @@ public class EventualizeAggregateType<T> where T : notnull, new()
     }
 
     public void AddEventType(
-                        EventualizeEventType eventType, 
+                        EventualizeEventType eventType,
                         IFoldingFunction<T> foldingFunction)
     {
         AddEventType(eventType);

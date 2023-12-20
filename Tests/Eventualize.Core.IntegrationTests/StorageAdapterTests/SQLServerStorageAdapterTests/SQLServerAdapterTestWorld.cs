@@ -4,8 +4,10 @@ using Eventualize.Core.Adapters.SqlStore;
 using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using System.Data.Common;
 using System.Data.SqlClient;
+using Xunit.Abstractions;
 
 namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests;
 
@@ -17,17 +19,25 @@ public class SQLServerAdapterTestWorld : IDisposable, IAsyncDisposable
     public DbConnection Connection { get; }
     public readonly ILogger _logger = A.Fake<ILogger>();
     private readonly IEventualizeConnectionFactory _connectionFactory = A.Fake<IEventualizeConnectionFactory>();
+    private readonly ITestOutputHelper _testLogger;
 
-    public SQLServerAdapterTestWorld(IConfigurationRoot configuration)
+    public SQLServerAdapterTestWorld(IConfigurationRoot configuration, ITestOutputHelper testLogger)
     {
         string connectionString = configuration.GetConnectionString("SqlServerConnection") ?? throw new ArgumentNullException("SqlServerConnection");
 
         A.CallTo(() => _connectionFactory.CreateConnection())
-            .ReturnsLazily(() => new SqlConnection(connectionString));
+            .ReturnsLazily(() =>
+            {
+                var conn = new SqlConnection(connectionString);
+                // TBD: [bnaya 2023-12-20] https://www.carlrippon.com/instrumenting-dapper-queries-in-asp-net-core/
+                //conn.StatisticsEnabled = true;
+                return conn;
+            });
         StorageAdapter = SqlServerStorageAdapter.Create(_logger, _connectionFactory, ContextId);
         StorageMigration = SqlServerStorageMigration.Create(_logger, _connectionFactory, ContextId);
         Connection = _connectionFactory.CreateConnection();
         Connection.Open(); // TODO: [bnaya 2023-12-12] model it better
+        _testLogger = testLogger;
     }
 
 

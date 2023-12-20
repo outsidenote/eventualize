@@ -34,7 +34,7 @@ public class EventualizeEventType
     }
 
     // TODO: [bnaya 2023-12-13] Remove the schema!
-    public  EventualizeEvent CreateEvent(
+    public EventualizeEvent CreateEvent(
                                 object dataObj,
                                 string capturedBy)
     {

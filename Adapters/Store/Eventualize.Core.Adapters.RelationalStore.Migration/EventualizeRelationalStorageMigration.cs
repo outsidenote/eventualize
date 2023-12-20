@@ -1,10 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Collections.Immutable;
-using System.Data;
 using System.Data.Common;
-using System.Data.SqlTypes;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 
 namespace Eventualize.Core.Adapters;
 
@@ -88,7 +83,7 @@ public sealed class EventualizeRelationalStorageMigration : IEventualizeStorageM
 
     #region class Commands
 
-    private sealed class Commands: IDisposable, IAsyncDisposable
+    private sealed class Commands : IDisposable, IAsyncDisposable
     {
         private readonly DbConnection _connection;
 
@@ -108,11 +103,11 @@ public sealed class EventualizeRelationalStorageMigration : IEventualizeStorageM
         /// <summary>
         /// Get last snapshot sequence identifier.
         /// </summary>
-        public DbCommand CreateEnvironment { get;  }
+        public DbCommand CreateEnvironment { get; }
         /// <summary>
         /// Get latest snapshot.
         /// </summary>
-        public DbCommand DestroyEnvironment { get;  }
+        public DbCommand DestroyEnvironment { get; }
 
         #region Dispose Pattern
 

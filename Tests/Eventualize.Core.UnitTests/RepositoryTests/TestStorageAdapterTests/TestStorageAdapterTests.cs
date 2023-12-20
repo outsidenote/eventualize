@@ -1,4 +1,4 @@
-using Eventualize.Core.Tests;
+using Eventualize.Core;
 
 namespace CoreTests.RepositoryTests.TestStorageAdapterTests
 {
@@ -7,7 +7,7 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
         [Fact]
         public async Task TestStorageAdapter_WhenStoringAggregateWithoutSnapshot_Succeed()
         {
-            var aggregate =  TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+            var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             TestStorageAdapter testStorageAdapter = new();
             var testEvents = await testStorageAdapter.StorePendingEvents(aggregate);
             TestStorageAdapterTestsSteps.AssertEventsAreStored(testStorageAdapter, aggregate, testEvents);
@@ -17,8 +17,9 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
         public async Task TestStorageAdapter_WhenStoringAggregateWithSnapshot_Succeed()
         {
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithEvents();
-            TestStorageAdapter testStorageAdapter = new();
-            var testEvents = await testStorageAdapter.SaveAsync(aggregate, true);
+            var testStorageAdapter = new TestStorageAdapter();
+            IEventualizeStorageAdapter adapter = testStorageAdapter;
+            var testEvents = await adapter.SaveAsync(aggregate, true);
             TestStorageAdapterTestsSteps.AssertEventsAreStored(testStorageAdapter, aggregate, testEvents);
             TestStorageAdapterTestsSteps.AssertSnapshotIsStored(testStorageAdapter, aggregate);
         }

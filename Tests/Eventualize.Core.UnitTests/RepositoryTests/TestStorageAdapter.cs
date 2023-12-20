@@ -62,15 +62,16 @@ namespace CoreTests.RepositoryTests
 
         private static string GetKeyValue(string aggregateTypeName, string id) => $"{aggregateTypeName}_{id}";
 
-        public static string GetKeyValue<T>(EventualizeAggregate<T> aggregate) where T : notnull, new() => GetKeyValue(aggregate.AggregateType.Name, aggregate.Id);
+        public static string GetKeyValue<T>(EventualizeAggregate<T> aggregate) where T : notnull, new() => GetKeyValue(aggregate.Type, aggregate.Id);
 
         #endregion // GetKeyValue
 
-        public Task<EventualizeStoredSnapshotData<T>?> TryGetSnapshotAsync<T>(
-                            string aggregateTypeName, 
-                            string id)
-            where T : notnull, new()
+        #region IEventualizeStorageAdapter Members
+        
+        Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
+                            AggregateParameter parameter)
         {
+            var (id, aggregateTypeName) = parameter;
             var key = GetKeyValue(aggregateTypeName, id);
             EventualizeStoredSnapshotData<JsonDocument>? value;
             if (!Snapshots.TryGetValue(key, out value) || value == null)
@@ -80,19 +81,20 @@ namespace CoreTests.RepositoryTests
             return Task.FromResult(result);
         }
 
-        public async IAsyncEnumerable<EventualizeEvent> GetAsync(string aggregateTypeName, string id, long startSequenceId = 0)
+        async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter)
         {
+            var (id, aggregateTypeName, startSequenceId) = parameter;
             var key = GetKeyValue(aggregateTypeName, id);
             if (!Events.TryGetValue(key, out List<EventualizeEvent>? events) || events == null)
                 yield break;
             //try
             //{
-                var evts = events.GetRange((int)startSequenceId, events.Count - (int)startSequenceId);
-                foreach (EventualizeEvent e in evts)
-                {
-                    await Task.Yield();
-                    yield return e;
-                }
+            var evts = events.GetRange((int)startSequenceId, events.Count - (int)startSequenceId);
+            foreach (EventualizeEvent e in evts)
+            {
+                await Task.Yield();
+                yield return e;
+            }
             //}
             //catch (ArgumentOutOfRangeException)
             //{
@@ -100,8 +102,7 @@ namespace CoreTests.RepositoryTests
             //}
         }
 
-        public async Task<IImmutableList<EventualizeEvent>> SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot)
-            where T : notnull, new()
+        async Task<IImmutableList<EventualizeEvent>> IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot)
         {
             var events = await StorePendingEvents<T>(aggregate);
             if (storeSnapshot)
@@ -109,16 +110,17 @@ namespace CoreTests.RepositoryTests
             return events;
         }
 
-        public Task<long> GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate)
-            where T : notnull, new()
+        Task<long> IEventualizeStorageAdapter.GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate)
         {
-            string key = GetKeyValue(aggregate.AggregateType.Name, aggregate.Id);
+            string key = GetKeyValue(aggregate.Type, aggregate.Id);
             if (!Events.TryGetValue(key, out var events))
             {
                 return Task.FromResult((long)-1);
             }
             return Task.FromResult((long)events.Count - 1);
         }
+
+        #endregion // IEventualizeStorageAdapter Members
 
         #region Dispose
 

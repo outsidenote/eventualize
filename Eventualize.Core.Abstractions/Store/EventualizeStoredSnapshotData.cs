@@ -1,15 +1,12 @@
-﻿namespace Eventualize.Core
+﻿using System.Text.Json;
+
+namespace Eventualize.Core;
+
+public record EventualizeStoredSnapshotData<T>(T Snapshot, long SnapshotSequenceId)
 {
-    public class EventualizeStoredSnapshotData<T>
-    {
-        public readonly T Snapshot;
-        public readonly long SnapshotSequenceId;
-
-        public EventualizeStoredSnapshotData(T snapshot, long snapshotSequenceId)
-        {
-            Snapshot = snapshot;
-            SnapshotSequenceId = snapshotSequenceId;
-        }
-
+    [Obsolete("Only for Dapper")]
+    public EventualizeStoredSnapshotData(string Snapshot, long SnapshotSequenceId) :
+        this(JsonSerializer.Deserialize<T>(Snapshot), SnapshotSequenceId)
+    { 
     }
-}
+};
