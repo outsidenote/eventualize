@@ -3,6 +3,6 @@ namespace Eventualize.Core;
 
 public interface IRepository
 {
-    Task<Aggregate<T>> GetAsync<T>(AggregateType<T> aggregateType, string id) where T : notnull, new();
-    Task SaveAsync<T>(Aggregate<T> aggregate) where T : notnull, new();
+    Task<EventualizeAggregate<T>> GetAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation = default) where T : notnull, new();
+    Task SaveAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation = default) where T : notnull, new();
 }

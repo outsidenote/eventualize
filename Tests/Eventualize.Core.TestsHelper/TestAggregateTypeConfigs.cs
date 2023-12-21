@@ -7,35 +7,35 @@ namespace Eventualize.Core.Tests
         public static readonly string AggregateTypeName = "TestAggregateType";
         public static readonly Type TestStateType = typeof(TestState);
 
-        public static AggregateType<TestState> GetTestAggregateType()
+        public static EventualizeAggregateType<TestState> GetTestAggregateType()
         {
-            return new AggregateType<TestState>(AggregateTypeName);
+            return new EventualizeAggregateType<TestState>(AggregateTypeName);
         }
 
-        public static AggregateType<TestState> GetTestAggregateTypeWithEventTypeAndFoldingLogic()
+        public static EventualizeAggregateType<TestState> GetTestAggregateTypeWithEventTypeAndFoldingLogic()
         {
-            var aggregate = new AggregateType<TestState>(AggregateTypeName);
+            var aggregate = new EventualizeAggregateType<TestState>(AggregateTypeName);
             var testEventType = TestEventType;
             aggregate.AddEventType(testEventType, FoldingFunctionInstance);
             return aggregate;
         }
 
-        public static AggregateType<TestState> GetTestAggregateTypeWithEventTypeAndFoldingLogicAndMinEvents(int? minEvents)
+        public static EventualizeAggregateType<TestState> GetTestAggregateTypeWithEventTypeAndFoldingLogicAndMinEvents(int? minEvents)
         {
-            var aggregate = new AggregateType<TestState>(AggregateTypeName, minEvents ?? 3);
+            var aggregate = new EventualizeAggregateType<TestState>(AggregateTypeName, minEvents ?? 3);
             var testEventType = TestEventType;
             aggregate.AddEventType(testEventType, FoldingFunctionInstance);
             return aggregate;
         }
 
-        public static FoldingFunction TestFoldingFunction = new FoldingFunction(UndelegatedTestFoldingFunction);
+        public static EventualizeFoldingFunction TestFoldingFunction = new EventualizeFoldingFunction(UndelegatedTestFoldingFunction);
 
         public static IFoldingFunction<TestState> FoldingFunctionInstance = new TestFoldingFunction();
 
-        private static object UndelegatedTestFoldingFunction(object oldState, EventEntity SerializedEvent)
+        private static object UndelegatedTestFoldingFunction(object oldState, EventualizeEvent SerializedEvent)
         {
             TestState convertedOldState = (TestState)oldState;
-            EventEntity convertedSerializedEvent = (EventEntity)SerializedEvent;
+            EventualizeEvent convertedSerializedEvent = (EventualizeEvent)SerializedEvent;
             TestEventDataType data = TestEventType.ParseData(convertedSerializedEvent);
             return new TestState(convertedOldState.ACount + 1, convertedOldState.BCount + 1, convertedOldState.BSum + data.B);
         }

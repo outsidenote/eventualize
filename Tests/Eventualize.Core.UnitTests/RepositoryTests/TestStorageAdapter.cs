@@ -1,28 +1,21 @@
-using Eventualize.Core;
+﻿using Eventualize.Core;
+using System.Collections.Immutable;
 using System.Text.Json;
 
 namespace CoreTests.RepositoryTests
 {
-    public sealed class TestStorageAdapter : IStorageAdapter
+    public sealed class TestStorageAdapter : IEventualizeStorageAdapter
     {
-        public Dictionary<string, StoredSnapshotData<JsonDocument>> Snapshots = new();
-        public Dictionary<string, List<EventEntity>> Events = new();
-        public Task<StoredSnapshotData<T>?> TryGetSnapshotAsync<T>(string aggregateTypeName, string id) where T : notnull, new()
-        {
-            var key = GetKeyValue(aggregateTypeName, id);
-            StoredSnapshotData<JsonDocument>? value;
-            if (!Snapshots.TryGetValue(key, out value) || value == null)
-                return Task.FromResult(default(StoredSnapshotData<T>));
-            T? parsedShapshot = JsonSerializer.Deserialize<T>(value.Snapshot);
-            var result = parsedShapshot != null ? new StoredSnapshotData<T>(parsedShapshot, value.SnapshotSequenceId) : default(StoredSnapshotData<T>);
-            return Task.FromResult(result);
-        }
+        public Dictionary<string, EventualizeStoredSnapshotData<JsonDocument>> Snapshots = new();
+        public Dictionary<string, List<EventualizeEvent>> Events = new();
 
-        public async Task<List<EventEntity>?> StorePendingEvents<T>(Aggregate<T> aggregate) where T : notnull, new()
+        #region StorePendingEvents
+
+        internal async Task<IImmutableList<EventualizeEvent>> StorePendingEvents<T>(EventualizeAggregate<T> aggregate) where T : notnull, new()
         {
             if (aggregate.PendingEvents.Count == 0)
-                return default;
-            List<EventEntity> pendingEventsWithStoreTs = new();
+                return ImmutableArray<EventualizeEvent>.Empty;
+            List<EventualizeEvent> pendingEventsWithStoreTs = new();
             DateTime storeTs = DateTime.Now;
             foreach (var pendingEvent in aggregate.PendingEvents)
             {
@@ -30,7 +23,7 @@ namespace CoreTests.RepositoryTests
                 pendingEventsWithStoreTs.Add(e);
             }
             string key = GetKeyValue(aggregate);
-            if (!Events.TryGetValue(key, out List<EventEntity>? eventsList))
+            if (!Events.TryGetValue(key, out List<EventualizeEvent>? eventsList))
             {
                 Events.Add(key, pendingEventsWithStoreTs);
             }
@@ -39,15 +32,19 @@ namespace CoreTests.RepositoryTests
                 eventsList.AddRange(pendingEventsWithStoreTs);
             }
             await Task.Yield();
-            return pendingEventsWithStoreTs;
+            return pendingEventsWithStoreTs.ToImmutableArray();
         }
 
-        public Task StoreSnapshot<T>(Aggregate<T> aggregate) where T : notnull, new()
+        #endregion // StorePendingEvents
+
+        #region StoreSnapshot
+
+        private Task StoreSnapshot<T>(EventualizeAggregate<T> aggregate) where T : notnull, new()
         {
             string key = GetKeyValue(aggregate);
             long sequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;
             JsonDocument serializedSnapshot = JsonDocument.Parse(JsonSerializer.Serialize<T>(aggregate.State));
-            StoredSnapshotData<JsonDocument> value = new(serializedSnapshot, sequenceId);
+            EventualizeStoredSnapshotData<JsonDocument> value = new(serializedSnapshot, sequenceId);
             if (!Snapshots.TryGetValue(key, out var storedSnapshotData))
             {
                 Snapshots.Add(key, value);
@@ -59,7 +56,53 @@ namespace CoreTests.RepositoryTests
             return Task.FromResult(true);
         }
 
-        public async Task<List<EventEntity>?> SaveAsync<T>(Aggregate<T> aggregate, bool storeSnapshot) where T : notnull, new()
+        #endregion // StoreSnapshot
+
+        #region GetKeyValue
+
+        private static string GetKeyValue(string aggregateTypeName, string id) => $"{aggregateTypeName}_{id}";
+
+        public static string GetKeyValue<T>(EventualizeAggregate<T> aggregate) where T : notnull, new() => GetKeyValue(aggregate.Type, aggregate.Id);
+
+        #endregion // GetKeyValue
+
+        #region IEventualizeStorageAdapter Members
+        
+        Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
+                            AggregateParameter parameter, CancellationToken cancellation)
+        {
+            var (id, aggregateTypeName) = parameter;
+            var key = GetKeyValue(aggregateTypeName, id);
+            EventualizeStoredSnapshotData<JsonDocument>? value;
+            if (!Snapshots.TryGetValue(key, out value) || value == null)
+                return Task.FromResult(default(EventualizeStoredSnapshotData<T>));
+            T? parsedShapshot = JsonSerializer.Deserialize<T>(value.Snapshot);
+            var result = parsedShapshot != null ? new EventualizeStoredSnapshotData<T>(parsedShapshot, value.SnapshotSequenceId) : default(EventualizeStoredSnapshotData<T>);
+            return Task.FromResult(result);
+        }
+
+        async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
+        {
+            var (id, aggregateTypeName, startSequenceId) = parameter;
+            var key = GetKeyValue(aggregateTypeName, id);
+            if (!Events.TryGetValue(key, out List<EventualizeEvent>? events) || events == null)
+                yield break;
+            //try
+            //{
+            var evts = events.GetRange((int)startSequenceId, events.Count - (int)startSequenceId);
+            foreach (EventualizeEvent e in evts)
+            {
+                await Task.Yield();
+                yield return e;
+            }
+            //}
+            //catch (ArgumentOutOfRangeException)
+            //{
+            //    yield break;
+            //}
+        }
+
+        async Task<IImmutableList<EventualizeEvent>> IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation)
         {
             var events = await StorePendingEvents<T>(aggregate);
             if (storeSnapshot)
@@ -67,32 +110,9 @@ namespace CoreTests.RepositoryTests
             return events;
         }
 
-        private static string GetKeyValue(string aggregateTypeName, string id) => $"{aggregateTypeName}_{id}";
-        public static string GetKeyValue<T>(Aggregate<T> aggregate) where T : notnull, new() => GetKeyValue(aggregate.AggregateType.Name, aggregate.Id);
-
-        public Task<List<EventEntity>> GetAsync(string aggregateTypeName, string id, long startSequenceId)
+        Task<long> IEventualizeStorageAdapter.GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellationא)
         {
-            var key = GetKeyValue(aggregateTypeName, id);
-            if (!Events.TryGetValue(key, out List<EventEntity>? events) || events == null)
-                return Task.FromResult(new List<EventEntity>());
-            try
-            {
-                return Task.FromResult(events.GetRange((int)startSequenceId, events.Count - (int)startSequenceId));
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                return Task.FromResult(new List<EventEntity>());
-            }
-        }
-
-        public Task Init()
-        {
-            return Task.FromResult(true);
-        }
-
-        public Task<long> GetLastSequenceIdAsync<T>(Aggregate<T> aggregate) where T : notnull, new()
-        {
-            string key = GetKeyValue(aggregate.AggregateType.Name, aggregate.Id);
+            string key = GetKeyValue(aggregate.Type, aggregate.Id);
             if (!Events.TryGetValue(key, out var events))
             {
                 return Task.FromResult((long)-1);
@@ -100,9 +120,14 @@ namespace CoreTests.RepositoryTests
             return Task.FromResult((long)events.Count - 1);
         }
 
+        #endregion // IEventualizeStorageAdapter Members
+
+        #region Dispose
 
         ValueTask IAsyncDisposable.DisposeAsync() => ValueTask.CompletedTask;
 
         void IDisposable.Dispose() { }
+
+        #endregion // Dispose
     }
 }

@@ -6,7 +6,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
 {
     public static class AssertAggregateStoredSuccessfully
     {
-        public static void assert(SQLServerAdapterTestWorld world, Aggregate<TestState> aggregate, bool isSnapshotStored)
+        public static void assert(SQLServerAdapterTestWorld world, EventualizeAggregate<TestState> aggregate, bool isSnapshotStored)
         {
             var sqlCommand = GetStoredEventsSqlCommand(world, aggregate);
             var reader = sqlCommand.ExecuteReader();
@@ -24,7 +24,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
             Assert.Equal(aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count, snapshotSequenceId);
         }
 
-        private static DbCommand GetStoredEventsSqlCommand(SQLServerAdapterTestWorld world, Aggregate<TestState> aggregate)
+        private static DbCommand GetStoredEventsSqlCommand(SQLServerAdapterTestWorld world, EventualizeAggregate<TestState> aggregate)
         {
 
             var prefix = world.ContextId;
@@ -33,7 +33,7 @@ SELECT COUNT(*)
 FROM {prefix}event
 WHERE
     domain = 'default'
-    AND aggregate_type = '{aggregate.AggregateType.Name}'
+    AND aggregate_type = '{aggregate.Type}'
     AND aggregate_id = '{aggregate.Id}'
             ";
             var command = world.Connection.CreateCommand();
@@ -41,7 +41,7 @@ WHERE
             return command;
         }
 
-        private static DbCommand GetStoredSnapshotSqlCommand(SQLServerAdapterTestWorld world, Aggregate<TestState> aggregate)
+        private static DbCommand GetStoredSnapshotSqlCommand(SQLServerAdapterTestWorld world, EventualizeAggregate<TestState> aggregate)
         {
 
             var prefix = world.ContextId;
@@ -50,7 +50,7 @@ SELECT sequence_id
 FROM {prefix}snapshot
 WHERE
     domain = 'default'
-    AND aggregate_type = '{aggregate.AggregateType.Name}'
+    AND aggregate_type = '{aggregate.Type}'
     AND aggregate_id = '{aggregate.Id}'
             ";
             var command = world.Connection.CreateCommand();

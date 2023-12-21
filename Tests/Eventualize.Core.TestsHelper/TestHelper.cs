@@ -2,35 +2,59 @@ namespace Eventualize.Core.Tests;
 
 public static class TestHelper
 {
-    public static readonly EventType TestEventType = new EventType("testType", typeof(TestEventDataType));
+    private static readonly IAsyncEnumerable<EventualizeEvent> _emptyEvents = AsyncEnumerable<EventualizeEvent>.Empty;
+
+    public static async IAsyncEnumerable<T> ToAsync<T>(this IEnumerable<T> self)
+    {
+        foreach (var item in self)
+        {
+            await Task.Yield();
+            yield return item;
+        }
+    }
+
+#pragma warning disable S5034 // "ValueTask" should be consumed correctly
+    public static async Task<ICollection<T>> ToEnumerableAsync<T>(this IAsyncEnumerable<T> self)
+    {
+        var list = new List<T>();
+        await foreach (var item in self)
+        {
+            list.Add(item);
+        }
+        return list;
+    }
+#pragma warning restore S5034 // "ValueTask" should be consumed correctly
+
+    public static readonly EventualizeEventType TestEventType = new EventualizeEventType("testType", typeof(TestEventDataType));
     public static readonly TestEventDataType CorrectEventData = new("test", 10);
-    public static async Task<EventEntity> GetCorrectTestEvent()
+
+    public static EventualizeEvent GetCorrectTestEvent()
     {
-        return await TestEventType.CreateEvent(CorrectEventData, "TestOperation");
+        return TestEventType.CreateEvent(CorrectEventData, "TestOperation");
     }
 
-    public static async Task<Aggregate<TestState>> PrepareAggregateWithPendingEvents()
+    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents()
     {
-        var aggregate = TestAggregateConfigs.GetTestAggregate();
+        EventualizeAggregate<TestState> aggregate = TestAggregateConfigs.GetTestAggregate();
         for (int i = 0; i < 3; i++)
-            aggregate.AddPendingEvent(await GetCorrectTestEvent());
+            aggregate.AddPendingEvent(GetCorrectTestEvent());
         return aggregate;
 
     }
 
-    public static async Task<Aggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
+    public static async Task<EventualizeAggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
     {
-        var aggregate = TestAggregateConfigs.GetTestAggregate(new(), minEventsBetweenSnapshots);
+        var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
         for (int i = 0; i < 3; i++)
-            aggregate.AddPendingEvent(await GetCorrectTestEvent());
+            aggregate.AddPendingEvent(GetCorrectTestEvent());
         return aggregate;
 
     }
-    public static async Task<Aggregate<TestState>> PrepareAggregateWithEvents()
+    public static async Task<EventualizeAggregate<TestState>> PrepareAggregateWithEvents()
     {
-        List<EventEntity> events = new();
+        List<EventualizeEvent> events = new();
         for (int i = 0; i < 3; i++)
-            events.Add(await GetCorrectTestEvent());
-        return TestAggregateConfigs.GetTestAggregate(events, true);
+            events.Add(GetCorrectTestEvent());
+        return await TestAggregateConfigs.GetTestAggregateAsync(events.ToAsync(), true);
     }
 }

@@ -8,44 +8,53 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
 {
     public static class TestStorageAdapterTestsSteps
     {
-        public static async Task<Aggregate<TestState>> PrepareAggregateWithPendingEvents()
+        public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents()
         {
-            Aggregate<TestState> aggregate = GetTestAggregate();
+            EventualizeAggregate<TestState> aggregate = GetTestAggregate();
             for (int i = 0; i < 3; i++)
-                aggregate.AddPendingEvent(await GetCorrectTestEvent());
+            {
+                EventualizeEvent e = GetCorrectTestEvent();
+                aggregate.AddPendingEvent(e);
+            }
             return aggregate;
         }
 
-        public static async Task<Aggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
+        public static async Task<EventualizeAggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
         {
-            Aggregate<TestState> aggregate = GetTestAggregate(new(), minEventsBetweenSnapshots);
+            EventualizeAggregate<TestState> aggregate = await GetTestAggregateAsync(AsyncEnumerable<EventualizeEvent>.Empty, minEventsBetweenSnapshots);
             for (int i = 0; i < 3; i++)
-                aggregate.AddPendingEvent(await GetCorrectTestEvent());
+            {
+                EventualizeEvent e = GetCorrectTestEvent();
+                aggregate.AddPendingEvent(e);
+            }
             return aggregate;
 
         }
-        public static async Task<Aggregate<TestState>> PrepareAggregateWithEvents()
+        public static async Task<EventualizeAggregate<TestState>> PrepareAggregateWithEvents()
         {
-            List<EventEntity> events = new();
+            List<EventualizeEvent> events = new();
             for (int i = 0; i < 3; i++)
-                events.Add(await GetCorrectTestEvent());
-            return TestAggregateConfigs.GetTestAggregate(events, true);
+            {
+                EventualizeEvent e = GetCorrectTestEvent();
+                events.Add(e);
+            }
+            return await TestAggregateConfigs.GetTestAggregateAsync(events.ToAsync(), true);
         }
 
-        public static void AssertEventsAreStored(TestStorageAdapter testStorageAdapter, Aggregate<TestState> aggregate, List<EventEntity>? events)
+        public static void AssertEventsAreStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate, IEnumerable<EventualizeEvent>? events)
         {
             Assert.NotNull(events);
-            List<EventEntity>? storedEvents;
+            List<EventualizeEvent>? storedEvents;
             string key = TestStorageAdapter.GetKeyValue(aggregate);
             if (!testStorageAdapter.Events.TryGetValue(key, out storedEvents))
                 throw new KeyNotFoundException(key);
             Assert.NotNull(storedEvents);
-            Assert.Equal(events.Count, storedEvents.Count);
+            Assert.True(events.SequenceEqual(storedEvents));
         }
 
-        public static void AssertSnapshotIsStored(TestStorageAdapter testStorageAdapter, Aggregate<TestState> aggregate)
+        public static void AssertSnapshotIsStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate)
         {
-            StoredSnapshotData<JsonDocument>? storedSnapshot;
+            EventualizeStoredSnapshotData<JsonDocument>? storedSnapshot;
             string key = TestStorageAdapter.GetKeyValue(aggregate);
             if (!testStorageAdapter.Snapshots.TryGetValue(key, out storedSnapshot))
                 throw new KeyNotFoundException(key);

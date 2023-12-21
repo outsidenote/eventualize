@@ -1,17 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.2" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\Eventualize.Core.Adapters.SqlStore.Common\Eventualize.Core.Adapters.SqlStore.Common.csproj" />
+	  <ProjectReference Include="..\..\Eventualize.Core.Adapters.RelationalStore.Migration\Eventualize.Core.Adapters.RelationalStore.Migration.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <None Update="icon.png">
-	    <PackagePath></PackagePath>
-	    <Pack>True</Pack>
-	  </None>
-	</ItemGroup>
-
 	<ItemGroup>
 		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
 	</ItemGroup>
