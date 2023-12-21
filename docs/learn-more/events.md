@@ -7,6 +7,8 @@ parent: Learn More
 
 # Events
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/pGU7sRABo7M?si=nFXtiCOsOONL3eGK" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 Events are facts that happened and are of interest to the software system.
 In principal, anythings that is detected by the software system is an event.
 Events can be detected from outside of the system, for example:
@@ -30,22 +32,6 @@ In `Eventualize`, All events have the same structure:
 | payload       | json      | **required.** The data of the event (e.g. username, number of points)  |
 | stored_at     | datetime  | _Optional._ Populated by `Eventualize` after the event has been stored |
 
-## Creating a new event
-
-{: .important }
-> **Prerequisite**
->
-> This section assumes you have installed `Eventualize` package in you project.
-> If this is not the case, got to [Quick Start](../quick-start) and learn how to do that.
-
-### C#
-
-```cs
-var capturedAt = DateTime.Now;
-var capturedBy = "<capturing service name>";
-var data = new EventData(...);
-var newEvent = new EventEntity(capturedAt, capturedBy,data);
-```
 
 Now that we understand events, we can learn how they are used to derive the system's state.
 Hint: this is what **Aggregates** are for.
