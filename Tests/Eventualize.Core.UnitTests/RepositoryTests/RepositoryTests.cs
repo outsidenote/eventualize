@@ -11,7 +11,7 @@ namespace CoreTests.RepositoryTests
         {
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
-            var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
+            IRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
             var fetchedAggregate = await repository.GetAsync(aggregate);
             repoTestSteps.AssertFetchedAggregateIsCorrect(aggregate, fetchedAggregate);
         }
@@ -21,7 +21,7 @@ namespace CoreTests.RepositoryTests
         {
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(10);
-            var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
+            IRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
             await repository.SaveAsync(aggregate);
             await repoTestSteps.AssertStoredAggregateIsCorrect(aggregate, false);
         }
@@ -31,7 +31,7 @@ namespace CoreTests.RepositoryTests
         {
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(1);
-            var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
+            IRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
             await repository.SaveAsync(aggregate);
             await repoTestSteps.AssertStoredAggregateIsCorrect(aggregate, true);
         }
@@ -41,7 +41,7 @@ namespace CoreTests.RepositoryTests
         {
             var repoTestSteps = new RepositoryTestsSteps();
             var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(3);
-            var repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
+            IRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
             await Assert.ThrowsAsync<OCCException<TestState>>(async () => await repository.SaveAsync(aggregate));
         }
 

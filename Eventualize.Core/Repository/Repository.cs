@@ -16,38 +16,39 @@ public class Repository : IRepository
         return (long)sequenceId + 1;
     }
 
-    public async Task<EventualizeAggregate<T>> GetAsync<T>(EventualizeAggregate<T> aggregate) where T : notnull, new()
+    async Task<EventualizeAggregate<T>> IRepository.GetAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)
     {
+        cancellation.ThrowIfCancellationRequested();
         string id = aggregate.Id;
         // TODO: [bnaya 2023-12-20] transaction, 
         string type = aggregate.Type;
         AggregateParameter parameter = new(id, type);
         IAsyncEnumerable<EventualizeEvent> events;
-        var snapshotData = await _storageAdapter.TryGetSnapshotAsync<T>(parameter);
+        var snapshotData = await _storageAdapter.TryGetSnapshotAsync<T>(parameter, cancellation);
         if (snapshotData == null)
         {
             AggregateSequenceParameter prm1 = new(parameter, 0);
-            events = _storageAdapter.GetAsync(prm1);
+            events = _storageAdapter.GetAsync(prm1, cancellation);
             return await aggregate.CreateAsync(events);
         }
         long nextSequenceId = GetNextSequenceId(snapshotData.SnapshotSequenceId);
         AggregateSequenceParameter prm2 = new(parameter, nextSequenceId);
-        events = _storageAdapter.GetAsync(prm2);
+        events = _storageAdapter.GetAsync(prm2, cancellation);
         return await aggregate.CreateAsync(id, events, snapshotData.Snapshot, snapshotData.SnapshotSequenceId);
     }
 
-    public async Task SaveAsync<T>(EventualizeAggregate<T> aggregate) where T : notnull, new()
+    async Task IRepository.SaveAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)
     {
         if (aggregate.PendingEvents.Count == 0)
         {
             await Task.FromResult(true);
             return;
         }
-        long lastStoredSequenceId = await _storageAdapter.GetLastSequenceIdAsync(aggregate);
+        long lastStoredSequenceId = await _storageAdapter.GetLastSequenceIdAsync(aggregate, cancellation);
         if (lastStoredSequenceId != aggregate.LastStoredSequenceId)
             throw new OCCException<T>(aggregate, lastStoredSequenceId);
         bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
-        await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot);
+        await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot, cancellation);
         aggregate.ClearPendingEvents();
     }
 }

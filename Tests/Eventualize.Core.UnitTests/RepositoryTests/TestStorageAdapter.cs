@@ -1,4 +1,4 @@
-using Eventualize.Core;
+﻿using Eventualize.Core;
 using System.Collections.Immutable;
 using System.Text.Json;
 
@@ -69,7 +69,7 @@ namespace CoreTests.RepositoryTests
         #region IEventualizeStorageAdapter Members
         
         Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
-                            AggregateParameter parameter)
+                            AggregateParameter parameter, CancellationToken cancellation)
         {
             var (id, aggregateTypeName) = parameter;
             var key = GetKeyValue(aggregateTypeName, id);
@@ -81,7 +81,7 @@ namespace CoreTests.RepositoryTests
             return Task.FromResult(result);
         }
 
-        async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter)
+        async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
         {
             var (id, aggregateTypeName, startSequenceId) = parameter;
             var key = GetKeyValue(aggregateTypeName, id);
@@ -102,7 +102,7 @@ namespace CoreTests.RepositoryTests
             //}
         }
 
-        async Task<IImmutableList<EventualizeEvent>> IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot)
+        async Task<IImmutableList<EventualizeEvent>> IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation)
         {
             var events = await StorePendingEvents<T>(aggregate);
             if (storeSnapshot)
@@ -110,7 +110,7 @@ namespace CoreTests.RepositoryTests
             return events;
         }
 
-        Task<long> IEventualizeStorageAdapter.GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate)
+        Task<long> IEventualizeStorageAdapter.GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellationא)
         {
             string key = GetKeyValue(aggregate.Type, aggregate.Id);
             if (!Events.TryGetValue(key, out var events))

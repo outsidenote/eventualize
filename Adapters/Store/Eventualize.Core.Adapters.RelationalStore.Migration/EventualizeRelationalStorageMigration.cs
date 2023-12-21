@@ -40,7 +40,7 @@ public sealed class EventualizeRelationalStorageMigration : IEventualizeStorageM
 
     #region IEventualizeStorageMigration Members
 
-    async Task IEventualizeStorageMigration.CreateTestEnvironmentAsync()
+    async Task IEventualizeStorageMigration.CreateTestEnvironmentAsync(CancellationToken cancellation)
     {
         var commands = await _commandsTask;
         DbCommand command = commands.CreateEnvironment;
@@ -48,7 +48,7 @@ public sealed class EventualizeRelationalStorageMigration : IEventualizeStorageM
         await command.ExecuteNonQueryAsync();
     }
 
-    async Task IEventualizeStorageMigration.DestroyTestEnvironmentAsync()
+    async Task IEventualizeStorageMigration.DestroyTestEnvironmentAsync(CancellationToken cancellation)
     {
         var commands = await _commandsTask;
         DbCommand command = commands.DestroyEnvironment;

@@ -5,6 +5,8 @@ using System.Data;
 using System.Data.Common;
 using System.Text.Json;
 
+// TODO: [bnaya 2023-12-20] default timeout
+
 namespace Eventualize.Core.Adapters;
 
 // TODO: [bnaya 2023-12-19] all parameters and field should be driven from nameof or const
@@ -55,8 +57,9 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
 
     #region IEventualizeStorageAdapter Members
 
-    async Task<long> IEventualizeStorageAdapter.GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate)
+    async Task<long> IEventualizeStorageAdapter.GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)
     {
+        cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetLastSnapshotSequenceId;
         AggregateParameter parameter = new AggregateParameter(aggregate.Id, aggregate.Type);
@@ -65,8 +68,9 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
     }
 
     async Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
-        AggregateParameter parameter)
+        AggregateParameter parameter, CancellationToken cancellation)
     {
+        cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
 
         string query = _queries.TryGetSnapshot;
@@ -74,8 +78,9 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         return result;
     }
 
-    async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter)
+    async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
     {
+        cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetEvents;
 
@@ -89,8 +94,9 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
     }
 
     // TODO: [bnaya 2023-12-13] avoid racing
-    async Task<IImmutableList<EventualizeEvent>> IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot)
+    async Task<IImmutableList<EventualizeEvent>> IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation)
     {
+        cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.Save;
         string snapQuery = _queries.SaveSnapshot;
