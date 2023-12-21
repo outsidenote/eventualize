@@ -3,7 +3,7 @@ using Npgsql;
 using System.Data.Common;
 using System.Data.SqlClient;
 
-namespace Eventualize.Core.Adapters.SqlStore;
+namespace Eventualize.Core.Adapters.PostgresStore;
 
 public static class PostgresStorageAdapter
 {

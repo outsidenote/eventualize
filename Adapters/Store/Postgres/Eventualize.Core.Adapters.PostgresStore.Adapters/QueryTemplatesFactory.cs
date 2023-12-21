@@ -1,4 +1,4 @@
-﻿namespace Eventualize.Core.Adapters.SqlStore;
+﻿namespace Eventualize.Core.Adapters.PostgresStore;
 
 // TODO: [bnaya 2023-12-19] all parameters and field should be driven from nameof or const
 
@@ -10,32 +10,33 @@ internal static class QueryTemplatesFactory
         {
             GetLastSnapshotSequenceId = $"""
                 SELECT MAX(sequence_id)
-                    FROM {storageContext}snapshot
-                    WHERE domain = 'default'
-                        AND aggregate_type = @{nameof(AggregateParameter.Type)}
-                        AND aggregate_id = @{nameof(AggregateParameter.Id)}
-                """,
-            TryGetSnapshot = $"""
-                SELECT json_data as {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, sequence_id as {nameof(EventualizeStoredSnapshotData<object>.SnapshotSequenceId)}
                 FROM {storageContext}snapshot
                 WHERE domain = 'default'
-                    AND aggregate_type = @{nameof(AggregateParameter.Type)}
-                    AND aggregate_id = @{nameof(AggregateParameter.Id)}
+                    AND aggregate_type = :{nameof(AggregateParameter.Type)}
+                    AND aggregate_id = :{nameof(AggregateParameter.Id)};
+                """,
+            TryGetSnapshot = $"""
+                SELECT json_data AS @{nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, 
+                       sequence_id AS @{nameof(EventualizeStoredSnapshotData<object>.SnapshotSequenceId)}
+                FROM {storageContext}snapshot
+                WHERE domain = 'default'
+                    AND aggregate_type = :{nameof(AggregateParameter.Type)}
+                    AND aggregate_id = :{nameof(AggregateParameter.Id)}
                 ORDER BY sequence_id DESC
-                OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
+                OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;                
                 """,
             GetEvents = $"""
                 SELECT
-                    event_type as {nameof(EventualizeEvent.EventType)},
-                    captured_at as {nameof(EventualizeEvent.CapturedAt)},
-                    captured_by as {nameof(EventualizeEvent.CapturedBy)},
-                    json_data as {nameof(EventualizeEvent.JsonData)},
-                    stored_at as {nameof(EventualizeEvent.StoredAt)}                    
+                    event_type AS @{nameof(EventualizeEvent.EventType)},
+                    captured_at AS @{nameof(EventualizeEvent.CapturedAt)},
+                    captured_by AS @{nameof(EventualizeEvent.CapturedBy)},
+                    json_data AS @{nameof(EventualizeEvent.JsonData)},
+                    stored_at AS @{nameof(EventualizeEvent.StoredAt)}                    
                 FROM {storageContext}event
                 WHERE domain = 'default'
-                    AND aggregate_type = @{nameof(AggregateParameter.Type)}
-                    AND aggregate_id = @{nameof(AggregateParameter.Id)}
-                    and sequence_id >= @{nameof(AggregateSequenceParameter.Sequence)};
+                    AND aggregate_type = :{nameof(AggregateParameter.Type)}
+                    AND aggregate_id = :{nameof(AggregateParameter.Id)}
+                    AND sequence_id >= :{nameof(AggregateSequenceParameter.Sequence)};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             Save = $"""
@@ -47,16 +48,17 @@ internal static class QueryTemplatesFactory
                         json_data,
                         captured_by,
                         captured_at, 
-                        domain) 
+                        domain
+                    ) 
                     VALUES (
-                        @{nameof(AggregateSaveParameter.AggregateId)}, 
-                        @{nameof(AggregateSaveParameter.AggregateType)}, 
-                        @{nameof(AggregateSaveParameter.EventType)}, 
-                        @{nameof(AggregateSaveParameter.Sequence)}, 
-                        @{nameof(AggregateSaveParameter.Payload)},
-                        @{nameof(AggregateSaveParameter.CapturedBy)},
-                        @{nameof(AggregateSaveParameter.CapturedAt)}, 
-                        @{nameof(AggregateSaveParameter.Domain)})
+                        :{nameof(AggregateSaveParameter.AggregateId)}, 
+                        :{nameof(AggregateSaveParameter.AggregateType)}, 
+                        :{nameof(AggregateSaveParameter.EventType)}, 
+                        :{nameof(AggregateSaveParameter.Sequence)}, 
+                        :{nameof(AggregateSaveParameter.Payload)},
+                        :{nameof(AggregateSaveParameter.CapturedBy)},
+                        :{nameof(AggregateSaveParameter.CapturedAt)}, 
+                        :{nameof(AggregateSaveParameter.Domain)})
                     """,
             SaveSnapshot = $"""
             INSERT INTO {storageContext}snapshot (
@@ -66,11 +68,11 @@ internal static class QueryTemplatesFactory
                         json_data,
                         domain)
             VALUES (
-                        @{nameof(SnapshotSaveParameter.AggregateId)},
-                        @{nameof(SnapshotSaveParameter.AggregateType)},
-                        @{nameof(SnapshotSaveParameter.Sequence)},
-                        @{nameof(SnapshotSaveParameter.Payload)},
-                        @{nameof(SnapshotSaveParameter.Domain)})
+                        :{nameof(SnapshotSaveParameter.AggregateId)},
+                        :{nameof(SnapshotSaveParameter.AggregateType)},
+                        :{nameof(SnapshotSaveParameter.Sequence)},
+                        :{nameof(SnapshotSaveParameter.Payload)},
+                        :{nameof(SnapshotSaveParameter.Domain)})
             """
 
         };

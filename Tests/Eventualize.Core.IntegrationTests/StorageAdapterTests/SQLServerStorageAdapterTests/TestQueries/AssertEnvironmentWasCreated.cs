@@ -4,7 +4,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
 {
     public static class AssertEnvironmentWasCreated
     {
-        public static DbCommand GetSqlCommand(SQLServerAdapterTestWorld world)
+        public static DbCommand GetSqlCommand(TestWorld world)
         {
             var prefix = world.ContextId;
             var queryString = $@"
