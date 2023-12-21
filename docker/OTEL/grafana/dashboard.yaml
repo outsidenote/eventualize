@@ -1,0 +1,14 @@
+apiVersion: 1
+
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
+providers:
+  - name: "Event Sourcing"
+    orgId: 1
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: false
+    isDefault: true
+    options:
+      path: /var/lib/grafana/dashboards/Event-Sourcing
+      foldersFromFilesStructure: true
