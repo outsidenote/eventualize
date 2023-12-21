@@ -58,9 +58,9 @@ public class TestWorld : IDisposable, IAsyncDisposable
             {
                 DbConnection conn = dbType switch
                 {
-                    TypeOfDb.SqlServer => new MySqlConnection(connectionString),
+                    TypeOfDb.SqlServer => new SqlConnection(connectionString),
                     TypeOfDb.Postgress => new NpgsqlConnection(connectionString),
-                    TypeOfDb.MySql => new SqlConnection(connectionString),
+                    TypeOfDb.MySql => new MySqlConnection(connectionString),
                     _ => throw new NotImplementedException()
                 };
 
