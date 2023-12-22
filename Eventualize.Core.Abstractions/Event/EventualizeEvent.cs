@@ -7,8 +7,6 @@ namespace Eventualize.Core;
 public partial record EventualizeEvent(string EventType,
                                        [property: IgnoreEquality] DateTime CapturedAt,
                                        string CapturedBy,
-                                       string JsonData,
-                                       [property: IgnoreEquality] DateTime? StoredAt)
+                                       string JsonData)
 {
 }
-

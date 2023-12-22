@@ -62,7 +62,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetLastSnapshotSequenceId;
-        AggregateParameter parameter = new AggregateParameter(aggregate.Id, aggregate.Type);
+        AggregateParameter parameter = new AggregateParameter(aggregate.StreamAddress.StreamId, aggregate.StreamAddress.StreamType);
         long sequenceId = await conn.ExecuteScalarAsync<long>(query, parameter);
         return sequenceId;
     }
@@ -78,14 +78,14 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         return result;
     }
 
-    async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
+    async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetEvents;
 
         DbDataReader reader = await conn.ExecuteReaderAsync(query, parameter);
-        var parser = reader.GetRowParser<EventualizeEvent>();
+        var parser = reader.GetRowParser<EventualizeStoredEvent>();
         while (await reader.ReadAsync())
         {
             var e = parser(reader);
@@ -115,8 +115,8 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
                 // TODO: [bnaya 2023-12-20] domain
                 var payload = JsonSerializer.Serialize(aggregate.State);
                 SnapshotSaveParameter snapshotSaveParameter = new SnapshotSaveParameter(
-                                            aggregate.Id,
-                                            aggregate.Type,
+                                            aggregate.StreamAddress.StreamId,
+                                            aggregate.StreamAddress.StreamType,
                                             sequenceId,
                                             payload,
                                             "default");
@@ -127,7 +127,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
             // TODO: [bnaya 2023-12-20] do the logging right
             _logger.LogDebug("{count} events saved", affected);
         }
-        catch (DbException e) 
+        catch (DbException e)
             when (e.Message.Contains("Violation of PRIMARY KEY constraint"))
         {
             throw new OCCException<T>(aggregate);

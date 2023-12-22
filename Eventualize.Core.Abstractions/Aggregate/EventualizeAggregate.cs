@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Eventualize.Core.Abstractions.Stream;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotSequenceId 
 
@@ -12,100 +13,64 @@ public abstract class EventualizeAggregate
     #region Ctor
 
     internal EventualizeAggregate(
-        string id,
+        EventualizeStreamAddress streamAddress,
         int minEventsBetweenSnapshots,
         long lastStoredSequenceId)
     {
-        Id = id;
+        StreamAddress = streamAddress;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
         LastStoredSequenceId = lastStoredSequenceId;
     }
 
     #endregion // Ctor
 
-    public string Id { get; }
-
+    #region Members
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal ConcurrentQueue<EventualizeEvent> _pendingEvents = new ConcurrentQueue<EventualizeEvent>();
     public IImmutableList<EventualizeEvent> PendingEvents => _pendingEvents.ToImmutableArray();
 
     public long LastStoredSequenceId { get; protected set; } = -1;
     // TODO: [bnaya 2023-12-11] Use Min Duration or Count between snapshots
-    public int MinEventsBetweenSnapshots { get; } = 0;
+    public int MinEventsBetweenSnapshots { get; init; } = 0;
 
-    public abstract string Type { get; }
+    public EventualizeStreamAddress StreamAddress { get; init; }
+
+    #endregion // Members
 }
 
 [DebuggerDisplay("LastStoredSequenceId: {LastStoredSequenceId}, State: {State}")]
-public class EventualizeAggregate<T>: EventualizeAggregate where T : notnull, new()
+public class EventualizeAggregate<T> : EventualizeAggregate where T : notnull, new()
 {
     #region Ctor
 
-    internal EventualizeAggregate(
-        EventualizeAggregateType<T> aggregateType,
-        string id,
-        int minEventsBetweenSnapshots,
-        long lastStoredSequenceId = -1)
-            : this(new T(), aggregateType, id, minEventsBetweenSnapshots, lastStoredSequenceId)
-    {
-    }
-
-    internal EventualizeAggregate(
-        T state,
-        EventualizeAggregateType<T> aggregateType,
-        string id,
-        int minEventsBetweenSnapshots,
-        long lastStoredSequenceId) 
-        : base(id, minEventsBetweenSnapshots, lastStoredSequenceId)
+    internal EventualizeAggregate(string aggregateType, EventualizeStreamAddress streamAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots, T state, long lastStoredSequenceId)
+        : base(streamAddress, minEventsBetweenSnapshots, lastStoredSequenceId)
     {
         State = state;
-        _aggregateType = aggregateType;
+        AggregateType = aggregateType;
+        RegisteredEventTypes = registeredEventTypes;
+        FoldingLogic = foldingLogic;
     }
+
+    internal EventualizeAggregate(string aggregateType, EventualizeStreamAddress streamAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots)
+        : this(aggregateType, streamAddress, registeredEventTypes, foldingLogic, minEventsBetweenSnapshots, new T(), -1) { }
+
 
     #endregion // Ctor
 
-    public async Task<EventualizeAggregate<T>> CreateAsync(string id, IAsyncEnumerable<EventualizeEvent> events)
-    {
-        var result = await EventualizeAggregateFactory.CreateAsync(
-                                _aggregateType,
-                                id,
-                                MinEventsBetweenSnapshots,
-                                events);
-        return result;
-    }
+    # region Members
 
-    public async Task<EventualizeAggregate<T>> CreateAsync(IAsyncEnumerable<EventualizeEvent> events)
-    {
-        var result = await CreateAsync(Id, events);
-        return result;
-    }
-
-    public async Task<EventualizeAggregate<T>> CreateAsync(
-                    string id,
-                    IAsyncEnumerable<EventualizeEvent> events, 
-                    T snapshot,
-                    long lastStoredSequenceId)
-    {
-        var result = await EventualizeAggregateFactory.CreateAsync(
-                                   _aggregateType,
-                                   id,
-                                   MinEventsBetweenSnapshots,
-                                   events,
-                                   snapshot,
-                                   lastStoredSequenceId);
-        return result;
-    }
-
-    private readonly EventualizeAggregateType<T> _aggregateType;
- 
+    public readonly Dictionary<string, EventualizeEventType> RegisteredEventTypes;
+    public readonly EventualizeFoldingLogic<T> FoldingLogic;
+    public readonly string AggregateType;
     public T State { get; private set; }
 
-    public override string Type => _aggregateType.Name;
+    #endregion // Members
 
     public void AddPendingEvent(EventualizeEvent someEvent)
     {
         EventualizeEventType? eventType;
-        if (!_aggregateType.RegisteredEventTypes.TryGetValue(someEvent.EventType, out eventType))
+        if (!RegisteredEventTypes.TryGetValue(someEvent.EventType, out eventType))
             throw new KeyNotFoundException($"No registered event of type {someEvent.EventType}");
 
         // TODO: [bnaya 2023-12-18] @Roma what is it for?
@@ -113,7 +78,7 @@ public class EventualizeAggregate<T>: EventualizeAggregate where T : notnull, ne
 
         _pendingEvents.Enqueue(someEvent);
         // TODO: [bnaya 2023-12-19] thread safe
-        State = _aggregateType.FoldEvent(State, someEvent);
+        State = FoldingLogic.FoldEvent(State, someEvent);
     }
 
     public void ClearPendingEvents()

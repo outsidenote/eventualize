@@ -6,7 +6,7 @@ public interface IEventualizeStorageAdapter : IDisposable, IAsyncDisposable
 {
     Task<EventualizeStoredSnapshotData<T>?> TryGetSnapshotAsync<T>(AggregateParameter parameter, CancellationToken cancellation = default) where T : notnull, new();
 
-    IAsyncEnumerable<EventualizeEvent> GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation = default);
+    IAsyncEnumerable<EventualizeStoredEvent> GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation = default);
 
     Task<IImmutableList<EventualizeEvent>> SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation = default) where T : notnull, new();
 

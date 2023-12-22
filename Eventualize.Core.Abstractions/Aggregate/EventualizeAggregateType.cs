@@ -1,128 +1,133 @@
-﻿namespace Eventualize.Core;
+﻿// using Eventualize.Core.Abstractions.Stream;
 
-public class EventualizeAggregateType<T> where T : notnull, new()
-{
-    // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
-    public Dictionary<string, EventualizeEventType> RegisteredEventTypes { get; private set; } = new();
+// namespace Eventualize.Core;
 
-    // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
-    public Dictionary<string, IFoldingFunction<T>> FoldingLogic = new();
+// public class EventualizeAggregateType<T> where T : notnull, new()
+// {
+//     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
+//     public Dictionary<string, EventualizeEventType> RegisteredEventTypes { get; private set; } = new();
 
-    public readonly string Name;
+//     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
+//     public Dictionary<string, IFoldingFunction<T>> FoldingLogic = new();
 
-    public readonly int MinEventsBetweenSnapshots;
+//     public readonly string Name;
 
-    public EventualizeAggregateType(string name)
-    {
-        Name = name;
-        MinEventsBetweenSnapshots = 0;
-    }
+//     public readonly EventualizeStreamBaseAddress StreamBaseAddress;
 
-    public EventualizeAggregateType(string name, int minEventsBetweenSnapshots)
-    {
-        Name = name;
-        MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
-    }
+//     public readonly int MinEventsBetweenSnapshots;
 
-    [Obsolete("Deprecated use aggregate directly")]
-    public EventualizeAggregate<T> CreateAggregate(string id)
-    {
-        return EventualizeAggregateFactory.Create(this, id, MinEventsBetweenSnapshots);
-    }
+//     public EventualizeAggregateType(string name, EventualizeStreamBaseAddress streamBaseAddress)
+//     {
+//         Name = name;
+//         StreamBaseAddress = streamBaseAddress;
+//         MinEventsBetweenSnapshots = 0;
+//     }
 
-    [Obsolete("Deprecated use aggregate directly")]
-    public async Task<EventualizeAggregate<T>> CreateAggregateAsync(
-                                string id,
-                                IAsyncEnumerable<EventualizeEvent> events)
-    {
-        var result = await EventualizeAggregateFactory.CreateAsync(
-                                this,
-                                id,
-                                MinEventsBetweenSnapshots,
-                                events);
-        return result;
-    }
+//     public EventualizeAggregateType(string name, EventualizeStreamBaseAddress streamBaseAddress, int minEventsBetweenSnapshots)
+//     {
+//         Name = name;
+//         StreamBaseAddress = streamBaseAddress;
+//         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
+//     }
 
-    [Obsolete("Deprecated use aggregate directly")]
-    public async Task<EventualizeAggregate<T>> CreateAggregateAsync(
-                    string id,
-                    IAsyncEnumerable<EventualizeEvent> events,
-                    T snapshot,
-                    long lastStoredSequenceId)
-    {
-        var result = await EventualizeAggregateFactory.CreateAsync(
-                                    this,
-                                    id,
-                                    MinEventsBetweenSnapshots,
-                                    events,
-                                    snapshot,
-                                    lastStoredSequenceId);
-        return result;
-    }
+//     [Obsolete("Deprecated use aggregate directly")]
+//     public EventualizeAggregate<T> CreateAggregate(string id)
+//     {
+//         return EventualizeAggregateFactory.Create(this, id);
+//     }
 
-    public void AddEventType(EventualizeEventType eventType)
-    {
-        RegisteredEventTypes.Add(eventType.EventTypeName, eventType);
-    }
+//     [Obsolete("Deprecated use aggregate directly")]
+//     public async Task<EventualizeAggregate<T>> CreateAggregateAsync(
+//                                 string id,
+//                                 IAsyncEnumerable<EventualizeEvent> events)
+//     {
+//         var result = await EventualizeAggregateFactory.CreateAsync(
+//                                 this,
+//                                 id,
+//                                 MinEventsBetweenSnapshots,
+//                                 events);
+//         return result;
+//     }
 
-    public void AddFoldingFunction(
-                            string eventTypeName,
-                            IFoldingFunction<T> foldingFunction)
-    {
-        EventualizeEventType? eventType;
-        if (!RegisteredEventTypes.TryGetValue(eventTypeName, out eventType))
-            throw new KeyNotFoundException($"Event type name {eventTypeName} was not found.");
-        FoldingLogic.Add(eventTypeName, foldingFunction);
+//     [Obsolete("Deprecated use aggregate directly")]
+//     public async Task<EventualizeAggregate<T>> CreateAggregateAsync(
+//                     string id,
+//                     IAsyncEnumerable<EventualizeEvent> events,
+//                     T snapshot,
+//                     long lastStoredSequenceId)
+//     {
+//         var result = await EventualizeAggregateFactory.CreateAsync(
+//                                     this,
+//                                     id,
+//                                     events,
+//                                     snapshot,
+//                                     lastStoredSequenceId);
+//         return result;
+//     }
 
-    }
+//     public void AddEventType(EventualizeEventType eventType)
+//     {
+//         RegisteredEventTypes.Add(eventType.EventTypeName, eventType);
+//     }
 
-    public void AddEventType(
-                        EventualizeEventType eventType,
-                        IFoldingFunction<T> foldingFunction)
-    {
-        AddEventType(eventType);
-        AddFoldingFunction(eventType.EventTypeName, foldingFunction);
-    }
+//     public void AddFoldingFunction(
+//                             string eventTypeName,
+//                             IFoldingFunction<T> foldingFunction)
+//     {
+//         EventualizeEventType? eventType;
+//         if (!RegisteredEventTypes.TryGetValue(eventTypeName, out eventType))
+//             throw new KeyNotFoundException($"Event type name {eventTypeName} was not found.");
+//         FoldingLogic.Add(eventTypeName, foldingFunction);
 
-    [Obsolete("deprecated", true)]
-    public T FoldEvents(T oldState, IEnumerable<EventualizeEvent> events)
-    {
-        T currentState = oldState;
-        foreach (var e in events)
-        {
-            currentState = FoldEvent(currentState, e);
-        }
-        return currentState;
-    }
+//     }
 
-    public async Task<FoldingResult<T>> FoldEventsAsync(
-        IAsyncEnumerable<EventualizeEvent> events)
-    {
-        T state = new();
-        var result = await FoldEventsAsync(state, events);
-        return result;
-    }
+//     public void AddEventType(
+//                         EventualizeEventType eventType,
+//                         IFoldingFunction<T> foldingFunction)
+//     {
+//         AddEventType(eventType);
+//         AddFoldingFunction(eventType.EventTypeName, foldingFunction);
+//     }
 
-    public async Task<FoldingResult<T>> FoldEventsAsync(
-        T oldState,
-        IAsyncEnumerable<EventualizeEvent> events)
-    {
-        long count = 0;
-        T currentState = oldState;
-        await foreach (var e in events)
-        {
-            currentState = FoldEvent(currentState, e);
-            count++;
-        }
-        return new FoldingResult<T>(currentState, count);
-    }
+//     [Obsolete("deprecated", true)]
+//     public T FoldEvents(T oldState, IEnumerable<EventualizeEvent> events)
+//     {
+//         T currentState = oldState;
+//         foreach (var e in events)
+//         {
+//             currentState = FoldEvent(currentState, e);
+//         }
+//         return currentState;
+//     }
 
-    public T FoldEvent(T oldState, EventualizeEvent someEvent)
-    {
-        T currentState = oldState;
-        IFoldingFunction<T>? foldingFunction;
-        if (!FoldingLogic.TryGetValue(someEvent.EventType, out foldingFunction)) throw new ArgumentNullException(nameof(someEvent));
-        currentState = foldingFunction.Fold(currentState, someEvent);
-        return currentState;
-    }
-}
+//     public async Task<FoldingResult<T>> FoldEventsAsync(
+//         IAsyncEnumerable<EventualizeEvent> events)
+//     {
+//         T state = new();
+//         var result = await FoldEventsAsync(state, events);
+//         return result;
+//     }
+
+//     public async Task<FoldingResult<T>> FoldEventsAsync(
+//         T oldState,
+//         IAsyncEnumerable<EventualizeEvent> events)
+//     {
+//         long count = 0;
+//         T currentState = oldState;
+//         await foreach (var e in events)
+//         {
+//             currentState = FoldEvent(currentState, e);
+//             count++;
+//         }
+//         return new FoldingResult<T>(currentState, count);
+//     }
+
+//     public T FoldEvent(T oldState, EventualizeEvent someEvent)
+//     {
+//         T currentState = oldState;
+//         IFoldingFunction<T>? foldingFunction;
+//         if (!FoldingLogic.TryGetValue(someEvent.EventType, out foldingFunction)) throw new ArgumentNullException(nameof(someEvent));
+//         currentState = foldingFunction.Fold(currentState, someEvent);
+//         return currentState;
+//     }
+// }
