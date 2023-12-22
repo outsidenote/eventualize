@@ -343,3 +343,5 @@ healthchecksdb
 
 # Packed Nuget files
 dist
+
+.DS_Store
