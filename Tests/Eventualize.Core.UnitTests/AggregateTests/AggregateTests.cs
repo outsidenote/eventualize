@@ -17,12 +17,8 @@ public class AggregateTests
     [Fact]
     public async Task Aggregate_WhenInstantiatingWithEvents_Succeed()
     {
-        List<EventualizeEvent> events = new();
-        for (int i = 0; i < 3; i++)
-        {
-            events.Add(GetCorrectTestEvent());
-        }
-        var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(events.ToAsync(), false);
+        IAsyncEnumerable<EventualizeStoredEvent> events = TestAggregateConfigs.GetStoredEvents(3);
+        var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(events);
         Assert.Empty(aggregate.PendingEvents);
         Assert.Equal(aggregate.State, new TestState(3, 3, 30));
     }
@@ -30,12 +26,8 @@ public class AggregateTests
     [Fact]
     public async Task Aggregate_WhenInstantiatingWithSnapshotAndEvents_Succeed()
     {
-        List<EventualizeEvent> events = new();
-        for (int i = 0; i < 3; i++)
-        {
-            events.Add(GetCorrectTestEvent());
-        }
-        var aggregate = await TestAggregateConfigs.GetTestAggregateFromStore(new TestState(3, 3, 30), events.ToAsync());
+        IAsyncEnumerable<EventualizeStoredEvent> events = TestAggregateConfigs.GetStoredEvents(3);
+        var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(new TestState(3, 3, 30), events);
         Assert.Empty(aggregate.PendingEvents);
         Assert.Equal(aggregate.State, new TestState(6, 6, 60));
     }
@@ -44,7 +36,7 @@ public class AggregateTests
     public async Task Aggregate_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
     {
         TestState state = new(3, 3, 30);
-        var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(state, AsyncEnumerable<EventualizeEvent>.Empty);
+        var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(state, AsyncEnumerable<EventualizeStoredEvent>.Empty);
         Assert.Empty(aggregate.PendingEvents);
         Assert.Equal(aggregate.State, new TestState(3, 3, 30));
     }

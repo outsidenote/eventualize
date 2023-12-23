@@ -94,7 +94,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
     }
 
     // TODO: [bnaya 2023-12-13] avoid racing
-    async Task<IImmutableList<EventualizeEvent>> IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation)
+    async Task IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
@@ -132,7 +132,6 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         {
             throw new OCCException<T>(aggregate);
         }
-        return aggregate.PendingEvents;
     }
 
     #endregion // IEventualizeStorageAdapter Members

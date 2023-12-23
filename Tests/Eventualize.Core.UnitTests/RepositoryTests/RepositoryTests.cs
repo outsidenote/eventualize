@@ -10,9 +10,10 @@ namespace CoreTests.RepositoryTests
         public async Task Repository_WhenGettingAggregate_Succeed()
         {
             var repoTestSteps = new RepositoryTestsSteps();
+            var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
             var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             IRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-            var fetchedAggregate = await repository.GetAsync(aggregate);
+            var fetchedAggregate = await repository.GetAsync(aggregateFactory, aggregate.StreamAddress.StreamId);
             repoTestSteps.AssertFetchedAggregateIsCorrect(aggregate, fetchedAggregate);
         }
 
@@ -20,7 +21,7 @@ namespace CoreTests.RepositoryTests
         public async Task Repository_WhenStoringAggregateWithoutSnapshot_Succeed()
         {
             var repoTestSteps = new RepositoryTestsSteps();
-            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(10);
+            var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents(10);
             IRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
             await repository.SaveAsync(aggregate);
             await repoTestSteps.AssertStoredAggregateIsCorrect(aggregate, false);
@@ -30,7 +31,7 @@ namespace CoreTests.RepositoryTests
         public async Task Repository_WhenStoringAggregateWithSnapshot_Succeed()
         {
             var repoTestSteps = new RepositoryTestsSteps();
-            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(1);
+            var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents(1);
             IRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(null);
             await repository.SaveAsync(aggregate);
             await repoTestSteps.AssertStoredAggregateIsCorrect(aggregate, true);
@@ -40,7 +41,7 @@ namespace CoreTests.RepositoryTests
         public async Task Repository_WhenStoringStaleAggregate_ThrowException()
         {
             var repoTestSteps = new RepositoryTestsSteps();
-            var aggregate = await TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(3);
+            var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents(3);
             IRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
             await Assert.ThrowsAsync<OCCException<TestState>>(async () => await repository.SaveAsync(aggregate));
         }

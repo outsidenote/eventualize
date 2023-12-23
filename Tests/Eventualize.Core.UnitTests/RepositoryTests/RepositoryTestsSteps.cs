@@ -21,15 +21,14 @@ namespace CoreTests.RepositoryTests
             Assert.NotNull(fetchedAggregate);
 
             Assert.Equal(expectedAggregate.State, fetchedAggregate.State);
-            Assert.Equal(expectedAggregate.Id, fetchedAggregate.Id);
+            Assert.Equal(expectedAggregate.StreamAddress, fetchedAggregate.StreamAddress);
             Assert.Empty(fetchedAggregate.PendingEvents);
             Assert.Equal(2, fetchedAggregate.LastStoredSequenceId);
         }
 
         public async Task AssertStoredAggregateIsCorrect(EventualizeAggregate<TestState> aggregate, bool isSnapshotStored)
         {
-            var aggregateTypeName = aggregate.Type;
-            AggregateParameter parameter1 = new AggregateParameter(aggregate.Id, aggregateTypeName);
+            AggregateParameter parameter1 = new AggregateParameter(aggregate);
             AggregateSequenceParameter parameter2 = parameter1.ToSequence();
             IAsyncEnumerable<EventualizeEvent>? eventsAsync = _storageAdapter.GetAsync(parameter2);
             var events = await eventsAsync.ToEnumerableAsync();

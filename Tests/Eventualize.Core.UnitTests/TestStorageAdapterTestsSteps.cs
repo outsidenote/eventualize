@@ -19,37 +19,28 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
             return aggregate;
         }
 
-        public static async Task<EventualizeAggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
+        public static EventualizeAggregate<TestState> PrepareAggregateWithEvents(int? minEventsBetweenSnapshots)
         {
-            EventualizeAggregate<TestState> aggregate = await GetTestAggregateAsync(AsyncEnumerable<EventualizeEvent>.Empty, minEventsBetweenSnapshots);
-            for (int i = 0; i < 3; i++)
-            {
-                EventualizeEvent e = GetCorrectTestEvent();
-                aggregate.AddPendingEvent(e);
-            }
-            return aggregate;
-
+            var events = (List<EventualizeEvent>)GetStoredEvents(3);
+            return GetTestAggregate(events, minEventsBetweenSnapshots);
         }
-        public static async Task<EventualizeAggregate<TestState>> PrepareAggregateWithEvents()
+        public static EventualizeAggregate<TestState> PrepareAggregateWithEvents()
         {
-            List<EventualizeEvent> events = new();
-            for (int i = 0; i < 3; i++)
-            {
-                EventualizeEvent e = GetCorrectTestEvent();
-                events.Add(e);
-            }
-            return await TestAggregateConfigs.GetTestAggregateAsync(events.ToAsync(), true);
+            var events = (List<EventualizeEvent>)GetStoredEvents(3);
+            return GetTestAggregate(events);
         }
 
         public static void AssertEventsAreStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate, IEnumerable<EventualizeEvent>? events)
         {
             Assert.NotNull(events);
-            List<EventualizeEvent>? storedEvents;
             string key = TestStorageAdapter.GetKeyValue(aggregate);
-            if (!testStorageAdapter.Events.TryGetValue(key, out storedEvents))
+            if (!testStorageAdapter.Events.TryGetValue(key, out var storedEvents))
                 throw new KeyNotFoundException(key);
             Assert.NotNull(storedEvents);
-            Assert.True(events.SequenceEqual(storedEvents));
+            Assert.True(events.SequenceEqual(storedEvents
+                .Select(x => (EventualizeEvent)x)
+                .ToList()
+            ));
         }
 
         public static void AssertSnapshotIsStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate)

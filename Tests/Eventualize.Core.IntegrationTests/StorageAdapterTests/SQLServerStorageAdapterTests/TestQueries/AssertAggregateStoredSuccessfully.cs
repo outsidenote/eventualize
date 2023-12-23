@@ -33,8 +33,8 @@ SELECT COUNT(*)
 FROM {prefix}event
 WHERE
     domain = 'default'
-    AND aggregate_type = '{aggregate.Type}'
-    AND aggregate_id = '{aggregate.Id}'
+    AND aggregate_type = '{aggregate.StreamAddress.StreamType}'
+    AND aggregate_id = '{aggregate.StreamAddress.StreamId}'
             ";
             var command = world.Connection.CreateCommand();
             command.CommandText = queryString;
@@ -50,8 +50,8 @@ SELECT sequence_id
 FROM {prefix}snapshot
 WHERE
     domain = 'default'
-    AND aggregate_type = '{aggregate.Type}'
-    AND aggregate_id = '{aggregate.Id}'
+    AND aggregate_type = '{aggregate.StreamAddress.StreamType}'
+    AND aggregate_id = '{aggregate.StreamAddress.StreamId}'
             ";
             var command = world.Connection.CreateCommand();
             command.CommandText = queryString;

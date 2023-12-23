@@ -27,7 +27,7 @@ public class EventualizeAggregateFactory<T> where T : notnull, new()
     public EventualizeAggregateFactory(string aggregateType, EventualizeStreamBaseAddress streamBaseAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic)
         : this(aggregateType, streamBaseAddress, registeredEventTypes, foldingLogic, 0) { }
 
-    internal EventualizeAggregate<T> Create(string id)
+    public EventualizeAggregate<T> Create(string id)
     {
         return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamAddress(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots);
     }

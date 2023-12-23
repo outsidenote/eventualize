@@ -14,4 +14,6 @@ EventualizeStreamAddress StreamAddress,
 long SequenceId)
 : EventualizeEvent(EventType, CapturedAt, CapturedBy, JsonData)
 {
+    public EventualizeStoredEvent(EventualizeEvent e, EventualizeStreamAddress streamAddress, long sequenceId)
+        : this(e.EventType, e.CapturedAt, e.CapturedBy, e.JsonData, DateTime.Now, streamAddress, sequenceId) { }
 }

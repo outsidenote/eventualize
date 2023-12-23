@@ -55,7 +55,7 @@ public class EventualizeEventType
             }
             throw new ArgumentException($"Event Data Validation Error: {JsonSerializer.Serialize(validationErrors)}");
         }
-        return new EventualizeEvent(EventTypeName, DateTime.Now, capturedBy, dataString, null);
+        return new EventualizeEvent(EventTypeName, DateTime.Now, capturedBy, dataString);
     }
 
     public dynamic ParseData(EventualizeEvent eventObj)

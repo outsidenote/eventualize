@@ -12,11 +12,11 @@ public class AggregateSaveParameterCollection<T> : IEnumerable<AggregateSavePara
     private readonly string aggregateId;
     private readonly string aggregateType;
     private readonly long baseSeq;
-    public AggregateSaveParameterCollection(EventualizeAggregate<T> aggregate, string domain = "default")
+    public AggregateSaveParameterCollection(EventualizeAggregate<T> aggregate)
     {
-        _domain = domain;
-        aggregateId = aggregate.Id;
-        aggregateType = aggregate.Type;
+        _domain = aggregate.StreamAddress.Domain;
+        aggregateId = aggregate.StreamAddress.StreamId;
+        aggregateType = aggregate.StreamAddress.StreamType;
         baseSeq = aggregate.LastStoredSequenceId + 1;
         Events = aggregate.PendingEvents;
     }

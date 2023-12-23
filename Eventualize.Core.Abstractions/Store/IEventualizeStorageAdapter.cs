@@ -8,7 +8,7 @@ public interface IEventualizeStorageAdapter : IDisposable, IAsyncDisposable
 
     IAsyncEnumerable<EventualizeStoredEvent> GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation = default);
 
-    Task<IImmutableList<EventualizeEvent>> SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation = default) where T : notnull, new();
+    Task SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation = default) where T : notnull, new();
 
     Task<long> GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation = default) where T : notnull, new();
 }
