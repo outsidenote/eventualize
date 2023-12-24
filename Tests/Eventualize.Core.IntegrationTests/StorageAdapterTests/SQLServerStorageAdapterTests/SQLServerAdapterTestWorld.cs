@@ -33,7 +33,7 @@ public class SQLServerAdapterTestWorld : IDisposable, IAsyncDisposable
                 //conn.StatisticsEnabled = true;
                 return conn;
             });
-        StorageAdapter = SqlServerStorageAdapter.Create(_logger, _connectionFactory, ContextId);
+        StorageAdapter = SqlServerStorageAdapterFactory.Create(_logger, _connectionFactory, ContextId);
         StorageMigration = SqlServerStorageMigration.Create(_logger, _connectionFactory, ContextId);
         Connection = _connectionFactory.CreateConnection();
         Connection.Open(); // TODO: [bnaya 2023-12-12] model it better

@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 
 namespace Eventualize.Core.Adapters.SqlStore;
 
-public static class SqlServerStorageAdapter
+public static class SqlServerStorageAdapterFactory
 {
     public static IEventualizeStorageAdapter Create(
         ILogger logger,
