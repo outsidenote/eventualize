@@ -2,11 +2,11 @@
 
 namespace Eventualize.Core;
 
-public record EventualizeStoredSnapshotData<T>(T Snapshot, long SnapshotSequenceId) where T : notnull, new()
+public record EventualizeStoredSnapshotData<T>(T Snapshot, long SnapshotOffset) where T : notnull, new()
 {
     [Obsolete("Only for Dapper")]
-    public EventualizeStoredSnapshotData(string Snapshot, long SnapshotSequenceId) :
-        this(JsonSerializer.Deserialize<T>(Snapshot) ?? new(), SnapshotSequenceId)
+    public EventualizeStoredSnapshotData(string Snapshot, long SnapshotOffset) :
+        this(JsonSerializer.Deserialize<T>(Snapshot) ?? new(), SnapshotOffset)
     {
     }
 

@@ -20,8 +20,8 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
             sqlCommand = GetStoredSnapshotSqlCommand(world, aggregate);
             reader = sqlCommand.ExecuteReader();
             reader.Read();
-            var snapshotSequenceId = reader.GetInt64(0);
-            Assert.Equal(aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count, snapshotSequenceId);
+            var snapshotOffset = reader.GetInt64(0);
+            Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, snapshotOffset);
         }
 
         private static DbCommand GetStoredEventsSqlCommand(SQLServerAdapterTestWorld world, EventualizeAggregate<TestState> aggregate)

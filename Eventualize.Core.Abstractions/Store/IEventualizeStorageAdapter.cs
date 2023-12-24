@@ -10,5 +10,5 @@ public interface IEventualizeStorageAdapter : IDisposable, IAsyncDisposable
 
     Task SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation = default) where T : notnull, new();
 
-    Task<long> GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation = default) where T : notnull, new();
+    Task<long> GetLastOffsetAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation = default) where T : notnull, new();
 }

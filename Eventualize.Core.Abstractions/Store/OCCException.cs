@@ -11,12 +11,12 @@ namespace Eventualize.Core
         public OCCException(EventualizeAggregate<T> aggregate) : this(aggregate, -1)
         {
         }
-        public OCCException(EventualizeAggregate<T> aggregate, long storedLastSequenceId) : base(PrepareMessageFromAggregate(aggregate, storedLastSequenceId))
+        public OCCException(EventualizeAggregate<T> aggregate, long storedLastOffset) : base(PrepareMessageFromAggregate(aggregate, storedLastOffset))
         {
         }
-        private static string PrepareMessageFromAggregate<K>(EventualizeAggregate<K> aggregate, long lastStoredSequenceId) where K : notnull, new()
+        private static string PrepareMessageFromAggregate<K>(EventualizeAggregate<K> aggregate, long lastStoredOffset) where K : notnull, new()
         {
-            return $"AggregateType={aggregate.AggregateType}, StreamAddress='{aggregate.StreamAddress}', aggregateLastStoredSequenceId={aggregate.LastStoredSequenceId}, ActualLastStoredSequenceId={lastStoredSequenceId}";
+            return $"AggregateType={aggregate.AggregateType}, StreamAddress='{aggregate.StreamAddress}', aggregateLastStoredOffset={aggregate.LastStoredOffset}, ActualLastStoredOffset={lastStoredOffset}";
         }
     }
 }

@@ -14,7 +14,7 @@ public struct EventualizeStoredEventEntity
     public string Domain { get; init; }
     public string StreamType { get; init; }
     public string StreamId { get; init; }
-    public long SequenceId { get; init; }
+    public long Offset { get; init; }
 
     public static implicit operator EventualizeStoredEvent(EventualizeStoredEventEntity entity)
     {
@@ -29,6 +29,6 @@ public struct EventualizeStoredEventEntity
                     entity.JsonData,
                     entity.StoredAt,
                     srm,
-                    entity.SequenceId);
+                    entity.Offset);
     }
 }

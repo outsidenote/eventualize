@@ -23,7 +23,7 @@ namespace CoreTests.RepositoryTests
             Assert.Equal(expectedAggregate.State, fetchedAggregate.State);
             Assert.Equal(expectedAggregate.StreamAddress, fetchedAggregate.StreamAddress);
             Assert.Empty(fetchedAggregate.PendingEvents);
-            Assert.Equal(2, fetchedAggregate.LastStoredSequenceId);
+            Assert.Equal(2, fetchedAggregate.LastStoredOffset);
         }
 
         public async Task AssertStoredAggregateIsCorrect(EventualizeAggregate<TestState> aggregate, bool isSnapshotStored)
@@ -33,7 +33,7 @@ namespace CoreTests.RepositoryTests
             IAsyncEnumerable<EventualizeEvent>? eventsAsync = _storageAdapter.GetAsync(parameter2);
             var events = await eventsAsync.ToEnumerableAsync();
             Assert.Equal(3, events.Count);
-            Assert.Equal(events.Count - 1, aggregate.LastStoredSequenceId);
+            Assert.Equal(events.Count - 1, aggregate.LastStoredOffset);
             Assert.Empty(aggregate.PendingEvents);
 
 
@@ -41,8 +41,8 @@ namespace CoreTests.RepositoryTests
             Assert.Equal(!isSnapshotStored, snapshotData is null);
             if (isSnapshotStored)
             {
-                long expectedLastStoredSequenceId = events.Count - 1;
-                Assert.Equal(expectedLastStoredSequenceId, aggregate.LastStoredSequenceId);
+                long expectedLastStoredOffset = events.Count - 1;
+                Assert.Equal(expectedLastStoredOffset, aggregate.LastStoredOffset);
             }
         }
 

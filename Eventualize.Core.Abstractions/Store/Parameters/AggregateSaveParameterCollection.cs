@@ -17,7 +17,7 @@ public class AggregateSaveParameterCollection<T> : IEnumerable<AggregateSavePara
         _domain = aggregate.StreamAddress.Domain;
         aggregateId = aggregate.StreamAddress.StreamId;
         aggregateType = aggregate.StreamAddress.StreamType;
-        baseSeq = aggregate.LastStoredSequenceId + 1;
+        baseSeq = aggregate.LastStoredOffset + 1;
         Events = aggregate.PendingEvents;
     }
     public IImmutableList<EventualizeEvent> Events { get; }
