@@ -98,8 +98,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
 
-        AggregateParameter parameter = new(aggregate);
-        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(parameter);
+        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.StreamUri);
         Assert.NotNull(latestSnapshot);
         Assert.Equal(aggregate.State, latestSnapshot.Snapshot);
         Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.SnapshotOffset);
@@ -110,7 +109,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
 
-        AggregateSequenceParameter parameter = new(aggregate);
+        EventualizeStreamCursor parameter = new(aggregate);
 
         var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
         Assert.NotNull(asyncEvents);

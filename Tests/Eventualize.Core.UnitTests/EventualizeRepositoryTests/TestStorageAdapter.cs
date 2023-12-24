@@ -82,7 +82,7 @@ namespace CoreTests.EventualizeRepositoryTests
             return Task.FromResult(result);
         }
 
-        async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
+        async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation)
         {
             var (id, aggregateTypeName, startOffset) = parameter;
             EventualizeStreamUri streamUri = new("default",aggregateTypeName,id);

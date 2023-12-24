@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Eventualize.Core.Abstractions.Stream;
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Data;
@@ -64,24 +65,23 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetLastSnapshotSnapshot;
-        AggregateParameter parameter = new AggregateParameter(aggregate.StreamUri.StreamId, aggregate.StreamUri.StreamType);
-        long offset = await conn.ExecuteScalarAsync<long>(query, parameter);
+        long offset = await conn.ExecuteScalarAsync<long>(query, aggregate.StreamUri);
         return offset;
     }
 
     async Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
-        AggregateParameter parameter, CancellationToken cancellation)
+        EventualizeStreamUri streamUri, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
 
         string query = _queries.TryGetSnapshot;
 
-        var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshotData<T>>(query, parameter);
+        var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshotData<T>>(query, streamUri);
         return result;
     }
 
-    async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
+    async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
