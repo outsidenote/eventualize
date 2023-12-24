@@ -10,7 +10,7 @@ public record AggregateSequenceParameter(string Id, string Type, long Sequence =
     { 
     }
     public AggregateSequenceParameter(EventualizeAggregate aggregate)
-        : this (aggregate.Id, aggregate.Type, aggregate.LastStoredSequenceId + 1)
+        : this (aggregate.StreamAddress.StreamId, aggregate.StreamAddress.StreamType, aggregate.LastStoredSequenceId + 1)
     { 
     }
 }

@@ -10,9 +10,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests
         {
             EventualizeAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
             await storageAdapter.SaveAsync(aggregate, true);
-            var aggregate2 = await aggregate.CreateAsync(aggregate.PendingEvents.ToAsync());
-            foreach (var pendingEvet in aggregate.PendingEvents)
-                aggregate2.AddPendingEvent(pendingEvet);
+            var aggregate2 = PrepareAggregateWithPendingEvents(aggregate);
             await storageAdapter.SaveAsync(aggregate2, true);
             return aggregate2;
         }

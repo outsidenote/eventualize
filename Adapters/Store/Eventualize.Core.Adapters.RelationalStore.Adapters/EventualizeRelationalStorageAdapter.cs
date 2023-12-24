@@ -3,11 +3,13 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
+using System.Reflection;
 using System.Text.Json;
 
 // TODO: [bnaya 2023-12-20] default timeout
 
 namespace Eventualize.Core.Adapters;
+
 
 // TODO: [bnaya 2023-12-19] all parameters and field should be driven from nameof or const
 // TODO: [bnaya 2023-12-20] how do we get the domain?, shouldn't it be a parameter in each and every query?
@@ -62,7 +64,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetLastSnapshotSequenceId;
-        AggregateParameter parameter = new AggregateParameter(aggregate.Id, aggregate.Type);
+        AggregateParameter parameter = new AggregateParameter(aggregate.StreamAddress.StreamId, aggregate.StreamAddress.StreamType);
         long sequenceId = await conn.ExecuteScalarAsync<long>(query, parameter);
         return sequenceId;
     }
@@ -74,27 +76,28 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         DbConnection conn = await _connectionTask;
 
         string query = _queries.TryGetSnapshot;
+
         var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshotData<T>>(query, parameter);
         return result;
     }
 
-    async IAsyncEnumerable<EventualizeEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
+    async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetEvents;
 
         DbDataReader reader = await conn.ExecuteReaderAsync(query, parameter);
-        var parser = reader.GetRowParser<EventualizeEvent>();
+        var parser = reader.GetRowParser<EventualizeStoredEventEntity>();
         while (await reader.ReadAsync())
         {
-            var e = parser(reader);
+            EventualizeStoredEvent e = parser(reader);
             yield return e;
         }
     }
 
     // TODO: [bnaya 2023-12-13] avoid racing
-    async Task<IImmutableList<EventualizeEvent>> IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation)
+    async Task IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
@@ -115,8 +118,8 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
                 // TODO: [bnaya 2023-12-20] domain
                 var payload = JsonSerializer.Serialize(aggregate.State);
                 SnapshotSaveParameter snapshotSaveParameter = new SnapshotSaveParameter(
-                                            aggregate.Id,
-                                            aggregate.Type,
+                                            aggregate.StreamAddress.StreamId,
+                                            aggregate.StreamAddress.StreamType,
                                             sequenceId,
                                             payload,
                                             "default");
@@ -127,12 +130,11 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
             // TODO: [bnaya 2023-12-20] do the logging right
             _logger.LogDebug("{count} events saved", affected);
         }
-        catch (DbException e) 
+        catch (DbException e)
             when (e.Message.Contains("Violation of PRIMARY KEY constraint"))
         {
             throw new OCCException<T>(aggregate);
         }
-        return aggregate.PendingEvents;
     }
 
     #endregion // IEventualizeStorageAdapter Members

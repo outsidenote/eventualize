@@ -1,70 +1,61 @@
 ﻿// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotSequenceId 
 
+using Eventualize.Core.Abstractions.Stream;
+
 namespace Eventualize.Core;
 
-public class EventualizeAggregateFactory
+public class EventualizeAggregateFactory<T> where T : notnull, new()
 {
-    internal static EventualizeAggregate<T> Create<T>(
-            EventualizeAggregateType<T> aggregateType,
-            string id,
-            int minEventsBetweenSnapshots)
-                where T : notnull, new()
+    #region Members
+    public readonly Dictionary<string, EventualizeEventType> RegisteredEventTypes;
+    public readonly EventualizeFoldingLogic<T> FoldingLogic;
+
+    public readonly string AggregateType;
+    public readonly EventualizeStreamBaseAddress StreamBaseAddress;
+    public readonly int MinEventsBetweenSnapshots;
+
+    #endregion // Members
+
+    public EventualizeAggregateFactory(string aggregateType, EventualizeStreamBaseAddress streamBaseAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots)
     {
-        EventualizeAggregate<T> aggregate = new(aggregateType, id, minEventsBetweenSnapshots);
-        return aggregate;
+        AggregateType = aggregateType;
+        StreamBaseAddress = streamBaseAddress;
+        RegisteredEventTypes = registeredEventTypes;
+        FoldingLogic = foldingLogic;
+        MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
+    }
+    public EventualizeAggregateFactory(string aggregateType, EventualizeStreamBaseAddress streamBaseAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic)
+        : this(aggregateType, streamBaseAddress, registeredEventTypes, foldingLogic, 0) { }
+
+    public EventualizeAggregate<T> Create(string id)
+    {
+        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamAddress(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots);
     }
 
-    public static async Task<EventualizeAggregate<T>> CreateAsync<T>(
-            EventualizeAggregateType<T> aggregateType,
-            string id,
-            int minEventsBetweenSnapshots,
-            IAsyncEnumerable<EventualizeEvent> events)
-                where T : notnull, new()
+    public async Task<EventualizeAggregate<T>> CreateAsync(string id, IAsyncEnumerable<EventualizeStoredEvent> storedEvents)
     {
-        var result =
-                        await CreateAsync(
-                                aggregateType,
-                                id,
-                                minEventsBetweenSnapshots,
-                                events, new T());
-        return result;
+        var snap = EventualizeStoredSnapshotData<T>.Create();
+        return await CreateAsync(id, storedEvents, snap);
     }
 
-    public static async Task<EventualizeAggregate<T>> CreateAsync<T>(
-            EventualizeAggregateType<T> aggregateType,
+    public async Task<EventualizeAggregate<T>> CreateAsync(
             string id,
-            int minEventsBetweenSnapshots,
-            IAsyncEnumerable<EventualizeEvent> events,
-            T snapshot,
-            long snapshotSequenceId = -1)
-                where T : notnull, new()
+            IAsyncEnumerable<EventualizeStoredEvent> storedEvents,
+            EventualizeStoredSnapshotData<T> snapshotData)
     {
-        var (state, count) = await aggregateType.FoldEventsAsync(snapshot, events);
-        long lastStoredSequenceId = snapshotSequenceId + count;
-        EventualizeAggregate<T> aggregate = new(
-                                        state,
-                                        aggregateType,
-                                        id,
-                                        minEventsBetweenSnapshots,
-                                        lastStoredSequenceId);
-        return aggregate;
+        long sequenceId = snapshotData.SnapshotSequenceId;
+        T state = snapshotData.Snapshot;
+        await foreach (var e in storedEvents)
+        {
+            state = FoldingLogic.FoldEvent(state, e);
+            sequenceId = e.SequenceId;
+        }
+        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamAddress(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots, state, sequenceId);
     }
 
-    public static EventualizeAggregate<T> Create<T>(
-            EventualizeAggregateType<T> aggregateType,
-            string id,
-            int minEventsBetweenSnapshots,
-            T snapshot,
-            long snapshotSequenceId)
-                where T : notnull, new()
+    public EventualizeAggregate<T> Create(string id, T snapshot, long snapshotSequenceId)
     {
-        EventualizeAggregate<T> aggregate = new(
-                                                snapshot,
-                                                aggregateType,
-                                                id,
-                                                minEventsBetweenSnapshots,
-                                                snapshotSequenceId);
-        return aggregate;
+        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamAddress(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots, snapshot, snapshotSequenceId);
     }
 }
 

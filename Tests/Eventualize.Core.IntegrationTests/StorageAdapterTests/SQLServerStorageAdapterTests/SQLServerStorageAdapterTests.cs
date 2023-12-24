@@ -2,6 +2,7 @@ using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
 using Eventualize.Core;
 using Eventualize.Core.Tests;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 using Xunit.Abstractions;
 using static Eventualize.Core.Tests.TestHelper;
 
@@ -75,12 +76,12 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     [Fact(Skip = "not active")]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithFutureState_ThrowException()
     {
-        EventualizeAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
-        IAsyncEnumerable<EventualizeEvent> events =
-                            aggregate.PendingEvents.ToAsync();
-        var aggregate2 =
-            await aggregate.CreateAsync(events);
-        await Assert.ThrowsAsync<OCCException<TestState>>(async () => await _world.StorageAdapter.SaveAsync(aggregate2, true));
+        // EventualizeAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
+        // IAsyncEnumerable<EventualizeEvent> events =
+        //                     aggregate.PendingEvents.ToAsync();
+        // var aggregate2 =
+        //     await aggregate.CreateAsync(events);
+        // await Assert.ThrowsAsync<OCCException<TestState>>(async () => await _world.StorageAdapter.SaveAsync(aggregate2, true));
     }
 
     [Fact]
@@ -97,7 +98,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
 
-        AggregateParameter parameter = new(aggregate.Id, aggregate.Type);
+        AggregateParameter parameter = new(aggregate);
         var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(parameter);
         Assert.NotNull(latestSnapshot);
         Assert.Equal(aggregate.State, latestSnapshot.Snapshot);
@@ -113,7 +114,14 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
 
         var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
         Assert.NotNull(asyncEvents);
-        var events = await asyncEvents.ToEnumerableAsync();
-        Assert.True(aggregate.PendingEvents.SequenceEqual(events));
+        ICollection<EventualizeStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
+        var es = events.Select(m =>
+                                new EventualizeEvent(
+                                            m.EventType,
+                                            m.CapturedAt,
+                                            m.CapturedBy,
+                                            m.JsonData
+                                        ));
+        Assert.True(aggregate.PendingEvents.SequenceEqual(es));
     }
 }

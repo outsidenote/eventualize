@@ -16,7 +16,7 @@ namespace Eventualize.Core
         }
         private static string PrepareMessageFromAggregate<K>(EventualizeAggregate<K> aggregate, long lastStoredSequenceId) where K : notnull, new()
         {
-            return $"AggregateType='{aggregate.Type}', Id={aggregate.Id}, aggregateLastStoredSequenceId={aggregate.LastStoredSequenceId}, ActualLastStoredSequenceId={lastStoredSequenceId}";
+            return $"AggregateType={aggregate.AggregateType}, StreamAddress='{aggregate.StreamAddress}', aggregateLastStoredSequenceId={aggregate.LastStoredSequenceId}, ActualLastStoredSequenceId={lastStoredSequenceId}";
         }
     }
 }
