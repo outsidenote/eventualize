@@ -3,7 +3,7 @@ using Eventualize.Core.Abstractions.Stream;
 using System.Collections.Immutable;
 using System.Text.Json;
 
-namespace CoreTests.RepositoryTests
+namespace CoreTests.EventualizeRepositoryTests
 {
     public sealed class TestStorageAdapter : IEventualizeStorageAdapter
     {

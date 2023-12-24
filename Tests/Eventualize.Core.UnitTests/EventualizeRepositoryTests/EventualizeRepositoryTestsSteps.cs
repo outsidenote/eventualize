@@ -1,17 +1,17 @@
 using Eventualize.Core;
 using Eventualize.Core.Tests;
 
-namespace CoreTests.RepositoryTests
+namespace CoreTests.EventualizeRepositoryTests
 {
-    public class RepositoryTestsSteps
+    public class EventualizeRepositoryTestsSteps
     {
 
         public IEventualizeStorageAdapter _storageAdapter = new TestStorageAdapter();
-        public async Task<Repository> PrepareTestRepositoryWithStoredAggregate(EventualizeAggregate<TestState>? aggregate)
+        public async Task<EventualizeRepository> PrepareTestRepositoryWithStoredAggregate(EventualizeAggregate<TestState>? aggregate)
         {
             if (aggregate != null)
                 await _storageAdapter.SaveAsync(aggregate, true);
-            return new Repository(_storageAdapter);
+            return new EventualizeRepository(_storageAdapter);
         }
 
         public void AssertFetchedAggregateIsCorrect(EventualizeAggregate<TestState>? expectedAggregate, EventualizeAggregate<TestState>? fetchedAggregate)
