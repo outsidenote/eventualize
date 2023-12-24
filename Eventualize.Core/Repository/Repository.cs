@@ -10,10 +10,10 @@ public class Repository : IRepository
         _storageAdapter = storageAdapter;
     }
 
-    private static long GetNextSequenceId(long? sequenceId)
+    private static long GetNextOffset(long? offset)
     {
-        if (sequenceId == null) return 0;
-        return (long)sequenceId + 1;
+        if (offset == null) return 0;
+        return (long)offset + 1;
     }
 
     async Task<EventualizeAggregate<T>> IRepository.GetAsync<T>(EventualizeAggregateFactory<T> aggregateFactory, string streamId, CancellationToken cancellation)
@@ -30,8 +30,8 @@ public class Repository : IRepository
             events = _storageAdapter.GetAsync(prm1, cancellation);
             return await aggregateFactory.CreateAsync(streamId, events);
         }
-        long nextSequenceId = GetNextSequenceId(snapshotData.SnapshotSequenceId);
-        AggregateSequenceParameter prm2 = new(parameter, nextSequenceId);
+        long nextOffset = GetNextOffset(snapshotData.SnapshotOffset);
+        AggregateSequenceParameter prm2 = new(parameter, nextOffset);
         events = _storageAdapter.GetAsync(prm2, cancellation);
         return await aggregateFactory.CreateAsync(streamId, events, snapshotData);
     }
@@ -43,9 +43,9 @@ public class Repository : IRepository
             await Task.FromResult(true);
             return;
         }
-        long lastStoredSequenceId = await _storageAdapter.GetLastSequenceIdAsync(aggregate, cancellation);
-        if (lastStoredSequenceId != aggregate.LastStoredSequenceId)
-            throw new OCCException<T>(aggregate, lastStoredSequenceId);
+        long lastStoredOffset = await _storageAdapter.GetLastOffsetAsync(aggregate, cancellation);
+        if (lastStoredOffset != aggregate.LastStoredOffset)
+            throw new OCCException<T>(aggregate, lastStoredOffset);
         bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
         await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot, cancellation);
         aggregate.ClearPendingEvents();

@@ -40,9 +40,9 @@ public static class TestHelper
         return TestEventType.CreateEvent(CorrectEventData, "TestOperation");
     }
 
-    public static EventualizeStoredEvent GetCorrectTestEvent(long sequenceId)
+    public static EventualizeStoredEvent GetCorrectTestEvent(long offset)
     {
-        return new EventualizeStoredEvent(TestEventType.CreateEvent(CorrectEventData, "TestOperation"), GetStreamAddress(), sequenceId);
+        return new EventualizeStoredEvent(TestEventType.CreateEvent(CorrectEventData, "TestOperation"), GetStreamAddress(), offset);
     }
 
     public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents()
@@ -55,8 +55,8 @@ public static class TestHelper
     public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(EventualizeAggregate<TestState> aggregate)
     {
         var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
-        var newLastStoreSequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;
-        var newAggregate = aggregateFactory.Create(aggregate.StreamAddress.StreamId, aggregate.State, newLastStoreSequenceId);
+        var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
+        var newAggregate = aggregateFactory.Create(aggregate.StreamAddress.StreamId, aggregate.State, newLastStoreOffset);
         var events = TestAggregateConfigs.GetPendingEvents(3);
         foreach (var e in events)
         {

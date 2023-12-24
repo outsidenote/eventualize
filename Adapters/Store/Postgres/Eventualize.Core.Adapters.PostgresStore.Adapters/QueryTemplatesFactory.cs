@@ -8,7 +8,7 @@ internal static class QueryTemplatesFactory
     {
         return new EventualizeAdapterQueryTemplates
         {
-            GetLastSnapshotSequenceId = $"""
+            GetLastSnapshotSnapshot = $"""
                 SELECT MAX(sequence_id)
                     FROM {storageContext}snapshot
                     WHERE domain = 'default'
@@ -16,7 +16,7 @@ internal static class QueryTemplatesFactory
                         AND aggregate_id = @{nameof(AggregateParameter.Id)}
                 """,
             TryGetSnapshot = $"""
-                SELECT json_data as {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, sequence_id as {nameof(EventualizeStoredSnapshotData<object>.SnapshotSequenceId)}
+                SELECT json_data as {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, sequence_id as {nameof(EventualizeStoredSnapshotData<object>.SnapshotOffset)}
                 FROM {storageContext}snapshot
                 WHERE domain = 'default'
                     AND aggregate_type = @{nameof(AggregateParameter.Type)}

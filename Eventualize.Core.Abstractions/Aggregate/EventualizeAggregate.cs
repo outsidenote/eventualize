@@ -3,11 +3,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Eventualize.Core.Abstractions.Stream;
 
-// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotSequenceId 
+// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
 namespace Eventualize.Core;
 
-[DebuggerDisplay("LastStoredSequenceId: {LastStoredSequenceId}, State: {State}")]
+[DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
 public abstract class EventualizeAggregate
 {
     #region Ctor
@@ -15,11 +15,11 @@ public abstract class EventualizeAggregate
     internal EventualizeAggregate(
         EventualizeStreamAddress streamAddress,
         int minEventsBetweenSnapshots,
-        long lastStoredSequenceId)
+        long lastStoredOffset)
     {
         StreamAddress = streamAddress;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
-        LastStoredSequenceId = lastStoredSequenceId;
+        LastStoredOffset = lastStoredOffset;
     }
 
     #endregion // Ctor
@@ -29,7 +29,7 @@ public abstract class EventualizeAggregate
     protected internal ConcurrentQueue<EventualizeEvent> _pendingEvents = new ConcurrentQueue<EventualizeEvent>();
     public IImmutableList<EventualizeEvent> PendingEvents => _pendingEvents.ToImmutableArray();
 
-    public long LastStoredSequenceId { get; protected set; } = -1;
+    public long LastStoredOffset { get; protected set; } = -1;
     // TODO: [bnaya 2023-12-11] Use Min Duration or Count between snapshots
     public int MinEventsBetweenSnapshots { get; init; } = 0;
 
@@ -38,13 +38,13 @@ public abstract class EventualizeAggregate
     #endregion // Members
 }
 
-[DebuggerDisplay("LastStoredSequenceId: {LastStoredSequenceId}, State: {State}")]
+[DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
 public class EventualizeAggregate<T> : EventualizeAggregate where T : notnull, new()
 {
     #region Ctor
 
-    internal EventualizeAggregate(string aggregateType, EventualizeStreamAddress streamAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots, T state, long lastStoredSequenceId)
-        : base(streamAddress, minEventsBetweenSnapshots, lastStoredSequenceId)
+    internal EventualizeAggregate(string aggregateType, EventualizeStreamAddress streamAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots, T state, long lastStoredOffset)
+        : base(streamAddress, minEventsBetweenSnapshots, lastStoredOffset)
     {
         State = state;
         AggregateType = aggregateType;
@@ -83,7 +83,7 @@ public class EventualizeAggregate<T> : EventualizeAggregate where T : notnull, n
 
     public void ClearPendingEvents()
     {
-        LastStoredSequenceId += PendingEvents.Count;
+        LastStoredOffset += PendingEvents.Count;
         _pendingEvents.Clear();
     }
 }

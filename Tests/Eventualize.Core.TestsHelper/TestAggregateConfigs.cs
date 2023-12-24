@@ -60,9 +60,9 @@ public static class TestAggregateConfigs
     public static IAsyncEnumerable<EventualizeStoredEvent> GetStoredEvents(uint numEvents)
     {
         List<EventualizeStoredEvent> events = new();
-        for (int sequenceId = 0; sequenceId < 3; sequenceId++)
+        for (int offset = 0; offset < 3; offset++)
         {
-            events.Add(TestHelper.GetCorrectTestEvent(sequenceId));
+            events.Add(TestHelper.GetCorrectTestEvent(offset));
         }
         return events.ToAsync();
     }
@@ -70,7 +70,7 @@ public static class TestAggregateConfigs
     public static IEnumerable<EventualizeEvent> GetPendingEvents(uint numEvents)
     {
         IEnumerable<EventualizeEvent> events = [];
-        for (int sequenceId = 0; sequenceId < 3; sequenceId++)
+        for (int offset = 0; offset < 3; offset++)
         {
             events = events.Concat([TestHelper.GetCorrectTestEvent()]);
         }

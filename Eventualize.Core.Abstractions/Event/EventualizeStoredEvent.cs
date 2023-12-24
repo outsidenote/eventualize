@@ -12,9 +12,9 @@ public record EventualizeStoredEvent(string EventType,
                     string JsonData,
                     DateTime StoredAt,
                     EventualizeStreamAddress StreamAddress,
-                    long SequenceId)
+                    long Offset)
                     : EventualizeEvent(EventType, CapturedAt, CapturedBy, JsonData)
 {
-    public EventualizeStoredEvent(EventualizeEvent e, EventualizeStreamAddress streamAddress, long sequenceId)
-        : this(e.EventType, e.CapturedAt, e.CapturedBy, e.JsonData, DateTime.Now, streamAddress, sequenceId) { }
+    public EventualizeStoredEvent(EventualizeEvent e, EventualizeStreamAddress streamAddress, long offset)
+        : this(e.EventType, e.CapturedAt, e.CapturedBy, e.JsonData, DateTime.Now, streamAddress, offset) { }
 }

@@ -59,14 +59,14 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
 
     #region IEventualizeStorageAdapter Members
 
-    async Task<long> IEventualizeStorageAdapter.GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)
+    async Task<long> IEventualizeStorageAdapter.GetLastOffsetAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
-        string query = _queries.GetLastSnapshotSequenceId;
+        string query = _queries.GetLastSnapshotSnapshot;
         AggregateParameter parameter = new AggregateParameter(aggregate.StreamAddress.StreamId, aggregate.StreamAddress.StreamType);
-        long sequenceId = await conn.ExecuteScalarAsync<long>(query, parameter);
-        return sequenceId;
+        long offset = await conn.ExecuteScalarAsync<long>(query, parameter);
+        return offset;
     }
 
     async Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
@@ -113,14 +113,14 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
             int affected = await conn.ExecuteAsync(query, parameter);
             if (storeSnapshot)
             {
-                var sequenceId = aggregate.LastStoredSequenceId + parameter.Events.Count;
+                var offset = aggregate.LastStoredOffset + parameter.Events.Count;
                 // TODO: [bnaya 2023-12-20] serialization?
                 // TODO: [bnaya 2023-12-20] domain
                 var payload = JsonSerializer.Serialize(aggregate.State);
                 SnapshotSaveParameter snapshotSaveParameter = new SnapshotSaveParameter(
                                             aggregate.StreamAddress.StreamId,
                                             aggregate.StreamAddress.StreamType,
-                                            sequenceId,
+                                            offset,
                                             payload,
                                             "default");
                 int snapshot = await conn.ExecuteAsync(snapQuery, snapshotSaveParameter);

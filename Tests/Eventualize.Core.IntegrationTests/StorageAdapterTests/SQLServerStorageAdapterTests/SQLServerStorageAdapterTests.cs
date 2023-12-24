@@ -88,9 +88,9 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     public async Task SQLStorageAdapter_WhenGettingLastSnapshotId_Succeed()
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
-        var latestSnapshotSequenceId = await _world.StorageAdapter.GetLastSequenceIdAsync(aggregate);
-        var expectedSequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;
-        Assert.Equal(expectedSequenceId, latestSnapshotSequenceId);
+        var latestSnapshotOffset = await _world.StorageAdapter.GetLastOffsetAsync(aggregate);
+        var expectedOffset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
+        Assert.Equal(expectedOffset, latestSnapshotOffset);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(parameter);
         Assert.NotNull(latestSnapshot);
         Assert.Equal(aggregate.State, latestSnapshot.Snapshot);
-        Assert.Equal(aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count, latestSnapshot.SnapshotSequenceId);
+        Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.SnapshotOffset);
     }
 
     [Fact]

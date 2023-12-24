@@ -11,7 +11,7 @@ public readonly partial record struct EventualizeAdapterQueryTemplates
     /// <summary>
     /// Get last snapshot sequence identifier.
     /// </summary>
-    public string GetLastSnapshotSequenceId { get; init; }
+    public string GetLastSnapshotSnapshot { get; init; }
     /// <summary>
     /// Get latest snapshot.
     /// </summary>

@@ -1,4 +1,4 @@
-﻿// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotSequenceId 
+﻿// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset
 
 using Eventualize.Core.Abstractions.Stream;
 
@@ -43,19 +43,19 @@ public class EventualizeAggregateFactory<T> where T : notnull, new()
             IAsyncEnumerable<EventualizeStoredEvent> storedEvents,
             EventualizeStoredSnapshotData<T> snapshotData)
     {
-        long sequenceId = snapshotData.SnapshotSequenceId;
+        long offset = snapshotData.SnapshotOffset;
         T state = snapshotData.Snapshot;
         await foreach (var e in storedEvents)
         {
             state = FoldingLogic.FoldEvent(state, e);
-            sequenceId = e.SequenceId;
+            offset = e.Offset;
         }
-        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamAddress(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots, state, sequenceId);
+        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamAddress(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots, state, offset);
     }
 
-    public EventualizeAggregate<T> Create(string id, T snapshot, long snapshotSequenceId)
+    public EventualizeAggregate<T> Create(string id, T snapshot, long snapshotOffset)
     {
-        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamAddress(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots, snapshot, snapshotSequenceId);
+        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamAddress(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots, snapshot, snapshotOffset);
     }
 }
 

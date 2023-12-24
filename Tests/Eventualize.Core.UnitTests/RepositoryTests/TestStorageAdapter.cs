@@ -18,7 +18,7 @@ namespace CoreTests.RepositoryTests
                 return;
             List<EventualizeStoredEvent> storedEvents = [];
             string key = GetKeyValue(aggregate);
-            long lastStoredSequenceId = -1;
+            long lastStoredOffset = -1;
             if (!Events.TryGetValue(key, out var stream))
             {
                 stream = [];
@@ -26,13 +26,13 @@ namespace CoreTests.RepositoryTests
             }
             else
             {
-                lastStoredSequenceId = stream.Count;
+                lastStoredOffset = stream.Count;
             }
 
             DateTime storeTs = DateTime.Now;
             foreach (var pendingEvent in aggregate.PendingEvents)
             {
-                stream.Add(new EventualizeStoredEvent(pendingEvent, aggregate.StreamAddress, ++lastStoredSequenceId));
+                stream.Add(new EventualizeStoredEvent(pendingEvent, aggregate.StreamAddress, ++lastStoredOffset));
             }
         }
 
@@ -43,9 +43,9 @@ namespace CoreTests.RepositoryTests
         private void StoreSnapshot<T>(EventualizeAggregate<T> aggregate) where T : notnull, new()
         {
             string key = GetKeyValue(aggregate);
-            long sequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;
+            long offset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
             JsonElement serializedSnapshot = JsonSerializer.SerializeToElement<T>(aggregate.State);
-            EventualizeStoredSnapshotData<JsonElement> value = new(serializedSnapshot, sequenceId);
+            EventualizeStoredSnapshotData<JsonElement> value = new(serializedSnapshot, offset);
             if (!Snapshots.ContainsKey(key))
             {
                 Snapshots.Add(key, value);
@@ -78,20 +78,20 @@ namespace CoreTests.RepositoryTests
             if (!Snapshots.TryGetValue(key, out var value) || value == null)
                 return Task.FromResult(default(EventualizeStoredSnapshotData<T>));
             T? parsedShapshot = JsonSerializer.Deserialize<T>(value.Snapshot);
-            var result = parsedShapshot != null ? new EventualizeStoredSnapshotData<T>(parsedShapshot, value.SnapshotSequenceId) : default(EventualizeStoredSnapshotData<T>);
+            var result = parsedShapshot != null ? new EventualizeStoredSnapshotData<T>(parsedShapshot, value.SnapshotOffset) : default(EventualizeStoredSnapshotData<T>);
             return Task.FromResult(result);
         }
 
         async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
         {
-            var (id, aggregateTypeName, startSequenceId) = parameter;
+            var (id, aggregateTypeName, startOffset) = parameter;
             EventualizeStreamAddress streamAddress = new("default",aggregateTypeName,id);
             var key = GetKeyValue(streamAddress);
             if (!Events.TryGetValue(key, out List<EventualizeStoredEvent>? events) || events == null)
                 yield break;
             //try
             //{
-            var evts = events.GetRange((int)startSequenceId, events.Count - (int)startSequenceId);
+            var evts = events.GetRange((int)startOffset, events.Count - (int)startOffset);
             foreach (var e in evts)
             {
                 await Task.Yield();
@@ -114,7 +114,7 @@ namespace CoreTests.RepositoryTests
             });
         }
 
-        Task<long> IEventualizeStorageAdapter.GetLastSequenceIdAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellationא)
+        Task<long> IEventualizeStorageAdapter.GetLastOffsetAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellationא)
         {
             string key = GetKeyValue(aggregate);
             if (!Events.TryGetValue(key, out var events))
