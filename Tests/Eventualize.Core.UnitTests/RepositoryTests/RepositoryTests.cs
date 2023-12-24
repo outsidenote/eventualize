@@ -13,7 +13,7 @@ namespace CoreTests.RepositoryTests
             var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
             var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
             IRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-            var fetchedAggregate = await repository.GetAsync(aggregateFactory, aggregate.StreamAddress.StreamId);
+            var fetchedAggregate = await repository.GetAsync(aggregateFactory, aggregate.StreamUri.StreamId);
             repoTestSteps.AssertFetchedAggregateIsCorrect(aggregate, fetchedAggregate);
         }
 

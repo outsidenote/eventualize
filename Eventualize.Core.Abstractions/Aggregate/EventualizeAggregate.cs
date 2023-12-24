@@ -14,12 +14,12 @@ public abstract class EventualizeAggregate
 
     internal EventualizeAggregate(
         string aggregateType,
-        EventualizeStreamAddress streamAddress,
+        EventualizeStreamUri streamUri,
         int minEventsBetweenSnapshots,
         long lastStoredOffset)
     {
         AggregateType = aggregateType;
-        StreamAddress = streamAddress;
+        StreamUri = streamUri;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
         LastStoredOffset = lastStoredOffset;
     }
@@ -35,7 +35,7 @@ public abstract class EventualizeAggregate
     // TODO: [bnaya 2023-12-11] Use Min Duration or Count between snapshots
     public int MinEventsBetweenSnapshots { get; init; } = 0;
 
-    public EventualizeStreamAddress StreamAddress { get; init; }
+    public EventualizeStreamUri StreamUri { get; init; }
     public readonly string AggregateType;
 
     #endregion // Members
@@ -46,16 +46,16 @@ public class EventualizeAggregate<T> : EventualizeAggregate where T : notnull, n
 {
     #region Ctor
 
-    internal EventualizeAggregate(string aggregateType, EventualizeStreamAddress streamAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots, T state, long lastStoredOffset)
-        : base(aggregateType, streamAddress, minEventsBetweenSnapshots, lastStoredOffset)
+    internal EventualizeAggregate(string aggregateType, EventualizeStreamUri streamUri, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots, T state, long lastStoredOffset)
+        : base(aggregateType, streamUri, minEventsBetweenSnapshots, lastStoredOffset)
     {
         State = state;
         RegisteredEventTypes = registeredEventTypes;
         FoldingLogic = foldingLogic;
     }
 
-    internal EventualizeAggregate(string aggregateType, EventualizeStreamAddress streamAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots)
-        : this(aggregateType, streamAddress, registeredEventTypes, foldingLogic, minEventsBetweenSnapshots, new T(), -1) { }
+    internal EventualizeAggregate(string aggregateType, EventualizeStreamUri streamUri, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots)
+        : this(aggregateType, streamUri, registeredEventTypes, foldingLogic, minEventsBetweenSnapshots, new T(), -1) { }
 
 
     #endregion // Ctor

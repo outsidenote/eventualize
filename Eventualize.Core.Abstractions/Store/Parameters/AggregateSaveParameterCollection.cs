@@ -14,9 +14,9 @@ public class AggregateSaveParameterCollection<T> : IEnumerable<AggregateSavePara
     private readonly long baseSeq;
     public AggregateSaveParameterCollection(EventualizeAggregate<T> aggregate)
     {
-        _domain = aggregate.StreamAddress.Domain;
-        aggregateId = aggregate.StreamAddress.StreamId;
-        aggregateType = aggregate.StreamAddress.StreamType;
+        _domain = aggregate.StreamUri.Domain;
+        aggregateId = aggregate.StreamUri.StreamId;
+        aggregateType = aggregate.StreamUri.StreamType;
         baseSeq = aggregate.LastStoredOffset + 1;
         Events = aggregate.PendingEvents;
     }

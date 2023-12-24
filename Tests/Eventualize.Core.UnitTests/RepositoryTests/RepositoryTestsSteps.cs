@@ -21,7 +21,7 @@ namespace CoreTests.RepositoryTests
             Assert.NotNull(fetchedAggregate);
 
             Assert.Equal(expectedAggregate.State, fetchedAggregate.State);
-            Assert.Equal(expectedAggregate.StreamAddress, fetchedAggregate.StreamAddress);
+            Assert.Equal(expectedAggregate.StreamUri, fetchedAggregate.StreamUri);
             Assert.Empty(fetchedAggregate.PendingEvents);
             Assert.Equal(2, fetchedAggregate.LastStoredOffset);
         }
