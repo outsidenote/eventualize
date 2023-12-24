@@ -13,10 +13,12 @@ public abstract class EventualizeAggregate
     #region Ctor
 
     internal EventualizeAggregate(
+        string aggregateType,
         EventualizeStreamAddress streamAddress,
         int minEventsBetweenSnapshots,
         long lastStoredOffset)
     {
+        AggregateType = aggregateType;
         StreamAddress = streamAddress;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
         LastStoredOffset = lastStoredOffset;
@@ -34,6 +36,7 @@ public abstract class EventualizeAggregate
     public int MinEventsBetweenSnapshots { get; init; } = 0;
 
     public EventualizeStreamAddress StreamAddress { get; init; }
+    public readonly string AggregateType;
 
     #endregion // Members
 }
@@ -44,10 +47,9 @@ public class EventualizeAggregate<T> : EventualizeAggregate where T : notnull, n
     #region Ctor
 
     internal EventualizeAggregate(string aggregateType, EventualizeStreamAddress streamAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots, T state, long lastStoredOffset)
-        : base(streamAddress, minEventsBetweenSnapshots, lastStoredOffset)
+        : base(aggregateType, streamAddress, minEventsBetweenSnapshots, lastStoredOffset)
     {
         State = state;
-        AggregateType = aggregateType;
         RegisteredEventTypes = registeredEventTypes;
         FoldingLogic = foldingLogic;
     }
@@ -62,7 +64,6 @@ public class EventualizeAggregate<T> : EventualizeAggregate where T : notnull, n
 
     public readonly Dictionary<string, EventualizeEventType> RegisteredEventTypes;
     public readonly EventualizeFoldingLogic<T> FoldingLogic;
-    public readonly string AggregateType;
     public T State { get; private set; }
 
     #endregion // Members
