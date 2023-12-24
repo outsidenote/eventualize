@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Eventualize.Core
 {
-    public class EventualizeFoldingLogic<T> where T: notnull, new()
+    public class EventualizeFoldingLogic<T> where T : notnull, new()
     {
         public readonly Dictionary<string, IFoldingFunction<T>> Logic;
 
@@ -24,7 +24,7 @@ namespace Eventualize.Core
         }
 
         public async Task<FoldingResult<T>> FoldEventsAsync(
-            IAsyncEnumerable<EventualizeEvent> events)
+            IAsyncEnumerable<EventualizeStoredEvent> events)
         {
             T state = new();
             var result = await FoldEventsAsync(state, events);
@@ -33,11 +33,33 @@ namespace Eventualize.Core
 
         public async Task<FoldingResult<T>> FoldEventsAsync(
             T oldState,
-            IAsyncEnumerable<EventualizeEvent> events)
+            IAsyncEnumerable<EventualizeStoredEvent> events)
         {
             long count = 0;
             T currentState = oldState;
             await foreach (var e in events)
+            {
+                currentState = FoldEvent(currentState, e);
+                count++;
+            }
+            return new FoldingResult<T>(currentState, count);
+        }
+
+        public FoldingResult<T> FoldEvents(
+            IEnumerable<EventualizeEvent> events)
+        {
+            T state = new();
+            var result = FoldEvents(state, events);
+            return result;
+        }
+
+        public FoldingResult<T> FoldEvents(
+            T oldState,
+            IEnumerable<EventualizeEvent> events)
+        {
+            long count = 0;
+            T currentState = oldState;
+            foreach (var e in events)
             {
                 currentState = FoldEvent(currentState, e);
                 count++;

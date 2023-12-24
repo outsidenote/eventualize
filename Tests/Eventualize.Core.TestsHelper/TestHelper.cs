@@ -52,8 +52,8 @@ public static class TestHelper
     public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(EventualizeAggregate<TestState> aggregate)
     {
         var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
-        var newLastStoreSequenceId = aggregate.LastStoredSequenceId+aggregate.PendingEvents.Count;
-        var newAggregate = aggregateFactory.Create(aggregate.StreamAddress.StreamId,aggregate.State,newLastStoreSequenceId);
+        var newLastStoreSequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;
+        var newAggregate = aggregateFactory.Create(aggregate.StreamAddress.StreamId, aggregate.State, newLastStoreSequenceId);
         var events = TestAggregateConfigs.GetPendingEvents(3);
         foreach (var e in events)
         {

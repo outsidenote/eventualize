@@ -1,3 +1,4 @@
+using Eventualize.Core.Abstractions.Stream;
 using static Eventualize.Core.Tests.TestHelper;
 
 namespace Eventualize.Core.Tests
@@ -7,11 +8,12 @@ namespace Eventualize.Core.Tests
         public static readonly string AggregateType = "TestAggregateType";
         public static readonly Type TestStateType = typeof(TestState);
 
-        public static readonly EventualizeAggregateFactory<TestState> TestAggregateFactory = new(
-            AggregateType, new("testDomain", "testStreamType"),
-            new() { { TestEventType.EventTypeName, TestEventType } },
-            new EventualizeFoldingLogic<TestState>(new() { { TestEventType.EventTypeName, new TestFoldingFunction() } })
+        public static readonly EventualizeStreamBaseAddress StreamBaseAddress = new("testDomain", "testStreamType");
 
+        public static readonly EventualizeAggregateFactory<TestState> TestAggregateFactory = new(
+            AggregateType, StreamBaseAddress,
+            new() { { TestEventType.EventTypeName, TestEventType } },
+            new (new() { { TestEventType.EventTypeName, new TestFoldingFunction() } })
         );
 
         public static EventualizeAggregateFactory<TestState> GetAggregateFactory()

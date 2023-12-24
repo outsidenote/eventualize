@@ -58,7 +58,7 @@ public class EventualizeAggregate<T> : EventualizeAggregate where T : notnull, n
 
     #endregion // Ctor
 
-    # region Members
+    #region Members
 
     public readonly Dictionary<string, EventualizeEventType> RegisteredEventTypes;
     public readonly EventualizeFoldingLogic<T> FoldingLogic;

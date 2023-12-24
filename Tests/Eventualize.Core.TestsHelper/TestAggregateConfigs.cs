@@ -71,7 +71,7 @@ public static class TestAggregateConfigs
         IEnumerable<EventualizeEvent> events = [];
         for (int sequenceId = 0; sequenceId < 3; sequenceId++)
         {
-            events.Append(TestHelper.GetCorrectTestEvent());
+            events = events.Concat([TestHelper.GetCorrectTestEvent()]);
         }
         return events;
     }
