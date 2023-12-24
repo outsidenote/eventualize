@@ -46,7 +46,7 @@ WHERE
 
             var prefix = world.ContextId;
             var queryString = $@"
-SELECT sequence_id
+SELECT offset
 FROM {prefix}snapshot
 WHERE
     domain = 'default'

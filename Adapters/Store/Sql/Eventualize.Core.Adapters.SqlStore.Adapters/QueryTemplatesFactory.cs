@@ -9,19 +9,19 @@ internal static class QueryTemplatesFactory
         return new EventualizeAdapterQueryTemplates
         {
             GetLastSnapshotSnapshot = $"""
-                SELECT MAX(sequence_id)
+                SELECT MAX(offset)
                     FROM {storageContext}snapshot
                     WHERE domain = 'default'
                         AND aggregate_type = @{nameof(AggregateParameter.Type)}
                         AND aggregate_id = @{nameof(AggregateParameter.Id)}
                 """,
             TryGetSnapshot = $"""
-                SELECT json_data as {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, sequence_id as {nameof(EventualizeStoredSnapshotData<object>.SnapshotOffset)}
+                SELECT json_data as {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, offset as {nameof(EventualizeStoredSnapshotData<object>.SnapshotOffset)}
                 FROM {storageContext}snapshot
                 WHERE domain = 'default'
                     AND aggregate_type = @{nameof(AggregateParameter.Type)}
                     AND aggregate_id = @{nameof(AggregateParameter.Id)}
-                ORDER BY sequence_id DESC
+                ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
             GetEvents = $"""
@@ -31,7 +31,7 @@ internal static class QueryTemplatesFactory
                     captured_by as {nameof(EventualizeStoredEvent.CapturedBy)},
                     json_data as {nameof(EventualizeStoredEvent.JsonData)},
                     stored_at as {nameof(EventualizeStoredEvent.StoredAt)},
-                    sequence_id as {nameof(EventualizeStoredEvent.Offset)},
+                    offset as {nameof(EventualizeStoredEvent.Offset)},
                     domain  as {nameof(EventualizeStoredEventEntity.Domain)} ,
                     aggregate_type as {nameof(EventualizeStoredEventEntity.StreamType)},
                     aggregate_id as  {nameof(EventualizeStoredEventEntity.StreamId)}
@@ -40,7 +40,7 @@ internal static class QueryTemplatesFactory
                 WHERE domain = 'default'
                     AND aggregate_type = @{nameof(AggregateParameter.Type)}
                     AND aggregate_id = @{nameof(AggregateParameter.Id)}
-                    and sequence_id >= @{nameof(AggregateSequenceParameter.Sequence)};
+                    and offset >= @{nameof(AggregateSequenceParameter.Sequence)};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             Save = $"""
@@ -48,7 +48,7 @@ internal static class QueryTemplatesFactory
                         aggregate_id,
                         aggregate_type, 
                         event_type, 
-                        sequence_id,
+                        offset,
                         json_data,
                         captured_by,
                         captured_at, 
@@ -67,7 +67,7 @@ internal static class QueryTemplatesFactory
             INSERT INTO {storageContext}snapshot (
                         aggregate_id,
                         aggregate_type, 
-                        sequence_id,
+                        offset,
                         json_data,
                         domain)
             VALUES (
