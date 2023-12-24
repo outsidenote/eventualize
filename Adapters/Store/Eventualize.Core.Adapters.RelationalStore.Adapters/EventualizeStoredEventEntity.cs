@@ -18,7 +18,7 @@ public struct EventualizeStoredEventEntity
 
     public static implicit operator EventualizeStoredEvent(EventualizeStoredEventEntity entity)
     {
-        var srm = new EventualizeStreamAddress(
+        var srm = new EventualizeStreamUri(
                                             entity.Domain,
                                             entity.StreamType,
                                             entity.StreamId);

@@ -7,9 +7,9 @@ using Generator.Equals;
 namespace Eventualize.Core.Abstractions.Stream;
 
 [Equatable]
-public partial record EventualizeStreamAddress(string Domain, string StreamType, string StreamId):EventualizeStreamBaseAddress(Domain, StreamType)
+public partial record EventualizeStreamUri(string Domain, string StreamType, string StreamId):EventualizeStreamBaseUri(Domain, StreamType)
 {
-    public EventualizeStreamAddress(EventualizeStreamBaseAddress baseAddress, string streamId)
+    public EventualizeStreamUri(EventualizeStreamBaseUri baseAddress, string streamId)
         : this(baseAddress.Domain, baseAddress.StreamType, streamId)
     {
     }

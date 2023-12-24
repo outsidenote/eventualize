@@ -11,10 +11,10 @@ public record EventualizeStoredEvent(string EventType,
                     string CapturedBy,
                     string JsonData,
                     DateTime StoredAt,
-                    EventualizeStreamAddress StreamAddress,
+                    EventualizeStreamUri StreamUri,
                     long Offset)
                     : EventualizeEvent(EventType, CapturedAt, CapturedBy, JsonData)
 {
-    public EventualizeStoredEvent(EventualizeEvent e, EventualizeStreamAddress streamAddress, long offset)
-        : this(e.EventType, e.CapturedAt, e.CapturedBy, e.JsonData, DateTime.Now, streamAddress, offset) { }
+    public EventualizeStoredEvent(EventualizeEvent e, EventualizeStreamUri streamUri, long offset)
+        : this(e.EventType, e.CapturedAt, e.CapturedBy, e.JsonData, DateTime.Now, streamUri, offset) { }
 }

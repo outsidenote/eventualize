@@ -16,7 +16,7 @@ namespace Eventualize.Core
         }
         private static string PrepareMessageFromAggregate<K>(EventualizeAggregate<K> aggregate, long lastStoredOffset) where K : notnull, new()
         {
-            return $"AggregateType={aggregate.AggregateType}, StreamAddress='{aggregate.StreamAddress}', aggregateLastStoredOffset={aggregate.LastStoredOffset}, ActualLastStoredOffset={lastStoredOffset}";
+            return $"AggregateType={aggregate.AggregateType}, StreamUri='{aggregate.StreamUri}', aggregateLastStoredOffset={aggregate.LastStoredOffset}, ActualLastStoredOffset={lastStoredOffset}";
         }
     }
 }

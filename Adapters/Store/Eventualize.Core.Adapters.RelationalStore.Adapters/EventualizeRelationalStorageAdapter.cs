@@ -64,7 +64,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetLastSnapshotSnapshot;
-        AggregateParameter parameter = new AggregateParameter(aggregate.StreamAddress.StreamId, aggregate.StreamAddress.StreamType);
+        AggregateParameter parameter = new AggregateParameter(aggregate.StreamUri.StreamId, aggregate.StreamUri.StreamType);
         long offset = await conn.ExecuteScalarAsync<long>(query, parameter);
         return offset;
     }
@@ -118,8 +118,8 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
                 // TODO: [bnaya 2023-12-20] domain
                 var payload = JsonSerializer.Serialize(aggregate.State);
                 SnapshotSaveParameter snapshotSaveParameter = new SnapshotSaveParameter(
-                                            aggregate.StreamAddress.StreamId,
-                                            aggregate.StreamAddress.StreamType,
+                                            aggregate.StreamUri.StreamId,
+                                            aggregate.StreamUri.StreamType,
                                             offset,
                                             payload,
                                             "default");

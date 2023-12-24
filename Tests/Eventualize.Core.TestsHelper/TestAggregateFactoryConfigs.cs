@@ -8,7 +8,7 @@ namespace Eventualize.Core.Tests
         public static readonly string AggregateType = "TestAggregateType";
         public static readonly Type TestStateType = typeof(TestState);
 
-        public static EventualizeStreamBaseAddress GetStreamBaseAddress()
+        public static EventualizeStreamBaseUri GetStreamBaseAddress()
         {
             return new("default", "testStreamType");
         }

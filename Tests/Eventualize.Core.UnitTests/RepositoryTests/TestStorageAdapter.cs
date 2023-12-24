@@ -32,7 +32,7 @@ namespace CoreTests.RepositoryTests
             DateTime storeTs = DateTime.Now;
             foreach (var pendingEvent in aggregate.PendingEvents)
             {
-                stream.Add(new EventualizeStoredEvent(pendingEvent, aggregate.StreamAddress, ++lastStoredOffset));
+                stream.Add(new EventualizeStoredEvent(pendingEvent, aggregate.StreamUri, ++lastStoredOffset));
             }
         }
 
@@ -60,10 +60,10 @@ namespace CoreTests.RepositoryTests
 
         #region GetKeyValue
 
-        internal static string GetKeyValue(EventualizeStreamAddress streamAddress) => streamAddress.ToString();
-        internal static string GetKeyValue(EventualizeAggregate aggregate) => aggregate.StreamAddress.ToString();
+        internal static string GetKeyValue(EventualizeStreamUri streamUri) => streamUri.ToString();
+        internal static string GetKeyValue(EventualizeAggregate aggregate) => aggregate.StreamUri.ToString();
 
-        internal static string GetKeyValue<T>(EventualizeAggregate<T> aggregate) where T : notnull, new() => aggregate.StreamAddress.ToString();
+        internal static string GetKeyValue<T>(EventualizeAggregate<T> aggregate) where T : notnull, new() => aggregate.StreamUri.ToString();
 
         #endregion // GetKeyValue
 
@@ -73,8 +73,8 @@ namespace CoreTests.RepositoryTests
                             AggregateParameter parameter, CancellationToken cancellation)
         {
             var (id, aggregateTypeName) = parameter;
-            EventualizeStreamAddress streamAddress = new("default", aggregateTypeName, id);
-            var key = GetKeyValue(streamAddress);
+            EventualizeStreamUri streamUri = new("default", aggregateTypeName, id);
+            var key = GetKeyValue(streamUri);
             if (!Snapshots.TryGetValue(key, out var value) || value == null)
                 return Task.FromResult(default(EventualizeStoredSnapshotData<T>));
             T? parsedShapshot = JsonSerializer.Deserialize<T>(value.Snapshot);
@@ -85,8 +85,8 @@ namespace CoreTests.RepositoryTests
         async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
         {
             var (id, aggregateTypeName, startOffset) = parameter;
-            EventualizeStreamAddress streamAddress = new("default",aggregateTypeName,id);
-            var key = GetKeyValue(streamAddress);
+            EventualizeStreamUri streamUri = new("default",aggregateTypeName,id);
+            var key = GetKeyValue(streamUri);
             if (!Events.TryGetValue(key, out List<EventualizeStoredEvent>? events) || events == null)
                 yield break;
             //try
