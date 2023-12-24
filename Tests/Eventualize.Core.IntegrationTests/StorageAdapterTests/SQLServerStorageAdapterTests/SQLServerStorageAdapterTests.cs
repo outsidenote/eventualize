@@ -2,6 +2,7 @@ using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
 using Eventualize.Core;
 using Eventualize.Core.Tests;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 using Xunit.Abstractions;
 using static Eventualize.Core.Tests.TestHelper;
 
@@ -113,7 +114,14 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
 
         var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
         Assert.NotNull(asyncEvents);
-        var events = await asyncEvents.ToEnumerableAsync();
-        Assert.True(aggregate.PendingEvents.SequenceEqual(events));
+        ICollection<EventualizeStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
+        var es = events.Select(m =>
+                                new EventualizeEvent(
+                                            m.EventType,
+                                            m.CapturedAt,
+                                            m.CapturedBy,
+                                            m.JsonData
+                                        ));
+        Assert.True(aggregate.PendingEvents.SequenceEqual(es));
     }
 }

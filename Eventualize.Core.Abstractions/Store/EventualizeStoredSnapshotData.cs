@@ -10,9 +10,13 @@ public record EventualizeStoredSnapshotData<T>(T Snapshot, long SnapshotSequence
     {
     }
 
-    public EventualizeStoredSnapshotData()
+    public static EventualizeStoredSnapshotData<T> Create() => new EventualizeStoredSnapshotData<T>();
+
+    public static EventualizeStoredSnapshotData<T> Create(T state) => new EventualizeStoredSnapshotData<T>(state);
+
+    private EventualizeStoredSnapshotData()
         : this(new T(), -1) { }
 
-    public EventualizeStoredSnapshotData(T state)
+    private EventualizeStoredSnapshotData(T state)
         : this(state, -1) { }
 };

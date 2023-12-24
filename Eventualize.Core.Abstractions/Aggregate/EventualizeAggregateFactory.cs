@@ -34,7 +34,8 @@ public class EventualizeAggregateFactory<T> where T : notnull, new()
 
     public async Task<EventualizeAggregate<T>> CreateAsync(string id, IAsyncEnumerable<EventualizeStoredEvent> storedEvents)
     {
-        return await CreateAsync(id, storedEvents, new());
+        var snap = EventualizeStoredSnapshotData<T>.Create();
+        return await CreateAsync(id, storedEvents, snap);
     }
 
     public async Task<EventualizeAggregate<T>> CreateAsync(

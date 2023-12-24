@@ -3,11 +3,13 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
+using System.Reflection;
 using System.Text.Json;
 
 // TODO: [bnaya 2023-12-20] default timeout
 
 namespace Eventualize.Core.Adapters;
+
 
 // TODO: [bnaya 2023-12-19] all parameters and field should be driven from nameof or const
 // TODO: [bnaya 2023-12-20] how do we get the domain?, shouldn't it be a parameter in each and every query?
@@ -74,6 +76,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         DbConnection conn = await _connectionTask;
 
         string query = _queries.TryGetSnapshot;
+
         var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshotData<T>>(query, parameter);
         return result;
     }
@@ -85,10 +88,10 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         string query = _queries.GetEvents;
 
         DbDataReader reader = await conn.ExecuteReaderAsync(query, parameter);
-        var parser = reader.GetRowParser<EventualizeStoredEvent>();
+        var parser = reader.GetRowParser<EventualizeStoredEventEntity>();
         while (await reader.ReadAsync())
         {
-            var e = parser(reader);
+            EventualizeStoredEvent e = parser(reader);
             yield return e;
         }
     }

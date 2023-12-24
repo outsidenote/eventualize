@@ -30,7 +30,12 @@ internal static class QueryTemplatesFactory
                     captured_at as {nameof(EventualizeStoredEvent.CapturedAt)},
                     captured_by as {nameof(EventualizeStoredEvent.CapturedBy)},
                     json_data as {nameof(EventualizeStoredEvent.JsonData)},
-                    stored_at as {nameof(EventualizeStoredEvent.StoredAt)}                    
+                    stored_at as {nameof(EventualizeStoredEvent.StoredAt)},
+                    sequence_id as {nameof(EventualizeStoredEvent.SequenceId)},
+                    domain  as {nameof(EventualizeStoredEventEntity.Domain)} ,
+                    aggregate_type as {nameof(EventualizeStoredEventEntity.StreamType)},
+                    aggregate_id as  {nameof(EventualizeStoredEventEntity.StreamId)}
+                
                 FROM {storageContext}event
                 WHERE domain = 'default'
                     AND aggregate_type = @{nameof(AggregateParameter.Type)}
