@@ -1,6 +1,6 @@
 using Eventualize.Core;
 
-namespace CoreTests.RepositoryTests.TestStorageAdapterTests
+namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests
 {
     public class TestStorageAdapterTests
     {

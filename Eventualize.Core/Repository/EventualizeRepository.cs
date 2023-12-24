@@ -1,11 +1,11 @@
 namespace Eventualize.Core;
 
 // TODO: [bnaya 2023-12-10] make it DI friendly (have an interface and DI registration)
-public class Repository : IRepository
+public class EventualizeRepository : IEventualizeRepository
 {
     private readonly IEventualizeStorageAdapter _storageAdapter;
 
-    public Repository(IEventualizeStorageAdapter storageAdapter)
+    public EventualizeRepository(IEventualizeStorageAdapter storageAdapter)
     {
         _storageAdapter = storageAdapter;
     }
@@ -16,7 +16,7 @@ public class Repository : IRepository
         return (long)offset + 1;
     }
 
-    async Task<EventualizeAggregate<T>> IRepository.GetAsync<T>(EventualizeAggregateFactory<T> aggregateFactory, string streamId, CancellationToken cancellation)
+    async Task<EventualizeAggregate<T>> IEventualizeRepository.GetAsync<T>(EventualizeAggregateFactory<T> aggregateFactory, string streamId, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         // TODO: [bnaya 2023-12-20] transaction, 
@@ -36,7 +36,7 @@ public class Repository : IRepository
         return await aggregateFactory.CreateAsync(streamId, events, snapshotData);
     }
 
-    async Task IRepository.SaveAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)
+    async Task IEventualizeRepository.SaveAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)
     {
         if (aggregate.PendingEvents.Count == 0)
         {

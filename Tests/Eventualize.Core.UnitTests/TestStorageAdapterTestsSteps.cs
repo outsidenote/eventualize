@@ -4,7 +4,7 @@ using System.Text.Json;
 using static Eventualize.Core.Tests.TestAggregateConfigs;
 using static Eventualize.Core.Tests.TestHelper;
 
-namespace CoreTests.RepositoryTests.TestStorageAdapterTests
+namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests
 {
     public static class TestStorageAdapterTestsSteps
     {
