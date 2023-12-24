@@ -73,7 +73,7 @@ namespace CoreTests.RepositoryTests
                             AggregateParameter parameter, CancellationToken cancellation)
         {
             var (id, aggregateTypeName) = parameter;
-            EventualizeStreamAddress streamAddress = new("testDomain", aggregateTypeName, id);
+            EventualizeStreamAddress streamAddress = new("default", aggregateTypeName, id);
             var key = GetKeyValue(streamAddress);
             if (!Snapshots.TryGetValue(key, out var value) || value == null)
                 return Task.FromResult(default(EventualizeStoredSnapshotData<T>));
@@ -85,7 +85,7 @@ namespace CoreTests.RepositoryTests
         async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(AggregateSequenceParameter parameter, CancellationToken cancellation)
         {
             var (id, aggregateTypeName, startSequenceId) = parameter;
-            EventualizeStreamAddress streamAddress = new("testDomain",aggregateTypeName,id);
+            EventualizeStreamAddress streamAddress = new("default",aggregateTypeName,id);
             var key = GetKeyValue(streamAddress);
             if (!Events.TryGetValue(key, out List<EventualizeStoredEvent>? events) || events == null)
                 yield break;

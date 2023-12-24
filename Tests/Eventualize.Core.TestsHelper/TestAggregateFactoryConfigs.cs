@@ -10,7 +10,7 @@ namespace Eventualize.Core.Tests
 
         public static EventualizeStreamBaseAddress GetStreamBaseAddress()
         {
-            return new("testDomain", "testStreamType");
+            return new("default", "testStreamType");
         }
 
         public static EventualizeAggregateFactory<TestState> GetAggregateFactory()
