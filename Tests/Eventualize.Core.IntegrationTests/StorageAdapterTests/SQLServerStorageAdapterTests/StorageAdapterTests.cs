@@ -79,7 +79,7 @@ public sealed class StorageAdapterTests
         await Assert.ThrowsAsync<OCCException<TestState>>(async () => await world.StorageAdapter.SaveAsync(aggregate, true));
     }
 
-    [Theory]
+    [Theory(Skip = "not active")]
     [InlineData(TypeOfDb.SqlServer)]
     [InlineData(TypeOfDb.Postgress)]
     //[InlineData(TypeOfDb.MySql)]

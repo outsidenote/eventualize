@@ -22,6 +22,8 @@ public class TestWorld : IDisposable, IAsyncDisposable
     public IEventualizeStorageAdapter StorageAdapter { get; private set; }
     public IEventualizeStorageMigration StorageMigration { get; private set; }
     public DbConnection Connection { get; private set; }
+    public TypeOfDb TypeOfDb { get; }
+
     public readonly ILogger _logger = A.Fake<ILogger>();
     private readonly IEventualizeConnectionFactory _connectionFactory = A.Fake<IEventualizeConnectionFactory>();
     protected readonly ITestOutputHelper _testLogger;
@@ -30,16 +32,20 @@ public class TestWorld : IDisposable, IAsyncDisposable
 
     public static async Task<TestWorld> CreateAsync(TypeOfDb dbType, IConfigurationRoot configuration, ITestOutputHelper testLogger)
     {
-        var world = new TestWorld(configuration, testLogger);
+        var world = new TestWorld(configuration, testLogger, dbType);
         await world.InitAsync(dbType);
         await world.StorageMigration.CreateTestEnvironmentAsync();
         return world;
     }
 
-    private TestWorld(IConfigurationRoot configuration, ITestOutputHelper testLogger)
+    private TestWorld(
+            IConfigurationRoot configuration,
+            ITestOutputHelper testLogger, 
+            TypeOfDb typeOfDb)
     {
         _testLogger = testLogger;
         _configuration = configuration;
+        TypeOfDb = typeOfDb;
     }
 
     private async Task InitAsync(TypeOfDb dbType)

@@ -11,7 +11,10 @@ internal static class QueryTemplatesFactory
             DROP TABLE {storageContext}snapshot;            
             """,
             CreateEnvironment = $"""
-            -- Create the event table
+            -- Drop the event and snapshot tables
+            DROP TABLE IF EXISTS {storageContext}event;
+            DROP TABLE IF EXISTS {storageContext}snapshot;
+
             -- Create the event table
             CREATE TABLE {storageContext}event (
                 domain VARCHAR(40) NOT NULL,
@@ -21,29 +24,29 @@ internal static class QueryTemplatesFactory
                 captured_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
                 event_type VARCHAR(40) NOT NULL,
                 captured_by VARCHAR(40) NOT NULL,
-                json_data JSONB NOT NULL,
+                json_data TEXT NOT NULL,
                 stored_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
                 CONSTRAINT PK_{storageContext}event PRIMARY KEY (domain, aggregate_type, aggregate_id, sequence_id),
-                CHECK (LENGTH(domain) > 0),
-                CHECK (LENGTH(aggregate_type) > 0),
-                CHECK (LENGTH(aggregate_id) > 0),
-                CHECK (LENGTH(event_type) > 0),
-                CHECK (LENGTH(captured_by) > 0),
-                CHECK (LENGTH(json_data) > 0)
+                CHECK (CHAR_LENGTH(domain) > 0),
+                CHECK (CHAR_LENGTH(aggregate_type) > 0),
+                CHECK (CHAR_LENGTH(aggregate_id) > 0),
+                CHECK (CHAR_LENGTH(event_type) > 0),
+                CHECK (CHAR_LENGTH(captured_by) > 0),
+                CHECK (CHAR_LENGTH(json_data) > 0)
             );
 
             -- Index for getting distinct values for each column domain
-            CREATE INDEX IX_event_domain ON {storageContext}event (domain);
+            CREATE INDEX IF NOT EXISTS IX_event_domain ON {storageContext}event (domain);
 
             -- Index for getting distinct values for columns domain and aggregate_type together
-            CREATE INDEX IX_event_domain_aggregate_type ON {storageContext}event (domain, aggregate_type);
+            CREATE INDEX IF NOT EXISTS IX_event_domain_aggregate_type ON {storageContext}event (domain, aggregate_type);
 
             -- Index for getting distinct values for columns domain, aggregate_type, and aggregate_id together
-            CREATE INDEX IX_event_domain_aggregate_type_aggregate_id ON {storageContext}event (domain, aggregate_type, aggregate_id);
+            CREATE INDEX IF NOT EXISTS IX_event_domain_aggregate_type_aggregate_id ON {storageContext}event (domain, aggregate_type, aggregate_id);
 
             -- Index for getting records with a specific value in column event_type and a value of captured_at within a given time range, sorted by captured_at
-            CREATE INDEX IX_event_event_type_captured_at ON {storageContext}event (event_type, captured_at);
+            CREATE INDEX IF NOT EXISTS IX_event_event_type_captured_at ON {storageContext}event (event_type, captured_at);
 
             -- Create the snapshot table
             CREATE TABLE {storageContext}snapshot (
@@ -51,18 +54,19 @@ internal static class QueryTemplatesFactory
                 aggregate_type VARCHAR(40) NOT NULL,
                 aggregate_id VARCHAR(40) NOT NULL,
                 sequence_id BIGINT NOT NULL,
-                json_data JSONB NOT NULL,
+                json_data             TEXT NOT NULL,
                 stored_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
                 CONSTRAINT PK_{storageContext}snapshot PRIMARY KEY (domain, aggregate_type, aggregate_id, sequence_id),
-                CHECK (LENGTH(domain) > 0),
-                CHECK (LENGTH(aggregate_type) > 0),
-                CHECK (LENGTH(aggregate_id) > 0),
-                CHECK (LENGTH(json_data) > 0)
+                CHECK (CHAR_LENGTH(domain) > 0),
+                CHECK (CHAR_LENGTH(aggregate_type) > 0),
+                CHECK (CHAR_LENGTH(aggregate_id) > 0),
+                CHECK (CHAR_LENGTH(json_data) > 0)
             );
 
             -- Index for finding records with an earlier point in time value in column stored_at than some given value, and that other records in the group exist
-            CREATE INDEX IX_snapshot_earlier_stored_at ON {storageContext}snapshot (domain, aggregate_type, aggregate_id, stored_at);            
+            CREATE INDEX IF NOT EXISTS IX_snapshot_earlier_stored_at ON {storageContext}snapshot (domain, aggregate_type, aggregate_id, stored_at);
+            
             """
         };
     }

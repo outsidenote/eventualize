@@ -127,8 +127,14 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
             // TODO: [bnaya 2023-12-20] do the logging right
             _logger.LogDebug("{count} events saved", affected);
         }
+        // TODO: [bnaya 2023-12-24] catch it on the provider level and rethrow the OCCException
         catch (DbException e) 
             when (e.Message.Contains("Violation of PRIMARY KEY constraint"))
+        {
+            throw new OCCException<T>(aggregate);
+        }
+        catch (DbException e) 
+            when (e.Message.Contains("duplicate key value violates unique constraint"))
         {
             throw new OCCException<T>(aggregate);
         }

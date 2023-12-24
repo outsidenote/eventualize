@@ -16,8 +16,8 @@ internal static class QueryTemplatesFactory
                     AND aggregate_id = :{nameof(AggregateParameter.Id)};
                 """,
             TryGetSnapshot = $"""
-                SELECT json_data AS @{nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, 
-                       sequence_id AS @{nameof(EventualizeStoredSnapshotData<object>.SnapshotSequenceId)}
+                SELECT json_data AS {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, 
+                       sequence_id AS {nameof(EventualizeStoredSnapshotData<object>.SnapshotSequenceId)}
                 FROM {storageContext}snapshot
                 WHERE domain = 'default'
                     AND aggregate_type = :{nameof(AggregateParameter.Type)}
@@ -27,11 +27,11 @@ internal static class QueryTemplatesFactory
                 """,
             GetEvents = $"""
                 SELECT
-                    event_type AS @{nameof(EventualizeEvent.EventType)},
-                    captured_at AS @{nameof(EventualizeEvent.CapturedAt)},
-                    captured_by AS @{nameof(EventualizeEvent.CapturedBy)},
-                    json_data AS @{nameof(EventualizeEvent.JsonData)},
-                    stored_at AS @{nameof(EventualizeEvent.StoredAt)}                    
+                    event_type AS {nameof(EventualizeEvent.EventType)},
+                    captured_at AS {nameof(EventualizeEvent.CapturedAt)},
+                    captured_by AS {nameof(EventualizeEvent.CapturedBy)},
+                    json_data AS {nameof(EventualizeEvent.JsonData)},
+                    stored_at AS {nameof(EventualizeEvent.StoredAt)}                    
                 FROM {storageContext}event
                 WHERE domain = 'default'
                     AND aggregate_type = :{nameof(AggregateParameter.Type)}
