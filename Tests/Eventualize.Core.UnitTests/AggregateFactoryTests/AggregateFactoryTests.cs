@@ -9,7 +9,7 @@ public sealed class AggregateFactoryTests
     {
         var events = TestAggregateConfigs.GetPendingEvents(3);
         var (foldedState, count) = TestAggregateFactoryConfigs
-            .TestAggregateFactory
+            .GetAggregateFactory()
             .FoldingLogic
             .FoldEvents(events);
         TestState expectedState = new TestState(3, 3, 30);

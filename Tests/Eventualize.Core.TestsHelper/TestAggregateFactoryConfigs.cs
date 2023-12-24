@@ -8,26 +8,28 @@ namespace Eventualize.Core.Tests
         public static readonly string AggregateType = "TestAggregateType";
         public static readonly Type TestStateType = typeof(TestState);
 
-        public static readonly EventualizeStreamBaseAddress StreamBaseAddress = new("testDomain", "testStreamType");
-
-        public static readonly EventualizeAggregateFactory<TestState> TestAggregateFactory = new(
-            AggregateType, StreamBaseAddress,
-            new() { { TestEventType.EventTypeName, TestEventType } },
-            new (new() { { TestEventType.EventTypeName, new TestFoldingFunction() } })
-        );
+        public static EventualizeStreamBaseAddress GetStreamBaseAddress()
+        {
+            return new("testDomain", "testStreamType");
+        }
 
         public static EventualizeAggregateFactory<TestState> GetAggregateFactory()
         {
-            return TestAggregateFactory;
+            return new(
+                AggregateType,
+                GetStreamBaseAddress(),
+                new() { { TestEventType.EventTypeName, TestEventType } },
+                new(new() { { TestEventType.EventTypeName, new TestFoldingFunction() } })
+            );
         }
 
         public static EventualizeAggregateFactory<TestState> GetAggregateFactory(int minEvents)
         {
-            return new EventualizeAggregateFactory<TestState>(
-                TestAggregateFactory.AggregateType,
-                TestAggregateFactory.StreamBaseAddress,
-                TestAggregateFactory.RegisteredEventTypes,
-                TestAggregateFactory.FoldingLogic,
+            return new(
+                AggregateType,
+                GetStreamBaseAddress(),
+                new() { { TestEventType.EventTypeName, TestEventType } },
+                new(new() { { TestEventType.EventTypeName, new TestFoldingFunction() } }),
                 minEvents
             );
         }

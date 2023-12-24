@@ -7,7 +7,7 @@ namespace CoreTests.RepositoryTests
 {
     public sealed class TestStorageAdapter : IEventualizeStorageAdapter
     {
-        public Dictionary<string, EventualizeStoredSnapshotData<JsonDocument>> Snapshots = new();
+        public Dictionary<string, EventualizeStoredSnapshotData<JsonElement>> Snapshots = new();
         public Dictionary<string, List<EventualizeStoredEvent>> Events = new();
 
         #region StorePendingEvents
@@ -44,9 +44,9 @@ namespace CoreTests.RepositoryTests
         {
             string key = GetKeyValue(aggregate);
             long sequenceId = aggregate.LastStoredSequenceId + aggregate.PendingEvents.Count;
-            JsonDocument serializedSnapshot = JsonDocument.Parse(JsonSerializer.Serialize<T>(aggregate.State));
-            EventualizeStoredSnapshotData<JsonDocument> value = new(serializedSnapshot, sequenceId);
-            if (!Snapshots.TryGetValue(key, out var storedSnapshotData))
+            JsonElement serializedSnapshot = JsonSerializer.SerializeToElement<T>(aggregate.State);
+            EventualizeStoredSnapshotData<JsonElement> value = new(serializedSnapshot, sequenceId);
+            if (!Snapshots.ContainsKey(key))
             {
                 Snapshots.Add(key, value);
             }
@@ -63,7 +63,7 @@ namespace CoreTests.RepositoryTests
         internal static string GetKeyValue(EventualizeStreamAddress streamAddress) => streamAddress.ToString();
         internal static string GetKeyValue(EventualizeAggregate aggregate) => aggregate.StreamAddress.ToString();
 
-        internal static string GetKeyValue<T>(EventualizeAggregate<T> aggregate) where T : notnull, new() => GetKeyValue(aggregate);
+        internal static string GetKeyValue<T>(EventualizeAggregate<T> aggregate) where T : notnull, new() => aggregate.StreamAddress.ToString();
 
         #endregion // GetKeyValue
 
@@ -75,8 +75,7 @@ namespace CoreTests.RepositoryTests
             var (id, aggregateTypeName) = parameter;
             EventualizeStreamAddress streamAddress = new("testDomain", aggregateTypeName, id);
             var key = GetKeyValue(streamAddress);
-            EventualizeStoredSnapshotData<JsonDocument>? value;
-            if (!Snapshots.TryGetValue(key, out value) || value == null)
+            if (!Snapshots.TryGetValue(key, out var value) || value == null)
                 return Task.FromResult(default(EventualizeStoredSnapshotData<T>));
             T? parsedShapshot = JsonSerializer.Deserialize<T>(value.Snapshot);
             var result = parsedShapshot != null ? new EventualizeStoredSnapshotData<T>(parsedShapshot, value.SnapshotSequenceId) : default(EventualizeStoredSnapshotData<T>);

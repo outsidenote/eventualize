@@ -21,12 +21,12 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
 
         public static EventualizeAggregate<TestState> PrepareAggregateWithEvents(int? minEventsBetweenSnapshots)
         {
-            var events = (List<EventualizeEvent>)GetStoredEvents(3);
+            var events = GetPendingEvents(3);
             return GetTestAggregate(events, minEventsBetweenSnapshots);
         }
         public static EventualizeAggregate<TestState> PrepareAggregateWithEvents()
         {
-            var events = (List<EventualizeEvent>)GetStoredEvents(3);
+            var events = GetPendingEvents(3);
             return GetTestAggregate(events);
         }
 
@@ -45,12 +45,11 @@ namespace CoreTests.RepositoryTests.TestStorageAdapterTests
 
         public static void AssertSnapshotIsStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate)
         {
-            EventualizeStoredSnapshotData<JsonDocument>? storedSnapshot;
+            EventualizeStoredSnapshotData<JsonElement>? storedSnapshot;
             string key = TestStorageAdapter.GetKeyValue(aggregate);
             if (!testStorageAdapter.Snapshots.TryGetValue(key, out storedSnapshot))
                 throw new KeyNotFoundException(key);
             Assert.NotNull(storedSnapshot);
-            Assert.NotNull(storedSnapshot.Snapshot);
             Assert.Equal(aggregate.State, JsonSerializer.Deserialize<TestState>(JsonSerializer.Serialize(storedSnapshot.Snapshot)));
         }
 

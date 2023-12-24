@@ -4,20 +4,20 @@ public static class TestAggregateConfigs
 {
     public static EventualizeAggregate<TestState> GetTestAggregate()
     {
-        return TestAggregateFactoryConfigs.TestAggregateFactory.Create(Guid.NewGuid().ToString());
+        return TestAggregateFactoryConfigs.GetAggregateFactory().Create(Guid.NewGuid().ToString());
     }
 
     public static async Task<EventualizeAggregate<TestState>> GetTestAggregateAsync(IAsyncEnumerable<EventualizeStoredEvent> events)
     {
         var id = Guid.NewGuid().ToString();
-        var result = await TestAggregateFactoryConfigs.TestAggregateFactory.CreateAsync(id, events);
+        var result = await TestAggregateFactoryConfigs.GetAggregateFactory().CreateAsync(id, events);
         return result;
     }
 
-    public static EventualizeAggregate<TestState> GetTestAggregate(List<EventualizeEvent> events)
+    public static EventualizeAggregate<TestState> GetTestAggregate(IEnumerable<EventualizeEvent> events)
     {
         var id = Guid.NewGuid().ToString();
-        var aggregate = TestAggregateFactoryConfigs.TestAggregateFactory.Create(id);
+        var aggregate = TestAggregateFactoryConfigs.GetAggregateFactory().Create(id);
         foreach (var e in events)
         {
             aggregate.AddPendingEvent(e);
@@ -34,7 +34,7 @@ public static class TestAggregateConfigs
             return await aggregateFactory.CreateAsync(Guid.NewGuid().ToString(), events);
     }
 
-    public static EventualizeAggregate<TestState> GetTestAggregate(List<EventualizeEvent>? events, int? minEventsBetweenSnapshots)
+    public static EventualizeAggregate<TestState> GetTestAggregate(IEnumerable<EventualizeEvent>? events, int? minEventsBetweenSnapshots)
     {
         var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(minEventsBetweenSnapshots ?? 3);
         var aggregate = aggregateFactory.Create(Guid.NewGuid().ToString());
@@ -52,7 +52,7 @@ public static class TestAggregateConfigs
         return await aggregateFactory.CreateAsync(
             Guid.NewGuid().ToString(),
             events,
-            snapshot
+            new(snapshot)
         );
     }
 

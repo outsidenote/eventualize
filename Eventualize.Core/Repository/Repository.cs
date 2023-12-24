@@ -33,7 +33,7 @@ public class Repository : IRepository
         long nextSequenceId = GetNextSequenceId(snapshotData.SnapshotSequenceId);
         AggregateSequenceParameter prm2 = new(parameter, nextSequenceId);
         events = _storageAdapter.GetAsync(prm2, cancellation);
-        return await aggregateFactory.CreateAsync(streamId, events, snapshotData.Snapshot);
+        return await aggregateFactory.CreateAsync(streamId, events, snapshotData);
     }
 
     async Task IRepository.SaveAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)

@@ -30,7 +30,10 @@ public static class TestHelper
     public static readonly EventualizeEventType TestEventType = new EventualizeEventType("testType", typeof(TestEventDataType));
     public static readonly TestEventDataType CorrectEventData = new("test", 10);
 
-    public static readonly EventualizeStreamAddress TestStreamAddress = new(TestAggregateFactoryConfigs.TestAggregateFactory.StreamBaseAddress, "testStreamId");
+    public static EventualizeStreamAddress GetStreamAddress()
+    {
+        return new(TestAggregateFactoryConfigs.GetStreamBaseAddress(), "testStreamId");
+    }
 
     public static EventualizeEvent GetCorrectTestEvent()
     {
@@ -39,7 +42,7 @@ public static class TestHelper
 
     public static EventualizeStoredEvent GetCorrectTestEvent(long sequenceId)
     {
-        return new EventualizeStoredEvent(TestEventType.CreateEvent(CorrectEventData, "TestOperation"), TestStreamAddress, sequenceId);
+        return new EventualizeStoredEvent(TestEventType.CreateEvent(CorrectEventData, "TestOperation"), GetStreamAddress(), sequenceId);
     }
 
     public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents()
