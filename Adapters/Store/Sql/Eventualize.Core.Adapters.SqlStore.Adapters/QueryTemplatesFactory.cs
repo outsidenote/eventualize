@@ -1,4 +1,6 @@
-﻿namespace Eventualize.Core.Adapters.SqlStore;
+﻿using Eventualize.Core.Abstractions.Stream;
+
+namespace Eventualize.Core.Adapters.SqlStore;
 
 // TODO: [bnaya 2023-12-19] all parameters and field should be driven from nameof or const
 
@@ -11,16 +13,16 @@ internal static class QueryTemplatesFactory
             GetLastSnapshotSnapshot = $"""
                 SELECT MAX(offset)
                     FROM {storageContext}snapshot
-                    WHERE domain = 'default'
-                        AND aggregate_type = @{nameof(AggregateParameter.Type)}
-                        AND aggregate_id = @{nameof(AggregateParameter.Id)}
+                    WHERE domain = @{nameof(EventualizeStreamUri.Domain)}
+                        AND aggregate_type = @{nameof(EventualizeStreamUri.StreamType)}
+                        AND aggregate_id = @{nameof(EventualizeStreamUri.StreamId)}
                 """,
             TryGetSnapshot = $"""
                 SELECT json_data as {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, offset as {nameof(EventualizeStoredSnapshotData<object>.SnapshotOffset)}
                 FROM {storageContext}snapshot
-                WHERE domain = 'default'
-                    AND aggregate_type = @{nameof(AggregateParameter.Type)}
-                    AND aggregate_id = @{nameof(AggregateParameter.Id)}
+                WHERE domain = @{nameof(EventualizeStreamUri.Domain)}
+                    AND aggregate_type = @{nameof(EventualizeStreamUri.StreamType)}
+                    AND aggregate_id = @{nameof(EventualizeStreamUri.StreamId)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
@@ -37,10 +39,10 @@ internal static class QueryTemplatesFactory
                     aggregate_id as  {nameof(EventualizeStoredEventEntity.StreamId)}
                 
                 FROM {storageContext}event
-                WHERE domain = 'default'
-                    AND aggregate_type = @{nameof(AggregateParameter.Type)}
-                    AND aggregate_id = @{nameof(AggregateParameter.Id)}
-                    and offset >= @{nameof(AggregateSequenceParameter.Sequence)};
+                WHERE domain = @{nameof(EventualizeStreamCursor.Domain)}
+                    AND aggregate_type = @{nameof(EventualizeStreamCursor.StreamType)}
+                    AND aggregate_id = @{nameof(EventualizeStreamCursor.StreamId)}
+                    and offset >= @{nameof(EventualizeStreamCursor.Offset)};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             Save = $"""

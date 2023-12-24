@@ -1,3 +1,5 @@
+using Eventualize.Core.Abstractions.Stream;
+
 namespace Eventualize.Core;
 
 // TODO: [bnaya 2023-12-10] make it DI friendly (have an interface and DI registration)
@@ -21,17 +23,17 @@ public class EventualizeRepository : IEventualizeRepository
         cancellation.ThrowIfCancellationRequested();
         // TODO: [bnaya 2023-12-20] transaction, 
         string type = aggregateFactory.StreamBaseAddress.StreamType;
-        AggregateParameter parameter = new(streamId, type);
+        EventualizeStreamUri streamUri = new(aggregateFactory.StreamBaseAddress, streamId);
         IAsyncEnumerable<EventualizeStoredEvent> events;
-        var snapshotData = await _storageAdapter.TryGetSnapshotAsync<T>(parameter, cancellation);
+        var snapshotData = await _storageAdapter.TryGetSnapshotAsync<T>(streamUri, cancellation);
         if (snapshotData == null)
         {
-            AggregateSequenceParameter prm1 = new(parameter, 0);
+            EventualizeStreamCursor prm1 = new(streamUri, 0);
             events = _storageAdapter.GetAsync(prm1, cancellation);
             return await aggregateFactory.CreateAsync(streamId, events);
         }
         long nextOffset = GetNextOffset(snapshotData.SnapshotOffset);
-        AggregateSequenceParameter prm2 = new(parameter, nextOffset);
+        EventualizeStreamCursor prm2 = new(streamUri, nextOffset);
         events = _storageAdapter.GetAsync(prm2, cancellation);
         return await aggregateFactory.CreateAsync(streamId, events, snapshotData);
     }
