@@ -70,10 +70,8 @@ namespace CoreTests.EventualizeRepositoryTests
         #region IEventualizeStorageAdapter Members
 
         Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
-                            EventualizeStreamUri parameter, CancellationToken cancellation)
+                            EventualizeStreamUri streamUri, CancellationToken cancellation)
         {
-            var (id, aggregateTypeName) = parameter;
-            EventualizeStreamUri streamUri = new("default", aggregateTypeName, id);
             var key = GetKeyValue(streamUri);
             if (!Snapshots.TryGetValue(key, out var value) || value == null)
                 return Task.FromResult(default(EventualizeStoredSnapshotData<T>));
