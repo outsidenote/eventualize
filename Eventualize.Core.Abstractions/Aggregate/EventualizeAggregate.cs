@@ -28,8 +28,8 @@ public abstract class EventualizeAggregate
 
     #region Members
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
-    protected internal ConcurrentQueue<EventualizeEvent> _pendingEvents = new ConcurrentQueue<EventualizeEvent>();
-    public IImmutableList<EventualizeEvent> PendingEvents => _pendingEvents.ToImmutableArray();
+    protected internal ConcurrentQueue<IEventualizeEvent> _pendingEvents = new ConcurrentQueue<IEventualizeEvent>();
+    public IImmutableList<IEventualizeEvent> PendingEvents => _pendingEvents.ToImmutableArray();
 
     public long LastStoredOffset { get; protected set; } = -1;
     // TODO: [bnaya 2023-12-11] Use Min Duration or Count between snapshots
@@ -42,41 +42,41 @@ public abstract class EventualizeAggregate
 }
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EventualizeAggregate<T> : EventualizeAggregate where T : notnull, new()
+public class EventualizeAggregate<TState> : EventualizeAggregate where TState : notnull, new()
 {
     #region Ctor
 
-    internal EventualizeAggregate(string aggregateType, EventualizeStreamUri streamUri, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots, T state, long lastStoredOffset)
+    internal EventualizeAggregate(
+        string aggregateType,
+        EventualizeStreamUri streamUri,
+        EventualizeFoldingLogic<TState> foldingLogic,
+        int minEventsBetweenSnapshots, 
+        TState state, 
+        long lastStoredOffset)
         : base(aggregateType, streamUri, minEventsBetweenSnapshots, lastStoredOffset)
     {
         State = state;
-        RegisteredEventTypes = registeredEventTypes;
         FoldingLogic = foldingLogic;
     }
 
-    internal EventualizeAggregate(string aggregateType, EventualizeStreamUri streamUri, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots)
-        : this(aggregateType, streamUri, registeredEventTypes, foldingLogic, minEventsBetweenSnapshots, new T(), -1) { }
+    internal EventualizeAggregate(string aggregateType,
+                                  EventualizeStreamUri streamUri,
+                                  EventualizeFoldingLogic<TState> foldingLogic,
+                                  int minEventsBetweenSnapshots)
+        : this(aggregateType, streamUri, foldingLogic, minEventsBetweenSnapshots, new TState(), -1) { }
 
 
     #endregion // Ctor
 
     #region Members
 
-    public readonly Dictionary<string, EventualizeEventType> RegisteredEventTypes;
-    public readonly EventualizeFoldingLogic<T> FoldingLogic;
-    public T State { get; private set; }
+    public readonly EventualizeFoldingLogic<TState> FoldingLogic;
+    public TState State { get; private set; }
 
     #endregion // Members
 
-    public void AddPendingEvent(EventualizeEvent someEvent)
+    public void AddPendingEvent(IEventualizeEvent someEvent)
     {
-        EventualizeEventType? eventType;
-        if (!RegisteredEventTypes.TryGetValue(someEvent.EventType, out eventType))
-            throw new KeyNotFoundException($"No registered event of type {someEvent.EventType}");
-
-        // TODO: [bnaya 2023-12-18] @Roma what is it for?
-        eventType.ParseData(someEvent);
-
         _pendingEvents.Enqueue(someEvent);
         // TODO: [bnaya 2023-12-19] thread safe
         State = FoldingLogic.FoldEvent(State, someEvent);

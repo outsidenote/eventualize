@@ -81,7 +81,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         return result;
     }
 
-    async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation)
+    async IAsyncEnumerable<IEventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
@@ -91,7 +91,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         var parser = reader.GetRowParser<EventualizeStoredEventEntity>();
         while (await reader.ReadAsync())
         {
-            EventualizeStoredEvent e = parser(reader);
+            IEventualizeStoredEvent e = parser(reader);
             yield return e;
         }
     }

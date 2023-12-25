@@ -1,12 +1,17 @@
 ﻿using Generator.Equals;
+using System.Text.Json;
 
 namespace Eventualize.Core;
 
-// TODO: Json data -> JsonElement if needed at all
 [Equatable]
-public partial record EventualizeEvent(string EventType,
+public partial record EventualizeEvent<T>(string EventType,
                                        [property: IgnoreEquality] DateTime CapturedAt,
                                        string CapturedBy,
-                                       string JsonData)
+                                       T Data) : IEventualizeEvent
 {
+    string IEventualizeEvent.GetData()
+    {
+        var json = JsonSerializer.Serialize(Data);
+        return json;
+    }
 }

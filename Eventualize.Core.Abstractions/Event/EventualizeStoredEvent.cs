@@ -6,15 +6,14 @@ using Eventualize.Core.Abstractions.Stream;
 
 namespace Eventualize.Core;
 
-public record EventualizeStoredEvent(string EventType,
+public record EventualizeStoredEvent<T>(string EventType,
                     DateTime CapturedAt,
                     string CapturedBy,
-                    string JsonData,
+                    T Data,
                     DateTime StoredAt,
-                    EventualizeStreamUri StreamUri,
-                    long Offset)
-                    : EventualizeEvent(EventType, CapturedAt, CapturedBy, JsonData)
+                    EventualizeStreamCursor StreamCursor)
+                    : EventualizeEvent<T>(EventType, CapturedAt, CapturedBy, Data), IEventualizeStoredEvent
 {
-    public EventualizeStoredEvent(EventualizeEvent e, EventualizeStreamUri streamUri, long offset)
-        : this(e.EventType, e.CapturedAt, e.CapturedBy, e.JsonData, DateTime.Now, streamUri, offset) { }
+    public EventualizeStoredEvent(EventualizeEvent<T> e, EventualizeStreamCursor StreamCursor)
+        : this(e.EventType, e.CapturedAt, e.CapturedBy, e.Data, DateTime.Now, StreamCursor) { }
 }

@@ -5,66 +5,66 @@ using System.Threading.Tasks;
 
 namespace Eventualize.Core
 {
-    public class EventualizeFoldingLogic<T> where T : notnull, new()
+    public class EventualizeFoldingLogic<TState> where TState : notnull, new()
     {
-        public readonly Dictionary<string, IFoldingFunction<T>> Logic;
+        public readonly Dictionary<string, IFoldingFunction<TState>> Logic;
 
-        public EventualizeFoldingLogic(Dictionary<string, IFoldingFunction<T>> logic)
+        public EventualizeFoldingLogic(Dictionary<string, IFoldingFunction<TState>> logic)
         {
             Logic = logic;
         }
 
-        public T FoldEvent(T oldState, EventualizeEvent someEvent)
+        public TState FoldEvent(TState oldState, IEventualizeEvent someEvent)
         {
-            T currentState = oldState;
-            IFoldingFunction<T>? foldingFunction;
+            TState currentState = oldState;
+            IFoldingFunction<TState>? foldingFunction;
             if (!Logic.TryGetValue(someEvent.EventType, out foldingFunction)) throw new ArgumentNullException(nameof(someEvent));
             currentState = foldingFunction.Fold(currentState, someEvent);
             return currentState;
         }
 
-        public async Task<FoldingResult<T>> FoldEventsAsync(
-            IAsyncEnumerable<EventualizeStoredEvent> events)
+        public async Task<FoldingResult<TState>> FoldEventsAsync(
+            IAsyncEnumerable<IEventualizeStoredEvent> events)
         {
-            T state = new();
+            TState state = new();
             var result = await FoldEventsAsync(state, events);
             return result;
         }
 
-        public async Task<FoldingResult<T>> FoldEventsAsync(
-            T oldState,
-            IAsyncEnumerable<EventualizeStoredEvent> events)
+        public async Task<FoldingResult<TState>> FoldEventsAsync(
+            TState oldState,
+            IAsyncEnumerable<IEventualizeStoredEvent> events)
         {
             long count = 0;
-            T currentState = oldState;
-            await foreach (var e in events)
+            TState currentState = oldState;
+            await foreach (IEventualizeStoredEvent e in events)
             {
                 currentState = FoldEvent(currentState, e);
                 count++;
             }
-            return new FoldingResult<T>(currentState, count);
+            return new FoldingResult<TState>(currentState, count);
         }
 
-        public FoldingResult<T> FoldEvents(
-            IEnumerable<EventualizeEvent> events)
+        public FoldingResult<TState> FoldEvents(
+            IEnumerable<IEventualizeEvent> events)
         {
-            T state = new();
+            TState state = new();
             var result = FoldEvents(state, events);
             return result;
         }
 
-        public FoldingResult<T> FoldEvents(
-            T oldState,
-            IEnumerable<EventualizeEvent> events)
+        public FoldingResult<TState> FoldEvents(
+            TState oldState,
+            IEnumerable<IEventualizeEvent> events)
         {
             long count = 0;
-            T currentState = oldState;
+            TState currentState = oldState;
             foreach (var e in events)
             {
                 currentState = FoldEvent(currentState, e);
                 count++;
             }
-            return new FoldingResult<T>(currentState, count);
+            return new FoldingResult<TState>(currentState, count);
         }
 
     }

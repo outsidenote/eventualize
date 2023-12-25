@@ -7,7 +7,6 @@ namespace Eventualize.Core;
 public class EventualizeAggregateFactory<T> where T : notnull, new()
 {
     #region Members
-    public readonly Dictionary<string, EventualizeEventType> RegisteredEventTypes;
     public readonly EventualizeFoldingLogic<T> FoldingLogic;
 
     public readonly string AggregateType;
@@ -16,23 +15,20 @@ public class EventualizeAggregateFactory<T> where T : notnull, new()
 
     #endregion // Members
 
-    public EventualizeAggregateFactory(string aggregateType, EventualizeStreamBaseUri streamBaseAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots)
+    public EventualizeAggregateFactory(string aggregateType, EventualizeStreamBaseUri streamBaseAddress, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots = 0)
     {
         AggregateType = aggregateType;
         StreamBaseAddress = streamBaseAddress;
-        RegisteredEventTypes = registeredEventTypes;
         FoldingLogic = foldingLogic;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
     }
-    public EventualizeAggregateFactory(string aggregateType, EventualizeStreamBaseUri streamBaseAddress, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic)
-        : this(aggregateType, streamBaseAddress, registeredEventTypes, foldingLogic, 0) { }
 
     public EventualizeAggregate<T> Create(string id)
     {
-        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamUri(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots);
+        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamUri(StreamBaseAddress, id),  FoldingLogic, MinEventsBetweenSnapshots);
     }
 
-    public async Task<EventualizeAggregate<T>> CreateAsync(string id, IAsyncEnumerable<EventualizeStoredEvent> storedEvents)
+    public async Task<EventualizeAggregate<T>> CreateAsync(string id, IAsyncEnumerable<IEventualizeStoredEvent> storedEvents)
     {
         var snap = EventualizeStoredSnapshotData<T>.Create();
         return await CreateAsync(id, storedEvents, snap);
@@ -40,7 +36,7 @@ public class EventualizeAggregateFactory<T> where T : notnull, new()
 
     public async Task<EventualizeAggregate<T>> CreateAsync(
             string id,
-            IAsyncEnumerable<EventualizeStoredEvent> storedEvents,
+            IAsyncEnumerable<IEventualizeStoredEvent> storedEvents,
             EventualizeStoredSnapshotData<T> snapshotData)
     {
         long offset = snapshotData.SnapshotOffset;
@@ -48,14 +44,14 @@ public class EventualizeAggregateFactory<T> where T : notnull, new()
         await foreach (var e in storedEvents)
         {
             state = FoldingLogic.FoldEvent(state, e);
-            offset = e.Offset;
+            offset = e.StreamCursor.Offset;
         }
-        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamUri(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots, state, offset);
+        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamUri(StreamBaseAddress, id),  FoldingLogic, MinEventsBetweenSnapshots, state, offset);
     }
 
     public EventualizeAggregate<T> Create(string id, T snapshot, long snapshotOffset)
     {
-        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamUri(StreamBaseAddress, id), RegisteredEventTypes, FoldingLogic, MinEventsBetweenSnapshots, snapshot, snapshotOffset);
+        return new EventualizeAggregate<T>(AggregateType, new EventualizeStreamUri(StreamBaseAddress, id),  FoldingLogic, MinEventsBetweenSnapshots, snapshot, snapshotOffset);
     }
 }
 

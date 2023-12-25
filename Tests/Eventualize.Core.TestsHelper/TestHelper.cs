@@ -4,7 +4,7 @@ namespace Eventualize.Core.Tests;
 
 public static class TestHelper
 {
-    private static readonly IAsyncEnumerable<EventualizeStoredEvent> _emptyEvents = AsyncEnumerable<EventualizeStoredEvent>.Empty;
+    private static readonly IAsyncEnumerable<IEventualizeStoredEvent> _emptyEvents = AsyncEnumerable<IEventualizeStoredEvent>.Empty;
 
     public static async IAsyncEnumerable<T> ToAsync<T>(this IEnumerable<T> self)
     {
@@ -27,22 +27,31 @@ public static class TestHelper
     }
 #pragma warning restore S5034 // "ValueTask" should be consumed correctly
 
-    public static readonly EventualizeEventType TestEventType = new EventualizeEventType("testType", typeof(TestEventDataType));
+    public static readonly string TestEventType = "testType"; 
     public static readonly TestEventDataType CorrectEventData = new("test", 10);
 
-    public static EventualizeStreamUri GetStreamUri()
+    public readonly static EventualizeStreamUri StreamUri = new (
+                                TestAggregateFactoryConfigs.StreamBaseAddress, 
+                                "testStreamId");
+
+    public static IEventualizeEvent GetCorrectTestEvent()
     {
-        return new(TestAggregateFactoryConfigs.GetStreamBaseAddress(), "testStreamId");
+        return EventualizeEventFactory.Create(
+            TestEventType,
+            DateTime.UtcNow, 
+            "TestOperation",
+            CorrectEventData);
     }
 
-    public static EventualizeEvent GetCorrectTestEvent()
+    public static IEventualizeStoredEvent GetCorrectTestEvent(long offset)
     {
-        return TestEventType.CreateEvent(CorrectEventData, "TestOperation");
-    }
-
-    public static EventualizeStoredEvent GetCorrectTestEvent(long offset)
-    {
-        return new EventualizeStoredEvent(TestEventType.CreateEvent(CorrectEventData, "TestOperation"), GetStreamUri(), offset);
+        var cursor = new EventualizeStreamCursor(StreamUri, offset);
+        return EventualizeStoredEventFactory.Create(TestEventType,
+            DateTime.UtcNow,
+            "TestOperation",
+            CorrectEventData,
+            DateTime.UtcNow,
+            cursor);
     }
 
     public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents()
@@ -76,7 +85,7 @@ public static class TestHelper
     }
     public static EventualizeAggregate<TestState> PrepareAggregateWithEvents()
     {
-        List<EventualizeEvent> events = (List<EventualizeEvent>)TestAggregateConfigs.GetStoredEvents(3);
+        List<IEventualizeEvent> events = (List<IEventualizeEvent>)TestAggregateConfigs.GetStoredEvents(3);
         return TestAggregateConfigs.GetTestAggregate(events);
     }
 }
