@@ -70,7 +70,7 @@ namespace CoreTests.EventualizeRepositoryTests
         #region IEventualizeStorageAdapter Members
 
         Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
-                            AggregateParameter parameter, CancellationToken cancellation)
+                            EventualizeStreamUri parameter, CancellationToken cancellation)
         {
             var (id, aggregateTypeName) = parameter;
             EventualizeStreamUri streamUri = new("default", aggregateTypeName, id);
@@ -82,16 +82,16 @@ namespace CoreTests.EventualizeRepositoryTests
             return Task.FromResult(result);
         }
 
-        async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation)
+        async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor streamCursor, CancellationToken cancellation)
         {
-            var (id, aggregateTypeName, startOffset) = parameter;
+            var (streamDomain, aggregateTypeName, id, offset) = streamCursor;
             EventualizeStreamUri streamUri = new("default",aggregateTypeName,id);
             var key = GetKeyValue(streamUri);
             if (!Events.TryGetValue(key, out List<EventualizeStoredEvent>? events) || events == null)
                 yield break;
             //try
             //{
-            var evts = events.GetRange((int)startOffset, events.Count - (int)startOffset);
+            var evts = events.GetRange((int)offset, events.Count - (int)offset);
             foreach (var e in evts)
             {
                 await Task.Yield();
