@@ -14,15 +14,15 @@ internal static class QueryTemplatesFactory
                 SELECT MAX(offset)
                     FROM {storageContext}snapshot
                     WHERE domain = @{nameof(EventualizeStreamUri.Domain)}
-                        AND aggregate_type = @{nameof(EventualizeStreamUri.StreamType)}
-                        AND aggregate_id = @{nameof(EventualizeStreamUri.StreamId)}
+                        AND stream_type = @{nameof(EventualizeStreamUri.StreamType)}
+                        AND stream_id = @{nameof(EventualizeStreamUri.StreamId)}
                 """,
             TryGetSnapshot = $"""
                 SELECT json_data as {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, offset as {nameof(EventualizeStoredSnapshotData<object>.SnapshotOffset)}
                 FROM {storageContext}snapshot
                 WHERE domain = @{nameof(EventualizeStreamUri.Domain)}
-                    AND aggregate_type = @{nameof(EventualizeStreamUri.StreamType)}
-                    AND aggregate_id = @{nameof(EventualizeStreamUri.StreamId)}
+                    AND stream_type = @{nameof(EventualizeStreamUri.StreamType)}
+                    AND stream_id = @{nameof(EventualizeStreamUri.StreamId)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
@@ -35,15 +35,15 @@ internal static class QueryTemplatesFactory
                     stored_at as {nameof(EventualizeStoredEvent.StoredAt)}                    
                 FROM {storageContext}event
                 WHERE domain = @{nameof(EventualizeStreamCursor.Domain)}
-                    AND aggregate_type = @{nameof(EventualizeStreamCursor.StreamType)}
-                    AND aggregate_id = @{nameof(EventualizeStreamCursor.StreamId)}
+                    AND stream_type = @{nameof(EventualizeStreamCursor.StreamType)}
+                    AND stream_id = @{nameof(EventualizeStreamCursor.StreamId)}
                     and offset >= @{nameof(EventualizeStreamCursor.Offset)};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             Save = $"""
                     INSERT INTO {storageContext}event (
-                        aggregate_id,
-                        aggregate_type, 
+                        stream_id,
+                        stream_type, 
                         event_type, 
                         offset,
                         json_data,
@@ -62,8 +62,8 @@ internal static class QueryTemplatesFactory
                     """,
             SaveSnapshot = $"""
             INSERT INTO {storageContext}snapshot (
-                        aggregate_id,
-                        aggregate_type, 
+                        stream_id,
+                        stream_type, 
                         offset,
                         json_data,
                         domain)

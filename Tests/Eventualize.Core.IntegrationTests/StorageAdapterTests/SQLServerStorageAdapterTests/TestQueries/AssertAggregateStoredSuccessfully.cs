@@ -33,8 +33,8 @@ SELECT COUNT(*)
 FROM {prefix}event
 WHERE
     domain = 'default'
-    AND aggregate_type = '{aggregate.StreamUri.StreamType}'
-    AND aggregate_id = '{aggregate.StreamUri.StreamId}'
+    AND stream_type = '{aggregate.StreamUri.StreamType}'
+    AND stream_id = '{aggregate.StreamUri.StreamId}'
             ";
             var command = world.Connection.CreateCommand();
             command.CommandText = queryString;
@@ -50,8 +50,8 @@ SELECT offset
 FROM {prefix}snapshot
 WHERE
     domain = 'default'
-    AND aggregate_type = '{aggregate.StreamUri.StreamType}'
-    AND aggregate_id = '{aggregate.StreamUri.StreamId}'
+    AND stream_type = '{aggregate.StreamUri.StreamType}'
+    AND stream_id = '{aggregate.StreamUri.StreamId}'
             ";
             var command = world.Connection.CreateCommand();
             command.CommandText = queryString;
