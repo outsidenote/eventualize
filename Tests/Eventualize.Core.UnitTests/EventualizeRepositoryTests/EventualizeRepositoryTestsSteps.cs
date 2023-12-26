@@ -28,7 +28,7 @@ namespace CoreTests.EventualizeRepositoryTests
 
         public async Task AssertStoredAggregateIsCorrect(EventualizeAggregate<TestState> aggregate, bool isSnapshotStored)
         {
-            EventualizeStreamCursor streamCursor = new(aggregate);
+            EventualizeStreamCursor streamCursor = new(aggregate.StreamUri);
             IAsyncEnumerable<EventualizeEvent>? eventsAsync = _storageAdapter.GetAsync(streamCursor);
             var events = await eventsAsync.ToEnumerableAsync();
             Assert.Equal(3, events.Count);
