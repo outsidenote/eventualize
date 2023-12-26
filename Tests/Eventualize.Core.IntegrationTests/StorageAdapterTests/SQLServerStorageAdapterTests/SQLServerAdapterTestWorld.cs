@@ -23,7 +23,7 @@ public class SQLServerAdapterTestWorld : IDisposable, IAsyncDisposable
 
     public SQLServerAdapterTestWorld(IConfigurationRoot configuration, ITestOutputHelper testLogger)
     {
-        string connectionString = configuration.GetConnectionString("SqlServerConnection") ?? throw new ArgumentNullException("SqlServerConnection");
+        string connectionString = Environment.GetEnvironmentVariable("EVENTUALIZE_SQL_SERVER_CONNECTION") ?? configuration.GetConnectionString("SqlServerConnection") ?? throw new ArgumentNullException("SqlServerConnection");
 
         A.CallTo(() => _connectionFactory.CreateConnection())
             .ReturnsLazily(() =>
