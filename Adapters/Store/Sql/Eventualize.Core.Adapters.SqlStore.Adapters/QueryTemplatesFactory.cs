@@ -26,9 +26,10 @@ internal static class QueryTemplatesFactory
                     aggregate_type as {nameof(EventualizeeSnapshotRelationalRecrod.AggregateType)},
                     offset as {nameof(EventualizeeSnapshotRelationalRecrod.Offset)}
                 FROM {storageContext}snapshot
-                WHERE domain = @{nameof(EventualizeStreamUri.Domain)}
-                    AND stream_type = @{nameof(EventualizeStreamUri.StreamType)}
-                    AND stream_id = @{nameof(EventualizeStreamUri.StreamId)}
+                WHERE domain = @{nameof(EventualizeSnapshotUri.Domain)}
+                    AND stream_type = @{nameof(EventualizeSnapshotUri.StreamType)}
+                    AND stream_id = @{nameof(EventualizeSnapshotUri.StreamId)}
+                    AND aggregate_type = @{nameof(EventualizeSnapshotUri.AggregateType)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
@@ -73,17 +74,21 @@ internal static class QueryTemplatesFactory
                     """,
             SaveSnapshot = $"""
             INSERT INTO {storageContext}snapshot (
-                        stream_id,
+                        domain,
                         stream_type, 
+                        stream_id,
+                        aggregate_type,
                         offset,
-                        json_data,
-                        domain)
+                        json_data
+                        )
             VALUES (
-                        @{nameof(SnapshotSaveParameter.AggregateId)},
+                        @{nameof(SnapshotSaveParameter.Domain)},
+                        @{nameof(SnapshotSaveParameter.StreamType)},
+                        @{nameof(SnapshotSaveParameter.StreamId)},
                         @{nameof(SnapshotSaveParameter.AggregateType)},
-                        @{nameof(SnapshotSaveParameter.Sequence)},
-                        @{nameof(SnapshotSaveParameter.Payload)},
-                        @{nameof(SnapshotSaveParameter.Domain)})
+                        @{nameof(SnapshotSaveParameter.Offset)},
+                        @{nameof(SnapshotSaveParameter.Payload)}
+                    )
             """
 
         };

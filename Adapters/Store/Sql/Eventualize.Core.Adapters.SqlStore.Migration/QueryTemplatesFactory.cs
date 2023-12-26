@@ -55,7 +55,7 @@ internal static class QueryTemplatesFactory
                 domain NVARCHAR(40) NOT NULL,
                 stream_type NVARCHAR(40) NOT NULL,
                 stream_id NVARCHAR(40) NOT NULL,
-                aggregate_type NVARCHAR(40) NOT NULL DEFAULT 'default',
+                aggregate_type NVARCHAR(40) NOT NULL,
                 offset BIGINT NOT NULL,
                 json_data NVARCHAR(MAX) NOT NULL,
                 stored_at DATETIME DEFAULT GETDATE() NOT NULL,

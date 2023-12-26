@@ -119,12 +119,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
                 // TODO: [bnaya 2023-12-20] serialization?
                 // TODO: [bnaya 2023-12-20] domain
                 var payload = JsonSerializer.Serialize(aggregate.State);
-                SnapshotSaveParameter snapshotSaveParameter = new SnapshotSaveParameter(
-                                            aggregate.StreamUri.StreamId,
-                                            aggregate.StreamUri.StreamType,
-                                            offset,
-                                            payload,
-                                            "default");
+                SnapshotSaveParameter snapshotSaveParameter = SnapshotSaveParameter.Create(aggregate);
                 int snapshot = await conn.ExecuteAsync(snapQuery, snapshotSaveParameter);
                 if (snapshot != 1)
                     throw new DataException("Snapshot not saved");

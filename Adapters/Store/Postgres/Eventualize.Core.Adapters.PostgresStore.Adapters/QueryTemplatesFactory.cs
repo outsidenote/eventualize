@@ -68,9 +68,9 @@ internal static class QueryTemplatesFactory
                         json_data,
                         domain)
             VALUES (
-                        @{nameof(SnapshotSaveParameter.AggregateId)},
-                        @{nameof(SnapshotSaveParameter.AggregateType)},
-                        @{nameof(SnapshotSaveParameter.Sequence)},
+                        @{nameof(SnapshotSaveParameter.StreamId)},
+                        @{nameof(SnapshotSaveParameter.StreamType)},
+                        @{nameof(SnapshotSaveParameter.Offset)},
                         @{nameof(SnapshotSaveParameter.Payload)},
                         @{nameof(SnapshotSaveParameter.Domain)})
             """
