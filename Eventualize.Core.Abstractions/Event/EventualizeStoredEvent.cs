@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Eventualize.Core.Abstractions.Stream;
+using Generator.Equals;
 
 namespace Eventualize.Core;
 
-public record EventualizeStoredEvent<T>(string EventType,
+public partial record EventualizeStoredEvent(string EventType,
                     DateTime CapturedAt,
                     string CapturedBy,
-                    T Data,
+                    string Data,
                     DateTime StoredAt,
                     EventualizeStreamCursor StreamCursor)
-                    : EventualizeEvent<T>(EventType, CapturedAt, CapturedBy, Data), IEventualizeStoredEvent
+                    : EventualizeEvent(EventType, CapturedAt, CapturedBy, Data), IEventualizeStoredEvent
 {
-    public EventualizeStoredEvent(EventualizeEvent<T> e, EventualizeStreamCursor StreamCursor)
+    public EventualizeStoredEvent(EventualizeEvent e, EventualizeStreamCursor StreamCursor)
         : this(e.EventType, e.CapturedAt, e.CapturedBy, e.Data, DateTime.Now, StreamCursor) { }
 }

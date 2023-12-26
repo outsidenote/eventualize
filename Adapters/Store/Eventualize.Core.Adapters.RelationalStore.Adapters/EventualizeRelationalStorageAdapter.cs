@@ -91,7 +91,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         var parser = reader.GetRowParser<EventualizeStoredEventEntity>();
         while (await reader.ReadAsync())
         {
-            IEventualizeStoredEvent e = parser(reader);
+            EventualizeStoredEvent e = parser(reader);
             yield return e;
         }
     }

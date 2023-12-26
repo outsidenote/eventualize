@@ -25,19 +25,20 @@ public class AggregateSaveParameterCollection<T> : IEnumerable<AggregateSavePara
     public IEnumerator<AggregateSaveParameter> GetEnumerator()
     {
         int i = 0;
-        foreach (IEventualizeEvent item in Events)
+        foreach (IEventualizeEvent e in Events)
         {
-            var e = new AggregateSaveParameter/*<T>*/(
+            EventualizeEvent entity = (EventualizeEvent)e;
+            var item = new AggregateSaveParameter(
                             aggregateId,
                             aggregateType,
-                            item.EventType,
+                            entity.EventType,
                             baseSeq + i,
-                            item.GetData(),
-                            item.CapturedBy,
-                            item.CapturedAt,
+                            entity.Data,
+                            entity.CapturedBy,
+                            entity.CapturedAt,
                             _domain
                         );
-            yield return e;
+            yield return item;
             i++;
         }
     }

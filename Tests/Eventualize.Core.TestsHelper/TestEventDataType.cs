@@ -1,3 +1,6 @@
+using Generator.Equals;
+
 namespace Eventualize.Core.Tests;
 
-public record TestEventDataType(string A, int B);
+[Equatable]
+public partial record TestEventDataType(string A, int B);

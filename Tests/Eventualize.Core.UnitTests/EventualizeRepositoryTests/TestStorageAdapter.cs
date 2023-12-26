@@ -16,7 +16,6 @@ namespace CoreTests.EventualizeRepositoryTests
         {
             if (aggregate.PendingEvents.Count == 0)
                 return;
-            List<IEventualizeStoredEvent> storedEvents = [];
             string key = GetKeyValue(aggregate);
             long lastStoredOffset = -1;
             if (!Events.TryGetValue(key, out var stream))
@@ -33,9 +32,8 @@ namespace CoreTests.EventualizeRepositoryTests
             foreach (IEventualizeEvent pendingEvent in aggregate.PendingEvents)
             {
                 var cursor = new EventualizeStreamCursor(aggregate.StreamUri, ++lastStoredOffset);
-                throw new NotImplementedException();
-                //var e = EventualizeStoredEventFactory.Create( pendingEvent, cursor);
-                //stream.Add(e);
+                var e = EventualizeStoredEventFactory.Create( pendingEvent, cursor);
+                stream.Add(e);
             }
         }
 

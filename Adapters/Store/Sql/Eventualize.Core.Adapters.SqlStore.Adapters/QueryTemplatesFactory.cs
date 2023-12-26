@@ -28,12 +28,12 @@ internal static class QueryTemplatesFactory
                 """,
             GetEvents = $"""
                 SELECT
-                    event_type as {nameof(EventualizeStoredEvent.EventType)},
-                    captured_at as {nameof(EventualizeStoredEvent.CapturedAt)},
-                    captured_by as {nameof(EventualizeStoredEvent.CapturedBy)},
-                    json_data as {nameof(EventualizeStoredEvent.JsonData)},
-                    stored_at as {nameof(EventualizeStoredEvent.StoredAt)},
-                    offset as {nameof(EventualizeStoredEvent.Offset)},
+                    event_type as {nameof(EventualizeStoredEventEntity.EventType)},
+                    captured_at as {nameof(EventualizeStoredEventEntity.CapturedAt)},
+                    captured_by as {nameof(EventualizeStoredEventEntity.CapturedBy)},
+                    json_data as {nameof(EventualizeStoredEventEntity.Data)},
+                    stored_at as {nameof(EventualizeStoredEventEntity.StoredAt)},
+                    offset as {nameof(EventualizeStoredEventEntity.Offset)},
                     domain  as {nameof(EventualizeStoredEventEntity.Domain)} ,
                     aggregate_type as {nameof(EventualizeStoredEventEntity.StreamType)},
                     aggregate_id as  {nameof(EventualizeStoredEventEntity.StreamId)}

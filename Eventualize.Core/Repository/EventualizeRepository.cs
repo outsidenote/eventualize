@@ -24,7 +24,7 @@ public class EventualizeRepository : IEventualizeRepository
         // TODO: [bnaya 2023-12-20] transaction, 
         string type = aggregateFactory.StreamBaseAddress.StreamType;
         EventualizeStreamUri streamUri = new(aggregateFactory.StreamBaseAddress, streamId);
-        IAsyncEnumerable<EventualizeStoredEvent> events;
+        IAsyncEnumerable<IEventualizeStoredEvent> events;
         var snapshotData = await _storageAdapter.TryGetSnapshotAsync<T>(streamUri, cancellation);
         if (snapshotData == null)
         {

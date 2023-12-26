@@ -13,7 +13,7 @@ namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests
             EventualizeAggregate<TestState> aggregate = GetTestAggregate();
             for (int i = 0; i < 3; i++)
             {
-                EventualizeEvent e = GetCorrectTestEvent();
+                IEventualizeEvent e = GetCorrectTestEvent();
                 aggregate.AddPendingEvent(e);
             }
             return aggregate;
@@ -30,7 +30,7 @@ namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests
             return GetTestAggregate(events);
         }
 
-        public static void AssertEventsAreStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate, IEnumerable<EventualizeEvent>? events)
+        public static void AssertEventsAreStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate, IEnumerable<IEventualizeEvent>? events)
         {
             Assert.NotNull(events);
             string key = TestStorageAdapter.GetKeyValue(aggregate);
@@ -38,15 +38,7 @@ namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests
                 throw new KeyNotFoundException(key);
             Assert.NotNull(storedEvents);
             Assert.True(
-                events.SequenceEqual(storedEvents
-                    .Select(x => new EventualizeEvent(
-                        x.EventType,
-                        x.CapturedAt,
-                        x.CapturedBy,
-                        x.JsonData
-                    ))
-                )
-            );
+                storedEvents.SequenceEqual(events));
         }
 
         public static void AssertSnapshotIsStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate)
