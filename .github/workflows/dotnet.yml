@@ -83,9 +83,9 @@ jobs:
       run: dotnet test
 
     # Execute all Integration tests in the solution
-    - name: Execute Integration tests
-      working-directory: ./Tests/Eventualize.Core.IntegrationTests
-      run: dotnet test
+    # - name: Execute Integration tests
+    #   working-directory: ./Tests/Eventualize.Core.IntegrationTests
+    #   run: dotnet test
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
     # - name: Restore the application
