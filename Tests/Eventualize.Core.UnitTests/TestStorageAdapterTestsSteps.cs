@@ -51,12 +51,12 @@ namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests
 
         public static void AssertSnapshotIsStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate)
         {
-            EventualizeStoredSnapshotData<JsonElement>? storedSnapshot;
+            EventualizeStoredSnapshot<JsonElement>? storedSnapshot;
             string key = TestStorageAdapter.GetKeyValue(aggregate);
             if (!testStorageAdapter.Snapshots.TryGetValue(key, out storedSnapshot))
                 throw new KeyNotFoundException(key);
             Assert.NotNull(storedSnapshot);
-            Assert.Equal(aggregate.State, JsonSerializer.Deserialize<TestState>(JsonSerializer.Serialize(storedSnapshot.Snapshot)));
+            Assert.Equal(aggregate.State, JsonSerializer.Deserialize<TestState>(JsonSerializer.Serialize(storedSnapshot.State)));
         }
 
     }

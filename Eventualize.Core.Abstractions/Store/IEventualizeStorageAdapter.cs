@@ -5,7 +5,7 @@ namespace Eventualize.Core;
 
 public interface IEventualizeStorageAdapter : IDisposable, IAsyncDisposable
 {
-    Task<EventualizeStoredSnapshotData<T>?> TryGetSnapshotAsync<T>(EventualizeStreamUri streamUri, CancellationToken cancellation = default) where T : notnull, new();
+    Task<EventualizeStoredSnapshot<T>?> TryGetSnapshotAsync<T>(EventualizeStreamUri streamUri, CancellationToken cancellation = default) where T : notnull, new();
 
     IAsyncEnumerable<EventualizeStoredEvent> GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation = default);
 

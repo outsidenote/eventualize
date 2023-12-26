@@ -49,7 +49,7 @@ public static class TestAggregateConfigs
     public static async Task<EventualizeAggregate<TestState>> GetTestAggregateAsync(TestState snapshot, IAsyncEnumerable<EventualizeStoredEvent> events)
     {
         var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
-        var snap = EventualizeStoredSnapshotData<TestState>.Create(snapshot);
+        var snap = EventualizeStoredSnapshot<TestState>.Create(snapshot);
         return await aggregateFactory.CreateAsync(
             Guid.NewGuid().ToString(),
             events,

@@ -69,7 +69,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         return offset;
     }
 
-    async Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
+    async Task<EventualizeStoredSnapshot<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
         EventualizeStreamUri streamUri, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -77,7 +77,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
 
         string query = _queries.TryGetSnapshot;
 
-        var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshotData<T>>(query, streamUri);
+        var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshot<T>>(query, streamUri);
         return result;
     }
 

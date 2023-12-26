@@ -34,17 +34,17 @@ public class EventualizeAggregateFactory<T> where T : notnull, new()
 
     public async Task<EventualizeAggregate<T>> CreateAsync(string id, IAsyncEnumerable<EventualizeStoredEvent> storedEvents)
     {
-        var snap = EventualizeStoredSnapshotData<T>.Create();
+        var snap = EventualizeStoredSnapshot<T>.Create();
         return await CreateAsync(id, storedEvents, snap);
     }
 
     public async Task<EventualizeAggregate<T>> CreateAsync(
             string id,
             IAsyncEnumerable<EventualizeStoredEvent> storedEvents,
-            EventualizeStoredSnapshotData<T> snapshotData)
+            EventualizeStoredSnapshot<T> snapshot)
     {
-        long offset = snapshotData.SnapshotOffset;
-        T state = snapshotData.Snapshot;
+        long offset = snapshot.Cursor.Offset;
+        T state = snapshot.State;
         await foreach (var e in storedEvents)
         {
             state = FoldingLogic.FoldEvent(state, e);

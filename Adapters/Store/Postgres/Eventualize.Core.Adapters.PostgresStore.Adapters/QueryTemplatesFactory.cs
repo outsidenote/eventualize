@@ -18,7 +18,7 @@ internal static class QueryTemplatesFactory
                         AND stream_id = @{nameof(EventualizeStreamUri.StreamId)}
                 """,
             TryGetSnapshot = $"""
-                SELECT json_data as {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, offset as {nameof(EventualizeStoredSnapshotData<object>.SnapshotOffset)}
+                SELECT json_data as {nameof(EventualizeStoredSnapshot<object>.State)}, offset as {nameof(EventualizeStoredSnapshot<object>.Cursor.Offset)}
                 FROM {storageContext}snapshot
                 WHERE domain = @{nameof(EventualizeStreamUri.Domain)}
                     AND stream_type = @{nameof(EventualizeStreamUri.StreamType)}

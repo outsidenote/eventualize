@@ -100,8 +100,8 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
 
         var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.StreamUri);
         Assert.NotNull(latestSnapshot);
-        Assert.Equal(aggregate.State, latestSnapshot.Snapshot);
-        Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.SnapshotOffset);
+        Assert.Equal(aggregate.State, latestSnapshot.State);
+        Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.Cursor.Offset);
     }
 
     [Fact]

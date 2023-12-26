@@ -54,9 +54,16 @@ public class EventualizeAggregate<T> : EventualizeAggregate where T : notnull, n
         FoldingLogic = foldingLogic;
     }
 
+    internal EventualizeAggregate(EventualizeSnapshotCursor cursor, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots, T state)
+        : base(cursor.AggregateType, cursor, minEventsBetweenSnapshots, cursor.Offset)
+    {
+        State = state;
+        RegisteredEventTypes = registeredEventTypes;
+        FoldingLogic = foldingLogic;
+    }
+
     internal EventualizeAggregate(string aggregateType, EventualizeStreamUri streamUri, Dictionary<string, EventualizeEventType> registeredEventTypes, EventualizeFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots)
         : this(aggregateType, streamUri, registeredEventTypes, foldingLogic, minEventsBetweenSnapshots, new T(), -1) { }
-
 
     #endregion // Ctor
 

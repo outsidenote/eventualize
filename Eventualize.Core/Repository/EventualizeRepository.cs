@@ -25,17 +25,17 @@ public class EventualizeRepository : IEventualizeRepository
         string type = aggregateFactory.StreamBaseAddress.StreamType;
         EventualizeStreamUri streamUri = new(aggregateFactory.StreamBaseAddress, streamId);
         IAsyncEnumerable<EventualizeStoredEvent> events;
-        var snapshotData = await _storageAdapter.TryGetSnapshotAsync<T>(streamUri, cancellation);
-        if (snapshotData == null)
+        var snapshot = await _storageAdapter.TryGetSnapshotAsync<T>(streamUri, cancellation);
+        if (snapshot == null)
         {
             EventualizeStreamCursor prm1 = new(streamUri, 0);
             events = _storageAdapter.GetAsync(prm1, cancellation);
             return await aggregateFactory.CreateAsync(streamId, events);
         }
-        long nextOffset = GetNextOffset(snapshotData.SnapshotOffset);
+        long nextOffset = GetNextOffset(snapshot.Cursor.Offset);
         EventualizeStreamCursor prm2 = new(streamUri, nextOffset);
         events = _storageAdapter.GetAsync(prm2, cancellation);
-        return await aggregateFactory.CreateAsync(streamId, events, snapshotData);
+        return await aggregateFactory.CreateAsync(streamId, events, snapshot);
     }
 
     async Task IEventualizeRepository.SaveAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)

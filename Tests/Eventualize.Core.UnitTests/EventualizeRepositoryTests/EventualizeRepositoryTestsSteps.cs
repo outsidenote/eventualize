@@ -36,8 +36,8 @@ namespace CoreTests.EventualizeRepositoryTests
             Assert.Empty(aggregate.PendingEvents);
 
 
-            var snapshotData = await _storageAdapter.TryGetSnapshotAsync<TestState>(aggregate.StreamUri);
-            Assert.Equal(!isSnapshotStored, snapshotData is null);
+            var snapshot = await _storageAdapter.TryGetSnapshotAsync<TestState>(aggregate.StreamUri);
+            Assert.Equal(!isSnapshotStored, snapshot is null);
             if (isSnapshotStored)
             {
                 long expectedLastStoredOffset = events.Count - 1;
