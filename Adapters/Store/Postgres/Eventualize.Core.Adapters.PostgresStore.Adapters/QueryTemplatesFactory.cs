@@ -1,4 +1,4 @@
-﻿using Eventualize.Core.Abstractions.Stream;
+﻿using Eventualize.Core;
 
 namespace Eventualize.Core.Adapters.SqlStore;
 

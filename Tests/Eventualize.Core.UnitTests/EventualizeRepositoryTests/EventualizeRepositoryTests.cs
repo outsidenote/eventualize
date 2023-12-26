@@ -16,6 +16,17 @@ namespace CoreTests.EventualizeRepositoryTests
             var fetchedAggregate = await repository.GetAsync(aggregateFactory, aggregate.StreamUri.StreamId);
             repoTestSteps.AssertFetchedAggregateIsCorrect(aggregate, fetchedAggregate);
         }
+        [Fact]
+        public async Task EventualizeRepository_WhenGettingDifferentAggregate_Succeed()
+        {
+            var repoTestSteps = new EventualizeRepositoryTestsSteps();
+            var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+            IEventualizeRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
+            var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
+            var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
+            var fetchedAggregate = await repository.GetAsync(aggregateFactory2, aggregate.StreamUri.StreamId);
+            repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
+        }
 
         [Fact]
         public async Task EventualizeRepository_WhenStoringAggregateWithoutSnapshot_Succeed()

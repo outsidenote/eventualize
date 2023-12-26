@@ -1,4 +1,4 @@
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 using static Eventualize.Core.Tests.TestHelper;
 
 namespace Eventualize.Core.Tests
@@ -6,6 +6,7 @@ namespace Eventualize.Core.Tests
     public static class TestAggregateFactoryConfigs
     {
         public static readonly string AggregateType = "TestAggregateType";
+        public static readonly string AggregateType2 = "TestAggregateType2";
         public static readonly Type TestStateType = typeof(TestState);
 
         public static EventualizeStreamBaseUri GetStreamBaseAddress()
@@ -25,7 +26,7 @@ namespace Eventualize.Core.Tests
             );
 
             return new(
-                AggregateType,
+                useFoldingLogic2 ? AggregateType2 : AggregateType,
                 GetStreamBaseAddress(),
                 new() { { TestEventType.EventTypeName, TestEventType } },
                 foldingLogic

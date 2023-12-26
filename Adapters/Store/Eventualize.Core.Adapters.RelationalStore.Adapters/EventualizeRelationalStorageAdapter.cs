@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Data;
@@ -70,14 +70,14 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
     }
 
     async Task<EventualizeStoredSnapshot<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
-        EventualizeStreamUri streamUri, CancellationToken cancellation)
+        EventualizeSnapshotUri snapshotUri, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
 
         string query = _queries.TryGetSnapshot;
 
-        var record = await conn.QuerySingleOrDefaultAsync<EventualizeeSnapshotRelationalRecrod>(query, streamUri);
+        var record = await conn.QuerySingleOrDefaultAsync<EventualizeeSnapshotRelationalRecrod>(query, snapshotUri);
         if (record == null)
             return null;
         return EventualizeStoredSnapshot<T>.Create(record);

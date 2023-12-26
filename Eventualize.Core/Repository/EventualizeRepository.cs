@@ -1,4 +1,4 @@
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 
 namespace Eventualize.Core;
 
@@ -22,18 +22,17 @@ public class EventualizeRepository : IEventualizeRepository
     {
         cancellation.ThrowIfCancellationRequested();
         // TODO: [bnaya 2023-12-20] transaction, 
-        string type = aggregateFactory.StreamBaseAddress.StreamType;
-        EventualizeStreamUri streamUri = new(aggregateFactory.StreamBaseAddress, streamId);
+        EventualizeSnapshotUri snapshotUri = new(new EventualizeStreamUri(aggregateFactory.StreamBaseAddress, streamId), aggregateFactory.AggregateType);
         IAsyncEnumerable<EventualizeStoredEvent> events;
-        var snapshot = await _storageAdapter.TryGetSnapshotAsync<T>(streamUri, cancellation);
+        var snapshot = await _storageAdapter.TryGetSnapshotAsync<T>(snapshotUri, cancellation);
         if (snapshot == null)
         {
-            EventualizeStreamCursor prm1 = new(streamUri, 0);
+            EventualizeStreamCursor prm1 = new(snapshotUri, 0);
             events = _storageAdapter.GetAsync(prm1, cancellation);
             return await aggregateFactory.CreateAsync(streamId, events);
         }
         long nextOffset = GetNextOffset(snapshot.Cursor.Offset);
-        EventualizeStreamCursor prm2 = new(streamUri, nextOffset);
+        EventualizeStreamCursor prm2 = new(snapshotUri, nextOffset);
         events = _storageAdapter.GetAsync(prm2, cancellation);
         return await aggregateFactory.CreateAsync(streamId, events, snapshot);
     }

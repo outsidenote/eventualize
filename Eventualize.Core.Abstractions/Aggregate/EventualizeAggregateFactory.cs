@@ -1,6 +1,6 @@
 ﻿// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset
 
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 
 namespace Eventualize.Core;
 

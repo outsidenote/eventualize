@@ -1,4 +1,4 @@
-﻿using Eventualize.Core.Abstractions.Stream;
+﻿using Eventualize.Core;
 
 // TODO: [bnaya 2023-12-20] default timeout
 

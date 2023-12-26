@@ -1,8 +1,10 @@
 ﻿using System.Text.Json;
+using Generator.Equals;
 
 namespace Eventualize.Core;
 
-public record EventualizeStoredSnapshot<T>(T State, EventualizeSnapshotCursor Cursor) where T : notnull, new()
+[Equatable]
+public partial record EventualizeStoredSnapshot<T>(T State, EventualizeSnapshotCursor Cursor) where T : notnull, new()
 {
     [Obsolete("Only for Dapper")]
     public EventualizeStoredSnapshot(string serializedState, string domain, string streamType, string streamId, string aggregateType, long offset) :

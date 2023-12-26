@@ -98,7 +98,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
 
-        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.StreamUri);
+        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotUri);
         Assert.NotNull(latestSnapshot);
         Assert.Equal(aggregate.State, latestSnapshot.State);
         Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.Cursor.Offset);
@@ -122,5 +122,21 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
                                             m.JsonData
                                         ));
         Assert.True(aggregate.PendingEvents.SequenceEqual(es));
+    }
+
+    [Fact(Skip = "not active")]
+    public async Task SQLStorageAdapter_WhenGettingLatestSnapshot2_Succeed()
+    {
+        throw new NotImplementedException();
+        // var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
+        // var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotUri);
+        // var latestSnapshot2 = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate2.snapshotUri);
+        // Assert.NotEqual(latestSnapshot, latestSnapshot2);
+        // Assert.NotNull(latestSnapshot);
+        // Assert.Equal(aggregate.State, latestSnapshot.State);
+        // Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.Cursor.Offset);
+        // Assert.NotNull(latestSnapshot2);
+        // Assert.Equal(aggregate2.State, latestSnapshot2.State);
+        // Assert.Equal(aggregate2.LastStoredOffset + aggregate2.PendingEvents.Count, latestSnapshot2.Cursor.Offset);
     }
 }
