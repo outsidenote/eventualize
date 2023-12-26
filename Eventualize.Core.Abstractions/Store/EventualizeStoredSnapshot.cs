@@ -10,9 +10,15 @@ public record EventualizeStoredSnapshot<T>(T State, EventualizeSnapshotCursor Cu
     {
     }
 
+    private EventualizeStoredSnapshot(EventualizeeSnapshotRelationalRecrod record) :
+        this(JsonSerializer.Deserialize<T>(record.SerializedState) ?? new(), record)
+    {
+    }
+
     public static EventualizeStoredSnapshot<T> Create() => new EventualizeStoredSnapshot<T>();
 
     public static EventualizeStoredSnapshot<T> Create(T state) => new EventualizeStoredSnapshot<T>(state);
+    public static EventualizeStoredSnapshot<T> Create(EventualizeeSnapshotRelationalRecrod record) => new EventualizeStoredSnapshot<T>(record);
 
     private EventualizeStoredSnapshot()
         : this(new T(), new EventualizeSnapshotCursor("N/A", "N/A", "N/A", "N/A", -1)) { }

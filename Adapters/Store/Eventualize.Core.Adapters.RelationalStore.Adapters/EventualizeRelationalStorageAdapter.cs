@@ -77,8 +77,10 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
 
         string query = _queries.TryGetSnapshot;
 
-        var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshot<T>>(query, streamUri);
-        return result;
+        var record = await conn.QuerySingleOrDefaultAsync<EventualizeeSnapshotRelationalRecrod>(query, streamUri);
+        if (record == null)
+            return null;
+        return EventualizeStoredSnapshot<T>.Create(record);
     }
 
     async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation)
