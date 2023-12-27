@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 using Generator.Equals;
 
 namespace Eventualize.Core;

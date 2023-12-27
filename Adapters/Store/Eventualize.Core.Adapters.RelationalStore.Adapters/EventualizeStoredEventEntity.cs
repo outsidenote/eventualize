@@ -1,4 +1,6 @@
-﻿// TODO: [bnaya 2023-12-20] default timeout
+﻿using Eventualize.Core;
+
+// TODO: [bnaya 2023-12-20] default timeout
 
 namespace Eventualize.Core.Adapters;
 

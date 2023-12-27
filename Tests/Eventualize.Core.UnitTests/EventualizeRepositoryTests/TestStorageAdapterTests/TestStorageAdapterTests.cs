@@ -1,4 +1,5 @@
 using Eventualize.Core;
+using Eventualize.Core.Tests;
 
 namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests;
 
@@ -12,8 +13,8 @@ public class TestStorageAdapterTests
         TestStorageAdapter testStorageAdapter = new();
         testStorageAdapter.StorePendingEvents(aggregate);
         TestStorageAdapterTestsSteps.AssertEventsAreStored(
-                                            testStorageAdapter, 
-                                            aggregate, 
+                                            testStorageAdapter,
+                                            aggregate,
                                             pendingEvents);
     }
 
@@ -27,5 +28,16 @@ public class TestStorageAdapterTests
         await adapter.SaveAsync(aggregate, true);
         TestStorageAdapterTestsSteps.AssertEventsAreStored(testStorageAdapter, aggregate, pendingEvents);
         TestStorageAdapterTestsSteps.AssertSnapshotIsStored(testStorageAdapter, aggregate);
+    }
+
+    [Fact]
+    public async Task TestStorageAdapter_WhenGettingStoredSnapshot_Succeed()
+    {
+        var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents();
+        var testStorageAdapter = new TestStorageAdapter();
+        IEventualizeStorageAdapter adapter = testStorageAdapter;
+        await adapter.SaveAsync(aggregate, true);
+        var snapshot = await adapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotUri);
+        TestStorageAdapterTestsSteps.AssertSnapshotFetchedSuccessfully(aggregate, snapshot);
     }
 }

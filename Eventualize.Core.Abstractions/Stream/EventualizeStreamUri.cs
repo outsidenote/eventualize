@@ -4,10 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Generator.Equals;
 
-namespace Eventualize.Core.Abstractions.Stream;
+namespace Eventualize.Core;
 
 [Equatable]
-public partial record EventualizeStreamUri(string Domain, string StreamType, string StreamId):EventualizeStreamBaseUri(Domain, StreamType)
+public partial record EventualizeStreamUri(string Domain, string StreamType, string StreamId) : EventualizeStreamBaseUri(Domain, StreamType)
 {
     public EventualizeStreamUri(EventualizeStreamBaseUri baseAddress, string streamId)
         : this(baseAddress.Domain, baseAddress.StreamType, streamId)

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
@@ -22,6 +22,7 @@ public abstract class EventualizeAggregate
         StreamUri = streamUri;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
         LastStoredOffset = lastStoredOffset;
+        SnapshotUri = new(streamUri, aggregateType);
     }
 
     #endregion // Ctor
@@ -37,6 +38,8 @@ public abstract class EventualizeAggregate
 
     public EventualizeStreamUri StreamUri { get; init; }
     public readonly string AggregateType;
+
+    public readonly EventualizeSnapshotUri SnapshotUri;
 
     #endregion // Members
 }
@@ -64,7 +67,6 @@ public class EventualizeAggregate<TState> : EventualizeAggregate where TState : 
                                   EventualizeFoldingLogic<TState> foldingLogic,
                                   int minEventsBetweenSnapshots)
         : this(aggregateType, streamUri, foldingLogic, minEventsBetweenSnapshots, new TState(), -1) { }
-
 
     #endregion // Ctor
 

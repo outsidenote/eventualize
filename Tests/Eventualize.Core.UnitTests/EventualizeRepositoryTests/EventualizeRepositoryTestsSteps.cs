@@ -26,18 +26,26 @@ namespace CoreTests.EventualizeRepositoryTests
             Assert.Equal(2, fetchedAggregate.LastStoredOffset);
         }
 
+        public void AssertFetchedAggregateStateIsCorrect(EventualizeAggregate<TestState>? expectedAggregate, EventualizeAggregate<TestState>? fetchedAggregate)
+        {
+            Assert.NotNull(expectedAggregate);
+            Assert.NotNull(fetchedAggregate);
+
+            Assert.Equal(expectedAggregate.State, fetchedAggregate.State);
+        }
+
         public async Task AssertStoredAggregateIsCorrect(EventualizeAggregate<TestState> aggregate, bool isSnapshotStored)
         {
             EventualizeStreamCursor streamCursor = new(aggregate.StreamUri);
-            IAsyncEnumerable<IEventualizeEvent>? eventsAsync = _storageAdapter.GetAsync(streamCursor);
+            IAsyncEnumerable<IEventualizeStoredEvent>? eventsAsync = _storageAdapter.GetAsync(streamCursor);
             var events = await eventsAsync.ToEnumerableAsync();
             Assert.Equal(3, events.Count);
             Assert.Equal(events.Count - 1, aggregate.LastStoredOffset);
             Assert.Empty(aggregate.PendingEvents);
 
 
-            var snapshotData = await _storageAdapter.TryGetSnapshotAsync<TestState>(aggregate.StreamUri);
-            Assert.Equal(!isSnapshotStored, snapshotData is null);
+            var snapshot = await _storageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotUri);
+            Assert.Equal(!isSnapshotStored, snapshot is null);
             if (isSnapshotStored)
             {
                 long expectedLastStoredOffset = events.Count - 1;

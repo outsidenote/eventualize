@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 using Generator.Equals;
 
 namespace Eventualize.Core;
@@ -12,4 +12,9 @@ public partial record EventualizeStreamCursor(string Domain, string StreamType, 
         : this(streamUri.Domain, streamUri.StreamType, streamUri.StreamId, offset) { }
     public EventualizeStreamCursor(EventualizeAggregate aggregate)
         : this(aggregate.StreamUri.Domain, aggregate.StreamUri.StreamType, aggregate.StreamUri.StreamId, aggregate.LastStoredOffset + 1) { }
+
+    public override string ToString()
+    {
+        return base.ToString() + $"/{Offset}";
+    }
 }

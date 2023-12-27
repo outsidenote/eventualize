@@ -98,10 +98,10 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
 
-        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.StreamUri);
+        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotUri);
         Assert.NotNull(latestSnapshot);
-        Assert.Equal(aggregate.State, latestSnapshot.Snapshot);
-        Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.SnapshotOffset);
+        Assert.Equal(aggregate.State, latestSnapshot.State);
+        Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.Cursor.Offset);
     }
 
     [Fact]
@@ -115,5 +115,18 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         Assert.NotNull(asyncEvents);
         ICollection<IEventualizeStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
         Assert.True(aggregate.PendingEvents.SequenceEqual(events, EventualizeEventComparer.Default));
+    }
+
+    [Fact]
+    public async Task SQLStorageAdapter_WhenGettingLatestSnapshot2_Fail()
+    {
+        var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
+        EventualizeSnapshotUri snapshot2Uri = new(aggregate.StreamUri, TestAggregateFactoryConfigs.AggregateType2);
+        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotUri);
+        var latestSnapshot2 = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(snapshot2Uri);
+        Assert.Null(latestSnapshot2);
+        Assert.NotNull(latestSnapshot);
+        Assert.Equal(aggregate.State, latestSnapshot.State);
+        Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.Cursor.Offset);
     }
 }
