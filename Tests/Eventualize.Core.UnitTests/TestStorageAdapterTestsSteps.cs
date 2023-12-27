@@ -37,8 +37,8 @@ namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests
             if (!testStorageAdapter.Events.TryGetValue(key, out var storedEvents))
                 throw new KeyNotFoundException(key);
             Assert.NotNull(storedEvents);
-            Assert.True(
-                storedEvents.SequenceEqual(events));
+            IEnumerable<IEventualizeEvent> sev = storedEvents;
+            Assert.True(events.SequenceEqual(sev, EventualizeEventComparer.Default));
         }
 
         public static void AssertSnapshotIsStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate)
