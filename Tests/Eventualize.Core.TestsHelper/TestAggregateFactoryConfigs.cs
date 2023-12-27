@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Eventualize.Core;
 using static Eventualize.Core.Tests.TestHelper;
 
@@ -16,30 +17,23 @@ namespace Eventualize.Core.Tests
 
         public static EventualizeAggregateFactory<TestState> GetAggregateFactory(bool useFoldingLogic2 = false)
         {
+            return GetAggregateFactory(0, useFoldingLogic2);
+        }
+
+        public static EventualizeAggregateFactory<TestState> GetAggregateFactory(int minEvents, bool useFoldingLogic2 = false)
+        {
             IFoldingFunction<TestState> foldingFunction = !useFoldingLogic2 ?
                 new TestFoldingFunction() : new TestFoldingFunction2();
-
-            var foldingLogic = new EventualizeFoldingLogic<TestState>(
-                new Dictionary<string, IFoldingFunction<TestState>>(){
-                    {TestEventType.EventTypeName, foldingFunction}
-                }
-            );
+            
+            var foldingLogicBuilder = new EventualizeFoldingLogicBuilder<TestState>();
+            foldingLogicBuilder.AddMapping(TestEventType.EventTypeName, foldingFunction);
+            var foldingLogic = foldingLogicBuilder.Build();
 
             return new(
                 useFoldingLogic2 ? AggregateType2 : AggregateType,
                 GetStreamBaseAddress(),
                 new() { { TestEventType.EventTypeName, TestEventType } },
-                foldingLogic
-            );
-        }
-
-        public static EventualizeAggregateFactory<TestState> GetAggregateFactory(int minEvents)
-        {
-            return new(
-                AggregateType,
-                GetStreamBaseAddress(),
-                new() { { TestEventType.EventTypeName, TestEventType } },
-                new(new() { { TestEventType.EventTypeName, new TestFoldingFunction() } }),
+                foldingLogic,
                 minEvents
             );
         }
