@@ -15,7 +15,7 @@ public partial record EventualizeStoredSnapshot<T>(T State, EventualizeSnapshotC
                                         JsonSerializerOptions? options = null)
     {
         T value = JsonSerializer.Deserialize<T>(record.SerializedState, options) ?? throw new NullReferenceException("deserialize");
-        var result = new EventualizeStoredSnapshot<T>(value);
+        var result = new EventualizeStoredSnapshot<T>(value,record.ToCursor);
         return result;
     }
 
