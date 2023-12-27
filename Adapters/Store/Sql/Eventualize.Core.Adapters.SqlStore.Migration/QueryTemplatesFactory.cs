@@ -55,6 +55,7 @@ internal static class QueryTemplatesFactory
                 domain NVARCHAR(40) NOT NULL,
                 stream_type NVARCHAR(40) NOT NULL,
                 stream_id NVARCHAR(40) NOT NULL,
+                aggregate_type NVARCHAR(40) NOT NULL,
                 offset BIGINT NOT NULL,
                 json_data NVARCHAR(MAX) NOT NULL,
                 stored_at DATETIME DEFAULT GETDATE() NOT NULL,
@@ -63,12 +64,13 @@ internal static class QueryTemplatesFactory
                 CONSTRAINT CK_{storageContext}snapshot_domain_not_empty CHECK (LEN(domain) > 0),
                 CONSTRAINT CK_{storageContext}snapshot_stream_type_not_empty CHECK (LEN(stream_type) > 0),
                 CONSTRAINT CK_{storageContext}snapshot_stream_id_not_empty CHECK (LEN(stream_id) > 0),
+                CONSTRAINT CK_{storageContext}snapshot_aggregate_type_not_empty CHECK (LEN(aggregate_type) > 0),
                 CONSTRAINT CK_{storageContext}snapshot_json_data_not_empty CHECK (LEN(json_data) > 0)
             );
 
             -- Index for finding records with an earlier point in time value in column stored_at than some given value, and that other records in the group exist
             CREATE INDEX IX_snapshot_earlier_stored_at
-            ON {storageContext}snapshot (domain, stream_type, stream_id, stored_at);
+            ON {storageContext}snapshot (domain, stream_type, stream_id, aggregate_type, stored_at);
             """
         };
     }

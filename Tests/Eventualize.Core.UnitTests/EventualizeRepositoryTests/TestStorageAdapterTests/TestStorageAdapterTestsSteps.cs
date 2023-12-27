@@ -8,9 +8,9 @@ namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests
 {
     public static class TestStorageAdapterTestsSteps
     {
-        public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents()
+        public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(bool useFoldingLogic2 = false)
         {
-            EventualizeAggregate<TestState> aggregate = GetTestAggregate();
+            EventualizeAggregate<TestState> aggregate = GetTestAggregate(useFoldingLogic2);
             for (int i = 0; i < 3; i++)
             {
                 EventualizeEvent e = GetCorrectTestEvent();
@@ -51,12 +51,21 @@ namespace CoreTests.EventualizeRepositoryTests.TestStorageAdapterTests
 
         public static void AssertSnapshotIsStored(TestStorageAdapter testStorageAdapter, EventualizeAggregate<TestState> aggregate)
         {
-            EventualizeStoredSnapshotData<JsonElement>? storedSnapshot;
-            string key = TestStorageAdapter.GetKeyValue(aggregate);
+            EventualizeStoredSnapshot<JsonElement>? storedSnapshot;
+            string key = TestStorageAdapter.GetKeyValue(aggregate.SnapshotUri);
             if (!testStorageAdapter.Snapshots.TryGetValue(key, out storedSnapshot))
                 throw new KeyNotFoundException(key);
             Assert.NotNull(storedSnapshot);
-            Assert.Equal(aggregate.State, JsonSerializer.Deserialize<TestState>(JsonSerializer.Serialize(storedSnapshot.Snapshot)));
+            Assert.Equal(aggregate.State, JsonSerializer.Deserialize<TestState>(JsonSerializer.Serialize(storedSnapshot.State)));
+        }
+
+        public static void AssertSnapshotFetchedSuccessfully<T>(EventualizeAggregate<T> expectedFromAggregate, EventualizeStoredSnapshot<T>? snapshot)
+            where T : notnull, new()
+        {
+            Assert.NotNull(snapshot);
+            Assert.Equal(expectedFromAggregate.State, snapshot.State);
+            Assert.Equal(expectedFromAggregate.LastStoredOffset + expectedFromAggregate.PendingEvents.Count, snapshot.Cursor.Offset);
+            Assert.Contains(expectedFromAggregate.SnapshotUri.ToString(), snapshot.Cursor.ToString());
         }
 
     }

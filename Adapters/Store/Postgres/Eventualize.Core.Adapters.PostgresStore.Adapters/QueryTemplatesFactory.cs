@@ -1,4 +1,4 @@
-﻿using Eventualize.Core.Abstractions.Stream;
+﻿using Eventualize.Core;
 
 namespace Eventualize.Core.Adapters.SqlStore;
 
@@ -18,7 +18,7 @@ internal static class QueryTemplatesFactory
                         AND stream_id = @{nameof(EventualizeStreamUri.StreamId)}
                 """,
             TryGetSnapshot = $"""
-                SELECT json_data as {nameof(EventualizeStoredSnapshotData<object>.Snapshot)}, offset as {nameof(EventualizeStoredSnapshotData<object>.SnapshotOffset)}
+                SELECT json_data as {nameof(EventualizeStoredSnapshot<object>.State)}, offset as {nameof(EventualizeStoredSnapshot<object>.Cursor.Offset)}
                 FROM {storageContext}snapshot
                 WHERE domain = @{nameof(EventualizeStreamUri.Domain)}
                     AND stream_type = @{nameof(EventualizeStreamUri.StreamType)}
@@ -68,9 +68,9 @@ internal static class QueryTemplatesFactory
                         json_data,
                         domain)
             VALUES (
-                        @{nameof(SnapshotSaveParameter.AggregateId)},
-                        @{nameof(SnapshotSaveParameter.AggregateType)},
-                        @{nameof(SnapshotSaveParameter.Sequence)},
+                        @{nameof(SnapshotSaveParameter.StreamId)},
+                        @{nameof(SnapshotSaveParameter.StreamType)},
+                        @{nameof(SnapshotSaveParameter.Offset)},
                         @{nameof(SnapshotSaveParameter.Payload)},
                         @{nameof(SnapshotSaveParameter.Domain)})
             """

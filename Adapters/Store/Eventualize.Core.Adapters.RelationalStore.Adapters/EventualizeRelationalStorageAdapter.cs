@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Data;
@@ -69,16 +69,18 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         return offset;
     }
 
-    async Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
-        EventualizeStreamUri streamUri, CancellationToken cancellation)
+    async Task<EventualizeStoredSnapshot<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
+        EventualizeSnapshotUri snapshotUri, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
 
         string query = _queries.TryGetSnapshot;
 
-        var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshotData<T>>(query, streamUri);
-        return result;
+        var record = await conn.QuerySingleOrDefaultAsync<EventualizeeSnapshotRelationalRecrod>(query, snapshotUri);
+        if (record == null)
+            return null;
+        return EventualizeStoredSnapshot<T>.Create(record);
     }
 
     async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation)
@@ -117,12 +119,7 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
                 // TODO: [bnaya 2023-12-20] serialization?
                 // TODO: [bnaya 2023-12-20] domain
                 var payload = JsonSerializer.Serialize(aggregate.State);
-                SnapshotSaveParameter snapshotSaveParameter = new SnapshotSaveParameter(
-                                            aggregate.StreamUri.StreamId,
-                                            aggregate.StreamUri.StreamType,
-                                            offset,
-                                            payload,
-                                            "default");
+                SnapshotSaveParameter snapshotSaveParameter = SnapshotSaveParameter.Create(aggregate);
                 int snapshot = await conn.ExecuteAsync(snapQuery, snapshotSaveParameter);
                 if (snapshot != 1)
                     throw new DataException("Snapshot not saved");

@@ -1,4 +1,4 @@
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 
 namespace Eventualize.Core.Tests;
 
@@ -45,16 +45,16 @@ public static class TestHelper
         return new EventualizeStoredEvent(TestEventType.CreateEvent(CorrectEventData, "TestOperation"), GetStreamUri(), offset);
     }
 
-    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents()
+    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(bool useFoldingLogic2 = false)
     {
-        EventualizeAggregate<TestState> aggregate = TestAggregateConfigs.GetTestAggregate();
+        EventualizeAggregate<TestState> aggregate = TestAggregateConfigs.GetTestAggregate(useFoldingLogic2);
         return PrepareAggregateWithPendingEvents(aggregate);
 
     }
 
-    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(EventualizeAggregate<TestState> aggregate)
+    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(EventualizeAggregate<TestState> aggregate, bool useFoldingLogic2 = false)
     {
-        var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
+        var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(useFoldingLogic2);
         var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
         var newAggregate = aggregateFactory.Create(aggregate.StreamUri.StreamId, aggregate.State, newLastStoreOffset);
         var events = TestAggregateConfigs.GetPendingEvents(3);

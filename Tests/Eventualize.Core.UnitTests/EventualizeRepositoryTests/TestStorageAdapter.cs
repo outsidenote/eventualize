@@ -1,5 +1,5 @@
 ﻿using Eventualize.Core;
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 using System.Collections.Immutable;
 using System.Text.Json;
 
@@ -7,7 +7,7 @@ namespace CoreTests.EventualizeRepositoryTests
 {
     public sealed class TestStorageAdapter : IEventualizeStorageAdapter
     {
-        public Dictionary<string, EventualizeStoredSnapshotData<JsonElement>> Snapshots = new();
+        public Dictionary<string, EventualizeStoredSnapshot<JsonElement>> Snapshots = new();
         public Dictionary<string, List<EventualizeStoredEvent>> Events = new();
 
         #region StorePendingEvents
@@ -42,10 +42,10 @@ namespace CoreTests.EventualizeRepositoryTests
 
         private void StoreSnapshot<T>(EventualizeAggregate<T> aggregate) where T : notnull, new()
         {
-            string key = GetKeyValue(aggregate);
-            long offset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
+            string key = GetKeyValue(aggregate.SnapshotUri);
+            var snapshotCursor = new EventualizeSnapshotCursor(aggregate);
             JsonElement serializedSnapshot = JsonSerializer.SerializeToElement<T>(aggregate.State);
-            EventualizeStoredSnapshotData<JsonElement> value = new(serializedSnapshot, offset);
+            EventualizeStoredSnapshot<JsonElement> value = new(serializedSnapshot, snapshotCursor);
             if (!Snapshots.ContainsKey(key))
             {
                 Snapshots.Add(key, value);
@@ -61,6 +61,7 @@ namespace CoreTests.EventualizeRepositoryTests
         #region GetKeyValue
 
         internal static string GetKeyValue(EventualizeStreamUri streamUri) => streamUri.ToString();
+        internal static string GetKeyValue(EventualizeSnapshotUri snapshotUri) => snapshotUri.ToString();
         internal static string GetKeyValue(EventualizeAggregate aggregate) => aggregate.StreamUri.ToString();
 
         internal static string GetKeyValue<T>(EventualizeAggregate<T> aggregate) where T : notnull, new() => aggregate.StreamUri.ToString();
@@ -69,21 +70,24 @@ namespace CoreTests.EventualizeRepositoryTests
 
         #region IEventualizeStorageAdapter Members
 
-        Task<EventualizeStoredSnapshotData<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
-                            EventualizeStreamUri streamUri, CancellationToken cancellation)
+        Task<EventualizeStoredSnapshot<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
+                            EventualizeSnapshotUri snapshotUri, CancellationToken cancellation)
         {
-            var key = GetKeyValue(streamUri);
-            if (!Snapshots.TryGetValue(key, out var value) || value == null)
-                return Task.FromResult(default(EventualizeStoredSnapshotData<T>));
-            T? parsedShapshot = JsonSerializer.Deserialize<T>(value.Snapshot);
-            var result = parsedShapshot != null ? new EventualizeStoredSnapshotData<T>(parsedShapshot, value.SnapshotOffset) : default(EventualizeStoredSnapshotData<T>);
-            return Task.FromResult(result);
+            return Task.Run(() =>
+            {
+                var key = GetKeyValue(snapshotUri);
+                if (!Snapshots.TryGetValue(key, out var value) || value == null)
+                    return null;
+                T? parsedShapshot = JsonSerializer.Deserialize<T>(value.State);
+                var result = parsedShapshot != null ? new EventualizeStoredSnapshot<T>(parsedShapshot, value.Cursor) : default(EventualizeStoredSnapshot<T>);
+                return result;
+            });
         }
 
         async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor streamCursor, CancellationToken cancellation)
         {
-            var (streamDomain, aggregateTypeName, id, offset) = streamCursor;
-            EventualizeStreamUri streamUri = new("default",aggregateTypeName,id);
+            var (domain, aggregateTypeName, id, offset) = streamCursor;
+            EventualizeStreamUri streamUri = new(domain, aggregateTypeName, id);
             var key = GetKeyValue(streamUri);
             if (!Events.TryGetValue(key, out List<EventualizeStoredEvent>? events) || events == null)
                 yield break;

@@ -1,11 +1,11 @@
 using System.Collections.Immutable;
-using Eventualize.Core.Abstractions.Stream;
+using Eventualize.Core;
 
 namespace Eventualize.Core;
 
 public interface IEventualizeStorageAdapter : IDisposable, IAsyncDisposable
 {
-    Task<EventualizeStoredSnapshotData<T>?> TryGetSnapshotAsync<T>(EventualizeStreamUri streamUri, CancellationToken cancellation = default) where T : notnull, new();
+    Task<EventualizeStoredSnapshot<T>?> TryGetSnapshotAsync<T>(EventualizeSnapshotUri snapshotUri, CancellationToken cancellation = default) where T : notnull, new();
 
     IAsyncEnumerable<EventualizeStoredEvent> GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation = default);
 

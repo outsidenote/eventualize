@@ -2,9 +2,9 @@ namespace Eventualize.Core.Tests;
 
 public static class TestAggregateConfigs
 {
-    public static EventualizeAggregate<TestState> GetTestAggregate()
+    public static EventualizeAggregate<TestState> GetTestAggregate(bool useFoldingLogic2 = false)
     {
-        return TestAggregateFactoryConfigs.GetAggregateFactory().Create(Guid.NewGuid().ToString());
+        return TestAggregateFactoryConfigs.GetAggregateFactory(useFoldingLogic2).Create(Guid.NewGuid().ToString());
     }
 
     public static async Task<EventualizeAggregate<TestState>> GetTestAggregateAsync(IAsyncEnumerable<EventualizeStoredEvent> events)
@@ -49,7 +49,7 @@ public static class TestAggregateConfigs
     public static async Task<EventualizeAggregate<TestState>> GetTestAggregateAsync(TestState snapshot, IAsyncEnumerable<EventualizeStoredEvent> events)
     {
         var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
-        var snap = EventualizeStoredSnapshotData<TestState>.Create(snapshot);
+        var snap = EventualizeStoredSnapshot<TestState>.Create(snapshot);
         return await aggregateFactory.CreateAsync(
             Guid.NewGuid().ToString(),
             events,
