@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,9 +8,9 @@ namespace Eventualize.Core
 {
     public class EventualizeFoldingLogic<T> where T : notnull, new()
     {
-        public readonly Dictionary<string, IFoldingFunction<T>> Logic;
+        public readonly ImmutableDictionary<string, IFoldingFunction<T>> Logic;
 
-        public EventualizeFoldingLogic(Dictionary<string, IFoldingFunction<T>> logic)
+        public EventualizeFoldingLogic(ImmutableDictionary<string, IFoldingFunction<T>> logic)
         {
             Logic = logic;
         }
