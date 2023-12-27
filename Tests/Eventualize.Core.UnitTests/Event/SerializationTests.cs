@@ -1,7 +1,4 @@
 namespace Eventualize.Core.Tests;
-using Eventualize.Core;
-using static Eventualize.Core.Tests.TestHelper;
-
 public class SerializationTests
 {
 

@@ -1,10 +1,8 @@
 ﻿using Dapper;
-using Eventualize.Core;
+using Eventualize.Core.Abstractions;
 using Microsoft.Extensions.Logging;
-using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
-using System.Reflection;
 using System.Text.Json;
 
 // TODO: [bnaya 2023-12-20] default timeout
@@ -77,10 +75,8 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
 
         string query = _queries.TryGetSnapshot;
 
-        var record = await conn.QuerySingleOrDefaultAsync<EventualizeeSnapshotRelationalRecrod>(query, snapshotUri);
-        if (record == null)
-            return null;
-        return EventualizeStoredSnapshot<T>.Create(record);
+        var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshot<T>>(query, snapshotUri);
+        return result;
     }
 
     async IAsyncEnumerable<IEventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation)
@@ -119,7 +115,12 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
                 // TODO: [bnaya 2023-12-20] serialization?
                 // TODO: [bnaya 2023-12-20] domain
                 var payload = JsonSerializer.Serialize(aggregate.State);
-                SnapshotSaveParameter snapshotSaveParameter = SnapshotSaveParameter.Create(aggregate);
+                SnapshotSaveParameter snapshotSaveParameter = new SnapshotSaveParameter(
+                                            aggregate.StreamUri.StreamId,
+                                            aggregate.StreamUri.StreamType,
+                                            offset,
+                                            payload,
+                                            "default");
                 int snapshot = await conn.ExecuteAsync(snapQuery, snapshotSaveParameter);
                 if (snapshot != 1)
                     throw new DataException("Snapshot not saved");

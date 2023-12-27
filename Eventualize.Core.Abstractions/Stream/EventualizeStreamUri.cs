@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Generator.Equals;
 
-namespace Eventualize.Core;
+namespace Eventualize.Core.Abstractions;
 
 [Equatable]
 public partial record EventualizeStreamUri(string Domain, string StreamType, string StreamId) : EventualizeStreamBaseUri(Domain, StreamType)

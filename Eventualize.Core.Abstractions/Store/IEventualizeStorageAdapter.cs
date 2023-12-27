@@ -1,6 +1,3 @@
-using System.Collections.Immutable;
-using Eventualize.Core;
-
 namespace Eventualize.Core;
 
 public interface IEventualizeStorageAdapter : IDisposable, IAsyncDisposable

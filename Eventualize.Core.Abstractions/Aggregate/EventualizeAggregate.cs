@@ -1,7 +1,7 @@
-﻿using System.Collections.Concurrent;
+﻿using Eventualize.Core.Abstractions;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Eventualize.Core;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
@@ -53,8 +53,8 @@ public class EventualizeAggregate<TState> : EventualizeAggregate where TState : 
         string aggregateType,
         EventualizeStreamUri streamUri,
         EventualizeFoldingLogic<TState> foldingLogic,
-        int minEventsBetweenSnapshots, 
-        TState state, 
+        int minEventsBetweenSnapshots,
+        TState state,
         long lastStoredOffset)
         : base(aggregateType, streamUri, minEventsBetweenSnapshots, lastStoredOffset)
     {

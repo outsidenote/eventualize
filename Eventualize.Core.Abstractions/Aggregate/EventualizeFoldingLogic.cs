@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Eventualize.Core
 {
     public class EventualizeFoldingLogic<TState> where TState : notnull, new()

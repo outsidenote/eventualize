@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Eventualize.Core
+namespace Eventualize.Core.Abstractions
 {
     public record EventualizeStreamBaseUri(string Domain, string StreamType)
     {

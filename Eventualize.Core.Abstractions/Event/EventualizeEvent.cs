@@ -9,7 +9,7 @@ namespace Eventualize.Core;
 public partial record EventualizeEvent(string EventType,
                                        [property: IgnoreEquality] DateTime CapturedAt,
                                        string CapturedBy,
-                                       string Data) : 
+                                       string Data) :
                                             IEventualizeEvent
 {
     T IEventualizeEvent.GetData<T>(JsonSerializerOptions? options)

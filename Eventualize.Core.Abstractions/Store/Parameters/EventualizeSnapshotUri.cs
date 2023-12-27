@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Eventualize.Core;
+﻿using Eventualize.Core.Abstractions;
 using Generator.Equals;
 
 namespace Eventualize.Core;

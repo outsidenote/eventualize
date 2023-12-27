@@ -1,6 +1,6 @@
-﻿using System.Diagnostics;
-using Eventualize.Core;
+﻿using Eventualize.Core.Abstractions;
 using Generator.Equals;
+using System.Diagnostics;
 
 namespace Eventualize.Core;
 

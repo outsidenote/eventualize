@@ -1,6 +1,6 @@
-﻿using System.Text.Json;
+﻿using Generator.Equals;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Generator.Equals;
 
 namespace Eventualize.Core;
 
@@ -15,7 +15,7 @@ public partial record EventualizeStoredSnapshot<T>(T State, EventualizeSnapshotC
                                         JsonSerializerOptions? options = null)
     {
         T value = JsonSerializer.Deserialize<T>(record.SerializedState, options) ?? throw new NullReferenceException("deserialize");
-        var result = new EventualizeStoredSnapshot<T>(value,record.ToCursor);
+        var result = new EventualizeStoredSnapshot<T>(value, record.ToCursor);
         return result;
     }
 

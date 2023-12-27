@@ -1,4 +1,4 @@
-using Eventualize.Core;
+using Eventualize.Core.Abstractions;
 
 namespace Eventualize.Core.Tests;
 
@@ -27,18 +27,18 @@ public static class TestHelper
     }
 #pragma warning restore S5034 // "ValueTask" should be consumed correctly
 
-    public static readonly string TestEventType = "testType"; 
+    public static readonly string TestEventType = "testType";
     public static readonly TestEventDataType CorrectEventData = new("test", 10);
 
-    public readonly static EventualizeStreamUri StreamUri = new (
-                                TestAggregateFactoryConfigs.StreamBaseAddress, 
+    public readonly static EventualizeStreamUri StreamUri = new(
+                                TestAggregateFactoryConfigs.StreamBaseAddress,
                                 "testStreamId");
 
     public static IEventualizeEvent GetCorrectTestEvent()
     {
         return EventualizeEventFactory.Create(
             TestEventType,
-            DateTime.UtcNow, 
+            DateTime.UtcNow,
             "TestOperation",
             CorrectEventData);
     }
@@ -54,16 +54,16 @@ public static class TestHelper
             cursor);
     }
 
-    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(bool useFoldingLogic2 = false)
+    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents()
     {
-        EventualizeAggregate<TestState> aggregate = TestAggregateConfigs.GetTestAggregate(useFoldingLogic2);
+        EventualizeAggregate<TestState> aggregate = TestAggregateConfigs.GetTestAggregate();
         return PrepareAggregateWithPendingEvents(aggregate);
 
     }
 
-    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(EventualizeAggregate<TestState> aggregate, bool useFoldingLogic2 = false)
+    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(EventualizeAggregate<TestState> aggregate)
     {
-        var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(useFoldingLogic2);
+        var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
         var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
         var newAggregate = aggregateFactory.Create(aggregate.StreamUri.StreamId, aggregate.State, newLastStoreOffset);
         var events = TestAggregateConfigs.GetPendingEvents(3);

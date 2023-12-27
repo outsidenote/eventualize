@@ -1,4 +1,5 @@
 using Eventualize.Core;
+using Eventualize.Core.Abstractions;
 
 namespace Eventualize.Core;
 

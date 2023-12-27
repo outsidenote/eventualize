@@ -43,7 +43,7 @@ public static class EventualizeStoredEventFactory
         return result;
     }
 
-    public static IEventualizeStoredEvent Create(IEventualizeEvent e, 
+    public static IEventualizeStoredEvent Create(IEventualizeEvent e,
                                         EventualizeStreamCursor streamCursor)
     {
         EventualizeEvent evt = (EventualizeEvent)e;
