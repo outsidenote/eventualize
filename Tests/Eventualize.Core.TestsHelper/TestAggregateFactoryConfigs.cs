@@ -24,11 +24,10 @@ namespace Eventualize.Core.Tests
         {
             IFoldingFunction<TestState> foldingFunction = !useFoldingLogic2 ?
                 new TestFoldingFunction() : new TestFoldingFunction2();
-            var map = new KeyValuePair<string, IFoldingFunction<TestState>>[] {
-                KeyValuePair.Create(TestEventType.EventTypeName, foldingFunction)
-            };
-
-            var foldingLogic = new EventualizeFoldingLogic<TestState>(ImmutableDictionary.CreateRange(map));
+            
+            var foldingLogicBuilder = new EventualizeFoldingLogicBuilder<TestState>();
+            foldingLogicBuilder.AddMapping(TestEventType.EventTypeName, foldingFunction);
+            var foldingLogic = foldingLogicBuilder.Build();
 
             return new(
                 useFoldingLogic2 ? AggregateType2 : AggregateType,
