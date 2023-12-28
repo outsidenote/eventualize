@@ -5,19 +5,30 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace Eventualize.Core;
-public class EventualizeFoldingLogicBuilder<T> where T : notnull, new()
+public class EventualizeFoldingLogicBuilder
 {
-    public List<KeyValuePair<string, IFoldingFunction<T>>> Mapping { get; private set; } = [];
-
-    public void AddMapping(string eventType, IFoldingFunction<T> foldingFunction)
+    public static EventualizeFoldingLogicBuilder<T> Create<T>() where T : notnull, new()
     {
-        Mapping.Add(KeyValuePair.Create(eventType, foldingFunction));
+        return new EventualizeFoldingLogicBuilder<T>();
+    }
+}
+
+public record EventualizeFoldingLogicBuilder<T> where T : notnull, new()
+{
+    public IImmutableDictionary<string, IFoldingFunction<T>> Mapping { get; private set; } =
+                    ImmutableDictionary<string, IFoldingFunction<T>>.Empty;
+
+    internal EventualizeFoldingLogicBuilder(){}
+
+    public EventualizeFoldingLogicBuilder<T> AddMapping(string eventType, IFoldingFunction<T> foldingFunction)
+    {
+        var mapping =  Mapping.Add(eventType, foldingFunction);
+        return this with { Mapping = mapping };
     }
 
     public EventualizeFoldingLogic<T> Build()
     {
-        var immutableMapping = ImmutableDictionary.CreateRange(Mapping);
-        return new EventualizeFoldingLogic<T>(immutableMapping);
+        return new EventualizeFoldingLogic<T>(Mapping);
     }
 
 }

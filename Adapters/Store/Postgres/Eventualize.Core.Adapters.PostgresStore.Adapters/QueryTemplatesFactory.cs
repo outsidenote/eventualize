@@ -1,4 +1,5 @@
 ﻿using Eventualize.Core;
+using Eventualize.Core.Abstractions;
 
 namespace Eventualize.Core.Adapters.SqlStore;
 
@@ -31,7 +32,7 @@ internal static class QueryTemplatesFactory
                     event_type as {nameof(EventualizeStoredEvent.EventType)},
                     captured_at as {nameof(EventualizeStoredEvent.CapturedAt)},
                     captured_by as {nameof(EventualizeStoredEvent.CapturedBy)},
-                    json_data as {nameof(EventualizeStoredEvent.JsonData)},
+                    json_data as {nameof(EventualizeStoredEvent.Data)},
                     stored_at as {nameof(EventualizeStoredEvent.StoredAt)}                    
                 FROM {storageContext}event
                 WHERE domain = @{nameof(EventualizeStreamCursor.Domain)}

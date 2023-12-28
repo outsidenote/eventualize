@@ -1,13 +1,12 @@
-﻿using static Eventualize.Core.Tests.TestHelper;
+﻿namespace Eventualize.Core.Tests;
 
-namespace Eventualize.Core.Tests
+// TODO: options
+
+class TestFoldingFunction : IFoldingFunction<TestState>
 {
-    class TestFoldingFunction : IFoldingFunction<TestState>
+    TestState IFoldingFunction<TestState>.Fold(TestState oldState, IEventualizeEvent serializedEvent)
     {
-        public TestState Fold(TestState oldState, EventualizeEvent serializedEvent)
-        {
-            TestEventDataType data = TestEventType.ParseData(serializedEvent);
-            return new TestState(oldState.ACount + 1, oldState.BCount + 1, oldState.BSum + data.B);
-        }
+        TestEventDataType data = serializedEvent.GetData<TestEventDataType>();
+        return new TestState(oldState.ACount + 1, oldState.BCount + 1, oldState.BSum + data.B);
     }
 }

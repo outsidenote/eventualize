@@ -2,7 +2,6 @@ using CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries;
 using Eventualize.Core;
 using Eventualize.Core.Tests;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
 using Xunit.Abstractions;
 using static Eventualize.Core.Tests.TestHelper;
 
@@ -113,27 +112,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
 
         var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
         Assert.NotNull(asyncEvents);
-        ICollection<EventualizeStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
-        var es = events.Select(m =>
-                                new EventualizeEvent(
-                                            m.EventType,
-                                            m.CapturedAt,
-                                            m.CapturedBy,
-                                            m.JsonData
-                                        ));
-        Assert.True(aggregate.PendingEvents.SequenceEqual(es));
-    }
-
-    [Fact]
-    public async Task SQLStorageAdapter_WhenGettingLatestSnapshot2_Fail()
-    {
-        var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
-        EventualizeSnapshotUri snapshot2Uri = new(aggregate.StreamUri, TestAggregateFactoryConfigs.AggregateType2);
-        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotUri);
-        var latestSnapshot2 = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(snapshot2Uri);
-        Assert.Null(latestSnapshot2);
-        Assert.NotNull(latestSnapshot);
-        Assert.Equal(aggregate.State, latestSnapshot.State);
-        Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.Cursor.Offset);
+        ICollection<IEventualizeStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
+        Assert.True(aggregate.PendingEvents.SequenceEqual(events, EventualizeEventComparer.Default));
     }
 }

@@ -9,7 +9,7 @@ public struct EventualizeStoredEventEntity
     public string EventType { get; init; }
     public DateTime CapturedAt { get; init; }
     public string CapturedBy { get; init; }
-    public string JsonData { get; init; }
+    public string Data { get; init; }
     public DateTime StoredAt { get; init; }
     public string Domain { get; init; }
     public string StreamType { get; init; }
@@ -18,17 +18,17 @@ public struct EventualizeStoredEventEntity
 
     public static implicit operator EventualizeStoredEvent(EventualizeStoredEventEntity entity)
     {
-        var srm = new EventualizeStreamUri(
+        EventualizeStreamCursor StreamCursor = new(
                                             entity.Domain,
                                             entity.StreamType,
-                                            entity.StreamId);
+                                            entity.StreamId,
+                                            entity.Offset);
         return new EventualizeStoredEvent(
                     entity.EventType,
                     entity.CapturedAt,
                     entity.CapturedBy,
-                    entity.JsonData,
+                    entity.Data,
                     entity.StoredAt,
-                    srm,
-                    entity.Offset);
+                    StreamCursor);
     }
 }

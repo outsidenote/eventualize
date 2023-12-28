@@ -20,24 +20,25 @@ public class AggregateSaveParameterCollection<T> : IEnumerable<AggregateSavePara
         baseSeq = aggregate.LastStoredOffset + 1;
         Events = aggregate.PendingEvents;
     }
-    public IImmutableList<EventualizeEvent> Events { get; }
+    public IImmutableList<IEventualizeEvent> Events { get; }
 
     public IEnumerator<AggregateSaveParameter> GetEnumerator()
     {
         int i = 0;
-        foreach (var item in Events)
+        foreach (IEventualizeEvent e in Events)
         {
-            var e = new AggregateSaveParameter/*<T>*/(
+            EventualizeEvent entity = (EventualizeEvent)e;
+            var item = new AggregateSaveParameter(
                             aggregateId,
                             aggregateType,
-                            item.EventType,
+                            entity.EventType,
                             baseSeq + i,
-                            item.JsonData,
-                            item.CapturedBy,
-                            item.CapturedAt,
+                            entity.Data,
+                            entity.CapturedBy,
+                            entity.CapturedAt,
                             _domain
                         );
-            yield return e;
+            yield return item;
             i++;
         }
     }

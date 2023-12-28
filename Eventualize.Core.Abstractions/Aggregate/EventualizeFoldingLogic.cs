@@ -8,14 +8,14 @@ namespace Eventualize.Core
 {
     public class EventualizeFoldingLogic<T> where T : notnull, new()
     {
-        public readonly ImmutableDictionary<string, IFoldingFunction<T>> Logic;
+        public readonly IImmutableDictionary<string, IFoldingFunction<T>> Logic;
 
-        internal EventualizeFoldingLogic(ImmutableDictionary<string, IFoldingFunction<T>> logic)
+        internal EventualizeFoldingLogic(IImmutableDictionary<string, IFoldingFunction<T>> logic)
         {
             Logic = logic;
         }
 
-        public T FoldEvent(T oldState, EventualizeEvent someEvent)
+        public T FoldEvent(T oldState, IEventualizeEvent someEvent)
         {
             T currentState = oldState;
             IFoldingFunction<T>? foldingFunction;
@@ -34,7 +34,7 @@ namespace Eventualize.Core
 
         public async Task<FoldingResult<T>> FoldEventsAsync(
             T oldState,
-            IAsyncEnumerable<EventualizeStoredEvent> events)
+            IAsyncEnumerable<IEventualizeStoredEvent> events)
         {
             long count = 0;
             T currentState = oldState;
@@ -47,7 +47,7 @@ namespace Eventualize.Core
         }
 
         public FoldingResult<T> FoldEvents(
-            IEnumerable<EventualizeEvent> events)
+            IEnumerable<IEventualizeEvent> events)
         {
             T state = new();
             var result = FoldEvents(state, events);
@@ -56,7 +56,7 @@ namespace Eventualize.Core
 
         public FoldingResult<T> FoldEvents(
             T oldState,
-            IEnumerable<EventualizeEvent> events)
+            IEnumerable<IEventualizeEvent> events)
         {
             long count = 0;
             T currentState = oldState;

@@ -1,7 +1,9 @@
 ﻿using Eventualize.Core;
 using Eventualize.Core;
+using Eventualize.Core.Abstractions;
 using System.Collections.Immutable;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace CoreTests.EventualizeRepositoryTests
 {
@@ -18,21 +20,17 @@ namespace CoreTests.EventualizeRepositoryTests
                 return;
             List<EventualizeStoredEvent> storedEvents = [];
             string key = GetKeyValue(aggregate);
-            long lastStoredOffset = -1;
             if (!Events.TryGetValue(key, out var stream))
             {
                 stream = [];
                 Events.Add(key, stream);
             }
-            else
-            {
-                lastStoredOffset = stream.Count;
-            }
 
-            DateTime storeTs = DateTime.Now;
             foreach (var pendingEvent in aggregate.PendingEvents)
             {
-                stream.Add(new EventualizeStoredEvent(pendingEvent, aggregate.StreamUri, ++lastStoredOffset));
+                EventualizeSnapshotCursor cursor = new (aggregate);
+                EventualizeStoredEvent storedEvent = new (pendingEvent, cursor);
+                stream.Add(storedEvent);
             }
         }
 
@@ -84,7 +82,7 @@ namespace CoreTests.EventualizeRepositoryTests
             });
         }
 
-        async IAsyncEnumerable<EventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor streamCursor, CancellationToken cancellation)
+        async IAsyncEnumerable<IEventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor streamCursor, CancellationToken cancellation)
         {
             var (domain, aggregateTypeName, id, offset) = streamCursor;
             EventualizeStreamUri streamUri = new(domain, aggregateTypeName, id);
@@ -106,7 +104,17 @@ namespace CoreTests.EventualizeRepositoryTests
             //}
         }
 
-        async Task IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation)
+        async Task IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? option, CancellationToken cancellation)
+        {
+            await Task.Run(() =>
+            {
+                StorePendingEvents<T>(aggregate);
+                if (storeSnapshot)
+                    StoreSnapshot(aggregate);
+            });
+        }
+
+        async Task IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
         {
             await Task.Run(() =>
             {
