@@ -31,7 +31,7 @@ public static class TestHelper
     public static readonly TestEventDataType CorrectEventData = new("test", 10);
 
     public readonly static EventualizeStreamUri StreamUri = new(
-                                TestAggregateFactoryConfigs.StreamBaseAddress,
+                                TestAggregateFactoryConfigs.GetStreamBaseUri,
                                 "testStreamId");
 
     public static IEventualizeEvent GetCorrectTestEvent()
@@ -54,16 +54,16 @@ public static class TestHelper
             cursor);
     }
 
-    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents()
+    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(bool useFoldingLogic2 = false)
     {
-        EventualizeAggregate<TestState> aggregate = TestAggregateConfigs.GetTestAggregate();
+        EventualizeAggregate<TestState> aggregate = TestAggregateConfigs.GetTestAggregate(useFoldingLogic2);
         return PrepareAggregateWithPendingEvents(aggregate);
 
     }
 
-    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(EventualizeAggregate<TestState> aggregate)
+    public static EventualizeAggregate<TestState> PrepareAggregateWithPendingEvents(EventualizeAggregate<TestState> aggregate, bool useFoldingLogic2 = false)
     {
-        var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
+        var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(useFoldingLogic2);
         var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
         var newAggregate = aggregateFactory.Create(aggregate.StreamUri.StreamId, aggregate.State, newLastStoreOffset);
         var events = TestAggregateConfigs.GetPendingEvents(3);

@@ -68,6 +68,13 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         return offset;
     }
 
+    /// <summary>
+    /// Tries the get snapshot asynchronous.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="snapshotUri">The snapshot URI.</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
     async Task<EventualizeStoredSnapshot<T>?> IEventualizeStorageAdapter.TryGetSnapshotAsync<T>(
         EventualizeSnapshotUri snapshotUri, CancellationToken cancellation)
     {
@@ -76,8 +83,9 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
 
         string query = _queries.TryGetSnapshot;
 
-        var result = await conn.QuerySingleOrDefaultAsync<EventualizeStoredSnapshot<T>>(query, snapshotUri);
-        return result;
+        var record = await conn.QuerySingleOrDefaultAsync<EventualizeeSnapshotRelationalRecrod>(query, snapshotUri) ?? throw new NoNullAllowedException("snapshot");
+        var snapshot =  EventualizeStoredSnapshot.Create<T>(record);
+        return snapshot;
     }
 
     async IAsyncEnumerable<IEventualizeStoredEvent> IEventualizeStorageAdapter.GetAsync(EventualizeStreamCursor parameter, CancellationToken cancellation)

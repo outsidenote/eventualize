@@ -13,6 +13,16 @@ public partial record EventualizeStoredEvent(string EventType,
                         : EventualizeEvent(EventType, CapturedAt, CapturedBy, Data)
                             ,IEventualizeStoredEvent
 {
-    public EventualizeStoredEvent(EventualizeEvent e, EventualizeStreamCursor StreamCursor)
-        : this(e.EventType, e.CapturedAt, e.CapturedBy, e.Data, DateTime.Now, StreamCursor) { }
+    public EventualizeStoredEvent(IEventualizeEvent e, EventualizeStreamCursor StreamCursor)
+        : this(e.EventType, e.CapturedAt, e.CapturedBy, ((EventualizeEvent)e).Data, DateTime.Now, StreamCursor) { }
+
+    public EventualizeStoredEvent(IEventualizeEvent e, EventualizeSnapshotCursor cursor)
+        : this(e.EventType, e.CapturedAt, e.CapturedBy, 
+              ((EventualizeEvent)e).Data, DateTime.Now, 
+              new EventualizeStreamCursor(cursor))
+    {
+    }
+
+    public IEventualizeEvent PendingEvent { get; }
+    public EventualizeSnapshotCursor Cursor { get; }
 }

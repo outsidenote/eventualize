@@ -8,9 +8,9 @@ namespace Eventualize.Core
 {
     public class EventualizeFoldingLogic<T> where T : notnull, new()
     {
-        public readonly ImmutableDictionary<string, IFoldingFunction<T>> Logic;
+        public readonly IImmutableDictionary<string, IFoldingFunction<T>> Logic;
 
-        internal EventualizeFoldingLogic(ImmutableDictionary<string, IFoldingFunction<T>> logic)
+        internal EventualizeFoldingLogic(IImmutableDictionary<string, IFoldingFunction<T>> logic)
         {
             Logic = logic;
         }
