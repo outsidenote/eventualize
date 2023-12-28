@@ -5,10 +5,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<!--<PackageId>Eventualize</PackageId>-->
+		<PackageId>Eventualize</PackageId>
 		<Version>1.1.68</Version>
 		<Authors>Roma Bronstein</Authors>
-		<Company>Self</Company>
+		<Company>EventualizeDB.com</Company>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<None Include="docs\README.md" Pack="true" PackagePath="\"/>
 	</PropertyGroup>
 
 	<PropertyGroup>
