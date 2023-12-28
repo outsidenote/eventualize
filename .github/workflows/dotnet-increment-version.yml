@@ -28,7 +28,7 @@ jobs:
 
       - name: Increment Major Version
         id: increment_major_version
-        if: ${{ startsWith(github.event.workflow_run.head_commit.message, '[MAJOR]') }}
+        if: ${{ startsWith(github.event.head_commit.message, '[MAJOR]') }}
         run: |
           perl -pi -e 's#<Version>([0-9]+)\.([0-9]+)\.([0-9]+)(.*)</Version>#"<Version>${\( $1+1 )}.$2.$3$4</Version>"#eg' Directory.Build.props
           awk -vpre="prefix" -F '[<>]' '/Version/{print "version="$3; exit}' Directory.Build.props >> $GITHUB_OUTPUT
@@ -36,7 +36,7 @@ jobs:
 
       - name: Increment Minor Version
         id: increment_monir_version
-        if: ${{ startsWith(github.event.workflow_run.head_commit.message, '[MINOR]') }}
+        if: ${{ startsWith(github.event.head_commit.message, '[MINOR]') }}
         run: |
           perl -pi -e 's#<Version>([0-9]+)\.([0-9]+)\.([0-9]+)(.*)</Version>#"<Version>$1.${\( $2+1 )}.$3$4</Version>"#eg' Directory.Build.props
           awk -vpre="prefix" -F '[<>]' '/Version/{print "version="$3; exit}' Directory.Build.props >> $GITHUB_OUTPUT
@@ -44,7 +44,7 @@ jobs:
 
       - name: Increment Patch Version
         id: increment_patch_version
-        if: ${{ ! startsWith(github.event.workflow_run.head_commit.message, '[') }}
+        if: ${{ ! startsWith(github.event.head_commit.message, '[MAJOR]') && ! startsWith(github.event.head_commit.message, '[MINOR]')}}
         run: |
           perl -pi -e 's#<Version>([0-9]+)\.([0-9]+)\.([0-9]+)(.*)</Version>#"<Version>$1.$2.${\( $3+1 )}$4</Version>"#eg' Directory.Build.props
           awk -vpre="prefix" -F '[<>]' '/Version/{print "version="$3; exit}' Directory.Build.props >> $GITHUB_OUTPUT
