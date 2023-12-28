@@ -6,42 +6,31 @@
 
 	<PropertyGroup>
 		<PackageId>Eventualize</PackageId>
-		<Version>1.1.69</Version>
+		<Version>1.1.68</Version>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EventualizeDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<None Include="docs\README.md" Pack="true" PackagePath="\"/>
-	</PropertyGroup>
-
-	<PropertyGroup>
+		<None Include="docs\README.md" Pack="true" PackagePath="\" />
 		<TargetFramework>net6.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<Configurations>Debug;Release</Configurations>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<PackageIcon>icon.png</PackageIcon>
-	</PropertyGroup>
-
-	<PropertyGroup>
 		<IsPackable>true</IsPackable>
-		<PackageTags>event-source, event-driven, event-sourcing, producer, consumer, pub, sub, pub-sub, messaging, reliable, redis, bnaya</PackageTags>
+		<PackageTags>event-source, event-driven, event-sourcing, producer, consumer, pub, sub,
+			pub-sub, messaging, reliable, redis, bnaya</PackageTags>
 		<PackageProjectUrl>https://medium.com/@bnayae</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bnayae/Event-Source-Backbone</RepositoryUrl>
 		<RepositoryType>GitHub</RepositoryType>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	</PropertyGroup>
-
-	<PropertyGroup>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<IncludeSource>True</IncludeSource>
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-	</PropertyGroup>
-
-	<PropertyGroup>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);1591</NoWarn>
 	</PropertyGroup>
