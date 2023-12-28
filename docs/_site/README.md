@@ -25,3 +25,4 @@ If you want to learn more, go to [Learn More](https://eventualizedb.comlearn-mor
 
 You can contribute to this project in many ways (not just coding)!
 If you are interested to learn more about how you can do this, please visit the [Contribution](https://eventualizedb.comcontribution) page.
+
