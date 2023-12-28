@@ -6,7 +6,7 @@
 
 	<PropertyGroup>
 		<!-- <PackageId>Eventualize</PackageId> -->
-		<Version>1.1.71</Version>
+		<Version>1.1.72</Version>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EventualizeDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
