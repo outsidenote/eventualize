@@ -36,6 +36,6 @@ jobs:
         with:
           commit_user_name: CI/CD
           commit_user_email: ${{ inputs.author-email }}
-          commit_message: "Increment Version"
+          commit_message: "[skip ci] Increment Version"
           commit_options: '--no-verify'
           push_options: '--no-verify'
