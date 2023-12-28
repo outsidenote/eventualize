@@ -1,0 +1,39 @@
+name: Increment Version (Directory.Build.props)
+
+# doc:               https://docs.github.com/en/actions
+# variables:         https://docs.github.com/en/actions/learn-github-actions/environment-variables
+# secrets:           https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#example-17
+# env:               https://docs.github.com/en/actions/learn-github-actions/environment-variables
+# reusable workflow: https://docs.github.com/en/actions/learn-github-actions/reusing-workflows#access-to-reusable-workflows
+
+on:
+  push:
+    branches: [ "main" ]
+  
+jobs:
+  version_increment:
+    # if: ${{ github.event.workflow_run.conclusion != 'failure' }}
+    name: Increment Version
+    runs-on: ubuntu-latest    
+    
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+
+    steps:  
+      - uses: actions/checkout@v4
+
+      - name: Increment Version
+        run: |
+          perl -pi -e 's#<Version>([0-9]+)\.([0-9]+)\.([0-9]+)(.*)</Version>#"<Version>$1.$2.${\( $3+1 )}$4</Version>"#eg' Directory.Build.props
+        shell: bash
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_user_name: CI/CD
+          commit_user_email: ${{ inputs.author-email }}
+          commit_message: "Increment Version"
+          commit_options: '--no-verify'
+          push_options: '--no-verify'
