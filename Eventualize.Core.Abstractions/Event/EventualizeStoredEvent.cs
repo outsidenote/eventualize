@@ -11,7 +11,7 @@ public partial record EventualizeStoredEvent(string EventType,
                     DateTime StoredAt,
                     EventualizeStreamCursor StreamCursor)
                         : EventualizeEvent(EventType, CapturedAt, CapturedBy, Data)
-                            , IEventualizeStoredEvent
+                            ,IEventualizeStoredEvent
 {
     public EventualizeStoredEvent(EventualizeEvent e, EventualizeStreamCursor StreamCursor)
         : this(e.EventType, e.CapturedAt, e.CapturedBy, e.Data, DateTime.Now, StreamCursor) { }

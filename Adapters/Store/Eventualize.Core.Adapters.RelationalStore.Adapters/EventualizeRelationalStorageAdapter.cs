@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 // TODO: [bnaya 2023-12-20] default timeout
 
@@ -94,8 +95,21 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         }
     }
 
+    async Task IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options, CancellationToken cancellation)
+    {
+        SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, options) : null;
+        await SaveAsync(aggregate,  snapshotSaveParameter, cancellation);
+    }
+
+    async Task IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
+    {
+        SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, jsonTypeInfo) : null;
+        await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
+    }
+
     // TODO: [bnaya 2023-12-13] avoid racing
-    async Task IEventualizeStorageAdapter.SaveAsync<T>(EventualizeAggregate<T> aggregate, bool storeSnapshot, CancellationToken cancellation)
+    private async Task SaveAsync<T>(EventualizeAggregate<T> aggregate, SnapshotSaveParameter? snapshotSaveParameter, CancellationToken cancellation)
+         where T : notnull, new()
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
@@ -103,24 +117,13 @@ public sealed class EventualizeRelationalStorageAdapter : IEventualizeStorageAda
         string snapQuery = _queries.SaveSnapshot;
 
         // TODO: [bnaya 2023-12-20] Thread safety (lock async) clear the pending on succeed?, transaction?,  
-        // TODO: [bnaya 2023-12-13] set parameters
         try
         {
             var parameter = new AggregateSaveParameterCollection<T>(aggregate/*, domain? */);
 
             int affected = await conn.ExecuteAsync(query, parameter);
-            if (storeSnapshot)
+            if (snapshotSaveParameter != null)
             {
-                var offset = aggregate.LastStoredOffset + parameter.Events.Count;
-                // TODO: [bnaya 2023-12-20] serialization?
-                // TODO: [bnaya 2023-12-20] domain
-                var payload = JsonSerializer.Serialize(aggregate.State);
-                SnapshotSaveParameter snapshotSaveParameter = new SnapshotSaveParameter(
-                                            aggregate.StreamUri.StreamId,
-                                            aggregate.StreamUri.StreamType,
-                                            offset,
-                                            payload,
-                                            "default");
                 int snapshot = await conn.ExecuteAsync(snapQuery, snapshotSaveParameter);
                 if (snapshot != 1)
                     throw new DataException("Snapshot not saved");

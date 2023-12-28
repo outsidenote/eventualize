@@ -1,12 +1,43 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Eventualize.Core;
 
-[DebuggerDisplay("{AggregateId}, {AggregateType}, {Sequence}")]
+[DebuggerDisplay("{StreamId}, {StreamType}, {Offset}")]
 public readonly record struct SnapshotSaveParameter(
-                    string AggregateId,
+                    string Domain,
+                    string StreamType,
+                    string StreamId,
                     string AggregateType,
-                    long Sequence,
+                    long Offset,
                     // TODO: [bnaya 2023-12-20] use ISnapshotPayload
-                    string Payload,
-                    string Domain);
+                    string Payload)
+{
+    public static SnapshotSaveParameter Create<T>(
+                    EventualizeAggregate<T> aggregate,
+                    JsonSerializerOptions? options = null) where T : notnull, new()
+    {
+        return new(
+            aggregate.SnapshotUri.Domain,
+            aggregate.SnapshotUri.StreamType,
+            aggregate.SnapshotUri.StreamId,
+            aggregate.SnapshotUri.AggregateType,
+            aggregate.LastStoredOffset + aggregate.PendingEvents.Count,
+            JsonSerializer.Serialize(aggregate.State, options)
+        );
+    }
+    public static SnapshotSaveParameter Create<T>(
+                    EventualizeAggregate<T> aggregate,
+                    JsonTypeInfo<T> jsonTypeInfo) where T : notnull, new()
+    {
+        return new(
+            aggregate.SnapshotUri.Domain,
+            aggregate.SnapshotUri.StreamType,
+            aggregate.SnapshotUri.StreamId,
+            aggregate.SnapshotUri.AggregateType,
+            aggregate.LastStoredOffset + aggregate.PendingEvents.Count,
+            JsonSerializer.Serialize(aggregate.State, jsonTypeInfo)
+        );
+    }
+};

@@ -1,5 +1,7 @@
 using Eventualize.Core;
 using Eventualize.Core.Abstractions;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Eventualize.Core;
 
@@ -46,7 +48,8 @@ public class EventualizeRepository : IEventualizeRepository
         return await aggregateFactory.CreateAsync(streamId, events, snapshot);
     }
 
-    async Task IEventualizeRepository.SaveAsync<T>(EventualizeAggregate<T> aggregate, CancellationToken cancellation)
+    // TODO: [bnaya 2023-12-28] reduce duplication
+    async Task IEventualizeRepository.SaveAsync<T>(EventualizeAggregate<T> aggregate, JsonSerializerOptions? options, CancellationToken cancellation)
     {
         if (aggregate.PendingEvents.Count == 0)
         {
@@ -57,7 +60,22 @@ public class EventualizeRepository : IEventualizeRepository
         if (lastStoredOffset != aggregate.LastStoredOffset)
             throw new OCCException<T>(aggregate, lastStoredOffset);
         bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
-        await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot, cancellation);
+        await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot, options, cancellation);
+        aggregate.ClearPendingEvents();
+    }
+
+    async Task IEventualizeRepository.SaveAsync<T>(EventualizeAggregate<T> aggregate, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
+    {
+        if (aggregate.PendingEvents.Count == 0)
+        {
+            await Task.FromResult(true);
+            return;
+        }
+        long lastStoredOffset = await _storageAdapter.GetLastOffsetAsync(aggregate, cancellation);
+        if (lastStoredOffset != aggregate.LastStoredOffset)
+            throw new OCCException<T>(aggregate, lastStoredOffset);
+        bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
+        await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot, jsonTypeInfo, cancellation);
         aggregate.ClearPendingEvents();
     }
 }
