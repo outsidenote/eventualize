@@ -1,28 +1,57 @@
-using Eventualize.Core.Abstractions;
+using System.Collections.Immutable;
+using Eventualize.Core;
 using static Eventualize.Core.Tests.TestHelper;
 
-namespace Eventualize.Core.Tests;
-
-public static class TestAggregateFactoryConfigs
+namespace Eventualize.Core.Tests
 {
-    public static readonly string AggregateType = "TestAggregateType";
-    public static readonly Type TestStateType = typeof(TestState);
-
-    public readonly static EventualizeStreamBaseUri StreamBaseAddress = new("default", "testStreamType");
-
-    public static EventualizeAggregateFactory<TestState> GetAggregateFactory(int minEvents = 0)
+    public static class TestAggregateFactoryConfigs
     {
-        var map = new Dictionary<string, IFoldingFunction<TestState>>
+        public static readonly string AggregateType = "TestAggregateType";
+        public static readonly string AggregateType2 = "TestAggregateType2";
+        public static readonly Type TestStateType = typeof(TestState);
+
+        public static EventualizeStreamBaseUri GetStreamBaseAddress()
         {
-            [TestEventType] = new TestFoldingFunction()
-        };
-        EventualizeFoldingLogic<TestState> foldingLogic = new(map);
-        EventualizeAggregateFactory<TestState> aggregate =
-            new(
-                    AggregateType,
-                    StreamBaseAddress,
-                    foldingLogic,
-                    minEvents);
+            return new("default", "testStreamType");
+        }
+
+        public static EventualizeAggregateFactory<TestState> GetAggregateFactory(bool useFoldingLogic2 = false)
+        {
+            return GetAggregateFactory(0, useFoldingLogic2);
+        }
+
+        public static EventualizeAggregateFactory<TestState> GetAggregateFactory(int minEvents, bool useFoldingLogic2 = false)
+        {
+            IFoldingFunction<TestState> foldingFunction = !useFoldingLogic2 ?
+                new TestFoldingFunction() : new TestFoldingFunction2();
+            
+            var foldingLogicBuilder = new EventualizeFoldingLogicBuilder<TestState>();
+            foldingLogicBuilder.AddMapping(TestEventType.EventTypeName, foldingFunction);
+            var foldingLogic = foldingLogicBuilder.Build();
+
+            return new(
+                useFoldingLogic2 ? AggregateType2 : AggregateType,
+                GetStreamBaseAddress(),
+                new() { { TestEventType.EventTypeName, TestEventType } },
+                foldingLogic,
+                minEvents
+            );
+        }
+
+        // public static EventualizeFoldingFunction TestFoldingFunction = new EventualizeFoldingFunction(UndelegatedTestFoldingFunction);
+                new() { { TestEventType.EventTypeName, TestEventType } },
+        public static IFoldingFunction<TestState> FoldingFunctionInstance = new TestFoldingFunction();
+                new(new() { { TestEventType.EventTypeName, new TestFoldingFunction() } }),
+        private static object UndelegatedTestFoldingFunction(object oldState, EventualizeEvent SerializedEvent)
+        {
+            TestState convertedOldState = (TestState)oldState;
+            EventualizeEvent convertedSerializedEvent = (EventualizeEvent)SerializedEvent;
+            TestEventDataType data = TestEventType.ParseData(convertedSerializedEvent);
+            return new TestState(convertedOldState.ACount + 1, convertedOldState.BCount + 1, convertedOldState.BSum + data.B);
+        }
+            );
+        }
+        // public static EventualizeFoldingFunction TestFoldingFunction = new EventualizeFoldingFunction(UndelegatedTestFoldingFunction);
 
 
         return aggregate;
