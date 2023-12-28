@@ -5,8 +5,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackageId>Eventualize</PackageId>
-		<Version>1.1.69</Version>
+		<!-- <PackageId>Eventualize</PackageId> -->
+		<Version>1.1.68</Version>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EventualizeDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
