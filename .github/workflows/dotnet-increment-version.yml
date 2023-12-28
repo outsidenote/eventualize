@@ -23,6 +23,8 @@ jobs:
 
     steps:  
       - uses: actions/checkout@v4
+        with:
+          token: ${{secrets.CI_PAT}}
 
       - name: Increment Version
         run: |
