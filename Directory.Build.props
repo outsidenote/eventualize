@@ -6,7 +6,7 @@
 
 	<PropertyGroup>
 		<!--<PackageId>Eventualize</PackageId>-->
-		<Version>1.0.53</Version>
+		<Version>1.0.54</Version>
 		<Authors>Roma Bronstein</Authors>
 		<Company>Self</Company>
 	</PropertyGroup>
