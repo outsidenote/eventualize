@@ -74,13 +74,13 @@ jobs:
           # BUILD_PLATFORM: x64
 
           # NuGet package id, used for version detection & defaults to project name
-          # PACKAGE_NAME: Core
+          PACKAGE_NAME: Eventualize
 
           # Filepath with version info, relative to root of repository & defaults to PROJECT_FILE_PATH
-          # VERSION_FILE_PATH: Directory.Build.props
+          VERSION_FILE_PATH: Directory.Build.props
 
           # Regex pattern to extract version info in a capturing group
-          # VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
+          VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
 
           # Useful with external providers like Nerdbank.GitVersioning, ignores VERSION_FILE_PATH & VERSION_REGEX
           # VERSION_STATIC: 1.0.0
