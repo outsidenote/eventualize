@@ -10,7 +10,6 @@
 		<Authors>Roma Bronstein</Authors>
 		<Company>EventualizeDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<None Include="docs\README.md" Pack="true" PackagePath="\" />
 		<TargetFramework>net6.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<Nullable>enable</Nullable>
@@ -40,6 +39,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="docs\README.md" Pack="true" PackagePath="\" />
 		<None Include="icon.png">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
