@@ -6,7 +6,7 @@
 
 	<PropertyGroup>
 		<!-- <PackageId>Eventualize</PackageId> -->
-		<Version>1.1.78</Version>
+		<Version>1.1.79</Version>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EventualizeDB.com</Company>
 		<PackageReadmeFile Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'">README.md</PackageReadmeFile>
