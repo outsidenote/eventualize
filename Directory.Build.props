@@ -9,13 +9,13 @@
 		<Version>1.1.75</Version>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EventualizeDB.com</Company>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageReadmeFile Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'">README.md</PackageReadmeFile>
 		<TargetFramework>net6.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<Configurations>Debug;Release</Configurations>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<PackageIcon>icon.png</PackageIcon>
+		<PackageIcon Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'">icon.png</PackageIcon>
 		<IsPackable>true</IsPackable>
 		<PackageTags>event-source, event-driven, event-sourcing, producer, consumer, pub, sub,
 			pub-sub, messaging, reliable, redis, bnaya</PackageTags>
@@ -39,8 +39,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\docs\README.md" Pack="true" PackagePath="\" />
-		<None Include="..\icon.png">
+		<None Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'" Include="..\docs\README.md" Pack="true" PackagePath="\" />
+		<None Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'" Include="..\icon.png">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
