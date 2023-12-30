@@ -6,46 +6,42 @@ namespace Eventualize.Core;
 public class EventualizeEventFactory<T>
 {
     public readonly string EventType;
-    public EventualizeEventFactory(string eventType)
+    public readonly string CapturedBy;
+    public EventualizeEventFactory(string eventType, string capturedBy)
     {
         EventType = eventType;
+        CapturedBy = capturedBy;
     }
     public IEventualizeEvent Create(DateTime capturedAt,
-                                    string capturedBy,
                                     T data,
                                     JsonSerializerOptions? options = null)
     {
         var json = JsonSerializer.Serialize(data, options);
         var result = new EventualizeEvent(EventType,
                                             capturedAt,
-                                            capturedBy,
+                                            CapturedBy,
                                             json);
         return result;
     }
-    public IEventualizeEvent Create(string capturedBy,
-                                    T data,
-                                    JsonSerializerOptions? options = null)
+    public IEventualizeEvent Create(T data, JsonSerializerOptions? options = null)
     {
-        return Create(DateTime.Now, capturedBy, data, options);
+        return Create(DateTime.Now, data, options);
     }
 
     public IEventualizeEvent Create(DateTime capturedAt,
-                                       string capturedBy,
                                        T data,
                                        JsonTypeInfo<T> jsonType)
     {
         var json = JsonSerializer.Serialize(data, jsonType);
         var result = new EventualizeEvent(EventType,
                                             capturedAt,
-                                            capturedBy,
+                                            CapturedBy,
                                             json);
         return result;
     }
 
-    public IEventualizeEvent Create(string capturedBy,
-                                       T data,
-                                       JsonTypeInfo<T> jsonType)
+    public IEventualizeEvent Create(T data, JsonTypeInfo<T> jsonType)
     {
-        return Create(DateTime.Now, capturedBy, data, jsonType);
+        return Create(DateTime.Now, data, jsonType);
     }
 }
