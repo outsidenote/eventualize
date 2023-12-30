@@ -15,17 +15,12 @@ public class EventualizeEventFactory
     }
 }
 
-public class EventualizeEventFactory<T>(string eventType, string capturedBy) : EventualizeEventFactory(eventType, capturedBy)
+public class EventualizeEventFactory<T>(string eventType, string capturedBy) : EventualizeEventFactory(eventType, capturedBy), IEventualizeEventFactory<T>
 {
-    public IEventualizeEvent Create(DateTime capturedAt,
-                                    T data,
-                                    JsonSerializerOptions? options = null)
+    public IEventualizeEvent Create(DateTime capturedAt, T data, JsonSerializerOptions? options = null)
     {
         var json = JsonSerializer.Serialize(data, options);
-        var result = new EventualizeEvent(EventType,
-                                            capturedAt,
-                                            CapturedBy,
-                                            json);
+        var result = new EventualizeEvent(EventType, capturedAt, CapturedBy, json);
         return result;
     }
     public IEventualizeEvent Create(T data, JsonSerializerOptions? options = null)
@@ -33,9 +28,7 @@ public class EventualizeEventFactory<T>(string eventType, string capturedBy) : E
         return Create(DateTime.Now, data, options);
     }
 
-    public IEventualizeEvent Create(DateTime capturedAt,
-                                       T data,
-                                       JsonTypeInfo<T> jsonType)
+    public IEventualizeEvent Create(DateTime capturedAt, T data, JsonTypeInfo<T> jsonType)
     {
         var json = JsonSerializer.Serialize(data, jsonType);
         var result = new EventualizeEvent(EventType,
@@ -50,3 +43,4 @@ public class EventualizeEventFactory<T>(string eventType, string capturedBy) : E
         return Create(DateTime.Now, data, jsonType);
     }
 }
+
