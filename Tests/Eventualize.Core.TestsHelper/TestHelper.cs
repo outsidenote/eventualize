@@ -34,11 +34,11 @@ public static class TestHelper
                                 TestAggregateFactoryConfigs.GetStreamBaseUri,
                                 "testStreamId");
 
+    public readonly static EventualizeEventFactory<TestEventDataType> TestEventFactory = new(TestEventType);
+
     public static IEventualizeEvent GetCorrectTestEvent()
     {
-        return EventualizeEventFactory.Create(
-            TestEventType,
-            DateTime.UtcNow,
+        return TestEventFactory.Create(
             "TestOperation",
             CorrectEventData);
     }
