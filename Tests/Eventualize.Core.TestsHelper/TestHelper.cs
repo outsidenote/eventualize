@@ -34,7 +34,8 @@ public static class TestHelper
                                 TestAggregateFactoryConfigs.GetStreamBaseUri,
                                 "testStreamId");
 
-    public readonly static EventualizeEventFactory<TestEventDataType> TestEventFactory = new(TestEventType, "TestOperation");
+    public readonly static IEventualizeEventFactory<TestEventDataType> TestEventFactory =
+        new EventualizeEventFactory<TestEventDataType>(TestEventType, "TestOperation");
 
     public static IEventualizeEvent GetCorrectTestEvent()
     {
