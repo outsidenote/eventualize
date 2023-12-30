@@ -3,15 +3,20 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Eventualize.Core;
 
-public class EventualizeEventFactory<T>
+public class EventualizeEventFactory
 {
     public readonly string EventType;
     public readonly string CapturedBy;
+
     public EventualizeEventFactory(string eventType, string capturedBy)
     {
         EventType = eventType;
         CapturedBy = capturedBy;
     }
+}
+
+public class EventualizeEventFactory<T>(string eventType, string capturedBy) : EventualizeEventFactory(eventType, capturedBy)
+{
     public IEventualizeEvent Create(DateTime capturedAt,
                                     T data,
                                     JsonSerializerOptions? options = null)
