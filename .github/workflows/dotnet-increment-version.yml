@@ -66,6 +66,9 @@ jobs:
           dotnet build -c Release Eventualize.Core/Eventualize.Core.csproj
           dotnet pack  --no-build -c Release Eventualize.Core/Eventualize.Core.csproj -o .
           dotnet pack  --no-build -c Release Eventualize.Core.Abstractions/Eventualize.Core.Abstractions.csproj -o .
+          dotnet pack  --no-build -c Release Adapters/Store/Sql/Eventualize.Core.Adapters.SqlStore.Adapters/Eventualize.Core.Adapters.SqlStore.Adapters.csproj -o .
+          dotnet pack  --no-build -c Release Adapters/Store/Eventualize.Core.Adapters.RelationalStore.Common/Eventualize.Core.Adapters.RelationalStore.Common.csproj -o .
+          dotnet pack  --no-build -c Release Adapters/Store/Eventualize.Core.Adapters.RelationalStore.Adapters/Eventualize.Core.Adapters.RelationalStore.Adapters.csproj -o .
           dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}} --skip-duplicate -n
         shell: bash
         

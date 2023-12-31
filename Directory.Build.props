@@ -9,18 +9,28 @@
 		<Version>1.1.79</Version>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EventualizeDB.com</Company>
-		<PackageReadmeFile Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'">README.md</PackageReadmeFile>
+		<PackageReadmeFile
+			Condition="
+			$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or
+			$(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj' Or
+			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.SqlStore.Adapters.csproj' Or
+			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Common.csproj' Or
+			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Adapters.csproj'"
+		>
+			README.md</PackageReadmeFile>
 		<TargetFramework>net6.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<Configurations>Debug;Release</Configurations>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<PackageIcon Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'">icon.png</PackageIcon>
+		<PackageIcon
+			Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'">
+			icon.png</PackageIcon>
 		<IsPackable>true</IsPackable>
 		<PackageTags>event-source, event-driven, event-sourcing, producer, consumer, pub, sub,
 			pub-sub, messaging, reliable, redis, bnaya</PackageTags>
-		<PackageProjectUrl>https://medium.com/@bnayae</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/bnayae/Event-Source-Backbone</RepositoryUrl>
+		<PackageProjectUrl>https://eventualizedb.com/</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/outsidenote/eventualize</RepositoryUrl>
 		<RepositoryType>GitHub</RepositoryType>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -38,11 +48,23 @@
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<None Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'" Include="..\docs\README.md" Pack="true" PackagePath="\" />
-		<None Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'" Include="..\icon.png">
-			<Pack>True</Pack>
-			<PackagePath></PackagePath>
-		</None>
+	<ItemGroup
+		Condition="
+		$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or
+		$(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'">
+		<None Include="..\docs\README.md" Pack="true" PackagePath="\" />
+		<None Include="..\icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<ItemGroup
+		Condition="
+		$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Common.csproj' Or
+		$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Adapters.csproj'">
+		<None Include="..\..\..\docs\README.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\..\icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<ItemGroup
+		Condition="$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.SqlStore.Adapters.csproj'">
+		<None Include="..\..\..\..\docs\README.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\..\..\icon.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 </Project>
