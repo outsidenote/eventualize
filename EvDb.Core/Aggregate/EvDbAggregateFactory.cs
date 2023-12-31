@@ -13,7 +13,11 @@ public class EvDbAggregateFactory<T> where T : notnull, new()
 
     #endregion // Members
 
-    public EvDbAggregateFactory(string aggregateType, EvDbStreamBaseUri streamBaseAddress, EvDbFoldingLogic<T> foldingLogic, int minEventsBetweenSnapshots = 0)
+    public EvDbAggregateFactory(
+        string aggregateType,
+        EvDbStreamBaseUri streamBaseAddress,
+        EvDbFoldingLogic<T> foldingLogic,
+        int minEventsBetweenSnapshots = 0)
     {
         AggregateType = aggregateType;
         StreamBaseUri = streamBaseAddress;
