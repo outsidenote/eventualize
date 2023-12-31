@@ -8,4 +8,13 @@
 	<ItemGroup>
 		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
 	</ItemGroup>
+
+
+	<ItemGroup>
+		<None Include="..\..\..\..\docs\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
 </Project>
