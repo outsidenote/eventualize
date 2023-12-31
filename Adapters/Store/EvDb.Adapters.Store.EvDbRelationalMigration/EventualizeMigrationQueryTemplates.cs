@@ -1,0 +1,19 @@
+﻿using Generator.Equals;
+
+namespace EvDb.Core.Adapters;
+
+/// <summary>
+/// Queries permutation with a specific context
+/// </summary>
+[Equatable]
+public readonly partial record struct EvDbMigrationQueryTemplates
+{
+    /// <summary>
+    /// Create environment query.
+    /// </summary>
+    public string CreateEnvironment { get; init; }
+    /// <summary>
+    /// Destroy environment query.
+    /// </summary>
+    public string DestroyEnvironment { get; init; }
+}

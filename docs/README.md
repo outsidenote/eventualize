@@ -1,4 +1,4 @@
-# Eventualize
+# EvDb
 
 <picture>
     <source srcset="images/dark-theme-logo.png"  media="(prefers-color-scheme: dark)">
@@ -6,8 +6,8 @@
     <img src="light-theme-logo.png" width="250">
 </picture>
 
-Eventualize is an opinionated event-sourcing framework that unlocks the untapped potential of transactional data while eliminating many challenges related to management of transactional data and its schema.
-Eventualize is quick & easy to integrate, and while it is working with new paradigms and patterns under the hood, it abstracts most of it away and does not distrupt development.
+EvDb is an opinionated event-sourcing framework that unlocks the untapped potential of transactional data while eliminating many challenges related to management of transactional data and its schema.
+EvDb is quick & easy to integrate, and while it is working with new paradigms and patterns under the hood, it abstracts most of it away and does not distrupt development.
 
 ## Watch a Short Intro Video on The Website
 
