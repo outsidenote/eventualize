@@ -1,6 +1,6 @@
+using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Adapters;
-using EvDb.Adapters.Store.SqlServer;
 using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

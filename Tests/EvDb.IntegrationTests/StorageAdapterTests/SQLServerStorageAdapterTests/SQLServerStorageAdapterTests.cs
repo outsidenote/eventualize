@@ -3,8 +3,6 @@ using EvDb.Core;
 using EvDb.Core.Tests;
 using Microsoft.Extensions.Configuration;
 using Xunit.Abstractions;
-
-using static EvDb.Core.Tests.TestAggregateConfigs;
 using static EvDb.Core.Tests.TestHelper;
 
 namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests;

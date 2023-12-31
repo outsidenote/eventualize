@@ -1,5 +1,4 @@
-﻿using EvDb.Core;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 

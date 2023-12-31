@@ -1,6 +1,5 @@
 namespace EvDb.Core.Tests;
 
-using static EvDb.Core.Tests.TestAggregateConfigs;
 using static EvDb.Core.Tests.TestHelper;
 
 public class AggregateTests

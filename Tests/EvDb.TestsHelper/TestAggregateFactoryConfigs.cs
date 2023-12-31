@@ -1,4 +1,3 @@
-using EvDb.Core;
 using static EvDb.Core.Tests.TestHelper;
 
 namespace EvDb.Core.Tests
