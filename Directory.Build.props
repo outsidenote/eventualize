@@ -9,26 +9,18 @@
 		<Version>1.1.82</Version>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EventualizeDB.com</Company>
-		<PackageReadmeFile
-			Condition="
-			$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or
-			$(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj' Or
-			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.SqlStore.Adapters.csproj' Or
-			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Common.csproj' Or
-			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Adapters.csproj'"
-		>
-			README.md</PackageReadmeFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<TargetFramework>net6.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<Configurations>Debug;Release</Configurations>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<PackageIcon
-			Condition="$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or $(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'">
-			icon.png</PackageIcon>
+		<PackageIcon>icon-light.png</PackageIcon>
 		<IsPackable>true</IsPackable>
-		<PackageTags>event-source, event-driven, event-sourcing, producer, consumer, pub, sub,
-			pub-sub, messaging, reliable, redis, bnaya</PackageTags>
+		<PackageTags>
+			event-source, event-driven, event-sourcing, producer, consumer, pub, sub,
+			pub-sub, messaging, reliable, redis, bnaya
+		</PackageTags>
 		<PackageProjectUrl>https://eventualizedb.com/</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/outsidenote/eventualize</RepositoryUrl>
 		<RepositoryType>GitHub</RepositoryType>
@@ -40,7 +32,6 @@
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);1591</NoWarn>
 	</PropertyGroup>
 
@@ -48,23 +39,18 @@
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
 	</ItemGroup>
 
-	<ItemGroup
-		Condition="
-		$(MSBuildProjectFile) == 'Eventualize.Core.csproj' Or
-		$(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj'">
-		<None Include="..\docs\README.md" Pack="true" PackagePath="\" />
-		<None Include="..\icon.png" Pack="true" PackagePath="\" />
+	<ItemGroup>
+		<None Include="icon-light.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
 	</ItemGroup>
-	<ItemGroup
-		Condition="
-		$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Common.csproj' Or
-		$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Adapters.csproj'">
-		<None Include="..\..\..\docs\README.md" Pack="true" PackagePath="\" />
-		<None Include="..\..\..\icon.png" Pack="true" PackagePath="\" />
-	</ItemGroup>
-	<ItemGroup
-		Condition="$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.SqlStore.Adapters.csproj'">
-		<None Include="..\..\..\..\docs\README.md" Pack="true" PackagePath="\" />
-		<None Include="..\..\..\..\icon.png" Pack="true" PackagePath="\" />
-	</ItemGroup>
+
+	<!--<ItemGroup>
+		<None Include="..\docs\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>-->
+
 </Project>

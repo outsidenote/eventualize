@@ -1,4 +1,4 @@
-name: Increment Version (Directory.Build.props)
+name: Deploy
 
 # doc:               https://docs.github.com/en/actions
 # variables:         https://docs.github.com/en/actions/learn-github-actions/environment-variables
@@ -9,6 +9,8 @@ name: Increment Version (Directory.Build.props)
 on:
   push:
     branches: ["main"]
+
+  workflow_dispatch:
 
 jobs:
   version_increment:
@@ -60,18 +62,22 @@ jobs:
           push_options: "--no-verify"
           tagging_message: "v${{join(steps.*.outputs.version)}}"
   
-      - name: publish on version change
-        id: publish_nuget
-        run: |
-          dotnet build -c Release Eventualize.Core/Eventualize.Core.csproj
-          dotnet build -c Release Adapters/Store/Sql/Eventualize.Core.Adapters.SqlStore.Adapters/Eventualize.Core.Adapters.SqlStore.Adapters.csproj
-          dotnet build -c Release Adapters/Store/Eventualize.Core.Adapters.RelationalStore.Common/Eventualize.Core.Adapters.RelationalStore.Common.csproj
-          dotnet build -c Release Adapters/Store/Eventualize.Core.Adapters.RelationalStore.Adapters/Eventualize.Core.Adapters.RelationalStore.Adapters.csproj
-          dotnet pack  --no-build -c Release Eventualize.Core/Eventualize.Core.csproj -o .
-          dotnet pack  --no-build -c Release Eventualize.Core.Abstractions/Eventualize.Core.Abstractions.csproj -o .
-          dotnet pack  --no-build -c Release Adapters/Store/Sql/Eventualize.Core.Adapters.SqlStore.Adapters/Eventualize.Core.Adapters.SqlStore.Adapters.csproj -o .
-          dotnet pack  --no-build -c Release Adapters/Store/Eventualize.Core.Adapters.RelationalStore.Common/Eventualize.Core.Adapters.RelationalStore.Common.csproj -o .
-          dotnet pack  --no-build -c Release Adapters/Store/Eventualize.Core.Adapters.RelationalStore.Adapters/Eventualize.Core.Adapters.RelationalStore.Adapters.csproj -o .
-          dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}} --skip-duplicate -n
+  
+      - name: .NET Restore dependencies
+        run: dotnet restore /property:Configuration=Release 
         shell: bash
+
+      - name: .NET Build 
+        run: dotnet build  --configuration Release --no-restore 
+        shell: bash
+
+      # TBD: tests
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3     
+        # https://app.codecov.io/gh/bnayae/Bnaya.Extensions.Common/new
+
+      - name: Push generated package
+        run: dotnet nuget push ./**/*.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate 
+
         
