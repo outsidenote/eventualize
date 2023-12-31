@@ -15,7 +15,7 @@
 			$(MSBuildProjectFile) == 'Eventualize.Core.Abstractions.csproj' Or
 			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.SqlStore.Adapters.csproj' Or
 			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Common.csproj' Or
-			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Adapters.csproj' Or"
+			$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Adapters.csproj'"
 		>
 			README.md</PackageReadmeFile>
 		<TargetFramework>net6.0</TargetFramework>
@@ -57,8 +57,8 @@
 	</ItemGroup>
 	<ItemGroup
 		Condition="
-		$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Adapters.csproj' Or
-		$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Common.csproj'">
+		$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Common.csproj' Or
+		$(MSBuildProjectFile) == 'Eventualize.Core.Adapters.RelationalStore.Adapters.csproj'">
 		<None Include="..\..\..\docs\README.md" Pack="true" PackagePath="\" />
 		<None Include="..\..\..\icon.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
