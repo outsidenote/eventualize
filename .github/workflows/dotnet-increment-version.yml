@@ -64,6 +64,9 @@ jobs:
         id: publish_nuget
         run: |
           dotnet build -c Release Eventualize.Core/Eventualize.Core.csproj
+          dotnet build -c Release Adapters/Store/Sql/Eventualize.Core.Adapters.SqlStore.Adapters/Eventualize.Core.Adapters.SqlStore.Adapters.csproj -o .
+          dotnet build -c Release Adapters/Store/Eventualize.Core.Adapters.RelationalStore.Common/Eventualize.Core.Adapters.RelationalStore.Common.csproj -o .
+          dotnet build -c Release Adapters/Store/Eventualize.Core.Adapters.RelationalStore.Adapters/Eventualize.Core.Adapters.RelationalStore.Adapters.csproj -o .
           dotnet pack  --no-build -c Release Eventualize.Core/Eventualize.Core.csproj -o .
           dotnet pack  --no-build -c Release Eventualize.Core.Abstractions/Eventualize.Core.Abstractions.csproj -o .
           dotnet pack  --no-build -c Release Adapters/Store/Sql/Eventualize.Core.Adapters.SqlStore.Adapters/Eventualize.Core.Adapters.SqlStore.Adapters.csproj -o .
