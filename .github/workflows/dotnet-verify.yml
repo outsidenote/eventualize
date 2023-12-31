@@ -85,12 +85,12 @@ jobs:
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
-      working-directory: ./Tests/Eventualize.Core.UnitTests
+      working-directory: ./Tests/EvDb.UnitTests
       run: dotnet test
 
     # Execute all Integration tests in the solution
     - name: Execute Integration tests
-      working-directory: ./Tests/Eventualize.Core.IntegrationTests
+      working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
