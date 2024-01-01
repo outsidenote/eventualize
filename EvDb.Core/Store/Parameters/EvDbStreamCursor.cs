@@ -5,10 +5,10 @@ namespace EvDb.Core;
 
 [DebuggerDisplay("ID:{Id}, Type:{Type}, Seq:{Sequence}")]
 [Equatable]
-public partial record EvDbStreamCursor(string Domain, string StreamType, string StreamId, long Offset = 0) : EvDbStreamUri(Domain, StreamType, StreamId)
+public partial record EvDbStreamCursor(string Domain, string EntityType, string EntityId, long Offset = 0) : EvDbStreamId(Domain, EntityType, EntityId)
 {
-    public EvDbStreamCursor(EvDbStreamUri streamUri, long offset = 0)
-        : this(streamUri.Domain, streamUri.StreamType, streamUri.StreamId, offset) { }
+    public EvDbStreamCursor(EvDbStreamId streamId, long offset = 0)
+        : this(streamId.Domain, streamId.EntityType, streamId.EntityId, offset) { }
     public EvDbStreamCursor(EvDbAggregate aggregate)
-        : this(aggregate.StreamUri.Domain, aggregate.StreamUri.StreamType, aggregate.StreamUri.StreamId, aggregate.LastStoredOffset + 1) { }
+        : this(aggregate.StreamId.Domain, aggregate.StreamId.EntityType, aggregate.StreamId.EntityId, aggregate.LastStoredOffset + 1) { }
 }

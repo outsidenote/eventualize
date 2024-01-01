@@ -13,15 +13,15 @@ public abstract class EvDbAggregate
 
     internal EvDbAggregate(
         string aggregateType,
-        EvDbStreamUri streamUri,
+        EvDbStreamId streamId,
         int minEventsBetweenSnapshots,
         long lastStoredOffset)
     {
         AggregateType = aggregateType;
-        StreamUri = streamUri;
+        StreamId = streamId;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
         LastStoredOffset = lastStoredOffset;
-        SnapshotUri = new(streamUri, aggregateType);
+        SnapshotId = new(streamId, aggregateType);
     }
 
     #endregion // Ctor
@@ -35,10 +35,10 @@ public abstract class EvDbAggregate
     // TODO: [bnaya 2023-12-11] Use Min Duration or Count between snapshots
     public int MinEventsBetweenSnapshots { get; init; } = 0;
 
-    public EvDbStreamUri StreamUri { get; init; }
+    public EvDbStreamId StreamId { get; init; }
     public readonly string AggregateType;
 
-    public readonly EvDbSnapshotUri SnapshotUri;
+    public readonly EvDbSnapshotId SnapshotId;
 
     #endregion // Members
 }
@@ -50,22 +50,22 @@ public class EvDbAggregate<TState> : EvDbAggregate where TState : notnull, new()
 
     internal EvDbAggregate(
         string aggregateType,
-        EvDbStreamUri streamUri,
+        EvDbStreamId streamId,
         EvDbFoldingLogic<TState> foldingLogic,
         int minEventsBetweenSnapshots,
         TState state,
         long lastStoredOffset)
-        : base(aggregateType, streamUri, minEventsBetweenSnapshots, lastStoredOffset)
+        : base(aggregateType, streamId, minEventsBetweenSnapshots, lastStoredOffset)
     {
         State = state;
         FoldingLogic = foldingLogic;
     }
 
     internal EvDbAggregate(string aggregateType,
-                                  EvDbStreamUri streamUri,
+                                  EvDbStreamId streamId,
                                   EvDbFoldingLogic<TState> foldingLogic,
                                   int minEventsBetweenSnapshots)
-        : this(aggregateType, streamUri, foldingLogic, minEventsBetweenSnapshots, new TState(), -1) { }
+        : this(aggregateType, streamId, foldingLogic, minEventsBetweenSnapshots, new TState(), -1) { }
 
     #endregion // Ctor
 

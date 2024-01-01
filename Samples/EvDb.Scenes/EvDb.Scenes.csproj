@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="icon-light.png">
+      <PackagePath></PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>

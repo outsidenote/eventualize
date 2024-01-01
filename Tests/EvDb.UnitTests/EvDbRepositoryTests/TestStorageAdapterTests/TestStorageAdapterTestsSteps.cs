@@ -45,7 +45,7 @@ namespace CoreTests.EvDbRepositoryTests.TestStorageAdapterTests
         public static void AssertSnapshotIsStored(TestStorageAdapter testStorageAdapter, EvDbAggregate<TestState> aggregate)
         {
             EvDbStoredSnapshot<JsonElement>? storedSnapshot;
-            string key = TestStorageAdapter.GetKeyValue(aggregate.SnapshotUri);
+            string key = TestStorageAdapter.GetKeyValue(aggregate.SnapshotId);
             if (!testStorageAdapter.Snapshots.TryGetValue(key, out storedSnapshot))
                 throw new KeyNotFoundException(key);
             Assert.NotNull(storedSnapshot);
@@ -58,7 +58,7 @@ namespace CoreTests.EvDbRepositoryTests.TestStorageAdapterTests
             Assert.NotNull(snapshot);
             Assert.Equal(expectedFromAggregate.State, snapshot.State);
             Assert.Equal(expectedFromAggregate.LastStoredOffset + expectedFromAggregate.PendingEvents.Count, snapshot.Cursor.Offset);
-            Assert.Contains(expectedFromAggregate.SnapshotUri.ToString(), snapshot.Cursor.ToString());
+            Assert.Contains(expectedFromAggregate.SnapshotId.ToString(), snapshot.Cursor.ToString());
         }
 
     }

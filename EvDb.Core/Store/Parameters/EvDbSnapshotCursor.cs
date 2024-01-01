@@ -5,29 +5,29 @@ namespace EvDb.Core;
 
 [DebuggerDisplay("ID:{Id}, Type:{Type}, Seq:{Sequence}")]
 [Equatable]
-public partial record EvDbSnapshotCursor(string Domain, string StreamType, string StreamId, string AggregateType, long Offset = 0) : EvDbSnapshotUri(Domain, StreamType, StreamId, AggregateType)
+public partial record EvDbSnapshotCursor(string Domain, string EntityType, string EntityId, string AggregateType, long Offset = 0) : EvDbSnapshotId(Domain, EntityType, EntityId, AggregateType)
 {
     public static readonly EvDbSnapshotCursor Empty = new EvDbSnapshotCursor("N/A", "N/A", "N/A", "N/A", -1);
 
-    public EvDbSnapshotCursor(EvDbStreamUri streamUri, string aggregateType, long offset = 0)
-        : this(streamUri.Domain, streamUri.StreamType, streamUri.StreamId, aggregateType, offset) { }
+    public EvDbSnapshotCursor(EvDbStreamId streamId, string aggregateType, long offset = 0)
+        : this(streamId.Domain, streamId.EntityType, streamId.EntityId, aggregateType, offset) { }
     public EvDbSnapshotCursor(EvDbAggregate aggregate)
         : this(
-            aggregate.StreamUri,
+            aggregate.StreamId,
             aggregate.AggregateType,
             aggregate.LastStoredOffset + aggregate.PendingEvents.Count
         )
     { }
 
-    public static bool operator ==(EvDbSnapshotCursor cursor, EvDbSnapshotUri uri)
+    public static bool operator ==(EvDbSnapshotCursor cursor, EvDbSnapshotId id)
     {
-        EvDbSnapshotUri cursorUri = cursor;
-        return cursorUri == uri;
+        EvDbSnapshotId cursorId = cursor;
+        return cursorId == id;
     }
-    public static bool operator !=(EvDbSnapshotCursor cursor, EvDbSnapshotUri uri)
+    public static bool operator !=(EvDbSnapshotCursor cursor, EvDbSnapshotId id)
     {
-        EvDbSnapshotUri cursorUri = cursor;
-        return !(cursor == uri);
+        EvDbSnapshotId cursorId = cursor;
+        return !(cursor == id);
     }
 
     public override string ToString()

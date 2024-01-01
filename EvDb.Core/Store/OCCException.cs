@@ -16,7 +16,7 @@ namespace EvDb.Core
         }
         private static string PrepareMessageFromAggregate<K>(EvDbAggregate<K> aggregate, long lastStoredOffset) where K : notnull, new()
         {
-            return $"AggregateType={aggregate.AggregateType}, StreamUri='{aggregate.StreamUri}', aggregateLastStoredOffset={aggregate.LastStoredOffset}, ActualLastStoredOffset={lastStoredOffset}";
+            return $"AggregateType={aggregate.AggregateType}, StreamId='{aggregate.StreamId}', aggregateLastStoredOffset={aggregate.LastStoredOffset}, ActualLastStoredOffset={lastStoredOffset}";
         }
     }
 }

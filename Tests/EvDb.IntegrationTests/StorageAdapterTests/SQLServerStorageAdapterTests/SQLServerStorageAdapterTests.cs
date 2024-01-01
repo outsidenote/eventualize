@@ -95,7 +95,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
 
-        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotUri);
+        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotId);
         Assert.NotNull(latestSnapshot);
         Assert.Equal(aggregate.State, latestSnapshot.State);
         Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.Cursor.Offset);

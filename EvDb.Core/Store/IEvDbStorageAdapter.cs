@@ -5,7 +5,7 @@ namespace EvDb.Core;
 
 public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
 {
-    Task<EvDbStoredSnapshot<T>?> TryGetSnapshotAsync<T>(EvDbSnapshotUri snapshotUri, CancellationToken cancellation = default) where T : notnull, new();
+    Task<EvDbStoredSnapshot<T>?> TryGetSnapshotAsync<T>(EvDbSnapshotId snapshotId, CancellationToken cancellation = default) where T : notnull, new();
 
     IAsyncEnumerable<IEvDbStoredEvent> GetAsync(EvDbStreamCursor parameter, CancellationToken cancellation = default);
 
