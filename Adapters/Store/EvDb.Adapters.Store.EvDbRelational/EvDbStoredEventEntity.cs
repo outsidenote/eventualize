@@ -10,16 +10,16 @@ public struct EvDbStoredEventEntity
     public string Data { get; init; }
     public DateTime StoredAt { get; init; }
     public string Domain { get; init; }
-    public string StreamType { get; init; }
-    public string StreamId { get; init; }
+    public string EntityType { get; init; }
+    public string EntityId { get; init; }
     public long Offset { get; init; }
 
     public static implicit operator EvDbStoredEvent(EvDbStoredEventEntity entity)
     {
         EvDbStreamCursor StreamCursor = new(
                                             entity.Domain,
-                                            entity.StreamType,
-                                            entity.StreamId,
+                                            entity.EntityType,
+                                            entity.EntityId,
                                             entity.Offset);
         return new EvDbStoredEvent(
                     entity.EventType,

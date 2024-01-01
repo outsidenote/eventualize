@@ -3,15 +3,16 @@ using Generator.Equals;
 namespace EvDb.Core;
 
 [Equatable]
-public partial record EvDbStreamUri(string Domain, string StreamType, string StreamId) : EvDbStreamBaseUri(Domain, StreamType)
+public partial record EvDbStreamId(string Domain, string EntityType, string EntityId) 
+    : EvDbStreamType(Domain, EntityType)
 {
-    public EvDbStreamUri(EvDbStreamBaseUri baseAddress, string streamId)
-        : this(baseAddress.Domain, baseAddress.StreamType, streamId)
+    public EvDbStreamId(EvDbStreamType baseAddress, string streamId)
+        : this(baseAddress.Domain, baseAddress.EntityType, streamId)
     {
     }
 
     public override string ToString()
     {
-        return $"{Domain}/{StreamType}/{StreamId}";
+        return $"{Domain}/{EntityType}/{EntityId}";
     }
 }

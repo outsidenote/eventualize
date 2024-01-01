@@ -63,7 +63,7 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetLastSnapshotSnapshot;
-        long offset = await conn.ExecuteScalarAsync<long>(query, aggregate.StreamUri);
+        long offset = await conn.ExecuteScalarAsync<long>(query, aggregate.StreamId);
         return offset;
     }
 
@@ -71,18 +71,18 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     /// Tries the get snapshot asynchronous.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="snapshotUri">The snapshot URI.</param>
+    /// <param name="snapshotId">The snapshot id.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     async Task<EvDbStoredSnapshot<T>?> IEvDbStorageAdapter.TryGetSnapshotAsync<T>(
-        EvDbSnapshotUri snapshotUri, CancellationToken cancellation)
+        EvDbSnapshotId snapshotId, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
 
         string query = _queries.TryGetSnapshot;
 
-        var record = await conn.QuerySingleOrDefaultAsync<EvDbeSnapshotRelationalRecrod>(query, snapshotUri) ?? throw new NoNullAllowedException("snapshot");
+        var record = await conn.QuerySingleOrDefaultAsync<EvDbeSnapshotRelationalRecrod>(query, snapshotId) ?? throw new NoNullAllowedException("snapshot");
         var snapshot = EvDbStoredSnapshot.Create<T>(record);
         return snapshot;
     }

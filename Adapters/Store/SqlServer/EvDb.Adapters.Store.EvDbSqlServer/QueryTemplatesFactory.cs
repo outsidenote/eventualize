@@ -14,23 +14,23 @@ internal static class QueryTemplatesFactory
             GetLastSnapshotSnapshot = $"""
                 SELECT MAX(offset)
                     FROM {storageContext}snapshot
-                    WHERE domain = @{nameof(EvDbStreamUri.Domain)}
-                        AND stream_type = @{nameof(EvDbStreamUri.StreamType)}
-                        AND stream_id = @{nameof(EvDbStreamUri.StreamId)}
+                    WHERE domain = @{nameof(EvDbStreamId.Domain)}
+                        AND stream_type = @{nameof(EvDbStreamId.EntityType)}
+                        AND stream_id = @{nameof(EvDbStreamId.EntityId)}
                 """,
             TryGetSnapshot = $"""
                 SELECT
                     json_data as {nameof(EvDbeSnapshotRelationalRecrod.SerializedState)},
                     domain as {nameof(EvDbeSnapshotRelationalRecrod.Domain)},
-                    stream_type as {nameof(EvDbeSnapshotRelationalRecrod.StreamType)},
-                    stream_id as {nameof(EvDbeSnapshotRelationalRecrod.StreamId)},
+                    stream_type as {nameof(EvDbeSnapshotRelationalRecrod.EntityType)},
+                    stream_id as {nameof(EvDbeSnapshotRelationalRecrod.EntityId)},
                     aggregate_type as {nameof(EvDbeSnapshotRelationalRecrod.AggregateType)},
                     offset as {nameof(EvDbeSnapshotRelationalRecrod.Offset)}
                 FROM {storageContext}snapshot
-                WHERE domain = @{nameof(EvDbSnapshotUri.Domain)}
-                    AND stream_type = @{nameof(EvDbSnapshotUri.StreamType)}
-                    AND stream_id = @{nameof(EvDbSnapshotUri.StreamId)}
-                    AND aggregate_type = @{nameof(EvDbSnapshotUri.AggregateType)}
+                WHERE domain = @{nameof(EvDbSnapshotId.Domain)}
+                    AND stream_type = @{nameof(EvDbSnapshotId.EntityType)}
+                    AND stream_id = @{nameof(EvDbSnapshotId.EntityId)}
+                    AND aggregate_type = @{nameof(EvDbSnapshotId.AggregateType)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
@@ -43,13 +43,13 @@ internal static class QueryTemplatesFactory
                     stored_at as {nameof(EvDbStoredEventEntity.StoredAt)},
                     offset as {nameof(EvDbStoredEventEntity.Offset)},
                     domain  as {nameof(EvDbStoredEventEntity.Domain)} ,
-                    stream_type as {nameof(EvDbStoredEventEntity.StreamType)},
-                    stream_id as  {nameof(EvDbStoredEventEntity.StreamId)}
+                    stream_type as {nameof(EvDbStoredEventEntity.EntityType)},
+                    stream_id as  {nameof(EvDbStoredEventEntity.EntityId)}
                 
                 FROM {storageContext}event
                 WHERE domain = @{nameof(EvDbStreamCursor.Domain)}
-                    AND stream_type = @{nameof(EvDbStreamCursor.StreamType)}
-                    AND stream_id = @{nameof(EvDbStreamCursor.StreamId)}
+                    AND stream_type = @{nameof(EvDbStreamCursor.EntityType)}
+                    AND stream_id = @{nameof(EvDbStreamCursor.EntityId)}
                     and offset >= @{nameof(EvDbStreamCursor.Offset)};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
@@ -84,8 +84,8 @@ internal static class QueryTemplatesFactory
                         )
             VALUES (
                         @{nameof(SnapshotSaveParameter.Domain)},
-                        @{nameof(SnapshotSaveParameter.StreamType)},
-                        @{nameof(SnapshotSaveParameter.StreamId)},
+                        @{nameof(SnapshotSaveParameter.EntityType)},
+                        @{nameof(SnapshotSaveParameter.EntityId)},
                         @{nameof(SnapshotSaveParameter.AggregateType)},
                         @{nameof(SnapshotSaveParameter.Offset)},
                         @{nameof(SnapshotSaveParameter.Payload)}

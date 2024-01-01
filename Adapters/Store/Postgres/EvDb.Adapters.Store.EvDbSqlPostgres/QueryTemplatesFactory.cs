@@ -14,16 +14,16 @@ internal static class QueryTemplatesFactory
             GetLastSnapshotSnapshot = $"""
                 SELECT MAX(offset)
                     FROM {storageContext}snapshot
-                    WHERE domain = @{nameof(EvDbStreamUri.Domain)}
-                        AND stream_type = @{nameof(EvDbStreamUri.StreamType)}
-                        AND stream_id = @{nameof(EvDbStreamUri.StreamId)}
+                    WHERE domain = @{nameof(EvDbStreamId.Domain)}
+                        AND stream_type = @{nameof(EvDbStreamId.EntityType)}
+                        AND stream_id = @{nameof(EvDbStreamId.EntityId)}
                 """,
             TryGetSnapshot = $"""
                 SELECT json_data as {nameof(EvDbStoredSnapshot<object>.State)}, offset as {nameof(EvDbStoredSnapshot<object>.Cursor.Offset)}
                 FROM {storageContext}snapshot
-                WHERE domain = @{nameof(EvDbStreamUri.Domain)}
-                    AND stream_type = @{nameof(EvDbStreamUri.StreamType)}
-                    AND stream_id = @{nameof(EvDbStreamUri.StreamId)}
+                WHERE domain = @{nameof(EvDbStreamId.Domain)}
+                    AND stream_type = @{nameof(EvDbStreamId.EntityType)}
+                    AND stream_id = @{nameof(EvDbStreamId.EntityId)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
@@ -36,8 +36,8 @@ internal static class QueryTemplatesFactory
                     stored_at as {nameof(EvDbStoredEvent.StoredAt)}                    
                 FROM {storageContext}event
                 WHERE domain = @{nameof(EvDbStreamCursor.Domain)}
-                    AND stream_type = @{nameof(EvDbStreamCursor.StreamType)}
-                    AND stream_id = @{nameof(EvDbStreamCursor.StreamId)}
+                    AND stream_type = @{nameof(EvDbStreamCursor.EntityType)}
+                    AND stream_id = @{nameof(EvDbStreamCursor.EntityId)}
                     and offset >= @{nameof(EvDbStreamCursor.Offset)};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
@@ -69,8 +69,8 @@ internal static class QueryTemplatesFactory
                         json_data,
                         domain)
             VALUES (
-                        @{nameof(SnapshotSaveParameter.StreamId)},
-                        @{nameof(SnapshotSaveParameter.StreamType)},
+                        @{nameof(SnapshotSaveParameter.EntityId)},
+                        @{nameof(SnapshotSaveParameter.EntityType)},
                         @{nameof(SnapshotSaveParameter.Offset)},
                         @{nameof(SnapshotSaveParameter.Payload)},
                         @{nameof(SnapshotSaveParameter.Domain)})

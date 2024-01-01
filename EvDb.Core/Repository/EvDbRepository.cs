@@ -25,23 +25,23 @@ public class EvDbRepository : IEvDbRepository
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        EvDbStreamUri srmUri = new EvDbStreamUri(
-            aggregateFactory.StreamBaseUri,
+        EvDbStreamId srmId = new EvDbStreamId(
+            aggregateFactory.StreamType,
             streamId);
         // TODO: [bnaya 2023-12-20] transaction, 
-        EvDbSnapshotUri snapshotUri = new(
-            srmUri,
+        EvDbSnapshotId snapshotId = new(
+            srmId,
             aggregateFactory.AggregateType);
         IAsyncEnumerable<IEvDbStoredEvent> events;
-        var snapshot = await _storageAdapter.TryGetSnapshotAsync<T>(snapshotUri, cancellation);
+        var snapshot = await _storageAdapter.TryGetSnapshotAsync<T>(snapshotId, cancellation);
         if (snapshot == null)
         {
-            EvDbStreamCursor prm1 = new(snapshotUri, 0);
+            EvDbStreamCursor prm1 = new(snapshotId, 0);
             events = _storageAdapter.GetAsync(prm1, cancellation);
             return await aggregateFactory.CreateAsync(streamId, events);
         }
         long nextOffset = GetNextOffset(snapshot.Cursor.Offset);
-        EvDbStreamCursor prm2 = new(snapshotUri, nextOffset);
+        EvDbStreamCursor prm2 = new(snapshotId, nextOffset);
         events = _storageAdapter.GetAsync(prm2, cancellation);
         return await aggregateFactory.CreateAsync(streamId, events, snapshot);
     }

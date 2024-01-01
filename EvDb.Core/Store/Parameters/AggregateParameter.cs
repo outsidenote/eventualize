@@ -6,7 +6,7 @@
 // public record AggregateParameter(string Id, string Type)
 // {
 //     public AggregateParameter(EvDbAggregate aggregate)
-//         : this(aggregate.StreamUri.StreamId, aggregate.StreamUri.StreamType) { }
+//         : this(aggregate.StreamId.EntityId, aggregate.StreamUri.EntityType) { }
 //     public EvDbStreamCursor ToSequence(long sequence = 0)
 //     {
 //         return new EvDbStreamCursor(this, sequence);

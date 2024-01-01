@@ -4,11 +4,11 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("{StreamId}, {StreamType}, {Offset}")]
+[DebuggerDisplay("{EntityId}, {EntityType}, {Offset}")]
 public readonly record struct SnapshotSaveParameter(
                     string Domain,
-                    string StreamType,
-                    string StreamId,
+                    string EntityType,
+                    string EntityId,
                     string AggregateType,
                     long Offset,
                     // TODO: [bnaya 2023-12-20] use ISnapshotPayload
@@ -19,10 +19,10 @@ public readonly record struct SnapshotSaveParameter(
                     JsonSerializerOptions? options = null) where T : notnull, new()
     {
         return new(
-            aggregate.SnapshotUri.Domain,
-            aggregate.SnapshotUri.StreamType,
-            aggregate.SnapshotUri.StreamId,
-            aggregate.SnapshotUri.AggregateType,
+            aggregate.SnapshotId.Domain,
+            aggregate.SnapshotId.EntityType,
+            aggregate.SnapshotId.EntityId,
+            aggregate.SnapshotId.AggregateType,
             aggregate.LastStoredOffset + aggregate.PendingEvents.Count,
             JsonSerializer.Serialize(aggregate.State, options)
         );
@@ -32,10 +32,10 @@ public readonly record struct SnapshotSaveParameter(
                     JsonTypeInfo<T> jsonTypeInfo) where T : notnull, new()
     {
         return new(
-            aggregate.SnapshotUri.Domain,
-            aggregate.SnapshotUri.StreamType,
-            aggregate.SnapshotUri.StreamId,
-            aggregate.SnapshotUri.AggregateType,
+            aggregate.SnapshotId.Domain,
+            aggregate.SnapshotId.EntityType,
+            aggregate.SnapshotId.EntityId,
+            aggregate.SnapshotId.AggregateType,
             aggregate.LastStoredOffset + aggregate.PendingEvents.Count,
             JsonSerializer.Serialize(aggregate.State, jsonTypeInfo)
         );

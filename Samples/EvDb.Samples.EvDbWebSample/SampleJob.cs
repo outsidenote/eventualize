@@ -1,7 +1,4 @@
-﻿
-using EvDb.Samples.EvDbWebSample.Controllers;
-
-namespace EvDb.Samples.EvDbWebSample;
+﻿namespace EvDb.Samples.EvDbWebSample;
 
 internal class SampleJob : IHostedService
 {

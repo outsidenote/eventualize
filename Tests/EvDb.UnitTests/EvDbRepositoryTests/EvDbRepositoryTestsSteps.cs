@@ -21,7 +21,7 @@ namespace CoreTests.EvDbRepositoryTests
             Assert.NotNull(fetchedAggregate);
 
             Assert.Equal(expectedAggregate.State, fetchedAggregate.State);
-            Assert.Equal(expectedAggregate.StreamUri, fetchedAggregate.StreamUri);
+            Assert.Equal(expectedAggregate.StreamId, fetchedAggregate.StreamId);
             Assert.Empty(fetchedAggregate.PendingEvents);
             Assert.Equal(2, fetchedAggregate.LastStoredOffset);
         }
@@ -36,7 +36,7 @@ namespace CoreTests.EvDbRepositoryTests
 
         public async Task AssertStoredAggregateIsCorrect(EvDbAggregate<TestState> aggregate, bool isSnapshotStored)
         {
-            EvDbStreamCursor streamCursor = new(aggregate.StreamUri);
+            EvDbStreamCursor streamCursor = new(aggregate.StreamId);
             IAsyncEnumerable<IEvDbStoredEvent>? eventsAsync = _storageAdapter.GetAsync(streamCursor);
             var events = await eventsAsync.ToEnumerableAsync();
             Assert.Equal(3, events.Count);
@@ -44,7 +44,7 @@ namespace CoreTests.EvDbRepositoryTests
             Assert.Empty(aggregate.PendingEvents);
 
 
-            var snapshot = await _storageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotUri);
+            var snapshot = await _storageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotId);
             Assert.Equal(!isSnapshotStored, snapshot is null);
             if (isSnapshotStored)
             {
