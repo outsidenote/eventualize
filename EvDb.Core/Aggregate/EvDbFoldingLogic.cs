@@ -4,13 +4,27 @@ namespace EvDb.Core
 {
     public class EvDbFoldingLogic<T> where T : notnull, new()
     {
+        // TODO: replace it with an encapsulated version
         public readonly IImmutableDictionary<string, IFoldingFunction<T>> Logic;
+
+        #region Ctor
 
         internal EvDbFoldingLogic(IImmutableDictionary<string, IFoldingFunction<T>> logic)
         {
             Logic = logic;
         }
 
+        #endregion // Ctor
+
+        #region FoldEvent
+
+        /// <summary>
+        /// Folds the event into a state.
+        /// </summary>
+        /// <param name="oldState">The old state.</param>
+        /// <param name="someEvent">Some event.</param>
+        /// <returns></returns>
+        /// <exception cref="System.ArgumentNullException">someEvent</exception>
         public T FoldEvent(T oldState, IEvDbEvent someEvent)
         {
             T currentState = oldState;
@@ -20,6 +34,15 @@ namespace EvDb.Core
             return currentState;
         }
 
+        #endregion // FoldEvent
+
+        #region FoldEventsAsync
+
+        /// <summary>
+        /// Folds the events into a state.
+        /// </summary>
+        /// <param name="events">The events.</param>
+        /// <returns></returns>
         public async Task<FoldingResult<T>> FoldEventsAsync(
             IAsyncEnumerable<EvDbStoredEvent> events)
         {
@@ -28,6 +51,12 @@ namespace EvDb.Core
             return result;
         }
 
+        /// <summary>
+        /// Folds the events into a state.
+        /// </summary>
+        /// <param name="oldState">The old state.</param>
+        /// <param name="events">The events.</param>
+        /// <returns></returns>
         public async Task<FoldingResult<T>> FoldEventsAsync(
             T oldState,
             IAsyncEnumerable<IEvDbStoredEvent> events)
@@ -42,6 +71,15 @@ namespace EvDb.Core
             return new FoldingResult<T>(currentState, count);
         }
 
+        #endregion // FoldEventsAsync
+
+        #region FoldEvents
+
+        /// <summary>
+        /// Folds the events into a state.
+        /// </summary>
+        /// <param name="events">The events.</param>
+        /// <returns></returns>
         public FoldingResult<T> FoldEvents(
             IEnumerable<IEvDbEvent> events)
         {
@@ -50,6 +88,12 @@ namespace EvDb.Core
             return result;
         }
 
+        /// <summary>
+        /// Folds the events into a state.
+        /// </summary>
+        /// <param name="oldState">The old state.</param>
+        /// <param name="events">The events.</param>
+        /// <returns></returns>
         public FoldingResult<T> FoldEvents(
             T oldState,
             IEnumerable<IEvDbEvent> events)
@@ -64,5 +108,6 @@ namespace EvDb.Core
             return new FoldingResult<T>(currentState, count);
         }
 
+        #endregion // FoldEvents
     }
 }

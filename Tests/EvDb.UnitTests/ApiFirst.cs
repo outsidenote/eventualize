@@ -18,12 +18,14 @@ public class ApiFirst
             .AddStreamType(new EvDbStreamType("my-domain", "education"))
             .AddEventTypes<IEducationStream>()// where T: IEvDbEventTyppes
                                               //.AddEntityId("top-users:123")
-            //.AddAggregateType<ICollection<StudentScore>, IEducationStreamFolding>([])
+                                              //.AddAggregateType<ICollection<StudentScore>, IEducationStreamFolding>([])
             .AddTopStudentAggregateType()
             .AddEntityId("top-users:123")
             .Build();
 
-        await agg.Events.CourseCreatedAsync(123, "algorithm", 50);
+        var course = new CourseCreated(123, "algorithm", 50);
+        agg.Events.Added(course);
+        //await agg.Events.CourseCreatedAsync(123, "algorithm", 50);
     }
 }
 
@@ -49,7 +51,7 @@ public static class TopStudentFoldingExtensions
         this IEvDbBuilderWithEventTypesWithEntityId<IEducationStream> instance)
     {
         TopStudentFolding folding = new();
-        return instance.AddAggregateType([],folding);
+        return instance.AddAggregateType([], folding);
     }
 
     public static IEvDbBuilderBuild<ICollection<StudentScore>, IEducationStream> AddTopStudentAggregateType(
@@ -80,72 +82,60 @@ public class TopStudentFolding : IEducationStreamFolding
 {
     private readonly ConcurrentDictionary<int, StudentEntity> _students = new ConcurrentDictionary<int, StudentEntity>();
 
-    ValueTask<ICollection<StudentScore>> IEducationStreamFolding.StudentEnlistedAsync(
+    ICollection<StudentScore> IEducationStreamFolding.FoldStudentEnlisted(
         ICollection<StudentScore> state,
         StudentEnlisted enlisted)
     {
         _students.TryAdd(enlisted.Student.Id, enlisted.Student);
-        return ValueTask.FromResult(state);
+        return state;
     }
 
-    async ValueTask<ICollection<StudentScore>> IEducationStreamFolding.StudentReceivedGradeAsync(
+    ICollection<StudentScore> IEducationStreamFolding.FoldStudentReceivedGrade(
         ICollection<StudentScore> state,
         StudentReceivedGrade receivedGrade)
     {
         ICollection<StudentScore> topScores = state;
-        if (topScores.Count < 10)
-        {
-            if (!_students.TryGetValue(receivedGrade.StudentId, out StudentEntity entity))
-                throw new Exception("It's broken");
-            StudentScore score = new(entity, receivedGrade.Grade);
-            IEnumerable<StudentScore> top = [score, .. topScores];
-            ICollection<StudentScore> ordered = [.. top.OrderByDescending(x => x.Score)];
-            if (Interlocked.CompareExchange(ref state, ordered, topScores) != state)
-            {
-                IEducationStreamFolding self = this;
-                var result =
-                    await self.StudentReceivedGradeAsync(
-                            state,
-                            receivedGrade);
-                return result;
-            }
-        }
+        if (!_students.TryGetValue(receivedGrade.StudentId, out StudentEntity entity))
+            throw new Exception("It's broken");
+        StudentScore score = new(entity, receivedGrade.Grade);
+        IEnumerable<StudentScore> top = [score, .. topScores];
+        ICollection<StudentScore> ordered = [.. top.OrderByDescending(x => x.Score).Take(10)];
+        return ordered;
+    }
+
+    ICollection<StudentScore> IEducationStreamFolding.FoldCourseCreated(ICollection<StudentScore> state, CourseCreated courseCreated)
+    {
         return state;
     }
 
-    ValueTask<ICollection<StudentScore>> IEducationStreamFolding.CourseCreatedAsync(ICollection<StudentScore> state, CourseCreated courseCreated)
+    ICollection<StudentScore> IEducationStreamFolding.FoldScheduleTest(ICollection<StudentScore> state, ScheduleTest scheduleTest)
     {
-        return ValueTask.FromResult(state);
+        return state;
     }
 
-    ValueTask<ICollection<StudentScore>> IEducationStreamFolding.ScheduleTestAsync(ICollection<StudentScore> state, ScheduleTest scheduleTest)
+    ICollection<StudentScore> IEducationStreamFolding.FoldStudentAppliedToCourse(ICollection<StudentScore> state, StudentAppliedToCourse applied)
     {
-        return ValueTask.FromResult(state);
+        return state;
     }
 
-    ValueTask<ICollection<StudentScore>> IEducationStreamFolding.StudentAppliedToCourseAsync(ICollection<StudentScore> state, StudentAppliedToCourse applied)
+    ICollection<StudentScore> IEducationStreamFolding.FoldStudentCourseApplicationDenied(ICollection<StudentScore> state, StudentCourseApplicationDenied applicationDenyed)
     {
-        return ValueTask.FromResult(state);
+        return state;
     }
 
-    ValueTask<ICollection<StudentScore>> IEducationStreamFolding.StudentCourseApplicationDeniedAsync(ICollection<StudentScore> state, StudentCourseApplicationDenied applicationDenyed)
+    ICollection<StudentScore> IEducationStreamFolding.FoldStudentQuitCourse(ICollection<StudentScore> state, StudentQuitCourse quit)
     {
-        return ValueTask.FromResult(state);
+        return state;
     }
 
-    ValueTask<ICollection<StudentScore>> IEducationStreamFolding.StudentQuitCourseAsync(ICollection<StudentScore> state, StudentQuitCourse quit)
+    ICollection<StudentScore> IEducationStreamFolding.FoldStudentRegisteredToCourse(ICollection<StudentScore> state, StudentRegisteredToCourse registeredToCourse)
     {
-        return ValueTask.FromResult(state);
+        return state;
     }
 
-    ValueTask<ICollection<StudentScore>> IEducationStreamFolding.StudentRegisteredToCourseAsync(ICollection<StudentScore> state, StudentRegisteredToCourse registeredToCourse)
+    ICollection<StudentScore> IEducationStreamFolding.FoldStudentTestSubmitted(ICollection<StudentScore> state, StudentTestSubmitted testSubmitted)
     {
-        return ValueTask.FromResult(state);
-    }
-
-    ValueTask<ICollection<StudentScore>> IEducationStreamFolding.StudentTestSubmittedAsync(ICollection<StudentScore> state, StudentTestSubmitted testSubmitted)
-    {
-        return ValueTask.FromResult(state);
+        return state;
     }
 }
 
@@ -249,12 +239,60 @@ public partial interface IEvDbFolding<TState, TEventTypes>
 {
 }
 
-//[EvDbStream("Domain", "EntityType")]
-internal partial interface IEducationStream<CourseCreated, ScheduleTest, StudentAppliedToCourse, StudentCourseApplicationDenied> : IEvDbEventTypes
+[AttributeUsage(AttributeTargets.Interface, AllowMultiple = true)]
+public class EvDbEventTypeAttribute<T>: Attribute
 {
+    public EvDbEventTypeAttribute(string eventType)
+    {
+        EventType = eventType;
+    }
+
+    public string EventType { get; }
 }
 
-public interface IEducationStream : IEvDbEventTypes
+
+[EvDbEventType<CourseCreated>("course-created")]
+[EvDbEventType<ScheduleTest>("schedule-test")]
+[EvDbEventType<StudentAppliedToCourse>("student-applied-to-course")]
+[EvDbEventType<StudentCourseApplicationDenied>("student-course-application-denied")]
+[EvDbEventType<StudentEnlisted>("student-enlisted")]
+[EvDbEventType<StudentQuitCourse>("student-quit-course")]
+[EvDbEventType<StudentReceivedGrade>("student-received-grade")]
+[EvDbEventType<StudentRegisteredToCourse>("student-registered-to-course")]
+[EvDbEventType<StudentTestSubmitted>("StudentTestSubmitted")]
+public partial interface IEducationStream: IEvDbEventTypes
+{
+    
+    [GeneratedCode("The following line should generated", "v0")]
+    void Added(CourseCreated courseCreated);
+    void Added(ScheduleTest scheduleTest);
+    void Added(StudentAppliedToCourse applied);
+    void Added(StudentCourseApplicationDenied applicationDenyed);
+    void Added(StudentEnlisted enlisted);
+    void Added(StudentQuitCourse quit);
+    void Added(StudentReceivedGrade receivedGrade);
+    void Added(StudentRegisteredToCourse registeredToCourse);
+    void Added(StudentTestSubmitted testSubmitted);
+
+}
+
+//internal partial interface IEducationStream<
+//    CourseCreated,
+//    ScheduleTest,
+//    StudentAppliedToCourse,
+//    StudentCourseApplicationDenied,
+//    StudentEnlisted,
+//    StudentQuitCourse,
+//    StudentReceivedGrade,
+//    StudentRegisteredToCourse,
+//    StudentTestSubmitted> :
+//        IEvDbEventTypes
+//{
+
+//}
+
+
+public interface IEducationStreamX : IEvDbEventTypes
 {
     Task CourseCreatedAsync(int Id, string Name, int Capacity);
 
@@ -272,37 +310,37 @@ public interface IEducationStream : IEvDbEventTypes
 public interface IEducationStreamFolding :
     IEvDbFolding<ICollection<StudentScore>, IEducationStream>
 {
-    ValueTask<ICollection<StudentScore>> CourseCreatedAsync(
+    ICollection<StudentScore> FoldCourseCreated(
         ICollection<StudentScore> state,
         CourseCreated courseCreated);
-    ValueTask<ICollection<StudentScore>> ScheduleTestAsync(
+    ICollection<StudentScore> FoldScheduleTest(
         ICollection<StudentScore> state,
         ScheduleTest scheduleTest);
-    ValueTask<ICollection<StudentScore>> StudentAppliedToCourseAsync(
+    ICollection<StudentScore> FoldStudentAppliedToCourse(
         ICollection<StudentScore> state,
         StudentAppliedToCourse applied);
-    ValueTask<ICollection<StudentScore>> StudentCourseApplicationDeniedAsync(
+    ICollection<StudentScore> FoldStudentCourseApplicationDenied(
         ICollection<StudentScore> state,
         StudentCourseApplicationDenied applicationDenyed);
-    ValueTask<ICollection<StudentScore>> StudentEnlistedAsync(
+    ICollection<StudentScore> FoldStudentEnlisted(
         ICollection<StudentScore> state,
         StudentEnlisted enlisted);
-    ValueTask<ICollection<StudentScore>> StudentQuitCourseAsync(
+    ICollection<StudentScore> FoldStudentQuitCourse(
         ICollection<StudentScore> state,
         StudentQuitCourse quit);
-    ValueTask<ICollection<StudentScore>> StudentReceivedGradeAsync(
+    ICollection<StudentScore> FoldStudentReceivedGrade(
         ICollection<StudentScore> state,
         StudentReceivedGrade receivedGrade);
-    ValueTask<ICollection<StudentScore>> StudentRegisteredToCourseAsync(
+    ICollection<StudentScore> FoldStudentRegisteredToCourse(
         ICollection<StudentScore> state,
         StudentRegisteredToCourse registeredToCourse);
-    ValueTask<ICollection<StudentScore>> StudentTestSubmittedAsync(
+    ICollection<StudentScore> FoldStudentTestSubmitted(
         ICollection<StudentScore> state,
         StudentTestSubmitted testSubmitted);
 }
 
 [GeneratedCode("from IEducationStream<T0, T1,...>", "v0")]
-public interface IEducationStreamX : IEvDbEventTypes
+public interface IEducationStreamX1 : IEvDbEventTypes
 {
     //Task SendAsync<T>(T item);
 
