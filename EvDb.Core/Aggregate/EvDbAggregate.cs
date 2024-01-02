@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace EvDb.Core;
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public abstract class EvDbAggregate
+public abstract class EvDbAggregate : IEvDbAggregate
 {
     #region Ctor
 
@@ -44,7 +44,7 @@ public abstract class EvDbAggregate
 }
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbAggregate<TState> : EvDbAggregate where TState : notnull, new()
+public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState> where TState : notnull, new()
 {
     #region Ctor
 
