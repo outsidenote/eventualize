@@ -2,7 +2,7 @@
 
 namespace EvDb.Core.Adapters;
 
-public struct EvDbStoredEventEntity
+internal struct EvDbStoredEventRecord
 {
     public string EventType { get; init; }
     public DateTime CapturedAt { get; init; }
@@ -10,16 +10,16 @@ public struct EvDbStoredEventEntity
     public string Data { get; init; }
     public DateTime StoredAt { get; init; }
     public string Domain { get; init; }
-    public string EntityType { get; init; }
-    public string EntityId { get; init; }
+    public string Partition { get; init; }
+    public string StreamId { get; init; }
     public long Offset { get; init; }
 
-    public static implicit operator EvDbStoredEvent(EvDbStoredEventEntity entity)
+    public static implicit operator EvDbStoredEvent(EvDbStoredEventRecord entity)
     {
         EvDbStreamCursor StreamCursor = new(
                                             entity.Domain,
-                                            entity.EntityType,
-                                            entity.EntityId,
+                                            entity.Partition,
+                                            entity.StreamId,
                                             entity.Offset);
         return new EvDbStoredEvent(
                     entity.EventType,

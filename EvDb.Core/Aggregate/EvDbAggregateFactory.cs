@@ -8,26 +8,26 @@ public class EvDbAggregateFactory<T> where T : notnull, new()
     public readonly EvDbFoldingLogic<T> FoldingLogic;
 
     public readonly string AggregateType;
-    public readonly EvDbStreamType StreamType;
+    public readonly EvDbPartition Partition;
     public readonly int MinEventsBetweenSnapshots;
 
     #endregion // Members
 
     public EvDbAggregateFactory(
         string aggregateType,
-        EvDbStreamType streamBaseAddress,
+        EvDbPartition streamType,
         EvDbFoldingLogic<T> foldingLogic,
         int minEventsBetweenSnapshots = 0)
     {
         AggregateType = aggregateType;
-        StreamType = streamBaseAddress;
+        Partition = streamType;
         FoldingLogic = foldingLogic;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
     }
 
     public EvDbAggregate<T> Create(string id)
     {
-        return new EvDbAggregate<T>(AggregateType, new EvDbStreamId(StreamType, id), FoldingLogic, MinEventsBetweenSnapshots);
+        return new EvDbAggregate<T>(AggregateType, new EvDbStreamAddress(Partition, id), FoldingLogic, MinEventsBetweenSnapshots);
     }
 
     public async Task<EvDbAggregate<T>> CreateAsync(string id, IAsyncEnumerable<IEvDbStoredEvent> storedEvents)
@@ -48,12 +48,12 @@ public class EvDbAggregateFactory<T> where T : notnull, new()
             state = FoldingLogic.FoldEvent(state, e);
             offset = e.StreamCursor.Offset;
         }
-        return new EvDbAggregate<T>(AggregateType, new EvDbStreamId(StreamType, id), FoldingLogic, MinEventsBetweenSnapshots, state, offset);
+        return new EvDbAggregate<T>(AggregateType, new EvDbStreamAddress(Partition, id), FoldingLogic, MinEventsBetweenSnapshots, state, offset);
     }
 
     public EvDbAggregate<T> Create(string id, T snapshot, long snapshotOffset)
     {
-        return new EvDbAggregate<T>(AggregateType, new EvDbStreamId(StreamType, id), FoldingLogic, MinEventsBetweenSnapshots, snapshot, snapshotOffset);
+        return new EvDbAggregate<T>(AggregateType, new EvDbStreamAddress(Partition, id), FoldingLogic, MinEventsBetweenSnapshots, snapshot, snapshotOffset);
     }
 }
 

@@ -2,17 +2,23 @@ using Generator.Equals;
 
 namespace EvDb.Core;
 
+/// <summary>
+/// Identify the stream address, a unique instance of a stream
+/// </summary>
+/// <param name="Domain"></param>
+/// <param name="Partition">Representation of a stream partition under the domain, like a User</param>
+/// <param name="StreamId">The instance of a stream entity like { User: 'Joe' }</param>
 [Equatable]
-public partial record EvDbStreamId(string Domain, string EntityType, string EntityId) 
-    : EvDbStreamType(Domain, EntityType)
+public partial record EvDbStreamAddress(string Domain, string Partition, string StreamId) 
+    : EvDbPartition(Domain, Partition)
 {
-    public EvDbStreamId(EvDbStreamType baseAddress, string streamId)
-        : this(baseAddress.Domain, baseAddress.EntityType, streamId)
+    public EvDbStreamAddress(EvDbPartition baseAddress, string streamId)
+        : this(baseAddress.Domain, baseAddress.Partition, streamId)
     {
     }
 
     public override string ToString()
     {
-        return $"{Domain}/{EntityType}/{EntityId}";
+        return $"{Domain}/{Partition}/{StreamId}";
     }
 }

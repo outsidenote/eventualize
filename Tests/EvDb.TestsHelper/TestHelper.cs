@@ -28,7 +28,7 @@ public static class TestHelper
     public static readonly string TestEventType = "testType";
     public static readonly TestEventDataType CorrectEventData = new("test", 10);
 
-    public readonly static EvDbStreamId StreamId = new(
+    public readonly static EvDbStreamAddress StreamId = new(
                                 TestAggregateFactoryConfigs.GetStreamType,
                                 "testStreamId");
 
@@ -62,7 +62,7 @@ public static class TestHelper
     {
         var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(useFoldingLogic2);
         var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
-        var newAggregate = aggregateFactory.Create(aggregate.StreamId.EntityId, aggregate.State, newLastStoreOffset);
+        var newAggregate = aggregateFactory.Create(aggregate.StreamId.StreamId, aggregate.State, newLastStoreOffset);
         var events = TestAggregateConfigs.GetPendingEvents(3);
         foreach (var e in events)
         {

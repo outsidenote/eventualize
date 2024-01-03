@@ -3,15 +3,15 @@
 namespace EvDb.Core;
 
 [Equatable]
-public partial record EvDbSnapshotId(string Domain, string EntityType, string EntityId, string AggregateType) : EvDbStreamId(Domain, EntityType, EntityId)
+public partial record EvDbSnapshotId(string Domain, string Partition, string StreamId, string AggregateType) : EvDbStreamAddress(Domain, Partition, StreamId)
 {
-    public EvDbSnapshotId(EvDbStreamId streamId, string aggregateType)
-        : this(streamId.Domain, streamId.EntityType, streamId.EntityId, aggregateType) { }
+    public EvDbSnapshotId(EvDbStreamAddress streamId, string aggregateType)
+        : this(streamId.Domain, streamId.Partition, streamId.StreamId, aggregateType) { }
     public EvDbSnapshotId(EvDbAggregate aggregate)
         : this(aggregate.StreamId, aggregate.AggregateType) { }
 
     public override string ToString()
     {
-        return $"{Domain}/{EntityType}/{EntityId}/{AggregateType}";
+        return $"{Domain}/{Partition}/{StreamId}/{AggregateType}";
     }
 }

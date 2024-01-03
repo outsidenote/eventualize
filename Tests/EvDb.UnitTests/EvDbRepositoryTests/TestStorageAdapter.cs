@@ -55,7 +55,7 @@ namespace CoreTests.EvDbRepositoryTests
 
         #region GetKeyValue
 
-        internal static string GetKeyValue(EvDbStreamId streamId) => streamId.ToString();
+        internal static string GetKeyValue(EvDbStreamAddress streamId) => streamId.ToString();
         internal static string GetKeyValue(EvDbSnapshotId snapshotId) => snapshotId.ToString();
         internal static string GetKeyValue(EvDbAggregate aggregate) => aggregate.StreamId.ToString();
 
@@ -82,7 +82,7 @@ namespace CoreTests.EvDbRepositoryTests
         async IAsyncEnumerable<IEvDbStoredEvent> IEvDbStorageAdapter.GetAsync(EvDbStreamCursor streamCursor, CancellationToken cancellation)
         {
             var (domain, aggregateTypeName, id, offset) = streamCursor;
-            EvDbStreamId streamId = new(domain, aggregateTypeName, id);
+            EvDbStreamAddress streamId = new(domain, aggregateTypeName, id);
             var key = GetKeyValue(streamId);
             if (!Events.TryGetValue(key, out List<EvDbStoredEvent>? events) || events == null)
                 yield break;

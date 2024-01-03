@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="icon-light.png">
       <PackagePath></PackagePath>
       <Pack>True</Pack>

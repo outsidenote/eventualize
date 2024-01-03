@@ -13,7 +13,7 @@ public abstract class EvDbAggregate : IEvDbAggregate
 
     internal EvDbAggregate(
         string aggregateType,
-        EvDbStreamId streamId,
+        EvDbStreamAddress streamId,
         int minEventsBetweenSnapshots,
         long lastStoredOffset)
     {
@@ -35,7 +35,7 @@ public abstract class EvDbAggregate : IEvDbAggregate
     // TODO: [bnaya 2023-12-11] Use Min Duration or Count between snapshots
     public int MinEventsBetweenSnapshots { get; init; } = 0;
 
-    public EvDbStreamId StreamId { get; init; }
+    public EvDbStreamAddress StreamId { get; init; }
     public readonly string AggregateType;
 
     public readonly EvDbSnapshotId SnapshotId;
@@ -44,13 +44,14 @@ public abstract class EvDbAggregate : IEvDbAggregate
 }
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState> where TState : notnull, new()
+public class EvDbAggregate<TState> : EvDbAggregate, 
+    IEvDbAggregate<TState> where TState : notnull, new()
 {
     #region Ctor
 
     internal EvDbAggregate(
         string aggregateType,
-        EvDbStreamId streamId,
+        EvDbStreamAddress streamId,
         EvDbFoldingLogic<TState> foldingLogic,
         int minEventsBetweenSnapshots,
         TState state,
@@ -62,7 +63,7 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState> where
     }
 
     internal EvDbAggregate(string aggregateType,
-                                  EvDbStreamId streamId,
+                                  EvDbStreamAddress streamId,
                                   EvDbFoldingLogic<TState> foldingLogic,
                                   int minEventsBetweenSnapshots)
         : this(aggregateType, streamId, foldingLogic, minEventsBetweenSnapshots, new TState(), -1) { }

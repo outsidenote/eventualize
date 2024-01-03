@@ -4,11 +4,11 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("{EntityId}, {EntityType}, {Offset}")]
+[DebuggerDisplay("{StreamId}, {Partition}, {Offset}")]
 public readonly record struct SnapshotSaveParameter(
                     string Domain,
-                    string EntityType,
-                    string EntityId,
+                    string Partition,
+                    string StreamId,
                     string AggregateType,
                     long Offset,
                     // TODO: [bnaya 2023-12-20] use ISnapshotPayload
@@ -20,8 +20,8 @@ public readonly record struct SnapshotSaveParameter(
     {
         return new(
             aggregate.SnapshotId.Domain,
-            aggregate.SnapshotId.EntityType,
-            aggregate.SnapshotId.EntityId,
+            aggregate.SnapshotId.Partition,
+            aggregate.SnapshotId.StreamId,
             aggregate.SnapshotId.AggregateType,
             aggregate.LastStoredOffset + aggregate.PendingEvents.Count,
             JsonSerializer.Serialize(aggregate.State, options)
@@ -33,8 +33,8 @@ public readonly record struct SnapshotSaveParameter(
     {
         return new(
             aggregate.SnapshotId.Domain,
-            aggregate.SnapshotId.EntityType,
-            aggregate.SnapshotId.EntityId,
+            aggregate.SnapshotId.Partition,
+            aggregate.SnapshotId.StreamId,
             aggregate.SnapshotId.AggregateType,
             aggregate.LastStoredOffset + aggregate.PendingEvents.Count,
             JsonSerializer.Serialize(aggregate.State, jsonTypeInfo)

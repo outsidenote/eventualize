@@ -13,7 +13,7 @@ public class RepositoryTests
         var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
         var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
         IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-        var fetchedAggregate = await repository.GetAsync(aggregateFactory, aggregate.StreamId.EntityId);
+        var fetchedAggregate = await repository.GetAsync(aggregateFactory, aggregate.StreamId.StreamId);
         repoTestSteps.AssertFetchedAggregateIsCorrect(aggregate, fetchedAggregate);
     }
     [Fact]
@@ -24,7 +24,7 @@ public class RepositoryTests
         IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
         var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
         var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
-        var fetchedAggregate = await repository.GetAsync(aggregateFactory2, aggregate.StreamId.EntityId);
+        var fetchedAggregate = await repository.GetAsync(aggregateFactory2, aggregate.StreamId.StreamId);
         repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
     }
 

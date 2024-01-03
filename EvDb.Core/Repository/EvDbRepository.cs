@@ -25,8 +25,8 @@ public class EvDbRepository : IEvDbRepository
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        EvDbStreamId srmId = new EvDbStreamId(
-            aggregateFactory.StreamType,
+        EvDbStreamAddress srmId = new EvDbStreamAddress(
+            aggregateFactory.Partition,
             streamId);
         // TODO: [bnaya 2023-12-20] transaction, 
         EvDbSnapshotId snapshotId = new(

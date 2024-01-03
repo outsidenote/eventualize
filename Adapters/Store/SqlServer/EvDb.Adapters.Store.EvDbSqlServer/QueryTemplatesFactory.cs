@@ -14,42 +14,42 @@ internal static class QueryTemplatesFactory
             GetLastSnapshotSnapshot = $"""
                 SELECT MAX(offset)
                     FROM {storageContext}snapshot
-                    WHERE domain = @{nameof(EvDbStreamId.Domain)}
-                        AND stream_type = @{nameof(EvDbStreamId.EntityType)}
-                        AND stream_id = @{nameof(EvDbStreamId.EntityId)}
+                    WHERE domain = @{nameof(EvDbStreamAddress.Domain)}
+                        AND stream_type = @{nameof(EvDbStreamAddress.Partition)}
+                        AND stream_id = @{nameof(EvDbStreamAddress.StreamId)}
                 """,
             TryGetSnapshot = $"""
                 SELECT
                     json_data as {nameof(EvDbeSnapshotRelationalRecrod.SerializedState)},
                     domain as {nameof(EvDbeSnapshotRelationalRecrod.Domain)},
-                    stream_type as {nameof(EvDbeSnapshotRelationalRecrod.EntityType)},
-                    stream_id as {nameof(EvDbeSnapshotRelationalRecrod.EntityId)},
+                    stream_type as {nameof(EvDbeSnapshotRelationalRecrod.Partition)},
+                    stream_id as {nameof(EvDbeSnapshotRelationalRecrod.StreamId)},
                     aggregate_type as {nameof(EvDbeSnapshotRelationalRecrod.AggregateType)},
                     offset as {nameof(EvDbeSnapshotRelationalRecrod.Offset)}
                 FROM {storageContext}snapshot
                 WHERE domain = @{nameof(EvDbSnapshotId.Domain)}
-                    AND stream_type = @{nameof(EvDbSnapshotId.EntityType)}
-                    AND stream_id = @{nameof(EvDbSnapshotId.EntityId)}
+                    AND stream_type = @{nameof(EvDbSnapshotId.Partition)}
+                    AND stream_id = @{nameof(EvDbSnapshotId.StreamId)}
                     AND aggregate_type = @{nameof(EvDbSnapshotId.AggregateType)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
             GetEvents = $"""
                 SELECT
-                    event_type as {nameof(EvDbStoredEventEntity.EventType)},
-                    captured_at as {nameof(EvDbStoredEventEntity.CapturedAt)},
-                    captured_by as {nameof(EvDbStoredEventEntity.CapturedBy)},
-                    json_data as {nameof(EvDbStoredEventEntity.Data)},
-                    stored_at as {nameof(EvDbStoredEventEntity.StoredAt)},
-                    offset as {nameof(EvDbStoredEventEntity.Offset)},
-                    domain  as {nameof(EvDbStoredEventEntity.Domain)} ,
-                    stream_type as {nameof(EvDbStoredEventEntity.EntityType)},
-                    stream_id as  {nameof(EvDbStoredEventEntity.EntityId)}
+                    event_type as {nameof(EvDbStoredEventRecord.EventType)},
+                    captured_at as {nameof(EvDbStoredEventRecord.CapturedAt)},
+                    captured_by as {nameof(EvDbStoredEventRecord.CapturedBy)},
+                    json_data as {nameof(EvDbStoredEventRecord.Data)},
+                    stored_at as {nameof(EvDbStoredEventRecord.StoredAt)},
+                    offset as {nameof(EvDbStoredEventRecord.Offset)},
+                    domain  as {nameof(EvDbStoredEventRecord.Domain)} ,
+                    stream_type as {nameof(EvDbStoredEventRecord.Partition)},
+                    stream_id as  {nameof(EvDbStoredEventRecord.StreamId)}
                 
                 FROM {storageContext}event
                 WHERE domain = @{nameof(EvDbStreamCursor.Domain)}
-                    AND stream_type = @{nameof(EvDbStreamCursor.EntityType)}
-                    AND stream_id = @{nameof(EvDbStreamCursor.EntityId)}
+                    AND stream_type = @{nameof(EvDbStreamCursor.Partition)}
+                    AND stream_id = @{nameof(EvDbStreamCursor.StreamId)}
                     and offset >= @{nameof(EvDbStreamCursor.Offset)};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
@@ -84,8 +84,8 @@ internal static class QueryTemplatesFactory
                         )
             VALUES (
                         @{nameof(SnapshotSaveParameter.Domain)},
-                        @{nameof(SnapshotSaveParameter.EntityType)},
-                        @{nameof(SnapshotSaveParameter.EntityId)},
+                        @{nameof(SnapshotSaveParameter.Partition)},
+                        @{nameof(SnapshotSaveParameter.StreamId)},
                         @{nameof(SnapshotSaveParameter.AggregateType)},
                         @{nameof(SnapshotSaveParameter.Offset)},
                         @{nameof(SnapshotSaveParameter.Payload)}

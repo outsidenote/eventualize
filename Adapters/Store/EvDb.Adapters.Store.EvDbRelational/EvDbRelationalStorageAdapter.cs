@@ -94,7 +94,7 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         string query = _queries.GetEvents;
 
         DbDataReader reader = await conn.ExecuteReaderAsync(query, parameter);
-        var parser = reader.GetRowParser<EvDbStoredEventEntity>();
+        var parser = reader.GetRowParser<EvDbStoredEventRecord>();
         while (await reader.ReadAsync())
         {
             EvDbStoredEvent e = parser(reader);

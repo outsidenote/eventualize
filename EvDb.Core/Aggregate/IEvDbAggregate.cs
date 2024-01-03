@@ -7,7 +7,7 @@ public interface IEvDbAggregate
     long LastStoredOffset { get; }
     int MinEventsBetweenSnapshots { get; init; }
     IImmutableList<IEvDbEvent> PendingEvents { get; }
-    EvDbStreamId StreamId { get; init; }
+    EvDbStreamAddress StreamId { get; init; }
 }
 
 public interface IEvDbAggregate<TState>: IEvDbAggregate
