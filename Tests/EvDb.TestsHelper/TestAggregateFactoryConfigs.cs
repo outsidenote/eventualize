@@ -8,7 +8,7 @@ namespace EvDb.Core.Tests
         public static readonly string AggregateType2 = "TestAggregateType2";
         public static readonly Type TestStateType = typeof(TestState);
 
-        public static readonly EvDbPartition GetStreamType = new("default", "testStreamType");
+        public static readonly EvDbPartitionAddress GetStreamType = new("default", "testStreamType");
 
         public static EvDbAggregateFactory<TestState> GetAggregateFactory(bool useFoldingLogic2 = false)
         {
@@ -24,7 +24,7 @@ namespace EvDb.Core.Tests
                             .AddMapping(TestEventType, foldingFunction)
                             .Build();
 
-            EvDbPartition streamType = GetStreamType;
+            EvDbPartitionAddress streamType = GetStreamType;
             return new EvDbAggregateFactory<TestState>(
                 useFoldingLogic2 ? AggregateType2 : AggregateType,
                 streamType,

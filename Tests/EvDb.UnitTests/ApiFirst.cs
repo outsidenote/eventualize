@@ -3,9 +3,7 @@ using EvDb.Scenes;
 using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
 
-
 namespace EvDb.UnitTests;
-
 
 public class ApiFirst
 {

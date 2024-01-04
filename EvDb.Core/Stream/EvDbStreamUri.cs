@@ -10,9 +10,9 @@ namespace EvDb.Core;
 /// <param name="StreamId">The instance of a stream entity like { User: 'Joe' }</param>
 [Equatable]
 public partial record EvDbStreamAddress(string Domain, string Partition, string StreamId) 
-    : EvDbPartition(Domain, Partition)
+    : EvDbPartitionAddress(Domain, Partition)
 {
-    public EvDbStreamAddress(EvDbPartition baseAddress, string streamId)
+    public EvDbStreamAddress(EvDbPartitionAddress baseAddress, string streamId)
         : this(baseAddress.Domain, baseAddress.Partition, streamId)
     {
     }

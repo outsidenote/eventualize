@@ -11,7 +11,7 @@ namespace EvDb.UnitTests;
 
 [GeneratedCode("The following line should generated", "v0")]
 partial interface IEducationEventTypes :
-    IEvDbEventTypes // TODO: generate this one
+    IEvDbEventTypes 
 {
     void Add(CourseCreated courseCreated);
     void Add(ScheduleTest scheduleTest);

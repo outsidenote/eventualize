@@ -8,14 +8,14 @@ public class EvDbAggregateFactory<T> where T : notnull, new()
     public readonly EvDbFoldingLogic<T> FoldingLogic;
 
     public readonly string AggregateType;
-    public readonly EvDbPartition Partition;
+    public readonly EvDbPartitionAddress Partition;
     public readonly int MinEventsBetweenSnapshots;
 
     #endregion // Members
 
     public EvDbAggregateFactory(
         string aggregateType,
-        EvDbPartition streamType,
+        EvDbPartitionAddress streamType,
         EvDbFoldingLogic<T> foldingLogic,
         int minEventsBetweenSnapshots = 0)
     {

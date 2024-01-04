@@ -3,9 +3,9 @@ using EvDb.Core;
 
 public class EvDbBuilder : IEvDbBuilder
 {
-    protected readonly EvDbPartition? _streamType;
+    protected readonly EvDbPartitionAddress? _streamType;
 
-    protected EvDbBuilder(EvDbPartition? streamType = null)
+    protected EvDbBuilder(EvDbPartitionAddress? streamType = null)
     {
         _streamType = streamType;
     }
@@ -14,7 +14,7 @@ public class EvDbBuilder : IEvDbBuilder
 
     IEvDbBuilderWithEventTypesWithEntityId<TEventTypes> IEvDbBuilder.AddPartition<TEventTypes>(string domain, string partition)
     {
-        EvDbPartition streamType = new(domain, partition);
+        EvDbPartitionAddress streamType = new(domain, partition);
         return new EvDbBuilder<TEventTypes>(streamType);
     }
 }
@@ -25,15 +25,15 @@ internal class EvDbBuilder<TEventTypes> :
                             IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>
     where TEventTypes : IEvDbEventTypes
 {
-    protected readonly EvDbPartition _streamType;
+    protected readonly EvDbPartitionAddress _streamType;
     protected readonly string _streamId = string.Empty;
 
-    public EvDbBuilder(EvDbPartition streamType) : base(streamType)
+    public EvDbBuilder(EvDbPartitionAddress streamType) : base(streamType)
     {
         _streamType = streamType;
     }
 
-    protected EvDbBuilder(EvDbPartition streamType, string streamId) : base(streamType)
+    protected EvDbBuilder(EvDbPartitionAddress streamType, string streamId) : base(streamType)
     {
         _streamType = streamType;
         _streamId = streamId;
@@ -70,7 +70,7 @@ internal class EvDbBuilder<TEventTypes, TState> :
     private readonly IEvDbAggregateType<TState, TEventTypes> _aggregateType;
 
     public EvDbBuilder(
-                EvDbPartition streamType,
+                EvDbPartitionAddress streamType,
                 IEvDbAggregateType<TState, TEventTypes> aggregateType,
                 string streamId = "") : base(streamType, streamId)
     {
