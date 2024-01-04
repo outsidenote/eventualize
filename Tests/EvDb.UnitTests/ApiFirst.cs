@@ -1,24 +1,18 @@
-﻿using EvDb.Scenes;
-using EvDb.UnitTests;
+﻿using EvDb.Core;
+using EvDb.Scenes;
+using System.CodeDom.Compiler;
+using System.Collections.Concurrent;
 
-[assembly: EvDbAggregateType<ICollection<StudentScore>, IEducationEventTypes>(
-    "top-student")]
 
 namespace EvDb.UnitTests;
 
-using EvDb.Core;
-using System.CodeDom.Compiler;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 
 public class ApiFirst
 {
     [Fact]
     public async Task ApiDesign()
     {
-        TopStudentFolding folding = new ();
+        TopStudentFolding folding = new();
         IEvDbAggregate<ICollection<StudentScore>, IEducationEventTypes> agg = EvDbBuilder.Default
             .AddPartition<IEducationEventTypes>("my-domain", "education")
             .AddAggregateType(folding)
@@ -29,262 +23,6 @@ public class ApiFirst
         agg.Events.Add(course);
     }
 }
-
-#region Builder Interfaces
-
-public interface IEvDbBuilder
-{
-
-    IEvDbBuilderWithEventTypesWithEntityId<TEventTypes> AddPartition<TEventTypes>(string domain, string partition)
-            where TEventTypes : IEvDbEventTypes;
-}
-
-
-public interface IEvDbBuilderWithEventTypes<TEventTypes>
-    where TEventTypes : IEvDbEventTypes
-{
-    IEvDbBuilderBuild<TState, TEventTypes> AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType);
-}
-
-public interface IEvDbBuilderWithEventTypesWithEntityId<TEventTypes> :
-    IEvDbBuilderEntityId<IEvDbBuilderWithEventTypes<TEventTypes>>
-    where TEventTypes : IEvDbEventTypes
-{
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType);
-}
-
-public interface IEvDbBuilderEntityId<T>
-{
-    T AddStreamId(string id);
-}
-
-public interface IEvDbBuilderBuild<TState, TEventTypes>
-    // where TState: notnull, new()
-    where TEventTypes : IEvDbEventTypes
-{
-    IEvDbAggregate<TState, TEventTypes> Build();
-}
-
-public interface IEvDbBuilderBuildWithEntityId<TState, TEventTypes> :
-    IEvDbBuilderBuild<TState, TEventTypes>,
-    IEvDbBuilderEntityId<IEvDbBuilderBuild<TState, TEventTypes>>
-    // where TState: notnull, new()
-    where TEventTypes : IEvDbEventTypes
-{
-}
-
-#endregion // Builder Interfaces
-
-//[GenerateBuilderPattern]
-internal partial record EvDbSetupState
-{
-    public EvDbPartition? Partition { get; init; }
-}
-
-public class EvDbBuilder : IEvDbBuilder
-{
-    protected readonly EvDbPartition? _streamType;
-
-    protected EvDbBuilder(EvDbPartition? streamType = null)
-    {
-        _streamType = streamType;
-    }   
-    
-    public static IEvDbBuilder Default { get; } = new EvDbBuilder();
-
-    IEvDbBuilderWithEventTypesWithEntityId<TEventTypes> IEvDbBuilder.AddPartition<TEventTypes>(string domain, string partition)
-    {
-        EvDbPartition streamType = new(domain, partition);
-        return new EvDbBuilder<TEventTypes>(streamType);
-    }
-}
-
-internal class EvDbBuilder<TEventTypes> :
-                            EvDbBuilder,
-                            IEvDbBuilderWithEventTypes<TEventTypes>,
-                            IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>
-    where TEventTypes : IEvDbEventTypes
-{
-    protected readonly EvDbPartition _streamType;
-    protected readonly string _streamId = string.Empty;
-
-    public EvDbBuilder(EvDbPartition streamType): base(streamType)
-    {
-        _streamType = streamType;
-    }
-
-    private EvDbBuilder(EvDbPartition streamType, string streamId): base(streamType)
-    {
-        _streamType = streamType;
-        _streamId = streamId;
-    }
-
-    private EvDbBuilder<TEventTypes, TState> AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType)
-    {
-        EvDbBuilder<TEventTypes, TState> result = new EvDbBuilder<TEventTypes, TState>(_streamType, aggregateType);
-        return result;
-    }
-
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>.AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType)
-    {
-        return AddAggregateType(aggregateType);
-    }
-
-    IEvDbBuilderBuild<TState, TEventTypes> IEvDbBuilderWithEventTypes<TEventTypes>.AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType)
-    {
-        return AddAggregateType(aggregateType);
-    }
-
-    IEvDbBuilderWithEventTypes<TEventTypes> IEvDbBuilderEntityId<IEvDbBuilderWithEventTypes<TEventTypes>>.AddStreamId(string id)
-    {
-        return new EvDbBuilder<TEventTypes>(_streamType, id);
-    }
-}
-
-internal class EvDbBuilder<TEventTypes, TState> :
-                            EvDbBuilder<TEventTypes>,
-                            IEvDbBuilderBuildWithEntityId<TState, TEventTypes>
-    where TEventTypes : IEvDbEventTypes
-{
-    private readonly IEvDbAggregateType<TState, TEventTypes> _aggregateType;
-
-    public EvDbBuilder(EvDbPartition streamType, IEvDbAggregateType<TState, TEventTypes> aggregateType) : base(streamType)
-    {
-        _aggregateType = aggregateType;
-    }
-
-    IEvDbBuilderBuild<TState, TEventTypes> IEvDbBuilderEntityId<IEvDbBuilderBuild<TState, TEventTypes>>.AddStreamId(string id)
-    {
-        throw new NotImplementedException();
-    }
-
-    IEvDbAggregate<TState, TEventTypes> IEvDbBuilderBuild<TState, TEventTypes>.Build()
-    {
-        throw new NotImplementedException();
-    }
-}
-
-#region Core
-
-public interface IEvDbEventTypes { }
-
-public interface IEvDbAggregateType<TState, TEventTypes> 
-{
-    /// <summary>
-    /// Represents the seed state of the aggregation (before folding).
-    /// </summary>
-    TState Default { get; }
-
-    /// <summary>
-    /// Gets the name.
-    /// </summary>
-    string Name { get; }
-}
-
-#endregion // Core
-
-#region [EvDbEventType]
-
-[AttributeUsage(AttributeTargets.Interface, AllowMultiple = true)]
-public class EvDbEventTypeAttribute<T>: Attribute
-{
-    public EvDbEventTypeAttribute(string eventType)
-    {
-        EventType = eventType;
-    }
-
-    public string EventType { get; }
-}
-
-#endregion // [EvDbEventType]
-
-[AttributeUsage(AttributeTargets.Interface | AttributeTargets.Assembly, AllowMultiple = true)]
-public class EvDbAggregateTypeAttribute<TState, TEventType>: Attribute
-{
-    public EvDbAggregateTypeAttribute(string name)
-    {
-        Name = name;
-    }
-
-    public string Name { get; }
-}
-
-#region IEducationStream (generation)
-
-[EvDbEventType<CourseCreated>("course-created")]
-[EvDbEventType<ScheduleTest>("schedule-test")]
-[EvDbEventType<StudentAppliedToCourse>("student-applied-to-course")]
-[EvDbEventType<StudentCourseApplicationDenied>("student-course-application-denied")]
-[EvDbEventType<StudentEnlisted>("student-enlisted")]
-[EvDbEventType<StudentQuitCourse>("student-quit-course")]
-[EvDbEventType<StudentReceivedGrade>("student-received-grade")]
-[EvDbEventType<StudentRegisteredToCourse>("student-registered-to-course")]
-[EvDbEventType<StudentTestSubmitted>("StudentTestSubmitted")]
-public partial interface IEducationEventTypes:
-    IEvDbEventTypes // TODO: generate this one
-{
-    [GeneratedCode("The following line should generated", "v0")]
-    void Add(CourseCreated courseCreated);
-    void Add(ScheduleTest scheduleTest);
-    void Add(StudentAppliedToCourse applied);
-    void Add(StudentCourseApplicationDenied applicationDenyed);
-    void Add(StudentEnlisted enlisted);
-    void Add(StudentQuitCourse quit);
-    void Add(StudentReceivedGrade receivedGrade);
-    void Add(StudentRegisteredToCourse registeredToCourse);
-    void Add(StudentTestSubmitted testSubmitted);
-}
-
-#endregion // IEducationStream (generation)
-
-#region ITopStudentFolding (generation)
-
-//[EvDbAggregateType<ICollection<StudentScore>, IEducationEventTypes>("top-student")]
-//public interface ITopStudentAggregateType :
-//    //[GeneratedCode("from IEducationStream<T0, T1,...>", "v0")]
-//    IEvDbAggregateType<ICollection<StudentScore>, IEducationEventTypes>
-//{ 
-//}
-
-[GeneratedCode("from IEducationEventTypes<T0, T1,...>", "v0")]
-public abstract partial class  TopStudentAggregateTypeBase : IEvDbAggregateType<ICollection<StudentScore>, IEducationEventTypes>
-{
-    public abstract ICollection<StudentScore> Default { get; }
-
-    public string Name { get; } = "top-student";
-
-    public virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
-        CourseCreated courseCreated) => state;
-    public virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
-        ScheduleTest scheduleTest) => state;
-    public virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
-        StudentAppliedToCourse applied) => state;
-    public virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
-        StudentCourseApplicationDenied applicationDenyed) => state;
-    public virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
-        StudentEnlisted enlisted) => state;
-    public virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
-        StudentQuitCourse quit) => state;
-    public virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
-        StudentReceivedGrade receivedGrade) => state;
-    public virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
-        StudentRegisteredToCourse registeredToCourse) => state;
-    public virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
-        StudentTestSubmitted testSubmitted) => state;
-}
-
-#endregion // ITopStudentFolding (generation)
-
-#region TopStudentFolding (user code)
 
 public class TopStudentFolding : TopStudentAggregateTypeBase
 {
@@ -318,6 +56,3 @@ public class TopStudentFolding : TopStudentAggregateTypeBase
         return ordered;
     }
 }
-
-#endregion // TopStudentFolding (user code)
-
