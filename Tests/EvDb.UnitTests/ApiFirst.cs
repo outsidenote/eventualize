@@ -18,29 +18,15 @@ public class ApiFirst
     [Fact]
     public async Task ApiDesign()
     {
-        //var agg = EvDbBuilder.Default
-        //    .AddStreamType(new EvDbStreamType("my-domain", "education"))
-        //    .AddEventTypes<IEducationStream>()
-        //    // .AddAggregateType<ICollection<StudentScore>, IEducationStreamFolding>([])
-        //    .AddTopStudentAggregateType([]);
-
         TopStudentFolding folding = new ();
         IEvDbAggregate<ICollection<StudentScore>, IEducationEventTypes> agg = EvDbBuilder.Default
             .AddPartition<IEducationEventTypes>("my-domain", "education")
-            //.AddPartition("my-domain", "education")
-            //.AddStreamType<IEducationEventTypes>()// where T: IEvDbEventTyppes
-            //.AddEntityId("top-users:123")
-            //.AddAggregateType<ICollection<StudentScore>, IEducationStreamFolding>([])
-            //.AddAggregateType<TopStudentFolding>(isDev ? 4 : 100)
-            .AddAggregateType(folding.Default, folding)
+            .AddAggregateType(folding)
             .AddStreamId("top-users:123")
-            //.AddTopStudentAggregateType()
-            //.AddTopStudentAggregateType<TopStudentFolding>()
             .Build();
 
         var course = new CourseCreated(123, "algorithm", 50);
         agg.Events.Add(course);
-        //await agg.Events.CourseCreatedAsync(123, "algorithm", 50);
     }
 }
 
@@ -57,48 +43,14 @@ public interface IEvDbBuilder
 public interface IEvDbBuilderWithEventTypes<TEventTypes>
     where TEventTypes : IEvDbEventTypes
 {
-    IEvDbBuilderBuild<TState, TEventTypes> AddAggregateType<TState>(
-        TState seed,
-        IEvDbAggregateType<TState, TEventTypes> folding);
-    // where TState : notnull, new ();
-    IEvDbBuilderBuild<TState, TEventTypes> AddAggregateType<TState>(
-        Func<TState> seedFactory,
-        IEvDbAggregateType<TState, TEventTypes> folding);
-    // where TState : notnull, new ();
-    IEvDbBuilderBuild<TState, TEventTypes> AddAggregateType<TState>(
-        IEvDbAggregateType<TState, TEventTypes> folding)
-            where TState : notnull, new();
-    IEvDbBuilderBuild<TState, TEventTypes> AddAggregateType<TState, TFolding>()
-            where TState : notnull, new()
-            where TFolding : IEvDbAggregateType<TState, TEventTypes>;
-    IEvDbBuilderBuild<TState, TEventTypes> AddAggregateType<TState, TFolding>(TState seed)
-            where TFolding : IEvDbAggregateType<TState, TEventTypes>;
-    IEvDbBuilderBuild<TState, TEventTypes> AddAggregateType<TState, TFolding>(Func<TState> seedFactory)
-            where TFolding : IEvDbAggregateType<TState, TEventTypes>;
+    IEvDbBuilderBuild<TState, TEventTypes> AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType);
 }
 
 public interface IEvDbBuilderWithEventTypesWithEntityId<TEventTypes> :
     IEvDbBuilderEntityId<IEvDbBuilderWithEventTypes<TEventTypes>>
     where TEventTypes : IEvDbEventTypes
 {
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> AddAggregateType<TState>(
-        TState seed,
-        IEvDbAggregateType<TState, TEventTypes> folding);
-    // where TState : notnull, new ();
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> AddAggregateType<TState>(
-        Func<TState> seedFactory,
-        IEvDbAggregateType<TState, TEventTypes> folding);
-    // where TState : notnull, new ();
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> AddAggregateType<TState>(
-        IEvDbAggregateType<TState, TEventTypes> folding)
-            where TState : notnull, new();
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> AddAggregateType<TState, TFolding>()
-            where TState : notnull, new()
-            where TFolding : IEvDbAggregateType<TState, TEventTypes>;
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> AddAggregateType<TState, TFolding>(TState seed)
-            where TFolding : IEvDbAggregateType<TState, TEventTypes>;
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> AddAggregateType<TState, TFolding>(Func<TState> seedFactory)
-            where TFolding : IEvDbAggregateType<TState, TEventTypes>;
+    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType);
 }
 
 public interface IEvDbBuilderEntityId<T>
@@ -129,8 +81,7 @@ internal partial record EvDbSetupState
     public EvDbPartition? Partition { get; init; }
 }
 
-public class EvDbBuilder : IEvDbBuilder,
-                           IEvDbBuilderWithStreamType
+public class EvDbBuilder : IEvDbBuilder
 {
     protected readonly EvDbPartition? _streamType;
 
@@ -141,77 +92,65 @@ public class EvDbBuilder : IEvDbBuilder,
     
     public static IEvDbBuilder Default { get; } = new EvDbBuilder();
 
-    IEvDbBuilderWithStreamType IEvDbBuilder.AddPartition<TEventTypes>(string domain, string partition)
+    IEvDbBuilderWithEventTypesWithEntityId<TEventTypes> IEvDbBuilder.AddPartition<TEventTypes>(string domain, string partition)
     {
         EvDbPartition streamType = new(domain, partition);
         return new EvDbBuilder<TEventTypes>(streamType);
-    }
-
-    IEvDbBuilderWithEventTypesWithEntityId<TEventTypes> IEvDbBuilderWithStreamType.AddStreamType<TEventTypes>()
-    {
-        return new EvDbBuilder<TEventTypes>(_streamType!);
     }
 }
 
 internal class EvDbBuilder<TEventTypes> :
                             EvDbBuilder,
+                            IEvDbBuilderWithEventTypes<TEventTypes>,
                             IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>
     where TEventTypes : IEvDbEventTypes
 {
-    private readonly EvDbPartition _streamType;
+    protected readonly EvDbPartition _streamType;
+    protected readonly string _streamId = string.Empty;
 
     public EvDbBuilder(EvDbPartition streamType): base(streamType)
     {
         _streamType = streamType;
     }
 
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>.AddAggregateType<TState>(TState seed, IEvDbAggregateType<TState, TEventTypes> folding)
+    private EvDbBuilder(EvDbPartition streamType, string streamId): base(streamType)
     {
-        throw new NotImplementedException();
+        _streamType = streamType;
+        _streamId = streamId;
     }
 
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>.AddAggregateType<TState>(Func<TState> seedFactory, IEvDbAggregateType<TState, TEventTypes> folding)
+    private EvDbBuilder<TEventTypes, TState> AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType)
     {
-        throw new NotImplementedException();
+        EvDbBuilder<TEventTypes, TState> result = new EvDbBuilder<TEventTypes, TState>(_streamType, aggregateType);
+        return result;
     }
 
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>.AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> folding)
+    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>.AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType)
     {
-        throw new NotImplementedException();
+        return AddAggregateType(aggregateType);
     }
 
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>.AddAggregateType<TState, TFolding>()
+    IEvDbBuilderBuild<TState, TEventTypes> IEvDbBuilderWithEventTypes<TEventTypes>.AddAggregateType<TState>(IEvDbAggregateType<TState, TEventTypes> aggregateType)
     {
-        throw new NotImplementedException();
-    }
-
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>.AddAggregateType<TState, TFolding>(TState seed)
-    {
-        throw new NotImplementedException();
-    }
-
-    IEvDbBuilderBuildWithEntityId<TState, TEventTypes> IEvDbBuilderWithEventTypesWithEntityId<TEventTypes>.AddAggregateType<TState, TFolding>(Func<TState> seedFactory)
-    {
-        throw new NotImplementedException();
+        return AddAggregateType(aggregateType);
     }
 
     IEvDbBuilderWithEventTypes<TEventTypes> IEvDbBuilderEntityId<IEvDbBuilderWithEventTypes<TEventTypes>>.AddStreamId(string id)
     {
-        throw new NotImplementedException();
+        return new EvDbBuilder<TEventTypes>(_streamType, id);
     }
 }
+
 internal class EvDbBuilder<TEventTypes, TState> :
-                            EvDbBuilder,
+                            EvDbBuilder<TEventTypes>,
                             IEvDbBuilderBuildWithEntityId<TState, TEventTypes>
     where TEventTypes : IEvDbEventTypes
 {
-    private readonly EvDbPartition _streamType;
-    private readonly TState _seed;
+    private readonly IEvDbAggregateType<TState, TEventTypes> _aggregateType;
 
-    public EvDbBuilder(EvDbPartition streamType, TState seed) : base(streamType)
+    public EvDbBuilder(EvDbPartition streamType, IEvDbAggregateType<TState, TEventTypes> aggregateType) : base(streamType)
     {
-        _streamType = streamType;
-        _seed = seed;
+        _aggregateType = aggregateType;
     }
 
     IEvDbBuilderBuild<TState, TEventTypes> IEvDbBuilderEntityId<IEvDbBuilderBuild<TState, TEventTypes>>.AddStreamId(string id)
@@ -313,6 +252,7 @@ public abstract partial class  TopStudentAggregateTypeBase : IEvDbAggregateType<
     public abstract ICollection<StudentScore> Default { get; }
 
     public string Name { get; } = "top-student";
+
     public virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
         CourseCreated courseCreated) => state;
@@ -381,57 +321,3 @@ public class TopStudentFolding : TopStudentAggregateTypeBase
 
 #endregion // TopStudentFolding (user code)
 
-#region Extension Methods (generated)
-
-// generated when identify implementation of IEvDbFolding<ICollection<StudentScore>, IEducationStream>
-
-public static class TopStudentFoldingExtensions
-{
-    public static IEvDbBuilderBuildWithEntityId<ICollection<StudentScore>, IEducationEventTypes> AddTopStudentAggregateType(
-        this IEvDbBuilderWithEventTypesWithEntityId<IEducationEventTypes> instance,
-        ICollection<StudentScore> seed)
-    {
-        TopStudentFolding folding = new();
-        return instance.AddAggregateType(seed, folding);
-    }
-
-    public static IEvDbBuilderBuildWithEntityId<ICollection<StudentScore>, IEducationEventTypes> AddTopStudentAggregateType(
-        this IEvDbBuilderWithEventTypesWithEntityId<IEducationEventTypes> instance,
-        Func<ICollection<StudentScore>> seedFactory)
-    {
-        TopStudentFolding folding = new();
-        return instance.AddAggregateType(seedFactory, folding);
-    }
-
-    public static IEvDbBuilderBuildWithEntityId<ICollection<StudentScore>, IEducationEventTypes> AddTopStudentAggregateType(
-        this IEvDbBuilderWithEventTypesWithEntityId<IEducationEventTypes> instance)
-    {
-        TopStudentFolding folding = new();
-        return instance.AddAggregateType([], folding);
-    }
-
-    public static IEvDbBuilderBuild<ICollection<StudentScore>, IEducationEventTypes> AddTopStudentAggregateType(
-        this IEvDbBuilderWithEventTypes<IEducationEventTypes> instance,
-        ICollection<StudentScore> seed)
-    {
-        TopStudentFolding folding = new();
-        return instance.AddAggregateType(seed, folding);
-    }
-
-    public static IEvDbBuilderBuild<ICollection<StudentScore>, IEducationEventTypes> AddTopStudentAggregateType(
-        this IEvDbBuilderWithEventTypes<IEducationEventTypes> instance,
-        Func<ICollection<StudentScore>> seedFactory)
-    {
-        TopStudentFolding folding = new();
-        return instance.AddAggregateType(seedFactory, folding);
-    }
-
-    public static IEvDbBuilderBuild<ICollection<StudentScore>, IEducationEventTypes> AddTopStudentAggregateType(
-        this IEvDbBuilderWithEventTypes<IEducationEventTypes> instance)
-    {
-        TopStudentFolding folding = new();
-        return instance.AddAggregateType([], folding);
-    }
-}
-
-#endregion // Extension Methods
