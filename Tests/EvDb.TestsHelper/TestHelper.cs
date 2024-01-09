@@ -61,7 +61,7 @@ public static class TestHelper
     public static EvDbAggregate<TestState> PrepareAggregateWithPendingEvents(EvDbAggregate<TestState> aggregate, bool useFoldingLogic2 = false)
     {
         var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(useFoldingLogic2);
-        var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
+        var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.EventsCount;
         var newAggregate = aggregateFactory.Create(aggregate.StreamId.StreamId, aggregate.State, newLastStoreOffset);
         var events = TestAggregateConfigs.GetPendingEvents(3);
         foreach (var e in events)
@@ -74,9 +74,13 @@ public static class TestHelper
 
     public static async Task<EvDbAggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
     {
-        var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
+        EvDbAggregate<TestState> aggregate = await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
         for (int i = 0; i < 3; i++)
-            aggregate.AddEvent(GetCorrectTestEvent());
+        {
+            var e = GetCorrectTestEvent();
+            IEvDbEventPublisher pub = aggregate;
+            pub.AddEvent(e);
+        }
         return aggregate;
 
     }
