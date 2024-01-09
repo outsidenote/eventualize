@@ -77,7 +77,7 @@ public abstract class EvDbAggregate : IEvDbAggregate
 }
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvDbEventPublisher
+public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvDbStoredEventSync
 {
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
@@ -124,11 +124,10 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
         IEvDbEvent e = EvDbEventFactory.Create(payload, capturedBy, _options);
-        IEvDbEventPublisher self = this;
-        self.AddEvent(e);
+        AddEvent(e);
     }
 
-    void IEvDbEventPublisher.AddEvent(IEvDbEvent e)
+    private void AddEvent(IEvDbEvent e)
     {
         try
         {
@@ -142,6 +141,12 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
         {
             _dirtyLock.Release();
         }
+    }
+
+    void IEvDbStoredEventSync.SyncEvent(IEvDbStoredEvent e)
+    {
+        State = FoldingLogic.FoldEvent(State, e);
+        LastStoredOffset = e.StreamCursor.Offset;
     }
 
     #endregion // AddEvent

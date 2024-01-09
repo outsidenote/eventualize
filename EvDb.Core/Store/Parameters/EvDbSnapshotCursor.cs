@@ -15,7 +15,7 @@ public partial record EvDbSnapshotCursor(string Domain, string Partition, string
         : this(
             aggregate.StreamId,
             aggregate.Kind,
-            aggregate.LastStoredOffset + aggregate.PendingEvents.Count
+            aggregate.LastStoredOffset + aggregate.EventsCount
         )
     { }
 

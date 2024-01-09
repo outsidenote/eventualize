@@ -19,7 +19,7 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
 
     public abstract string Kind { get; } 
 
-    protected abstract EvDbPartitionAddress Partition { get; }
+    public abstract EvDbPartitionAddress Partition { get; }
 
     #region Ctor
 
@@ -57,8 +57,6 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
 
     public ITopStudentAggregate Create(EvDbStoredSnapshot<ICollection<StudentScore>> snapshot)
     {
-        // TODO: [bnaya 2024-01-09] review with @Roma
-        throw new NotImplementedException();
         EvDbStreamAddress stream = snapshot.Cursor;
         TopStudentAggregate agg =
             new(
@@ -67,7 +65,7 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
                 stream,
                 this,
                 MinEventsBetweenSnapshots,
-                DefaultState,
+                snapshot.State,
                 snapshot.Cursor.Offset,
                 JsonSerializerOptions);
 
@@ -82,8 +80,7 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
     public async Task<ITopStudentAggregate> GetAsync(
         string streamId, long lastStoredOffset = -1, CancellationToken cancellationToken = default)
     {
-        EvDbStreamAddress stream = new(Partition, streamId);
-        ITopStudentAggregate agg = await _repository.GetAsync(this, stream, cancellationToken);
+        ITopStudentAggregate agg = await _repository.GetAsync(this, streamId, cancellationToken);
         return agg;
     }
 

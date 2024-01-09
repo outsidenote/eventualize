@@ -2,8 +2,10 @@
 namespace EvDb.Core;
 
 public interface IEvDbAggregateFactory<T, TState>
-    where T : IEvDbAggregate<TState>, IEvDbEventTypes, IEvDbEventPublisher
+    where T : IEvDbAggregate<TState>, IEvDbEventTypes
 {
+    EvDbPartitionAddress Partition { get; }
+
     string Kind { get; }
 
     T Create(string streamId,

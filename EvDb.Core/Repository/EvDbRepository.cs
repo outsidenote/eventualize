@@ -22,26 +22,27 @@ public class EvDbRepository : IEvDbRepository
 
     async Task<T> IEvDbRepository.GetAsync<T, TState>(
         IEvDbAggregateFactory<T, TState> factory,
-        EvDbStreamAddress streamAddress,
+        string streamId,
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
 
+        var streamAddress = new EvDbStreamAddress(factory.Partition, streamId);
         // TODO: [bnaya 2023-12-20] transaction, 
-        EvDbSnapshotId snapshotId = new(
+        EvDbSnapshotId snapshotId = new EvDbSnapshotId(
             streamAddress,
             factory.Kind);
-        string streamId = streamAddress.StreamId;
         EvDbStoredSnapshot<TState>? snapshot = await _storageAdapter.TryGetSnapshotAsync<TState>(snapshotId, cancellation);
         if (snapshot == null)
         {
-            EvDbStreamCursor prm1 = new(snapshotId, 0);
-            T agg = factory.Create(streamId); // TODO: [bnaya 2024-01-09] TBD: lastStoredOffset?
-            var pub = (IEvDbEventPublisher)agg;
-            IAsyncEnumerable<IEvDbStoredEvent> snapEvents = _storageAdapter.GetAsync(prm1, cancellation);
-            await foreach (IEvDbStoredEvent e in snapEvents)
+            EvDbStreamCursor streamCursor = new(streamAddress, 0);
+            T agg = factory.Create(streamId); 
+            IAsyncEnumerable<IEvDbStoredEvent> allEvents = _storageAdapter.GetAsync(streamCursor, cancellation);
+            //IEvDbStoredEventSync sync = agg;
+            await foreach (IEvDbStoredEvent e in allEvents)
             {
-                agg.AddEvent(e);
+                agg.SyncEvent(e);
+                //sync.SyncEvent(e);
             }
 
             // TODO: [bnaya 2024-01-09] return agg;?
@@ -53,7 +54,7 @@ public class EvDbRepository : IEvDbRepository
         var result =  factory.Create(snapshot);
         await foreach (IEvDbStoredEvent e in events)
         {
-            result.AddEvent(e);
+            result.SyncEvent(e);
         }
         return result;
     }

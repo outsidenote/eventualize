@@ -28,7 +28,7 @@ public class ApiFirst
     [Fact]
     public async Task ApiDesign()
     {
-        var factory = new TopStudentFactory(_storageAdapter);
+        TopStudentFactory factory = new TopStudentFactory(_storageAdapter);
         var agg = factory.Create("class a-3");
         var course = new CourseCreated(123, "algorithm", 50);
         agg.Add(course);
@@ -39,11 +39,6 @@ public class ApiFirst
 [EvDbAggregateFactory<ICollection<StudentScore>, IEducationEventTypes>]
 public partial class TopStudentFactory 
 {    
-    //public TopStudentFolding(): base(this)
-    //{
-
-    //}
-
     private readonly ConcurrentDictionary<int, StudentEntity> _students = new ConcurrentDictionary<int, StudentEntity>();
 
     protected override ICollection<StudentScore> DefaultState { get; } = [];
@@ -52,7 +47,7 @@ public partial class TopStudentFactory
 
     protected override JsonSerializerOptions? JsonSerializerOptions { get; } = EducationEventTypesContext.Default.Options;
 
-    protected override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
+    public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
 
     protected override ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,

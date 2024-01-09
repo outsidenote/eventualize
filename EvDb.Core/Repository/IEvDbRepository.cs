@@ -10,9 +10,9 @@ public interface IEvDbRepository
     //Task<IEvDbAggregate<TState>> GetAsync<TState>(IEvDbAggregate<TState> aggregate, CancellationToken cancellation = default);
     Task<T> GetAsync<T, TState>(
         IEvDbAggregateFactory<T, TState> factory,
-        EvDbStreamAddress streamAddress, 
+        string streamId, 
         CancellationToken cancellation = default)
-            where T : IEvDbAggregate<TState>, IEvDbEventTypes, IEvDbEventPublisher;
+            where T : IEvDbAggregate<TState>, IEvDbEventTypes, IEvDbStoredEventSync;
 
     Task SaveAsync<TState>(IEvDbAggregate<TState> aggregate, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
 }

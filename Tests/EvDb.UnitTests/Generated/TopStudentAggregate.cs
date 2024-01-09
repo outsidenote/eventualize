@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-public interface ITopStudentAggregate : IEvDbAggregate<ICollection<StudentScore>>, IEducationEventTypes, IEvDbEventPublisher
+public interface ITopStudentAggregate : IEvDbAggregate<ICollection<StudentScore>>, IEducationEventTypes
 { 
 }
 

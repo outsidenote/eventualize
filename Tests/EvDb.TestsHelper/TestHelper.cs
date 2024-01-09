@@ -78,8 +78,7 @@ public static class TestHelper
         for (int i = 0; i < 3; i++)
         {
             var e = GetCorrectTestEvent();
-            IEvDbEventPublisher pub = aggregate;
-            pub.AddEvent(e);
+            aggregate.AddEvent(e);
         }
         return aggregate;
 
