@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
@@ -19,61 +20,79 @@ public class EvDbRepository : IEvDbRepository
         return (long)offset + 1;
     }
 
-    async Task<EvDbAggregate<T>> IEvDbRepository.GetAsync<T>(
-        EvDbAggregateFactory<T> aggregateFactory,
-        string streamId,
+    async Task<T> IEvDbRepository.GetAsync<T, TState>(
+        IEvDbAggregateFactory<T, TState> factory,
+        EvDbStreamAddress streamAddress,
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        EvDbStreamAddress srmId = new EvDbStreamAddress(
-            aggregateFactory.Partition,
-            streamId);
+
         // TODO: [bnaya 2023-12-20] transaction, 
         EvDbSnapshotId snapshotId = new(
-            srmId,
-            aggregateFactory.AggregateType);
-        IAsyncEnumerable<IEvDbStoredEvent> events;
-        var snapshot = await _storageAdapter.TryGetSnapshotAsync<T>(snapshotId, cancellation);
+            streamAddress,
+            factory.Kind);
+        string streamId = streamAddress.StreamId;
+        EvDbStoredSnapshot<TState>? snapshot = await _storageAdapter.TryGetSnapshotAsync<TState>(snapshotId, cancellation);
         if (snapshot == null)
         {
             EvDbStreamCursor prm1 = new(snapshotId, 0);
-            events = _storageAdapter.GetAsync(prm1, cancellation);
-            return await aggregateFactory.CreateAsync(streamId, events);
+            T agg = factory.Create(streamId); // TODO: [bnaya 2024-01-09] TBD: lastStoredOffset?
+            var pub = (IEvDbEventPublisher)agg;
+            IAsyncEnumerable<IEvDbStoredEvent> snapEvents = _storageAdapter.GetAsync(prm1, cancellation);
+            await foreach (IEvDbStoredEvent e in snapEvents)
+            {
+                agg.AddEvent(e);
+            }
+
+            // TODO: [bnaya 2024-01-09] return agg;?
+            return agg;
         }
         long nextOffset = GetNextOffset(snapshot.Cursor.Offset);
         EvDbStreamCursor prm2 = new(snapshotId, nextOffset);
-        events = _storageAdapter.GetAsync(prm2, cancellation);
-        return await aggregateFactory.CreateAsync(streamId, events, snapshot);
+        IAsyncEnumerable<IEvDbStoredEvent> events = _storageAdapter.GetAsync(prm2, cancellation);
+        var result =  factory.Create(snapshot);
+        await foreach (IEvDbStoredEvent e in events)
+        {
+            result.AddEvent(e);
+        }
+        return result;
     }
 
     // TODO: [bnaya 2023-12-28] reduce duplication
-    async Task IEvDbRepository.SaveAsync<T>(EvDbAggregate<T> aggregate, JsonSerializerOptions? options, CancellationToken cancellation)
+    async Task IEvDbRepository.SaveAsync<TState>(
+        IEvDbAggregate<TState> aggregate, 
+        JsonSerializerOptions? options,
+        CancellationToken cancellation)
     {
-        if (aggregate.PendingEvents.Count == 0)
+        // TODO: [bnaya 2024-01-09] Thread-safe delete/clear only the pending which had saved
+        if (aggregate.IsEmpty)
         {
             await Task.FromResult(true);
             return;
         }
-        long lastStoredOffset = await _storageAdapter.GetLastOffsetAsync(aggregate, cancellation);
-        if (lastStoredOffset != aggregate.LastStoredOffset)
-            throw new OCCException<T>(aggregate, lastStoredOffset);
-        bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
+        // TODO: [bnaya 2024-01-09] TBD: lock/immutable memory-snapshot 
+
+
+        //long lastStoredOffset = await _storageAdapter.GetLastOffsetAsync(aggregate, cancellation);
+        //if (lastStoredOffset != aggregate.LastStoredOffset)
+        //    throw new OCCException(aggregate, lastStoredOffset);
+        bool shouldStoreSnapshot = aggregate.EventsCount >= aggregate.MinEventsBetweenSnapshots;
         await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot, options, cancellation);
-        aggregate.ClearPendingEvents();
+        aggregate.ClearLocalEvents(); // TODO: [bnaya 2024-01-09] selective clear is needed
     }
 
-    async Task IEvDbRepository.SaveAsync<T>(EvDbAggregate<T> aggregate, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
-    {
-        if (aggregate.PendingEvents.Count == 0)
-        {
-            await Task.FromResult(true);
-            return;
-        }
-        long lastStoredOffset = await _storageAdapter.GetLastOffsetAsync(aggregate, cancellation);
-        if (lastStoredOffset != aggregate.LastStoredOffset)
-            throw new OCCException<T>(aggregate, lastStoredOffset);
-        bool shouldStoreSnapshot = aggregate.PendingEvents.Count >= aggregate.MinEventsBetweenSnapshots;
-        await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot, jsonTypeInfo, cancellation);
-        aggregate.ClearPendingEvents();
-    }
+    //async Task IEvDbRepository.SaveAsync<T>(IEvDbAggregate<T> aggregate, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
+    //{
+    //    if (aggregate.IsEmpty)
+    //    {
+    //        await Task.FromResult(true);
+    //        return;
+    //    }
+    //    long lastStoredOffset = await _storageAdapter.GetLastOffsetAsync(aggregate, cancellation);
+    //    if (lastStoredOffset != aggregate.LastStoredOffset)
+    //        throw new OCCException(aggregate, lastStoredOffset);
+    //    bool shouldStoreSnapshot = aggregate.EventsCount >= aggregate.MinEventsBetweenSnapshots;
+    //    await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot, jsonTypeInfo, cancellation);
+    //    aggregate.ClearEvents();
+    //}
 }

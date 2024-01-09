@@ -9,7 +9,7 @@ public class AggregateTests
     {
         var aggregate = TestAggregateConfigs.GetTestAggregate();
         var e = GetCorrectTestEvent();
-        aggregate.AddPendingEvent(e);
+        aggregate.AddEvent(e);
         Assert.Single(aggregate.PendingEvents);
         Assert.Equal(aggregate.PendingEvents[0], e);
     }

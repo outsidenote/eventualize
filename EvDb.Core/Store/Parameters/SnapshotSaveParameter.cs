@@ -15,15 +15,15 @@ public readonly record struct SnapshotSaveParameter(
                     string Payload)
 {
     public static SnapshotSaveParameter Create<T>(
-                    EvDbAggregate<T> aggregate,
-                    JsonSerializerOptions? options = null) where T : notnull, new()
+                    IEvDbAggregate<T> aggregate,
+                    JsonSerializerOptions? options = null) 
     {
         return new(
             aggregate.SnapshotId.Domain,
             aggregate.SnapshotId.Partition,
             aggregate.SnapshotId.StreamId,
-            aggregate.SnapshotId.AggregateType,
-            aggregate.LastStoredOffset + aggregate.PendingEvents.Count,
+            aggregate.SnapshotId.Kind,
+            aggregate.LastStoredOffset + aggregate.EventsCount,
             JsonSerializer.Serialize(aggregate.State, options)
         );
     }
@@ -35,8 +35,8 @@ public readonly record struct SnapshotSaveParameter(
             aggregate.SnapshotId.Domain,
             aggregate.SnapshotId.Partition,
             aggregate.SnapshotId.StreamId,
-            aggregate.SnapshotId.AggregateType,
-            aggregate.LastStoredOffset + aggregate.PendingEvents.Count,
+            aggregate.SnapshotId.Kind,
+            aggregate.LastStoredOffset + aggregate.EventsCount,
             JsonSerializer.Serialize(aggregate.State, jsonTypeInfo)
         );
     }

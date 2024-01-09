@@ -15,7 +15,7 @@ namespace CoreTests.EvDbRepositoryTests.TestStorageAdapterTests
             for (int i = 0; i < 3; i++)
             {
                 IEvDbEvent e = GetCorrectTestEvent();
-                aggregate.AddPendingEvent(e);
+                aggregate.AddEvent(e);
             }
             return aggregate;
         }

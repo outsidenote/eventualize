@@ -1,6 +1,11 @@
-﻿namespace EvDb.Scenes;
+﻿using EvDb.Core;
 
-public record StudentRegisteredToCourse(int CourseId, StudentEntity Student);
+namespace EvDb.Scenes;
+
+public record StudentRegisteredToCourse(int CourseId, StudentEntity Student) : IEvDbEventPayload
+{
+    string IEvDbEventPayload.EventType { get; } = "student-registered-to-course";
+}
 
 
 

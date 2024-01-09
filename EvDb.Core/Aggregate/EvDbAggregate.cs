@@ -1,93 +1,170 @@
-﻿using System.Collections.Concurrent;
+﻿
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.ComponentModel.Design;
 using System.Diagnostics;
+using System.Reflection;
+using System.Text.Json;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
 namespace EvDb.Core;
 
+
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
 public abstract class EvDbAggregate : IEvDbAggregate
 {
+    // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
+    protected internal IImmutableList<IEvDbEvent> _pendingEvents = ImmutableList<IEvDbEvent>.Empty;
+
+    protected static readonly SemaphoreSlim _dirtyLock = new SemaphoreSlim(1);
+
     #region Ctor
 
     internal EvDbAggregate(
-        string aggregateType,
+        string kind,
         EvDbStreamAddress streamId,
         int minEventsBetweenSnapshots,
         long lastStoredOffset)
     {
-        AggregateType = aggregateType;
+        Kind = kind;
         StreamId = streamId;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
         LastStoredOffset = lastStoredOffset;
-        SnapshotId = new(streamId, aggregateType);
+        SnapshotId = new(streamId, kind);
     }
 
     #endregion // Ctor
 
-    #region Members
-    // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
-    protected internal ConcurrentQueue<IEvDbEvent> _pendingEvents = new ConcurrentQueue<IEvDbEvent>();
-    public IImmutableList<IEvDbEvent> PendingEvents => _pendingEvents.ToImmutableArray();
-
-    public long LastStoredOffset { get; protected set; } = -1;
     // TODO: [bnaya 2023-12-11] Use Min Duration or Count between snapshots
+
+    #region MinEventsBetweenSnapshots
+
     public int MinEventsBetweenSnapshots { get; init; } = 0;
 
+    #endregion // MinEventsBetweenSnapshots
+
+    #region StreamId
+
     public EvDbStreamAddress StreamId { get; init; }
-    public readonly string AggregateType;
 
-    public readonly EvDbSnapshotId SnapshotId;
+    #endregion // StreamId
 
-    #endregion // Members
+    public string Kind { get; }
+
+    public int EventsCount => _pendingEvents.Count;
+
+    #region LastStoredOffset
+
+    public long LastStoredOffset { get; protected set; } = -1;
+
+    #endregion // LastStoredOffset
+
+    #region SnapshotId
+
+    public EvDbSnapshotId SnapshotId { get; }
+
+    #endregion // SnapshotId
+
+    #region IsEmpty
+
+    bool IEvDbAggregate.IsEmpty => _pendingEvents.Count == 0;
+
+    #endregion // IsEmpty
+
+    IEnumerable<IEvDbEvent> IEvDbAggregate.Events => _pendingEvents;
 }
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbAggregate<TState> : EvDbAggregate, 
-    IEvDbAggregate<TState> where TState : notnull, new()
+public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvDbEventPublisher
 {
+    private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
+    private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
+    protected readonly IEvDbRepository _repository;
+    private readonly JsonSerializerOptions? _options;
+
     #region Ctor
 
-    internal EvDbAggregate(
-        string aggregateType,
+    public EvDbAggregate(
+        IEvDbRepository repository,
+        string kind,
         EvDbStreamAddress streamId,
-        EvDbFoldingLogic<TState> foldingLogic,
+        IEvDbFoldingLogic<TState> foldingLogic,
         int minEventsBetweenSnapshots,
         TState state,
-        long lastStoredOffset)
-        : base(aggregateType, streamId, minEventsBetweenSnapshots, lastStoredOffset)
+        long lastStoredOffset,
+        JsonSerializerOptions? options)
+        : base(kind, streamId, minEventsBetweenSnapshots, lastStoredOffset)
     {
         State = state;
+        _options = options;
+        _repository = repository;
         FoldingLogic = foldingLogic;
     }
 
-    internal EvDbAggregate(string aggregateType,
-                                  EvDbStreamAddress streamId,
-                                  EvDbFoldingLogic<TState> foldingLogic,
-                                  int minEventsBetweenSnapshots)
-        : this(aggregateType, streamId, foldingLogic, minEventsBetweenSnapshots, new TState(), -1) { }
 
     #endregion // Ctor
 
-    #region Members
+    #region FoldingLogic
 
-    public readonly EvDbFoldingLogic<TState> FoldingLogic;
+    public readonly IEvDbFoldingLogic<TState> FoldingLogic;
+
+    #endregion // FoldingLogic
+
+    #region State
+
     public TState State { get; private set; }
 
-    #endregion // Members
+    #endregion // State
 
-    public void AddPendingEvent(IEvDbEvent someEvent)
+    #region AddEvent
+
+    protected void AddEvent(IEvDbEventPayload payload, string? capturedBy = null)
     {
-        _pendingEvents.Enqueue(someEvent);
-        // TODO: [bnaya 2023-12-19] thread safe
-        State = FoldingLogic.FoldEvent(State, someEvent);
+        capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
+        IEvDbEvent e = EvDbEventFactory.Create(payload, capturedBy, _options);
+        IEvDbEventPublisher self = this;
+        self.AddEvent(e);
     }
 
-    public void ClearPendingEvents()
+    void IEvDbEventPublisher.AddEvent(IEvDbEvent e)
     {
-        LastStoredOffset += PendingEvents.Count;
+        try
+        {
+            _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
+            IImmutableList<IEvDbEvent> evs = _pendingEvents.Add(e);
+            _pendingEvents = evs;
+            // TODO: [bnaya 2023-12-19] thread safe
+            State = FoldingLogic.FoldEvent(State, e);
+        }
+        finally
+        {
+            _dirtyLock.Release();
+        }
+    }
+
+    #endregion // AddEvent
+
+    public void ClearLocalEvents()
+    {
+        LastStoredOffset += _pendingEvents.Count;
         _pendingEvents.Clear();
+    }
+
+    async Task IEvDbAggregate<TState>.SaveAsync(CancellationToken cancellation)
+    {
+        try
+        {
+            await _dirtyLock.WaitAsync();// TODO: [bnaya 2024-01-09] re-consider the lock solution
+            {
+                await _repository.SaveAsync(this, _options, cancellation);
+            }
+        }
+        finally
+        {
+            _dirtyLock.Release();
+        }
     }
 }
 

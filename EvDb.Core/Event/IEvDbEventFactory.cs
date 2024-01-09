@@ -3,6 +3,15 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
+//public interface IEvDbEventFactory
+//{
+//    IEvDbEvent Create<T>(T data, string capturedBy, JsonSerializerOptions? options = null)
+//        where T : IEvDbEventPayload;
+//    IEvDbEvent Create<T>(T data, string capturedBy, JsonTypeInfo<T> jsonType)
+//        where T : IEvDbEventPayload;
+//}
+
+[Obsolete("deprecated")]
 public interface IEvDbEventFactory<T>
 {
     public IEvDbEvent Create(DateTime capturedAt, T data, JsonSerializerOptions? options = null);

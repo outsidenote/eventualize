@@ -4,7 +4,7 @@ namespace EvDb.Core;
 
 // TODO: [bnaya 2024-01-04] TBD Task<FoldingResult<T>> FoldEventsAsync might be infinite therefore callback might be better
 
-public class EvDbFoldingLogic<T> where T : notnull, new()
+public class EvDbFoldingLogic<T> : IEvDbFoldingLogic<T> where T : notnull, new()
 {
     // TODO: replace it with an encapsulated version
     public readonly IImmutableDictionary<string, IFoldingFunction<T>> Logic;

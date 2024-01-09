@@ -5,6 +5,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 
 namespace EvDb.UnitTests;
@@ -13,13 +14,13 @@ namespace EvDb.UnitTests;
 partial interface IEducationEventTypes :
     IEvDbEventTypes 
 {
-    void Add(CourseCreated courseCreated);
-    void Add(ScheduleTest scheduleTest);
-    void Add(StudentAppliedToCourse applied);
-    void Add(StudentCourseApplicationDenied applicationDenyed);
-    void Add(StudentEnlisted enlisted);
-    void Add(StudentQuitCourse quit);
-    void Add(StudentReceivedGrade receivedGrade);
-    void Add(StudentRegisteredToCourse registeredToCourse);
-    void Add(StudentTestSubmitted testSubmitted);
+    void Add(CourseCreated payload, string? capturedBy = null);
+    void Add(ScheduleTest payload, string? capturedBy = null);
+    void Add(StudentAppliedToCourse payload, string? capturedBy = null);
+    void Add(StudentCourseApplicationDenied payload, string? capturedBy = null);
+    void Add(StudentEnlisted payload, string? capturedBy = null);
+    void Add(StudentQuitCourse payload, string? capturedBy = null);
+    void Add(StudentReceivedGrade payload, string? capturedBy = null);
+    void Add(StudentRegisteredToCourse payload, string? capturedBy = null);
+    void Add(StudentTestSubmitted payload, string? capturedBy = null);
 }

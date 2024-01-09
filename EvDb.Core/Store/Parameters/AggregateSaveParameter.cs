@@ -2,7 +2,7 @@
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("{AggregateId}, {AggregateType}, {EventType}, {Sequence}")]
+[DebuggerDisplay("{AggregateId}, {Kind}, {EventType}, {Sequence}")]
 public readonly record struct AggregateSaveParameter(
                     string AggregateId,
                     string AggregateType,

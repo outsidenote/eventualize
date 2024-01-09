@@ -33,7 +33,7 @@ public static class TestHelper
                                 "testStreamId");
 
     public readonly static IEvDbEventFactory<TestEventDataType> TestEventFactory =
-        new EvDbEventFactory<TestEventDataType>(TestEventType, "TestOperation");
+        new EvDbEventFactoryLegacy<TestEventDataType>(TestEventType, "TestOperation");
 
     public static IEvDbEvent GetCorrectTestEvent()
     {
@@ -66,7 +66,7 @@ public static class TestHelper
         var events = TestAggregateConfigs.GetPendingEvents(3);
         foreach (var e in events)
         {
-            newAggregate.AddPendingEvent(e);
+            newAggregate.AddEvent(e);
         }
         return newAggregate;
 
@@ -76,7 +76,7 @@ public static class TestHelper
     {
         var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
         for (int i = 0; i < 3; i++)
-            aggregate.AddPendingEvent(GetCorrectTestEvent());
+            aggregate.AddEvent(GetCorrectTestEvent());
         return aggregate;
 
     }

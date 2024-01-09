@@ -6,21 +6,20 @@ namespace EvDb.Core;
 
 [DebuggerDisplay("Count:{Events.Count}")]
 public class AggregateSaveParameterCollection<T> : IEnumerable<AggregateSaveParameter/*<T>*/>
-    where T : notnull, new()
 {
     private readonly string _domain;
     private readonly string aggregateId;
     private readonly string aggregateType;
     private readonly long baseSeq;
-    public AggregateSaveParameterCollection(EvDbAggregate<T> aggregate)
+    public AggregateSaveParameterCollection(IEvDbAggregate aggregate)
     {
         _domain = aggregate.StreamId.Domain;
         aggregateId = aggregate.StreamId.StreamId;
         aggregateType = aggregate.StreamId.Partition;
         baseSeq = aggregate.LastStoredOffset + 1;
-        Events = aggregate.PendingEvents;
+        Events = aggregate.Events;
     }
-    public IImmutableList<IEvDbEvent> Events { get; }
+    public IEnumerable<IEvDbEvent> Events { get; }
 
     public IEnumerator<AggregateSaveParameter> GetEnumerator()
     {

@@ -4,10 +4,15 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
+// TODO: [bnaya 2024-01-08] When Aggregate gets IEvDbStorageAdapter it can create repository, therefore no need to get or return the IEvDbAggregate<TState>
 public interface IEvDbRepository
 {
-    Task<EvDbAggregate<T>> GetAsync<T>(EvDbAggregateFactory<T> aggregateFactory, string streamId, CancellationToken cancellation = default) where T : notnull, new();
-    Task SaveAsync<T>(EvDbAggregate<T> aggregate, JsonSerializerOptions? options = null, CancellationToken cancellation = default) where T : notnull, new();
+    //Task<IEvDbAggregate<TState>> GetAsync<TState>(IEvDbAggregate<TState> aggregate, CancellationToken cancellation = default);
+    Task<T> GetAsync<T, TState>(
+        IEvDbAggregateFactory<T, TState> factory,
+        EvDbStreamAddress streamAddress, 
+        CancellationToken cancellation = default)
+            where T : IEvDbAggregate<TState>, IEvDbEventTypes, IEvDbEventPublisher;
 
-    Task SaveAsync<T>(EvDbAggregate<T> aggregate, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation = default) where T : notnull, new();
+    Task SaveAsync<TState>(IEvDbAggregate<TState> aggregate, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
 }

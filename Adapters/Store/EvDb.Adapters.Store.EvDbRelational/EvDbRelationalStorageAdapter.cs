@@ -58,7 +58,8 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     #region IEvDbStorageAdapter Members
 
-    async Task<long> IEvDbStorageAdapter.GetLastOffsetAsync<T>(EvDbAggregate<T> aggregate, CancellationToken cancellation)
+
+    async Task<long> IEvDbStorageAdapter.GetLastOffsetAsync<T>(IEvDbAggregate<T> aggregate, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
@@ -102,21 +103,20 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
     }
 
-    async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options, CancellationToken cancellation)
+    async Task IEvDbStorageAdapter.SaveAsync<T>(IEvDbAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options, CancellationToken cancellation)
     {
         SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, options) : null;
         await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
     }
 
-    async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
-    {
-        SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, jsonTypeInfo) : null;
-        await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
-    }
+    //async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
+    //{
+    //    SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, jsonTypeInfo) : null;
+    //    await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
+    //}
 
     // TODO: [bnaya 2023-12-13] avoid racing
-    private async Task SaveAsync<T>(EvDbAggregate<T> aggregate, SnapshotSaveParameter? snapshotSaveParameter, CancellationToken cancellation)
-         where T : notnull, new()
+    private async Task SaveAsync<T>(IEvDbAggregate<T> aggregate, SnapshotSaveParameter? snapshotSaveParameter, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
@@ -141,7 +141,7 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         catch (DbException e)
             when (e.Message.Contains("Violation of PRIMARY KEY constraint"))
         {
-            throw new OCCException<T>(aggregate);
+            throw new OCCException(aggregate);
         }
     }
 

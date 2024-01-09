@@ -1,6 +1,12 @@
-﻿namespace EvDb.Scenes;
+﻿using EvDb.Core;
 
-public record StudentCourseApplicationDenied(int CourseId, int StudentId);
+namespace EvDb.Scenes;
+
+public record StudentCourseApplicationDenied(int CourseId, int StudentId) : IEvDbEventPayload
+{
+    string IEvDbEventPayload.EventType { get; } = "student-course-application-denied";
+}
+
 
 
 

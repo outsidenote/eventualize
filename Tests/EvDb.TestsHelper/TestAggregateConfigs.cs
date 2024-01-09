@@ -20,7 +20,7 @@ public static class TestAggregateConfigs
         var aggregate = TestAggregateFactoryConfigs.GetAggregateFactory().Create(id);
         foreach (var e in events)
         {
-            aggregate.AddPendingEvent(e);
+            aggregate.AddEvent(e);
         }
         return aggregate;
     }
@@ -41,7 +41,7 @@ public static class TestAggregateConfigs
         if (events != null)
             foreach (var e in events)
             {
-                aggregate.AddPendingEvent(e);
+                aggregate.AddEvent(e);
             }
         return aggregate;
     }

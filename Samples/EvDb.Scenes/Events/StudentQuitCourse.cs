@@ -1,6 +1,13 @@
-﻿namespace EvDb.Scenes;
+﻿using EvDb.Core;
 
-public record StudentQuitCourse(int CourseId, int StudentId);
+namespace EvDb.Scenes;
+
+public record StudentQuitCourse(int CourseId, int StudentId) : IEvDbEventPayload
+{
+    string IEvDbEventPayload.EventType { get; } = "student-quit-course";
+}
+
+
 
 
 
