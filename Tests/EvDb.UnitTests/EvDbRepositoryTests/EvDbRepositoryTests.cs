@@ -9,23 +9,25 @@ public class RepositoryTests
     [Fact]
     public async Task EvDbRepository_WhenGettingAggregate_Succeed()
     {
-        var repoTestSteps = new EvDbRepositoryTestsSteps();
-        var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
-        var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
-        IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-        var fetchedAggregate = await repository.GetAsync(aggregateFactory, aggregate.StreamId.StreamId);
-        repoTestSteps.AssertFetchedAggregateIsCorrect(aggregate, fetchedAggregate);
+        throw new NotImplementedException();
+        //var repoTestSteps = new EvDbRepositoryTestsSteps();
+        //var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
+        //var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
+        //var fetchedAggregate = await repository.GetAsync(aggregateFactory, aggregate.StreamId.StreamId);
+        //repoTestSteps.AssertFetchedAggregateIsCorrect(aggregate, fetchedAggregate);
     }
     [Fact]
     public async Task EvDbRepository_WhenGettingDifferentAggregate_Succeed()
     {
-        var repoTestSteps = new EvDbRepositoryTestsSteps();
-        var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
-        IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-        var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
-        var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
-        var fetchedAggregate = await repository.GetAsync(aggregateFactory2, aggregate.StreamId.StreamId);
-        repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
+        throw new NotImplementedException();
+        //var repoTestSteps = new EvDbRepositoryTestsSteps();
+        //var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
+        //var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
+        //var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
+        //var fetchedAggregate = await repository.GetAsync(aggregateFactory2, aggregate.StreamId.StreamId);
+        //repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
     }
 
     [Fact]
@@ -54,7 +56,7 @@ public class RepositoryTests
         var repoTestSteps = new EvDbRepositoryTestsSteps();
         var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents(3);
         IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-        await Assert.ThrowsAsync<OCCException<TestState>>(async () => await repository.SaveAsync(aggregate));
+        await Assert.ThrowsAsync<OCCException>(async () => await repository.SaveAsync(aggregate));
     }
 
 }

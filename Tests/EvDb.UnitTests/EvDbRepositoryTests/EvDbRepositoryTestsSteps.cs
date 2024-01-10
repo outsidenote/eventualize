@@ -22,7 +22,7 @@ namespace CoreTests.EvDbRepositoryTests
 
             Assert.Equal(expectedAggregate.State, fetchedAggregate.State);
             Assert.Equal(expectedAggregate.StreamId, fetchedAggregate.StreamId);
-            Assert.Empty(fetchedAggregate.PendingEvents);
+            Assert.Empty(((IEvDbAggregate)fetchedAggregate).Events);
             Assert.Equal(2, fetchedAggregate.LastStoredOffset);
         }
 
@@ -41,7 +41,7 @@ namespace CoreTests.EvDbRepositoryTests
             var events = await eventsAsync.ToEnumerableAsync();
             Assert.Equal(3, events.Count);
             Assert.Equal(events.Count - 1, aggregate.LastStoredOffset);
-            Assert.Empty(aggregate.PendingEvents);
+            Assert.Empty(((IEvDbAggregate)aggregate).Events);
 
 
             var snapshot = await _storageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotId);

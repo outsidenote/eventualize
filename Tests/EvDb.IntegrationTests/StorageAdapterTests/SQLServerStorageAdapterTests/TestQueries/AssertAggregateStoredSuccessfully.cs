@@ -12,7 +12,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
             var reader = sqlCommand.ExecuteReader();
             reader.Read();
             var numStoredEvents = reader.GetInt32(0);
-            Assert.Equal(aggregate.PendingEvents.Count, numStoredEvents);
+            Assert.Equal(aggregate.EventsCount, numStoredEvents);
 
             if (!isSnapshotStored)
                 return;
@@ -21,7 +21,7 @@ namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
             reader = sqlCommand.ExecuteReader();
             reader.Read();
             var snapshotOffset = reader.GetInt64(0);
-            Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, snapshotOffset);
+            Assert.Equal(aggregate.LastStoredOffset + aggregate.EventsCount, snapshotOffset);
         }
 
         private static DbCommand GetStoredEventsSqlCommand(SQLServerAdapterTestWorld world, EvDbAggregate<TestState> aggregate)

@@ -37,10 +37,11 @@ public class EvDbRepository : IEvDbRepository
         {
             EvDbStreamCursor streamCursor = new(streamAddress, 0);
             T agg = factory.Create(streamId); 
+            var syncNoSnap = (IEvDbStoredEventSync)agg;
             IAsyncEnumerable<IEvDbStoredEvent> allEvents = _storageAdapter.GetAsync(streamCursor, cancellation);
             await foreach (IEvDbStoredEvent e in allEvents)
             {
-                agg.SyncEvent(e);
+                syncNoSnap.SyncEvent(e);
             }
 
             // TODO: [bnaya 2024-01-09] return agg;?
@@ -50,9 +51,10 @@ public class EvDbRepository : IEvDbRepository
         EvDbStreamCursor prm2 = new(snapshotId, nextOffset);
         IAsyncEnumerable<IEvDbStoredEvent> events = _storageAdapter.GetAsync(prm2, cancellation);
         var result =  factory.Create(snapshot);
+        var syncSnap = (IEvDbStoredEventSync)result;
         await foreach (IEvDbStoredEvent e in events)
         {
-            result.SyncEvent(e);
+            syncSnap.SyncEvent(e);
         }
         return result;
     }

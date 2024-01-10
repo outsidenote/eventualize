@@ -30,7 +30,7 @@ internal static class QueryTemplatesFactory
                 WHERE domain = @{nameof(EvDbSnapshotId.Domain)}
                     AND stream_type = @{nameof(EvDbSnapshotId.Partition)}
                     AND stream_id = @{nameof(EvDbSnapshotId.StreamId)}
-                    AND aggregate_type = @{nameof(EvDbSnapshotId.AggregateType)}
+                    AND aggregate_type = @{nameof(EvDbSnapshotId.Kind)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,

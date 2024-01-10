@@ -8,7 +8,7 @@ public class TestStorageAdapterTests
     public void TestStorageAdapter_WhenStoringAggregateWithoutSnapshot_Succeed()
     {
         var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
-        var pendingEvents = aggregate.PendingEvents;
+        var pendingEvents = ((IEvDbAggregate)aggregate).Events;
         TestStorageAdapter testStorageAdapter = new();
         testStorageAdapter.StorePendingEvents(aggregate);
         TestStorageAdapterTestsSteps.AssertEventsAreStored(
@@ -23,7 +23,7 @@ public class TestStorageAdapterTests
         var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents();
         var testStorageAdapter = new TestStorageAdapter();
         IEvDbStorageAdapter adapter = testStorageAdapter;
-        var pendingEvents = aggregate.PendingEvents;
+        var pendingEvents = ((IEvDbAggregate)aggregate).Events;
         await adapter.SaveAsync(aggregate, true);
         TestStorageAdapterTestsSteps.AssertEventsAreStored(testStorageAdapter, aggregate, pendingEvents);
         TestStorageAdapterTestsSteps.AssertSnapshotIsStored(testStorageAdapter, aggregate);

@@ -67,7 +67,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     {
         EvDbAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
         await _world.StorageAdapter.SaveAsync(aggregate, true);
-        await Assert.ThrowsAsync<OCCException<TestState>>(async () => await _world.StorageAdapter.SaveAsync(aggregate, true));
+        await Assert.ThrowsAsync<OCCException>(async () => await _world.StorageAdapter.SaveAsync(aggregate, true));
     }
 
     [Fact(Skip = "not active")]
@@ -86,7 +86,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     {
         var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
         var latestSnapshotOffset = await _world.StorageAdapter.GetLastOffsetAsync(aggregate);
-        var expectedOffset = aggregate.LastStoredOffset + aggregate.PendingEvents.Count;
+        var expectedOffset = aggregate.LastStoredOffset + aggregate.EventsCount;
         Assert.Equal(expectedOffset, latestSnapshotOffset);
     }
 
@@ -98,7 +98,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotId);
         Assert.NotNull(latestSnapshot);
         Assert.Equal(aggregate.State, latestSnapshot.State);
-        Assert.Equal(aggregate.LastStoredOffset + aggregate.PendingEvents.Count, latestSnapshot.Cursor.Offset);
+        Assert.Equal(aggregate.LastStoredOffset + aggregate.EventsCount, latestSnapshot.Cursor.Offset);
     }
 
     [Fact]
@@ -111,6 +111,6 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
         Assert.NotNull(asyncEvents);
         ICollection<IEvDbStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
-        Assert.True(aggregate.PendingEvents.SequenceEqual(events, EvDbEventComparer.Default));
+        Assert.True(((IEvDbAggregate)aggregate).Events.SequenceEqual(events, EvDbEventComparer.Default));
     }
 }

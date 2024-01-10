@@ -11,13 +11,14 @@ namespace CoreTests.EvDbRepositoryTests.TestStorageAdapterTests
     {
         public static EvDbAggregate<TestState> PrepareAggregateWithPendingEvents(bool useFoldingLogic2 = false)
         {
-            EvDbAggregate<TestState> aggregate = GetTestAggregate(useFoldingLogic2);
-            for (int i = 0; i < 3; i++)
-            {
-                IEvDbEvent e = GetCorrectTestEvent();
-                aggregate.AddEvent(e);
-            }
-            return aggregate;
+            throw new NotImplementedException();
+            //EvDbAggregate<TestState> aggregate = GetTestAggregate(useFoldingLogic2);
+            //for (int i = 0; i < 3; i++)
+            //{
+            //    IEvDbEvent e = GetCorrectTestEvent();
+            //    aggregate.AddEvent(e);
+            //}
+            //return aggregate;
         }
 
         public static EvDbAggregate<TestState> PrepareAggregateWithEvents(int? minEventsBetweenSnapshots)
@@ -57,7 +58,7 @@ namespace CoreTests.EvDbRepositoryTests.TestStorageAdapterTests
         {
             Assert.NotNull(snapshot);
             Assert.Equal(expectedFromAggregate.State, snapshot.State);
-            Assert.Equal(expectedFromAggregate.LastStoredOffset + expectedFromAggregate.PendingEvents.Count, snapshot.Cursor.Offset);
+            Assert.Equal(expectedFromAggregate.LastStoredOffset + expectedFromAggregate.EventsCount, snapshot.Cursor.Offset);
             Assert.Contains(expectedFromAggregate.SnapshotId.ToString(), snapshot.Cursor.ToString());
         }
 

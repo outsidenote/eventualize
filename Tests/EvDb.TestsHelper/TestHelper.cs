@@ -60,27 +60,29 @@ public static class TestHelper
 
     public static EvDbAggregate<TestState> PrepareAggregateWithPendingEvents(EvDbAggregate<TestState> aggregate, bool useFoldingLogic2 = false)
     {
-        var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(useFoldingLogic2);
-        var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.EventsCount;
-        var newAggregate = aggregateFactory.Create(aggregate.StreamId.StreamId, aggregate.State, newLastStoreOffset);
-        var events = TestAggregateConfigs.GetPendingEvents(3);
-        foreach (var e in events)
-        {
-            newAggregate.AddEvent(e);
-        }
-        return newAggregate;
+        throw new NotImplementedException();
+        //var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(useFoldingLogic2);
+        //var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.EventsCount;
+        //var newAggregate = aggregateFactory.Create(aggregate.StreamId.StreamId, aggregate.State, newLastStoreOffset);
+        //var events = TestAggregateConfigs.GetPendingEvents(3);
+        //foreach (var e in events)
+        //{
+        //    newAggregate.AddEvent(e);
+        //}
+        //return newAggregate;
 
     }
 
     public static async Task<EvDbAggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
     {
-        EvDbAggregate<TestState> aggregate = await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
-        for (int i = 0; i < 3; i++)
-        {
-            var e = GetCorrectTestEvent();
-            aggregate.AddEvent(e);
-        }
-        return aggregate;
+        throw new NotImplementedException();
+        //EvDbAggregate<TestState> aggregate = await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
+        //for (int i = 0; i < 3; i++)
+        //{
+        //    var e = GetCorrectTestEvent();
+        //    aggregate.AddEvent(e);
+        //}
+        //return aggregate;
 
     }
     public static EvDbAggregate<TestState> PrepareAggregateWithEvents()

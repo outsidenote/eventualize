@@ -12,7 +12,7 @@ public interface IEvDbRepository
         IEvDbAggregateFactory<T, TState> factory,
         string streamId, 
         CancellationToken cancellation = default)
-            where T : IEvDbAggregate<TState>, IEvDbEventTypes, IEvDbStoredEventSync;
+            where T : IEvDbAggregate<TState>, IEvDbEventTypes;
 
     Task SaveAsync<TState>(IEvDbAggregate<TState> aggregate, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
 }

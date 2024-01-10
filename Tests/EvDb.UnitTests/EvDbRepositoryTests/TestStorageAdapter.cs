@@ -11,9 +11,9 @@ namespace CoreTests.EvDbRepositoryTests
 
         #region StorePendingEvents
 
-        internal void StorePendingEvents<T>(EvDbAggregate<T> aggregate) where T : notnull, new()
+        internal void StorePendingEvents<T>(IEvDbAggregate<T> aggregate)
         {
-            if (aggregate.PendingEvents.Count == 0)
+            if (aggregate.EventsCount == 0)
                 return;
             List<EvDbStoredEvent> storedEvents = [];
             string key = GetKeyValue(aggregate);
@@ -23,7 +23,7 @@ namespace CoreTests.EvDbRepositoryTests
                 Events.Add(key, stream);
             }
 
-            foreach (var pendingEvent in aggregate.PendingEvents)
+            foreach (var pendingEvent in aggregate.Events)
             {
                 EvDbSnapshotCursor cursor = new(aggregate);
                 EvDbStoredEvent storedEvent = new(pendingEvent, cursor);
@@ -35,7 +35,7 @@ namespace CoreTests.EvDbRepositoryTests
 
         #region StoreSnapshot
 
-        private void StoreSnapshot<T>(EvDbAggregate<T> aggregate) where T : notnull, new()
+        private void StoreSnapshot<T>(IEvDbAggregate<T> aggregate) 
         {
             string key = GetKeyValue(aggregate.SnapshotId);
             var snapshotCursor = new EvDbSnapshotCursor(aggregate);
@@ -57,7 +57,7 @@ namespace CoreTests.EvDbRepositoryTests
 
         internal static string GetKeyValue(EvDbStreamAddress streamId) => streamId.ToString();
         internal static string GetKeyValue(EvDbSnapshotId snapshotId) => snapshotId.ToString();
-        internal static string GetKeyValue(EvDbAggregate aggregate) => aggregate.StreamId.ToString();
+        internal static string GetKeyValue(IEvDbAggregate aggregate) => aggregate.StreamId.ToString();
 
         internal static string GetKeyValue<T>(EvDbAggregate<T> aggregate) where T : notnull, new() => aggregate.StreamId.ToString();
 
@@ -101,7 +101,7 @@ namespace CoreTests.EvDbRepositoryTests
             //}
         }
 
-        async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? option, CancellationToken cancellation)
+        async Task IEvDbStorageAdapter.SaveAsync<T>(IEvDbAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options, CancellationToken cancellation)
         {
             await Task.Run(() =>
             {
@@ -111,17 +111,9 @@ namespace CoreTests.EvDbRepositoryTests
             });
         }
 
-        async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
-        {
-            await Task.Run(() =>
-            {
-                StorePendingEvents<T>(aggregate);
-                if (storeSnapshot)
-                    StoreSnapshot(aggregate);
-            });
-        }
 
-        Task<long> IEvDbStorageAdapter.GetLastOffsetAsync<T>(EvDbAggregate<T> aggregate, CancellationToken cancellationא)
+
+        Task<long> IEvDbStorageAdapter.GetLastOffsetAsync<T>(IEvDbAggregate<T> aggregate, CancellationToken cancellation)
         {
             string key = GetKeyValue(aggregate);
             if (!Events.TryGetValue(key, out var events))
