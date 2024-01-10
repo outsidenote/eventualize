@@ -38,11 +38,9 @@ public class EvDbRepository : IEvDbRepository
             EvDbStreamCursor streamCursor = new(streamAddress, 0);
             T agg = factory.Create(streamId); 
             IAsyncEnumerable<IEvDbStoredEvent> allEvents = _storageAdapter.GetAsync(streamCursor, cancellation);
-            //IEvDbStoredEventSync sync = agg;
             await foreach (IEvDbStoredEvent e in allEvents)
             {
                 agg.SyncEvent(e);
-                //sync.SyncEvent(e);
             }
 
             // TODO: [bnaya 2024-01-09] return agg;?
