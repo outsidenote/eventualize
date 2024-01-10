@@ -10,12 +10,12 @@ namespace EvDb.UnitTests;
 
 [DebuggerDisplay("{Kind}...")]
 [GeneratedCode("from IEducationEventTypes<T0, T1,...>", "v0")]
-public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<StudentScore>>,
-        IEvDbAggregateFactory<ITopStudentAggregate, ICollection<StudentScore>>
+public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<StudentScoreState>>,
+        IEvDbAggregateFactory<ITopStudentAggregate, ICollection<StudentScoreState>>
 {
     private readonly IEvDbRepository _repository;
 
-    protected abstract ICollection<StudentScore> DefaultState { get; }
+    protected abstract ICollection<StudentScoreState> DefaultState { get; }
 
     public abstract string Kind { get; } 
 
@@ -55,7 +55,7 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
         return agg;
     }
 
-    public ITopStudentAggregate Create(EvDbStoredSnapshot<ICollection<StudentScore>> snapshot)
+    public ITopStudentAggregate Create(EvDbStoredSnapshot<ICollection<StudentScoreState>> snapshot)
     {
         EvDbStreamAddress stream = snapshot.Cursor;
         TopStudentAggregate agg =
@@ -88,11 +88,11 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
 
     #region FoldEvent
 
-    ICollection<StudentScore> IEvDbFoldingLogic<ICollection<StudentScore>>.FoldEvent(
-        ICollection<StudentScore> oldState, 
+    ICollection<StudentScoreState> IEvDbFoldingLogic<ICollection<StudentScoreState>>.FoldEvent(
+        ICollection<StudentScoreState> oldState, 
         IEvDbEvent someEvent)
     {
-        ICollection<StudentScore> result;
+        ICollection<StudentScoreState> result;
         switch (someEvent.EventType)
         {
             case "course-created":
@@ -119,40 +119,40 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
 
     #region Fold
 
-    protected virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected virtual ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         CourseCreatedEvent payload,
         IEvDbEventMeta meta) => state;
-    protected virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected virtual ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         ScheduleTestEvent payload,
         IEvDbEventMeta meta) => state;
-    protected virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected virtual ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         StudentAppliedToCourseEvent payload,
         IEvDbEventMeta meta) => state;
-    protected virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected virtual ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         StudentCourseApplicationDeniedEvent payload,
         IEvDbEventMeta meta) => state;
-    protected virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected virtual ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         StudentEnlistedEvent payload,
         IEvDbEventMeta meta) => state;
-    protected virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected virtual ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         StudentQuitCourseEvent payload,
         IEvDbEventMeta meta) => state;
-    protected virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected virtual ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         StudentReceivedGradeEvent payload,
         IEvDbEventMeta meta) => state;
-    protected virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected virtual ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         StudentRegisteredToCourseEvent payload,
         IEvDbEventMeta meta) => state;
-    protected virtual ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected virtual ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         StudentTestSubmittedEvent payload,
         IEvDbEventMeta meta) => state;
 

@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Scenes;
 
-public record StudentScorePerCourse(
+public record StudentScorePerCourseState(
                     StudentEntity Student, string CourseName, double Score);
 
 

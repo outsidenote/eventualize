@@ -36,12 +36,12 @@ public class ApiFirst
 }
 
 // TODO: [bnaya 2024-01-07] should be a factory
-[EvDbAggregateFactory<ICollection<StudentScore>, IEducationEventTypes>]
+[EvDbAggregateFactory<ICollection<StudentScoreState>, IEducationEventTypes>]
 public partial class TopStudentFactory 
 {    
     private readonly ConcurrentDictionary<int, StudentEntity> _students = new ConcurrentDictionary<int, StudentEntity>();
 
-    protected override ICollection<StudentScore> DefaultState { get; } = [];
+    protected override ICollection<StudentScoreState> DefaultState { get; } = [];
 
     public override string Kind { get; } = "top-student";
 
@@ -49,8 +49,8 @@ public partial class TopStudentFactory
 
     public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
 
-    protected override ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected override ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         StudentEnlistedEvent enlisted,
         IEvDbEventMeta meta)
     {
@@ -58,17 +58,17 @@ public partial class TopStudentFactory
         return state;
     }
 
-    protected override ICollection<StudentScore> Fold(
-        ICollection<StudentScore> state,
+    protected override ICollection<StudentScoreState> Fold(
+        ICollection<StudentScoreState> state,
         StudentReceivedGradeEvent receivedGrade,
         IEvDbEventMeta meta)
     {
-        ICollection<StudentScore> topScores = state;
+        ICollection<StudentScoreState> topScores = state;
         if (!_students.TryGetValue(receivedGrade.StudentId, out StudentEntity entity))
             throw new Exception("It's broken");
-        StudentScore score = new(entity, receivedGrade.Grade);
-        IEnumerable<StudentScore> top = [score, .. topScores];
-        ICollection<StudentScore> ordered = [.. top.OrderByDescending(x => x.Score).Take(10)];
+        StudentScoreState score = new(entity, receivedGrade.Grade);
+        IEnumerable<StudentScoreState> top = [score, .. topScores];
+        ICollection<StudentScoreState> ordered = [.. top.OrderByDescending(x => x.Score).Take(10)];
         return ordered;
     }
 }

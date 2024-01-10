@@ -7,13 +7,13 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-public interface ITopStudentAggregate : IEvDbAggregate<ICollection<StudentScore>>, IEducationEventTypes
+public interface ITopStudentAggregate : IEvDbAggregate<ICollection<StudentScoreState>>, IEducationEventTypes
 { 
 }
 
 [GeneratedCode("The following line should generated", "v0")]
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class TopStudentAggregate : EvDbAggregate<ICollection<StudentScore>>,
+public class TopStudentAggregate : EvDbAggregate<ICollection<StudentScoreState>>,
     ITopStudentAggregate
 {
     private readonly JsonSerializerOptions? _options;
@@ -24,9 +24,9 @@ public class TopStudentAggregate : EvDbAggregate<ICollection<StudentScore>>,
         IEvDbRepository repository,
         string kind,
         EvDbStreamAddress streamId,
-        IEvDbFoldingLogic<ICollection<StudentScore>> foldingLogic,
+        IEvDbFoldingLogic<ICollection<StudentScoreState>> foldingLogic,
         int minEventsBetweenSnapshots,
-        ICollection<StudentScore> state,
+        ICollection<StudentScoreState> state,
         long lastStoredOffset,
         JsonSerializerOptions? options) : base(repository, kind, streamId, foldingLogic, minEventsBetweenSnapshots, state, lastStoredOffset, options)
     {
