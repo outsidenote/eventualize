@@ -8,15 +8,15 @@ using System.Text.Json.Serialization;
 
 namespace EvDb.UnitTests;
 
-[JsonSerializable(typeof(CourseCreated))]
-[JsonSerializable(typeof(ScheduleTest))]
-[JsonSerializable(typeof(StudentAppliedToCourse))]
-[JsonSerializable(typeof(StudentCourseApplicationDenied))]
-[JsonSerializable(typeof(StudentEnlisted))]
-[JsonSerializable(typeof(StudentQuitCourse))]
-[JsonSerializable(typeof(StudentReceivedGrade))]
-[JsonSerializable(typeof(StudentRegisteredToCourse))]
-[JsonSerializable(typeof(StudentTestSubmitted))]
+[JsonSerializable(typeof(CourseCreatedEvent))]
+[JsonSerializable(typeof(ScheduleTestEvent))]
+[JsonSerializable(typeof(StudentAppliedToCourseEvent))]
+[JsonSerializable(typeof(StudentCourseApplicationDeniedEvent))]
+[JsonSerializable(typeof(StudentEnlistedEvent))]
+[JsonSerializable(typeof(StudentQuitCourseEvent))]
+[JsonSerializable(typeof(StudentReceivedGradeEvent))]
+[JsonSerializable(typeof(StudentRegisteredToCourseEvent))]
+[JsonSerializable(typeof(StudentTestSubmittedEvent))]
 public partial class EducationEventTypesContext : JsonSerializerContext
 {
 }
@@ -30,7 +30,7 @@ public class ApiFirst
     {
         TopStudentFactory factory = new TopStudentFactory(_storageAdapter);
         var agg = factory.Create("class a-3");
-        var course = new CourseCreated(123, "algorithm", 50);
+        var course = new CourseCreatedEvent(123, "algorithm", 50);
         agg.Add(course);
     }
 }
@@ -51,7 +51,7 @@ public partial class TopStudentFactory
 
     protected override ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        StudentEnlisted enlisted,
+        StudentEnlistedEvent enlisted,
         IEvDbEventMeta meta)
     {
         _students.TryAdd(enlisted.Student.Id, enlisted.Student);
@@ -60,7 +60,7 @@ public partial class TopStudentFactory
 
     protected override ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        StudentReceivedGrade receivedGrade,
+        StudentReceivedGradeEvent receivedGrade,
         IEvDbEventMeta meta)
     {
         ICollection<StudentScore> topScores = state;

@@ -97,13 +97,13 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
         {
             case "course-created":
                 {
-                    var payload = someEvent.GetData<CourseCreated>(JsonSerializerOptions);
+                    var payload = someEvent.GetData<CourseCreatedEvent>(JsonSerializerOptions);
                     result = Fold(oldState, payload, someEvent);
                     break;
                 }
             case "schedule-test":
                 {
-                    var payload = someEvent.GetData<ScheduleTest>(JsonSerializerOptions);
+                    var payload = someEvent.GetData<ScheduleTestEvent>(JsonSerializerOptions);
                     result = Fold(oldState, payload, someEvent);
                     break;
                 }
@@ -121,39 +121,39 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
 
     protected virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        CourseCreated payload,
+        CourseCreatedEvent payload,
         IEvDbEventMeta meta) => state;
     protected virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        ScheduleTest payload,
+        ScheduleTestEvent payload,
         IEvDbEventMeta meta) => state;
     protected virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        StudentAppliedToCourse payload,
+        StudentAppliedToCourseEvent payload,
         IEvDbEventMeta meta) => state;
     protected virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        StudentCourseApplicationDenied payload,
+        StudentCourseApplicationDeniedEvent payload,
         IEvDbEventMeta meta) => state;
     protected virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        StudentEnlisted payload,
+        StudentEnlistedEvent payload,
         IEvDbEventMeta meta) => state;
     protected virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        StudentQuitCourse payload,
+        StudentQuitCourseEvent payload,
         IEvDbEventMeta meta) => state;
     protected virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        StudentReceivedGrade payload,
+        StudentReceivedGradeEvent payload,
         IEvDbEventMeta meta) => state;
     protected virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        StudentRegisteredToCourse payload,
+        StudentRegisteredToCourseEvent payload,
         IEvDbEventMeta meta) => state;
     protected virtual ICollection<StudentScore> Fold(
         ICollection<StudentScore> state,
-        StudentTestSubmitted payload,
+        StudentTestSubmittedEvent payload,
         IEvDbEventMeta meta) => state;
 
     #endregion // Fold

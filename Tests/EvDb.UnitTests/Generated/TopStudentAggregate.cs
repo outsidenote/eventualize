@@ -37,47 +37,47 @@ public class TopStudentAggregate : EvDbAggregate<ICollection<StudentScore>>,
 
     #region Add
 
-    void IEducationEventTypes.Add(CourseCreated payload, string? capturedBy = null)
+    void IEducationEventTypes.Add(CourseCreatedEvent payload, string? capturedBy = null)
     {
         AddEvent(payload, capturedBy);
     }
 
-    void IEducationEventTypes.Add(ScheduleTest payload, string? capturedBy)
+    void IEducationEventTypes.Add(ScheduleTestEvent payload, string? capturedBy)
     {
         AddEvent(payload, capturedBy);
     }
 
-    void IEducationEventTypes.Add(StudentAppliedToCourse payload, string? capturedBy)
+    void IEducationEventTypes.Add(StudentAppliedToCourseEvent payload, string? capturedBy)
     {
         AddEvent(payload, capturedBy);
     }
 
-    void IEducationEventTypes.Add(StudentCourseApplicationDenied payload, string? capturedBy)
+    void IEducationEventTypes.Add(StudentCourseApplicationDeniedEvent payload, string? capturedBy)
     {
         AddEvent(payload, capturedBy);
     }
 
-    void IEducationEventTypes.Add(StudentEnlisted payload, string? capturedBy)
+    void IEducationEventTypes.Add(StudentEnlistedEvent payload, string? capturedBy)
     {
         AddEvent(payload, capturedBy);
     }
 
-    void IEducationEventTypes.Add(StudentQuitCourse payload, string? capturedBy)
+    void IEducationEventTypes.Add(StudentQuitCourseEvent payload, string? capturedBy)
     {
         AddEvent(payload, capturedBy);
     }
 
-    void IEducationEventTypes.Add(StudentReceivedGrade payload, string? capturedBy)
+    void IEducationEventTypes.Add(StudentReceivedGradeEvent payload, string? capturedBy)
     {
         AddEvent(payload, capturedBy);
     }
 
-    void IEducationEventTypes.Add(StudentRegisteredToCourse payload, string? capturedBy)
+    void IEducationEventTypes.Add(StudentRegisteredToCourseEvent payload, string? capturedBy)
     {
         AddEvent(payload, capturedBy);
     }
 
-    void IEducationEventTypes.Add(StudentTestSubmitted payload, string? capturedBy)
+    void IEducationEventTypes.Add(StudentTestSubmittedEvent payload, string? capturedBy)
     {
         AddEvent(payload, capturedBy);
     }
