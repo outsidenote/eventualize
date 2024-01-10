@@ -1,43 +1,14 @@
 ﻿using EvDb.Core;
 using EvDb.Scenes;
-using FakeItEasy;
-using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+
 
 namespace EvDb.UnitTests;
 
-[JsonSerializable(typeof(CourseCreatedEvent))]
-[JsonSerializable(typeof(ScheduleTestEvent))]
-[JsonSerializable(typeof(StudentAppliedToCourseEvent))]
-[JsonSerializable(typeof(StudentCourseApplicationDeniedEvent))]
-[JsonSerializable(typeof(StudentEnlistedEvent))]
-[JsonSerializable(typeof(StudentQuitCourseEvent))]
-[JsonSerializable(typeof(StudentReceivedGradeEvent))]
-[JsonSerializable(typeof(StudentRegisteredToCourseEvent))]
-[JsonSerializable(typeof(StudentTestSubmittedEvent))]
-public partial class EducationEventTypesContext : JsonSerializerContext
+[EvDbAggregateFactory<ICollection<StudentScoreState>, IStudentFlowEventTypes>]
+public partial class BestStudentFactory
 {
-}
-
-public class ApiFirst
-{
-    private readonly IEvDbStorageAdapter _storageAdapter = A.Fake<IEvDbStorageAdapter>();
-
-    [Fact]
-    public async Task ApiDesign()
-    {
-        TopStudentFactory factory = new TopStudentFactory(_storageAdapter);
-        var agg = factory.Create("class a-3");
-        var course = new CourseCreatedEvent(123, "algorithm", 50);
-        agg.Add(course);
-    }
-}
-
-[EvDbAggregateFactory<ICollection<StudentScoreState>, IEducationEventTypes>]
-public partial class TopStudentFactory 
-{    
     private readonly ConcurrentDictionary<int, StudentEntity> _students = new ConcurrentDictionary<int, StudentEntity>();
 
     protected override ICollection<StudentScoreState> DefaultState { get; } = [];

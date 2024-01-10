@@ -10,33 +10,20 @@ namespace EvDb.UnitTests;
 
 [DebuggerDisplay("{Kind}...")]
 [GeneratedCode("from IEducationEventTypes<T0, T1,...>", "v0")]
-public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<StudentScoreState>>,
-        IEvDbAggregateFactory<ITopStudentAggregate, ICollection<StudentScoreState>>
+public abstract class TopStudentFactoryBase: 
+        AggregateFactoryBase<ITopStudentAggregate, ICollection<StudentScoreState>>
 {
-    private readonly IEvDbRepository _repository;
-
-    protected abstract ICollection<StudentScoreState> DefaultState { get; }
-
-    public abstract string Kind { get; } 
-
-    public abstract EvDbPartitionAddress Partition { get; }
-
     #region Ctor
 
-    public TopStudentFactoryBase(IEvDbStorageAdapter storageAdapter)
+    public TopStudentFactoryBase(IEvDbStorageAdapter storageAdapter) :base(storageAdapter)
     {
-        _repository = new EvDbRepository(storageAdapter);
     }
 
     #endregion // Ctor
 
-    protected virtual int MinEventsBetweenSnapshots{ get; }
-
-    protected virtual JsonSerializerOptions? JsonSerializerOptions { get; }
-
     #region Create
 
-    public ITopStudentAggregate Create(
+    public override ITopStudentAggregate Create(
         string streamId, 
         long lastStoredOffset = -1)
     {
@@ -55,7 +42,7 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
         return agg;
     }
 
-    public ITopStudentAggregate Create(EvDbStoredSnapshot<ICollection<StudentScoreState>> snapshot)
+    public override ITopStudentAggregate Create(EvDbStoredSnapshot<ICollection<StudentScoreState>> snapshot)
     {
         EvDbStreamAddress stream = snapshot.Cursor;
         TopStudentAggregate agg =
@@ -75,20 +62,10 @@ public abstract class TopStudentFactoryBase: IEvDbFoldingLogic<ICollection<Stude
 
     #endregion // Create
 
-    #region GetAsync
-
-    public async Task<ITopStudentAggregate> GetAsync(
-        string streamId, long lastStoredOffset = -1, CancellationToken cancellationToken = default)
-    {
-        ITopStudentAggregate agg = await _repository.GetAsync(this, streamId, cancellationToken);
-        return agg;
-    }
-
-    #endregion // GetAsync
-
+ 
     #region FoldEvent
 
-    ICollection<StudentScoreState> IEvDbFoldingLogic<ICollection<StudentScoreState>>.FoldEvent(
+    protected override ICollection<StudentScoreState>FoldEvent(
         ICollection<StudentScoreState> oldState, 
         IEvDbEvent someEvent)
     {
