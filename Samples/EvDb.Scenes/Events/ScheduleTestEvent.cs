@@ -9,11 +9,3 @@ public partial record ScheduleTestEvent(int CourseId, TestEntity Test);
 
 
 
-[GeneratedCode("The following line should generated", "v0")]
-partial record ScheduleTestEvent: IEvDbEventPayload
-{
-    string IEvDbEventPayload.EventType { get; } = "schedule-test";
-}
-
-
-

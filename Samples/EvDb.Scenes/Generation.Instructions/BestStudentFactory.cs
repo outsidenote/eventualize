@@ -11,11 +11,15 @@ public partial class BestStudentFactory
 {
     private readonly ConcurrentDictionary<int, StudentEntity> _students = new ConcurrentDictionary<int, StudentEntity>();
 
+    public BestStudentFactory(IEvDbStorageAdapter storageAdapter) : base(storageAdapter)
+    {
+    }
+
     protected override ICollection<StudentScoreState> DefaultState { get; } = [];
 
     public override string Kind { get; } = "top-student";
 
-    protected override JsonSerializerOptions? JsonSerializerOptions { get; } = EducationEventTypesContext.Default.Options;
+    protected override JsonSerializerOptions? JsonSerializerOptions { get; } = StudentFlowEventTypesContext.Default.Options;
 
     public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
 

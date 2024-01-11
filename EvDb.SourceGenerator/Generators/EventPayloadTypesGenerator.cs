@@ -13,9 +13,9 @@ using EvDb.SourceGenerator.Helpers;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EventTypesGenerator : IIncrementalGenerator
+public partial class EventPayloadTypesGenerator : IIncrementalGenerator
 {
-    protected internal const string EventTargetAttribute = "EvDbEventTypeAttribute";
+    protected const string EventTargetAttribute = "EvDbEventPayloadAttribute";
 
     private static bool AttributePredicate(SyntaxNode syntaxNode, CancellationToken cancellationToken)
     {
@@ -103,34 +103,30 @@ public partial class EventTypesGenerator : IIncrementalGenerator
 
         #endregion // Exception Handling
 
-        builder.AppendHeader(syntax, typeSymbol);
+        string type = typeSymbol.ToType(syntax, cancellationToken);
+        string name = typeSymbol.Name;
+        var asm = GetType().Assembly.GetName();
+        var payloadName = from atts in syntax.AttributeLists
+                  from att in atts.Attributes
+                  let fn = att.Name.ToFullString()
+                  where fn.StartsWith("EvDbEventPayload")
+                  select att.ArgumentList.Arguments[0].ToString();
+        var key = payloadName.FirstOrDefault();
+        if (key == null)
+            return;
 
+        builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
-        string name = typeSymbol.Name.Substring(1);
-
-        var asm = GetType().Assembly.GetName();
-        var attributes = from att in typeSymbol.GetAttributes()
-                   let text = att.AttributeClass?.Name
-                   where text == EventTargetAttribute
-                   let fullName = att.AttributeClass?.ToString()
-                   let genStart = fullName.IndexOf('<') + 1
-                   let genLen = fullName.Length - genStart - 1
-                   let generic = fullName.Substring(genStart, genLen)
-                   select generic;
-        var adds = attributes.Select(m => $"void Add({m} payload, string? capturedBy = null);");
-
         builder.AppendLine($$"""
-                    partial interface {{typeSymbol.Name}}: IEvDbEventTypes
+                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    partial {{type}} {{name}}: IEvDbEventPayload
                     {
+                        string IEvDbEventPayload.EventType { get; } = {{key}};
+                    }                
                     """);
-        foreach (var add in adds)
-        {
-            builder.AppendLine($"\t{add}");
-        }
-        builder.AppendLine("}");
-        //if(!syntax.part)
-        context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
+
+        context.AddSource($"{typeSymbol.Name}.generated.payload.cs", builder.ToString());
     }
 
     #endregion // OnGenerate

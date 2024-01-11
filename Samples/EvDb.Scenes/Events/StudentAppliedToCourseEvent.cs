@@ -7,11 +7,7 @@ namespace EvDb.Scenes;
 public partial record StudentAppliedToCourseEvent(int CourseId, StudentEntity Student);
 
 
-[GeneratedCode("The following line should generated", "v0")]
-partial record StudentAppliedToCourseEvent : IEvDbEventPayload
-{
-    string IEvDbEventPayload.EventType { get; } = "student-applied-to-course";
-}
+
 
 
 

@@ -237,10 +237,65 @@ internal static class RoslynExtensions
 
     #endregion // GetNestedBaseTypesAndSelf
 
+    #region ToSyntaxNode
+
+    /// <summary>
+    /// Converts to syntax-node.
+    /// </summary>
+    /// <param name="symbol">The symbol.</param>
+    /// <param name="compilation">The compilation.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    public static T? ToSyntaxNode<T>(this ISymbol symbol,
+                                                  Compilation compilation,
+                                                  CancellationToken cancellationToken = default)
+        where T : SyntaxNode
+    {
+        SyntaxReference? syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+
+        if (syntaxReference == null)
+            return null;
+
+        SyntaxTree syntaxTree = syntaxReference.SyntaxTree;
+        T? nodeSyntax = syntaxTree.GetRoot(cancellationToken)
+            .DescendantNodes()
+            .OfType<T>()
+            .FirstOrDefault(node =>
+            {
+                SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree);
+                ISymbol? candidateSymbol = semanticModel?.GetDeclaredSymbol(node, cancellationToken);
+                if (candidateSymbol == null)
+                    return false;
+                return SymbolEqualityComparer.Default.Equals(symbol, candidateSymbol);
+            });
+
+        return nodeSyntax;
+    }
+
+    #endregion // ToSyntaxNode
+
     #region IsPartial
 
     public static bool IsPartial(this TypeDeclarationSyntax syntax) =>
         syntax.Modifiers.Any(SyntaxKind.PartialKeyword);
 
     #endregion // IsPartial
+
+    #region ToType
+
+    public static string ToType(this INamedTypeSymbol typeSymbol, Compilation compilation, CancellationToken cancellationToken)
+    {
+        var tSyntax = typeSymbol.ToSyntaxNode<TypeDeclarationSyntax>(compilation, cancellationToken);
+        var addition = typeSymbol.IsRecord && typeSymbol.TypeKind == TypeKind.Struct ? " struct" : string.Empty;
+        return $"{tSyntax!.Keyword}{addition}";
+    }
+
+    public static string ToType(this INamedTypeSymbol typeSymbol, TypeDeclarationSyntax syntax, CancellationToken cancellationToken)
+    {
+        string type = syntax.Keyword.Text;
+        string addition = typeSymbol.IsRecord && typeSymbol.TypeKind == TypeKind.Struct ? " struct" : string.Empty;
+        return $"{type}{addition}";
+    }
+
+    #endregion // ToType
 }

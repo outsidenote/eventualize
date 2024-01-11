@@ -61,11 +61,10 @@ public abstract class TopStudentFactoryBase:
 
 
     #endregion // Create
-
  
     #region FoldEvent
 
-    protected override ICollection<StudentScoreState>FoldEvent(
+    protected override ICollection<StudentScoreState> FoldEvent(
         ICollection<StudentScoreState> oldState, 
         IEvDbEvent someEvent)
     {
