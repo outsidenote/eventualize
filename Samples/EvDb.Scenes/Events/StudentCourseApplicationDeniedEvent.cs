@@ -2,10 +2,8 @@
 
 namespace EvDb.Scenes;
 
-public record StudentCourseApplicationDeniedEvent(int CourseId, int StudentId) : IEvDbEventPayload
-{
-    string IEvDbEventPayload.EventType { get; } = "student-course-application-denied";
-}
+[EvDbEventPayload("student-course-application-denied")]
+public partial record StudentCourseApplicationDeniedEvent(int CourseId, int StudentId);
 
 
 

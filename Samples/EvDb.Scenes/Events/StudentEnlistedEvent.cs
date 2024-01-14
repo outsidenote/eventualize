@@ -3,10 +3,8 @@
 namespace EvDb.Scenes;
 
 //-------------- events -------------
-public record StudentEnlistedEvent(StudentEntity Student) : IEvDbEventPayload
-{
-    string IEvDbEventPayload.EventType => "StudentEnlistedEvent"; // BAD PRACTICE is nameof(StudentEnlisted);
-}
+[EvDbEventPayload("StudentEnlistedEvent")]
+public partial record StudentEnlistedEvent(StudentEntity Student);
 
 
 

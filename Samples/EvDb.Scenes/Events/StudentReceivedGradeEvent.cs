@@ -2,10 +2,7 @@
 
 namespace EvDb.Scenes;
 
-public record StudentReceivedGradeEvent(int TestId, int StudentId, double Grade, string? Comments = null) : IEvDbEventPayload
-{
-    string IEvDbEventPayload.EventType { get; } = "student-received-grade";
-}
-
+[EvDbEventPayload("student-received-grade")]
+public partial record StudentReceivedGradeEvent(int TestId, int StudentId, double Grade, string? Comments = null);
 
 

@@ -3,10 +3,10 @@
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Assembly, AllowMultiple = true)]
 public class EvDbEventPayloadAttribute : Attribute
 {
-    public EvDbEventPayloadAttribute(string name)
+    public EvDbEventPayloadAttribute(string eventType)
     {
-        Name = name;
+        EventType = eventType;
     }
 
-    public string Name { get; }
+    public string EventType { get; }
 }

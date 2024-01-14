@@ -71,7 +71,7 @@ public abstract class TopStudentFactoryBase:
         ICollection<StudentScoreState> result;
         switch (someEvent.EventType)
         {
-            case "course-created":
+            case  "course-created":
                 {
                     var payload = someEvent.GetData<CourseCreatedEvent>(JsonSerializerOptions);
                     result = Fold(oldState, payload, someEvent);

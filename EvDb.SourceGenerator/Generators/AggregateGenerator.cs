@@ -104,30 +104,18 @@ public partial class AggregateGenerator : IIncrementalGenerator
 
         #endregion // Exception Handling
 
-        string type = typeSymbol.ToType(syntax, cancellationToken);
-        string name = typeSymbol.Name;
-
-        if (!name.EndsWith("Factory"))
-        { 
-            #region Exception Handling
-
-                var diagnostic = Diagnostic.Create(
-                    new DiagnosticDescriptor("EvDb: 014", "Factory muust have a suffix of `Factory`",
-                    $"[{typeSymbol.Name}],must have a `Factory` suffix", "EvDb",
-                    DiagnosticSeverity.Error, isEnabledByDefault: true),
-                    Location.None);
-                builder.AppendLine($"[{typeSymbol.Name}],must have a `Factory` suffix");
-                context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
-                context.ReportDiagnostic(diagnostic);
-
-            #endregion // Exception Handling
-        }
-
         #region string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
+
+        string type = typeSymbol.ToType(syntax, cancellationToken);
+        string factoryName = typeSymbol.Name;
+        string rootName = factoryName;
+        if (factoryName.EndsWith("Factory"))
+            rootName = factoryName.Substring(0, factoryName.Length - 7);
+        else
+            factoryName = $"{factoryName}Factory";
 
         AssemblyName asm = GetType().Assembly.GetName();
 
-        string rootName = name.Substring(0, name.Length - 7);
         string aggregateInterfaceType = $"I{rootName}";
 
         AttributeData att = typeSymbol.GetAttributes()
@@ -146,7 +134,6 @@ public partial class AggregateGenerator : IIncrementalGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    [System.Diagnostics.DebuggerDisplay("{Kind}: {Partition.Domain}, {Partition.Partition}")]
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     public interface {{aggregateInterfaceType}}: IEvDbAggregate<{{stateType}}>, {{eventType}}
                     { 
@@ -158,34 +145,45 @@ public partial class AggregateGenerator : IIncrementalGenerator
 
         builder.Clear();
 
+        var eventsPayloads = from a in eventTypeSymbol.GetAttributes()
+                             let cls = (INamedTypeSymbol)(a.AttributeClass!)
+                             where cls != null
+                             let text = cls.Name
+                             where text == EventTypesGenerator.EventTargetAttribute
+                             let payloadType = cls.TypeArguments.First()
+                             let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
+                             let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()
+                             let fullName = cls?.ToString()
+                             let genStart = fullName.IndexOf('<') + 1
+                             let genLen = fullName.Length - genStart - 1
+                             let generic = fullName.Substring(genStart, genLen)
+                             let attName = a.ConstructorArguments.FirstOrDefault().Value
+                             select (Type: generic, Key: eventTypeValue);
+        eventsPayloads = eventsPayloads.ToArray(); // run once
+
         #region FactoryBase
 
-        var eventsPayloads = from a in eventTypeSymbol.GetAttributes()
-                   let text = a.AttributeClass?.Name
-                   where text == EventTypesGenerator.EventTargetAttribute
-                   let fullName = a.AttributeClass?.ToString()
-                   let genStart = fullName.IndexOf('<') + 1
-                   let genLen = fullName.Length - genStart - 1
-                   let generic = fullName.Substring(genStart, genLen)
-                   select generic;
+        #region var eventsPayloads = ...
+
+        #endregion // var eventsPayloads = ...
 
         var foldAbstracts = eventsPayloads.Select(p =>
                 $"""
                     protected virtual {stateType} Fold(
                             {stateType} state,
-                            {p} payload,
+                            {p.Type} payload,
                             IEvDbEventMeta meta) => state;
 
                 """);
 
         var foldMap = eventsPayloads.Select(p =>
                 $$"""
-                        case "??":
-                            {
-                                var payload = e.GetData<{{p}}>(JsonSerializerOptions);
-                                result = Fold(oldState, payload, e);
-                                break;
-                            }
+                    case "{{p.Key}}":
+                        {
+                            var payload = e.GetData<{{p.Type}}>(JsonSerializerOptions);
+                            result = Fold(oldState, payload, e);
+                            break;
+                        }
                         
                 """);
 
@@ -193,12 +191,12 @@ public partial class AggregateGenerator : IIncrementalGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public abstract class {{name}}Base:
+                    public abstract class {{factoryName}}Base:
                         AggregateFactoryBase<{{aggregateInterfaceType}}, {{stateType}}>
                     {                    
                         #region Ctor
 
-                        public {{typeSymbol.Name}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
+                        public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
                         {
                         }
 
@@ -228,7 +226,7 @@ public partial class AggregateGenerator : IIncrementalGenerator
                         public override {{aggregateInterfaceType}} Create(EvDbStoredSnapshot<{{stateType}}> snapshot)
                         {
                             EvDbStreamAddress stream = snapshot.Cursor;
-                            TopStudentAggregate agg =
+                            {{rootName}} agg =
                                 new(
                                     _repository,
                                     Kind,
@@ -253,7 +251,7 @@ public partial class AggregateGenerator : IIncrementalGenerator
                             {{stateType}} result;
                             switch (e.EventType)
                             {
-                        {{string.Join("", foldMap)}}
+                            {{string.Join("", foldMap)}}
                                 default:
                                     throw new NotSupportedException(e.EventType);
                             }
@@ -268,7 +266,7 @@ public partial class AggregateGenerator : IIncrementalGenerator
                         #endregion // Fold
                     }
                     """);
-        context.AddSource($"{name}Base.generated.cs", builder.ToString());
+        context.AddSource($"{factoryName}Base.generated.cs", builder.ToString());
 
         #endregion // FactoryBase
 
@@ -280,13 +278,64 @@ public partial class AggregateGenerator : IIncrementalGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial {{type}} {{name}}: {{name}}Base
+                    partial {{type}} {{factoryName}}: {{factoryName}}Base
                     { 
                     }
                     """);
-        context.AddSource($"{name}.generated.cs", builder.ToString());
+        context.AddSource($"{factoryName}.generated.cs", builder.ToString());
 
         #endregion // Factory
+
+        builder.Clear();
+
+        #region Aggregate
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        var adds = eventsPayloads.Select(ep =>
+                    $$"""
+                        void {{eventType}}.Add(
+                                {{ep.Type}} payload, 
+                                string? capturedBy = null)
+                        {
+                            AddEvent(payload, capturedBy);
+                        }
+
+                    """);
+        builder.AppendLine($$"""
+                    public class {{rootName}}: EvDbAggregate<{{stateType}}>,
+                    {{eventType}},
+                            I{{rootName}}
+                    { 
+                        private readonly JsonSerializerOptions? _options;
+
+                        #region Ctor
+
+                        public {{rootName}}(
+                            IEvDbRepository repository,
+                            string kind,
+                            EvDbStreamAddress streamId,
+                            IEvDbFoldingLogic<{{stateType}}> foldingLogic,
+                            int minEventsBetweenSnapshots,
+                            {{stateType}} state,
+                            long lastStoredOffset,
+                            JsonSerializerOptions? options) : base(repository, kind, streamId, foldingLogic, minEventsBetweenSnapshots, state, lastStoredOffset, options)
+                        {
+                            _options = options;
+                        }
+
+                        #endregion // Ctor
+                    
+                        #region Add
+
+                    {{string.Join("", adds)}}
+                        #endregion // Add
+                    }
+                    """);
+        context.AddSource($"{rootName}.generated.cs", builder.ToString());
+
+        #endregion // Aggregate
     }
 
     #endregion // OnGenerate
