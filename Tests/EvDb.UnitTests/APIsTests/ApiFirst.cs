@@ -13,7 +13,7 @@ public class ApiFirst
     public async Task ApiGeneratedDesign()
     {
         BestStudentFactory factory = new BestStudentFactory(_storageAdapter);
-        var agg = factory.Create("class a-3");
+        IBestStudent agg = factory.Create("class a-3");
         var course = new CourseCreatedEvent(123, "algorithm", 50);
         agg.Add(course);
     }

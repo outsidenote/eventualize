@@ -11,4 +11,7 @@ public interface IEvDbAggregateFactory<T, TState>
     T Create(string streamId,
              long lastStoredOffset = -1);
     T Create(EvDbStoredSnapshot<TState> snapshot);
+
+    Task<T> GetAsync(
+        string streamId, long lastStoredOffset = -1, CancellationToken cancellationToken = default);
 }

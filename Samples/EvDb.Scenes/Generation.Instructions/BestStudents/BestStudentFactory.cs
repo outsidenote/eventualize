@@ -19,7 +19,7 @@ public partial class BestStudentFactory
 
     public override string Kind { get; } = "top-student";
 
-    protected override JsonSerializerOptions? JsonSerializerOptions { get; } = StudentFlowEventTypesContext.Default.Options;
+    //protected override JsonSerializerOptions? JsonSerializerOptions { get; } = StudentFlowEventTypesContext.Default.Options;
 
     public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
 

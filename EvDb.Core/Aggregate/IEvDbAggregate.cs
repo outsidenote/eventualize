@@ -31,6 +31,8 @@ public interface IEvDbAggregate
 
     int EventsCount { get; }
 
+    JsonSerializerOptions? Options { get; }
+
     [Obsolete("should be part of a memory snapshot")]
     IEnumerable<IEvDbEvent> Events { get; }
     /// <summary>

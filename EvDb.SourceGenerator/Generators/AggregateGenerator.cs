@@ -145,6 +145,25 @@ public partial class AggregateGenerator : IIncrementalGenerator
 
         builder.Clear();
 
+        #region Aggregate Factory Interface
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    public interface {{aggregateInterfaceType}}Factory: IEvDbAggregateFactory<{{aggregateInterfaceType}}, {{stateType}}>
+                    { 
+                    }
+                    """);
+        context.AddSource($"{aggregateInterfaceType}Factory.generated.cs", builder.ToString());
+
+        #endregion // Aggregate Factory Interface
+
+        builder.Clear();
+
+        #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
+
         var eventsPayloads = from a in eventTypeSymbol.GetAttributes()
                              let cls = (INamedTypeSymbol)(a.AttributeClass!)
                              where cls != null
@@ -160,6 +179,8 @@ public partial class AggregateGenerator : IIncrementalGenerator
                              let attName = a.ConstructorArguments.FirstOrDefault().Value
                              select (Type: generic, Key: eventTypeValue);
         eventsPayloads = eventsPayloads.ToArray(); // run once
+
+        #endregion // var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
         #region FactoryBase
 
@@ -209,7 +230,7 @@ public partial class AggregateGenerator : IIncrementalGenerator
                             long lastStoredOffset = -1)
                         {
                             EvDbStreamAddress stream = new(Partition, streamId);
-                            {{rootName}} agg =
+                            {{rootName}}__Aggregate agg =
                                 new(
                                     _repository,
                                     Kind,
@@ -226,7 +247,7 @@ public partial class AggregateGenerator : IIncrementalGenerator
                         public override {{aggregateInterfaceType}} Create(EvDbStoredSnapshot<{{stateType}}> snapshot)
                         {
                             EvDbStreamAddress stream = snapshot.Cursor;
-                            {{rootName}} agg =
+                            {{rootName}}__Aggregate agg =
                                 new(
                                     _repository,
                                     Kind,
@@ -278,7 +299,8 @@ public partial class AggregateGenerator : IIncrementalGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial {{type}} {{factoryName}}: {{factoryName}}Base
+                    partial {{type}} {{factoryName}}: {{factoryName}}Base,
+                            {{aggregateInterfaceType}}Factory
                     { 
                     }
                     """);
@@ -304,15 +326,13 @@ public partial class AggregateGenerator : IIncrementalGenerator
 
                     """);
         builder.AppendLine($$"""
-                    public class {{rootName}}: EvDbAggregate<{{stateType}}>,
+                    public class {{rootName}}__Aggregate: EvDbAggregate<{{stateType}}>,
                     {{eventType}},
                             I{{rootName}}
                     { 
-                        private readonly JsonSerializerOptions? _options;
-
                         #region Ctor
 
-                        public {{rootName}}(
+                        public {{rootName}}__Aggregate(
                             IEvDbRepository repository,
                             string kind,
                             EvDbStreamAddress streamId,
@@ -322,7 +342,6 @@ public partial class AggregateGenerator : IIncrementalGenerator
                             long lastStoredOffset,
                             JsonSerializerOptions? options) : base(repository, kind, streamId, foldingLogic, minEventsBetweenSnapshots, state, lastStoredOffset, options)
                         {
-                            _options = options;
                         }
 
                         #endregion // Ctor

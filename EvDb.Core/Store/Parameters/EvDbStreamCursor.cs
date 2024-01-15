@@ -9,6 +9,8 @@ public partial record EvDbStreamCursor(string Domain, string Partition, string S
 {
     public EvDbStreamCursor(EvDbStreamAddress streamId, long offset = 0)
         : this(streamId.Domain, streamId.Partition, streamId.StreamId, offset) { }
-    public EvDbStreamCursor(EvDbAggregate aggregate)
+    public EvDbStreamCursor(EvDbPartitionAddress partition, string streamId, long offset = 0)
+        : this(partition.Domain, partition.Partition, streamId, offset) { }
+    public EvDbStreamCursor(IEvDbAggregate aggregate)
         : this(aggregate.StreamId.Domain, aggregate.StreamId.Partition, aggregate.StreamId.StreamId, aggregate.LastStoredOffset + 1) { }
 }

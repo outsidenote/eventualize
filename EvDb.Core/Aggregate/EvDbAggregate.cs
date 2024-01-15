@@ -26,12 +26,14 @@ public abstract class EvDbAggregate : IEvDbAggregate
         string kind,
         EvDbStreamAddress streamId,
         int minEventsBetweenSnapshots,
-        long lastStoredOffset)
+        long lastStoredOffset,
+        JsonSerializerOptions? options)
     {
         Kind = kind;
         StreamId = streamId;
         MinEventsBetweenSnapshots = minEventsBetweenSnapshots;
         LastStoredOffset = lastStoredOffset;
+        Options = options;
         SnapshotId = new(streamId, kind);
     }
 
@@ -73,6 +75,8 @@ public abstract class EvDbAggregate : IEvDbAggregate
 
     #endregion // IsEmpty
 
+    public JsonSerializerOptions? Options { get; }
+
     IEnumerable<IEvDbEvent> IEvDbAggregate.Events => _pendingEvents;
 }
 
@@ -82,7 +86,6 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
     protected readonly IEvDbRepository _repository;
-    private readonly JsonSerializerOptions? _options;
 
     #region Ctor
 
@@ -95,10 +98,9 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
         TState state,
         long lastStoredOffset,
         JsonSerializerOptions? options)
-        : base(kind, streamId, minEventsBetweenSnapshots, lastStoredOffset)
+        : base(kind, streamId, minEventsBetweenSnapshots, lastStoredOffset, options)
     {
         State = state;
-        _options = options;
         _repository = repository;
         FoldingLogic = foldingLogic;
     }
@@ -120,10 +122,11 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
 
     #region AddEvent
 
-    protected void AddEvent(IEvDbEventPayload payload, string? capturedBy = null)
+    protected void AddEvent<T>(T payload, string? capturedBy = null)
+        where T: IEvDbEventPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
-        IEvDbEvent e = EvDbEventFactory.Create(payload, capturedBy, _options);
+        IEvDbEvent e = EvDbEventFactory.Create(payload, capturedBy, Options);
         AddEvent(e);
     }
 
@@ -163,7 +166,7 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
         {
             await _dirtyLock.WaitAsync();// TODO: [bnaya 2024-01-09] re-consider the lock solution
             {
-                await _repository.SaveAsync(this, _options, cancellation);
+                await _repository.SaveAsync(this, Options, cancellation);
             }
         }
         finally

@@ -11,7 +11,5 @@ public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
 
     Task SaveAsync<T>(IEvDbAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
 
-    //Task SaveAsync<T>(IEvDbAggregate<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation = default) ;
-
     Task<long> GetLastOffsetAsync<T>(IEvDbAggregate<T> aggregate, CancellationToken cancellation = default);
 }

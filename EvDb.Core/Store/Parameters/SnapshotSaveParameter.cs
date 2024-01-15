@@ -18,26 +18,27 @@ public readonly record struct SnapshotSaveParameter(
                     IEvDbAggregate<T> aggregate,
                     JsonSerializerOptions? options = null) 
     {
+        string payload = JsonSerializer.Serialize(aggregate.State, options);
         return new(
             aggregate.SnapshotId.Domain,
             aggregate.SnapshotId.Partition,
             aggregate.SnapshotId.StreamId,
             aggregate.SnapshotId.Kind,
             aggregate.LastStoredOffset + aggregate.EventsCount,
-            JsonSerializer.Serialize(aggregate.State, options)
+            payload
         );
     }
-    public static SnapshotSaveParameter Create<T>(
-                    EvDbAggregate<T> aggregate,
-                    JsonTypeInfo<T> jsonTypeInfo) where T : notnull, new()
-    {
-        return new(
-            aggregate.SnapshotId.Domain,
-            aggregate.SnapshotId.Partition,
-            aggregate.SnapshotId.StreamId,
-            aggregate.SnapshotId.Kind,
-            aggregate.LastStoredOffset + aggregate.EventsCount,
-            JsonSerializer.Serialize(aggregate.State, jsonTypeInfo)
-        );
-    }
+    //public static SnapshotSaveParameter Create<T>(
+    //                EvDbAggregate<T> aggregate,
+    //                JsonTypeInfo<T> jsonTypeInfo) where T : notnull, new()
+    //{
+    //    return new(
+    //        aggregate.SnapshotId.Domain,
+    //        aggregate.SnapshotId.Partition,
+    //        aggregate.SnapshotId.StreamId,
+    //        aggregate.SnapshotId.Kind,
+    //        aggregate.LastStoredOffset + aggregate.EventsCount,
+    //        JsonSerializer.Serialize(aggregate.State, jsonTypeInfo)
+    //    );
+    //}
 };

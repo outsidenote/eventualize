@@ -50,7 +50,7 @@ public abstract class AggregateFactoryBase<T, TState>:
 
     #region GetAsync
 
-    public async Task<T> GetAsync(
+    async Task<T> IEvDbAggregateFactory<T, TState>.GetAsync(
         string streamId, long lastStoredOffset = -1, CancellationToken cancellationToken = default)
     {
         T agg = await _repository.GetAsync(this, streamId, cancellationToken);
