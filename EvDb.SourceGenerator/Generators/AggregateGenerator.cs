@@ -15,77 +15,19 @@ using System.Reflection;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class AggregateGenerator : IIncrementalGenerator
+public partial class AggregateGenerator : BaseGenerator
 {
-    protected const string EventTargetAttribute = "EvDbAggregateFactoryAttribute";
-
-    private static bool AttributePredicate(SyntaxNode syntaxNode, CancellationToken cancellationToken)
-    {
-        return syntaxNode.MatchAttribute(EventTargetAttribute, cancellationToken);
-    }
-
-    #region Initialize
-
-    /// <summary>
-    /// Called to initialize the generator and register generation steps via callbacks
-    /// on the <paramref name="context" />
-    /// </summary>
-    /// <param name="context">The <see cref="T:Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext" /> to register callbacks on</param>
-    public void Initialize(IncrementalGeneratorInitializationContext context)
-    {
-        IncrementalValuesProvider<SyntaxAndSymbol> classDeclarations =
-                context.SyntaxProvider
-                    .CreateSyntaxProvider(
-                        predicate: AttributePredicate,
-                        transform: static (ctx, _) => ToGenerationInput(ctx))
-                    .Where(static m => m is not null);
-
-        IncrementalValueProvider<(Compilation, ImmutableArray<SyntaxAndSymbol>)> compilationAndClasses
-            = context.CompilationProvider.Combine(classDeclarations.Collect());
-
-        // register a code generator for the triggers
-        context.RegisterSourceOutput(compilationAndClasses, Generate);
-
-        static SyntaxAndSymbol ToGenerationInput(GeneratorSyntaxContext context)
-        {
-            var declarationSyntax = (TypeDeclarationSyntax)context.Node;
-
-            var symbol = context.SemanticModel.GetDeclaredSymbol(declarationSyntax);
-            if (symbol is not INamedTypeSymbol namedSymbol)
-            {
-                throw new NullReferenceException($"Code generated symbol of {nameof(declarationSyntax)} is missing");
-            }
-            return new SyntaxAndSymbol(declarationSyntax, namedSymbol);
-        }
-
-        void Generate(
-                       SourceProductionContext spc,
-                       (Compilation compilation,
-                       ImmutableArray<SyntaxAndSymbol> items) source)
-        {
-            var (compilation, items) = source;
-            foreach (SyntaxAndSymbol item in items)
-            {
-                OnGenerate(spc, compilation, item);
-            }
-        }
-    }
-
-    #endregion // Initialize
+    protected override string EventTargetAttribute { get; } = "EvDbAggregateFactoryAttribute";
 
     #region OnGenerate
 
-    private void OnGenerate(
+    protected override void OnGenerate(
             SourceProductionContext context,
             Compilation compilation,
-            SyntaxAndSymbol input)
+            INamedTypeSymbol typeSymbol,
+            TypeDeclarationSyntax syntax,
+            CancellationToken cancellationToken)
     {
-        INamedTypeSymbol typeSymbol = input.Symbol;
-        TypeDeclarationSyntax syntax = input.Syntax;
-        var cancellationToken = context.CancellationToken;
-        if (cancellationToken.IsCancellationRequested)
-            return;
-
         StringBuilder builder = new StringBuilder();
 
         #region Exception Handling
@@ -168,7 +110,7 @@ public partial class AggregateGenerator : IIncrementalGenerator
                              let cls = (INamedTypeSymbol)(a.AttributeClass!)
                              where cls != null
                              let text = cls.Name
-                             where text == EventTypesGenerator.EventTargetAttribute
+                             where text == EventTypesGenerator.EventTarget
                              let payloadType = cls.TypeArguments.First()
                              let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
                              let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()
@@ -214,11 +156,15 @@ public partial class AggregateGenerator : IIncrementalGenerator
         builder.AppendLine($$"""
                     public abstract class {{factoryName}}Base:
                         AggregateFactoryBase<{{aggregateInterfaceType}}, {{stateType}}>
-                    {                    
+                    {                
+                        private readonly IImmutableList<IEvDbFoldingUnit> _foldings;
                         #region Ctor
 
                         public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
                         {
+                            var options = JsonSerializerOptions; 
+                            var foldings = FoldingsFactories.Select(f => f(options));
+                            _foldings = ImmutableList.CreateRange<IEvDbFoldingUnit>(foldings);
                         }
 
                         #endregion // Ctor
@@ -262,6 +208,8 @@ public partial class AggregateGenerator : IIncrementalGenerator
                         }
 
                         #endregion // Create 
+
+                        protected abstract Func<JsonSerializerOptions?,IEvDbFoldingUnit>[] FoldingsFactories { get; }
                      
                         #region FoldEvent
 

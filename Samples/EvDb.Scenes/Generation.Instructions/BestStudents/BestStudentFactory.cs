@@ -19,9 +19,17 @@ public partial class BestStudentFactory
 
     public override string Kind { get; } = "top-student";
 
-    //protected override JsonSerializerOptions? JsonSerializerOptions { get; } = StudentFlowEventTypesContext.Default.Options;
+    protected override JsonSerializerOptions? JsonSerializerOptions { get; } = StudentFlowEventTypesContext.Default.Options;
 
     public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
+
+    protected override Func<JsonSerializerOptions?, IEvDbFoldingUnit>[] FoldingsFactories  { get; } =
+        {
+            // StudentAvgFolding.Create
+        };
+
+    // deprecated
+    #region Fold 
 
     protected override ICollection<StudentScoreState> Fold(
         ICollection<StudentScoreState> state,
@@ -45,4 +53,6 @@ public partial class BestStudentFactory
         ICollection<StudentScoreState> ordered = [.. top.OrderByDescending(x => x.Score).Take(10)];
         return ordered;
     }
+
+    #endregion // Fold
 }

@@ -20,6 +20,7 @@ internal static class DomainRoslynExtensions
         builder.AppendLine($"#pragma warning disable CS0108 // hides inherited member.");
         builder.AppendLine();
         var usingLines = syntax.GetUsing();
+        builder.AppendLine("using System.Collections.Immutable;");
         foreach (var line in usingLines)
         {
             builder.AppendLine(line.Trim());

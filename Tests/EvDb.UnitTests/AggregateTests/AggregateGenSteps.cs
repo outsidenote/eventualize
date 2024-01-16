@@ -15,16 +15,16 @@ internal static class AggregateGenSteps
 
     #region CreateFactory
 
-    private static IStudentAvgFactory CreateFactory(
+    private static ISchoolFactory CreateFactory(
         ITestOutputHelper output,
         IEvDbStorageAdapter? storageAdapter = null)
     {
         storageAdapter = storageAdapter ?? A.Fake<IEvDbStorageAdapter>();
         ServiceCollection services = new();
         services.AddSingleton(storageAdapter);
-        services.AddSingleton<IStudentAvgFactory, StudentAvgFactory>();
+        services.AddSingleton<ISchoolFactory, SchoolFactory>();
         var sp = services.BuildServiceProvider();
-        IStudentAvgFactory factory = sp.GetRequiredService<IStudentAvgFactory>();
+        ISchoolFactory factory = sp.GetRequiredService<ISchoolFactory>();
         return factory;
     }
 
@@ -32,13 +32,13 @@ internal static class AggregateGenSteps
 
     #region GivenLocalAggerate
 
-    public static IStudentAvg GivenLocalAggerate(
+    public static ISchool GivenLocalAggerate(
         ITestOutputHelper output,
         IEvDbStorageAdapter? storageAdapter = null,
         string? streamId = null)
     {
         streamId = streamId ?? GenerateStreamId();
-        IStudentAvgFactory factory = CreateFactory(output, storageAdapter);
+        ISchoolFactory factory = CreateFactory(output, storageAdapter);
         var aggregate = factory.Create(streamId);
         return aggregate;
     }
@@ -47,14 +47,14 @@ internal static class AggregateGenSteps
 
     #region GivenFactoryForStoredStreamWithEvents
 
-    public static (IStudentAvgFactory Factory, string StreamId) GivenFactoryForStoredStreamWithEvents(
+    public static (ISchoolFactory Factory, string StreamId) GivenFactoryForStoredStreamWithEvents(
         ITestOutputHelper output,
         string? streamId=  null,
         Action<IEvDbStorageAdapter, string>? mockGetAsyncResult = null)
     {
         streamId = streamId ?? GenerateStreamId();
         var storageAdapter = A.Fake<IEvDbStorageAdapter>();
-        IStudentAvgFactory factory = CreateFactory(output, storageAdapter);
+        ISchoolFactory factory = CreateFactory(output, storageAdapter);
 
         if (mockGetAsyncResult == null)
         {
@@ -71,7 +71,7 @@ internal static class AggregateGenSteps
 
     #region WhenGetAggregateAsync
 
-    public static async Task<IStudentAvg> WhenGetAggregateAsync(this (IStudentAvgFactory Factory, string StreamId) input)
+    public static async Task<ISchool> WhenGetAggregateAsync(this (ISchoolFactory Factory, string StreamId) input)
     {
         var (factory, streamId) = input;
         var result = await factory.GetAsync(streamId);
@@ -82,7 +82,7 @@ internal static class AggregateGenSteps
 
     #region WhenAddingPendingEvents
 
-    public static IStudentAvg WhenAddingPendingEvents(this IStudentAvg aggregate)
+    public static ISchool WhenAddingPendingEvents(this ISchool aggregate)
     {
         aggregate.AddStudent()
                   .AddGrades();
@@ -94,8 +94,8 @@ internal static class AggregateGenSteps
 
     #region MockGetAsync
 
-    public static IStudentAvgFactory MockGetAsync(
-        this IStudentAvgFactory factory,
+    public static ISchoolFactory MockGetAsync(
+        this ISchoolFactory factory,
         IEvDbStorageAdapter storageAdapter,
         string streamId = "1234",
         JsonSerializerOptions? serializerOptions = null)
@@ -145,7 +145,7 @@ internal static class AggregateGenSteps
 
     #region AddStudent
 
-    public static IStudentAvg AddStudent(this IStudentAvg aggregate,
+    public static ISchool AddStudent(this ISchool aggregate,
         int studentId = 2202,
         string studentName = "Lora")
     {
@@ -158,7 +158,7 @@ internal static class AggregateGenSteps
 
     #region AddGrades
 
-    private static IStudentAvg AddGrades(this IStudentAvg aggregate,
+    private static ISchool AddGrades(this ISchool aggregate,
         int testId = 6628,
         int studentId = 2202,
         int numOfGrades = 3,

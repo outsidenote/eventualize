@@ -9,28 +9,33 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-//[EvDbAggregateView<IEnumerable<StudentAvg>>]
-//[EvDbAggregateView<IEnumerable<double>>]
 //[EvDbAggregateFactory<IStudentFlowEventTypes>]
 [EvDbAggregateFactory<IEnumerable<StudentAvg>, IStudentFlowEventTypes>]
-public partial class StudentAvgFactory
+public partial class SchoolFactory
 {
-    private readonly ConcurrentDictionary<int, StudentCalc> _students = new ();
+    #region Ctor
 
-    public StudentAvgFactory(IEvDbStorageAdapter storageAdapter) : base(storageAdapter)
+    public SchoolFactory(IEvDbStorageAdapter storageAdapter) : base(storageAdapter)
     {
-        var def = StudentFlowEventTypesContext.Default;
-        JsonSerializerOptions = def.Options;
     }
 
-    protected override IEnumerable<StudentAvg> DefaultState { get; } = [];
+    #endregion // Ctor
 
     public override string Kind { get; } = "student-avg";
 
-    protected override JsonSerializerOptions? JsonSerializerOptions { get; }
+    protected override JsonSerializerOptions? JsonSerializerOptions { get; } = StudentFlowEventTypesContext.Default.Options;
 
     public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
 
+    protected override Func<JsonSerializerOptions?, IEvDbFoldingUnit>[] FoldingsFactories { get; } =
+        {
+             StudentAvgFolding.Create
+        };
+
+    #region Fold // deprecate
+
+    protected override IEnumerable<StudentAvg> DefaultState { get; } = [];
+    private readonly ConcurrentDictionary<int, StudentCalc> _students = new();
     protected override IEnumerable<StudentAvg> Fold(
         IEnumerable<StudentAvg> state,
         StudentEnlistedEvent enlisted,
@@ -38,7 +43,7 @@ public partial class StudentAvgFactory
     {
         int id = enlisted.Student.Id;
         string name = enlisted.Student.Name;
-        _students.TryAdd(id, 
+        _students.TryAdd(id,
             new StudentCalc(id, name, 0, 0));
         return state;
     }
@@ -51,11 +56,11 @@ public partial class StudentAvgFactory
         if (!_students.TryGetValue(receivedGrade.StudentId, out StudentCalc entity))
             throw new Exception("It's broken");
 
-        _students[receivedGrade.StudentId] = entity with 
-                {
-                    Count = entity.Count + 1, 
-                    Sum = entity.Sum + receivedGrade.Grade,
-                };
+        _students[receivedGrade.StudentId] = entity with
+        {
+            Count = entity.Count + 1,
+            Sum = entity.Sum + receivedGrade.Grade,
+        };
 
 
         var result = _students.Values
@@ -64,4 +69,6 @@ public partial class StudentAvgFactory
                                 new StudentAvg(m.StudentName, m.Sum / m.Count));
         return result.ToArray();
     }
+
+    #endregion // Fold // deprecate
 }

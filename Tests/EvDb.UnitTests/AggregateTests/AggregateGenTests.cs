@@ -23,7 +23,7 @@ public class AggregateGenTests
     [Fact]
     public void Aggregate_WhenAddingPendingEvent_Succeed()
     {
-        IStudentAvg aggregate = AggregateGenSteps
+        ISchool aggregate = AggregateGenSteps
                                             .GivenLocalAggerate(_output)
                                             .WhenAddingPendingEvents();
 
