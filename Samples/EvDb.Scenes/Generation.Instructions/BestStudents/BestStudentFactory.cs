@@ -23,11 +23,6 @@ public partial class BestStudentFactory
 
     public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
 
-    protected override Func<JsonSerializerOptions?, IEvDbFoldingUnit>[] FoldingsFactories  { get; } =
-        {
-            // StudentAvgFolding.Create
-        };
-
     // deprecated
     #region Fold 
 

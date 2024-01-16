@@ -15,9 +15,9 @@ using System.Reflection;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class AggregateGenerator : BaseGenerator
+public partial class FactoryGenerator : BaseGenerator
 {
-    protected override string EventTargetAttribute { get; } = "EvDbAggregateFactoryAttribute";
+    protected override string EventTargetAttribute { get; } = "EvDbFactoryAttribute";
 
     #region OnGenerate
 
@@ -55,6 +55,8 @@ public partial class AggregateGenerator : BaseGenerator
             rootName = factoryName.Substring(0, factoryName.Length - 7);
         else
             factoryName = $"{factoryName}Factory";
+        rootName = $"{rootName}";
+        factoryName = $"{factoryName}";
 
         AssemblyName asm = GetType().Assembly.GetName();
 
@@ -64,8 +66,7 @@ public partial class AggregateGenerator : BaseGenerator
                                   .Where(att => att.AttributeClass?.Name == EventTargetAttribute)
                                   .First();
         ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
-        string stateType = args[0].ToDisplayString();
-        ITypeSymbol eventTypeSymbol = args[1];
+        ITypeSymbol eventTypeSymbol = args[0];
         string eventType = eventTypeSymbol.ToDisplayString();
 
         #endregion // string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
@@ -77,30 +78,118 @@ public partial class AggregateGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public interface {{aggregateInterfaceType}}: IEvDbAggregate<{{stateType}}>, {{eventType}}
+                    public interface {{aggregateInterfaceType}}: IEvDb, {{eventType}}
                     { 
                     }
                     """);
-        context.AddSource($"{aggregateInterfaceType}.deprecated.generated.cs", builder.ToString());
+        context.AddSource($"{aggregateInterfaceType}.generated.cs", builder.ToString());
 
         #endregion // Aggregate Interface
 
         builder.Clear();
 
-        #region Aggregate Factory Interface
+        #region Factory Interface
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public interface {{aggregateInterfaceType}}Factory: IEvDbAggregateFactory<{{aggregateInterfaceType}}, {{stateType}}>
+                    public interface {{aggregateInterfaceType}}Factory: IEvDbFactory<{{aggregateInterfaceType}}>
                     { 
                     }
                     """);
-        context.AddSource($"{aggregateInterfaceType}Factory.deprecated.generated.cs", builder.ToString());
+        context.AddSource($"{aggregateInterfaceType}Factory.generated.cs", builder.ToString());
 
-        #endregion // Aggregate Factory Interface
+        #endregion // Factory Interface
+
+        builder.Clear();
+
+        #region FactoryBase
+
+        #region var eventsPayloads = ...
+
+        #endregion // var eventsPayloads = ...
+
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    public abstract class {{factoryName}}Base:
+                        EvDbFactoryBase<{{aggregateInterfaceType}}>
+                    {                
+                        private readonly IImmutableList<IEvDbFoldingUnit> _foldings;
+                        #region Ctor
+
+                        public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
+                        {
+                            var options = JsonSerializerOptions; 
+                            var foldings = FoldingsFactories.Select(f => f(options));
+                            _foldings = ImmutableList.CreateRange<IEvDbFoldingUnit>(foldings
+                            );
+                        }
+
+                        #endregion // Ctor
+
+                        #region Create
+
+                        public override {{aggregateInterfaceType}} Create(
+                            string streamId, 
+                            long lastStoredOffset = -1)
+                        {
+                            {{rootName}}__Aggregate agg =
+                                new(
+                                    this,
+                                    _foldings,
+                                    _repository,
+                                    streamId,
+                                    lastStoredOffset);
+
+                            return agg;
+                        }
+
+                        // public override {{aggregateInterfaceType}} Create(EvDbStoredSnapshot? snapshot)
+                        // {
+                        //     EvDbStreamAddress stream = snapshot.Cursor;
+                        //     {{rootName}}__Aggregate agg =
+                        //         new(
+                        //             _repository,
+                        //             Kind,
+                        //             stream,
+                        //             _foldings,
+                        //             MinEventsBetweenSnapshots,
+                        //             snapshot.Cursor.Offset,
+                        //             JsonSerializerOptions);
+                        // 
+                        //     return agg;
+                        // }
+
+                        #endregion // Create 
+
+                        protected abstract Func<JsonSerializerOptions?,IEvDbFoldingUnit>[] FoldingsFactories { get; }
+                    }
+                    """);
+        context.AddSource($"{factoryName}Base.generated.cs", builder.ToString());
+
+        #endregion // FactoryBase
+
+        builder.Clear();
+
+        #region Factory
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    partial {{type}} {{factoryName}}: {{factoryName}}Base,
+                            {{aggregateInterfaceType}}Factory
+                    { 
+                    }
+                    """);
+        context.AddSource($"{factoryName}.generated.cs", builder.ToString());
+
+        #endregion // Factory
 
         builder.Clear();
 
@@ -124,135 +213,6 @@ public partial class AggregateGenerator : BaseGenerator
 
         #endregion // var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
-        #region FactoryBase
-
-        #region var eventsPayloads = ...
-
-        #endregion // var eventsPayloads = ...
-
-        var foldAbstracts = eventsPayloads.Select(p =>
-                $"""
-                    protected virtual {stateType} Fold(
-                            {stateType} state,
-                            {p.Type} payload,
-                            IEvDbEventMeta meta) => state;
-
-                """);
-
-        var foldMap = eventsPayloads.Select(p =>
-                $$"""
-                    case "{{p.Key}}":
-                        {
-                            var payload = e.GetData<{{p.Type}}>(JsonSerializerOptions);
-                            result = Fold(oldState, payload, e);
-                            break;
-                        }
-                        
-                """);
-
-        builder.AppendHeader(syntax, typeSymbol);
-        builder.AppendLine();
-
-        builder.AppendLine($$"""
-                    public abstract class {{factoryName}}Base:
-                        AggregateFactoryBase<{{aggregateInterfaceType}}, {{stateType}}>
-                    {                
-                        private readonly IImmutableList<IEvDbFoldingUnit> _foldings;
-                        #region Ctor
-
-                        public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
-                        {
-                        }
-
-                        #endregion // Ctor
-
-                        #region Create
-
-                        public override {{aggregateInterfaceType}} Create(
-                            string streamId, 
-                            long lastStoredOffset = -1)
-                        {
-                            EvDbStreamAddress stream = new(Partition, streamId);
-                            {{rootName}}__Aggregate agg =
-                                new(
-                                    _repository,
-                                    Kind,
-                                    stream,
-                                    this,
-                                    MinEventsBetweenSnapshots,
-                                    DefaultState,
-                                    lastStoredOffset,
-                                    JsonSerializerOptions);
-
-                            return agg;
-                        }
-
-                        public override {{aggregateInterfaceType}} Create(EvDbStoredSnapshot<{{stateType}}> snapshot)
-                        {
-                            EvDbStreamAddress stream = snapshot.Cursor;
-                            {{rootName}}__Aggregate agg =
-                                new(
-                                    _repository,
-                                    Kind,
-                                    stream,
-                                    this,
-                                    MinEventsBetweenSnapshots,
-                                    snapshot.State,
-                                    snapshot.Cursor.Offset,
-                                    JsonSerializerOptions);
-
-                            return agg;
-                        }
-
-                        #endregion // Create 
-                     
-                        #region FoldEvent
-
-                        protected override {{stateType}} FoldEvent(
-                            {{stateType}} oldState, 
-                            IEvDbEvent e)
-                        {
-                            {{stateType}} result;
-                            switch (e.EventType)
-                            {
-                            {{string.Join("", foldMap)}}
-                                default:
-                                    throw new NotSupportedException(e.EventType);
-                            }
-                            return result;  
-                        }
-
-                        #endregion // FoldEvent
-
-                        #region Fold
-
-                    {{string.Join("", foldAbstracts)}}
-                        #endregion // Fold
-                    }
-                    """);
-        context.AddSource($"{factoryName}Base.generated.cs", builder.ToString());
-
-        #endregion // FactoryBase
-
-        builder.Clear();
-
-        #region Factory
-
-        builder.AppendHeader(syntax, typeSymbol);
-        builder.AppendLine();
-
-        builder.AppendLine($$"""
-                    partial {{type}} {{factoryName}}: {{factoryName}}Base,
-                            {{aggregateInterfaceType}}Factory
-                    { 
-                    }
-                    """);
-        context.AddSource($"{factoryName}.deprecated.generated.cs", builder.ToString());
-
-        #endregion // Factory
-
-        builder.Clear();
-
         #region Aggregate
 
         builder.AppendHeader(syntax, typeSymbol);
@@ -269,21 +229,20 @@ public partial class AggregateGenerator : BaseGenerator
 
                     """);
         builder.AppendLine($$"""
-                    public class {{rootName}}__Aggregate: EvDbAggregate<{{stateType}}>,
-                    {{eventType}},
+                    public class {{rootName}}__Aggregate: 
+                            EvDbClient,
+                            {{eventType}},
                             I{{rootName}}
                     { 
                         #region Ctor
 
                         public {{rootName}}__Aggregate(
-                            IEvDbRepository repository,
-                            string kind,
-                            EvDbStreamAddress streamId,
-                            IEvDbFoldingLogic<{{stateType}}> foldingLogic,
-                            int minEventsBetweenSnapshots,
-                            {{stateType}} state,
-                            long lastStoredOffset,
-                            JsonSerializerOptions? options) : base(repository, kind, streamId, foldingLogic, minEventsBetweenSnapshots, state, lastStoredOffset, options)
+                            IEvDbFactory factory,
+                            IEnumerable<IEvDbFoldingUnit> foldings,
+                            IEvDbRepositoryV1 repository,
+                            string streamId,
+                            long lastStoredOffset) : 
+                                base(factory, foldings, repository, streamId, lastStoredOffset)
                         {
                         }
 
@@ -295,7 +254,7 @@ public partial class AggregateGenerator : BaseGenerator
                         #endregion // Add
                     }
                     """);
-        context.AddSource($"{rootName}.deprecated.generated.cs", builder.ToString());
+        context.AddSource($"{rootName}.generated.cs", builder.ToString());
 
         #endregion // Aggregate
     }

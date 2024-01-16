@@ -9,7 +9,6 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-//[EvDbAggregateFactory<IStudentFlowEventTypes>]
 [EvDbAggregateFactory<IEnumerable<StudentAvg>, IStudentFlowEventTypes>]
 public partial class SchoolFactory
 {
@@ -23,14 +22,17 @@ public partial class SchoolFactory
 
     public override string Kind { get; } = "student-avg";
 
+    #region JsonSerializerOptions
+
     protected override JsonSerializerOptions? JsonSerializerOptions { get; } = StudentFlowEventTypesContext.Default.Options;
+
+    #endregion // JsonSerializerOptions
+
+    #region Partition
 
     public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
 
-    protected override Func<JsonSerializerOptions?, IEvDbFoldingUnit>[] FoldingsFactories { get; } =
-        {
-             StudentAvgFolding.Create
-        };
+    #endregion // Partition
 
     #region Fold // deprecate
 
