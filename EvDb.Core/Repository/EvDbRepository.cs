@@ -5,19 +5,15 @@ using System.Text.Json.Serialization.Metadata;
 namespace EvDb.Core;
 
 // TODO: [bnaya 2023-12-10] make it DI friendly (have an interface and DI registration)
-public class EvDbRepository : IEvDbRepository
+internal class EvDbRepository : IEvDbRepository
 {
     private readonly IEvDbStorageAdapter _storageAdapter;
+    private long _streamOffset = 0;
+    private long _snapshotOffset = 0;
 
     public EvDbRepository(IEvDbStorageAdapter storageAdapter)
     {
         _storageAdapter = storageAdapter;
-    }
-
-    private static long GetNextOffset(long? offset)
-    {
-        if (offset == null) return 0;
-        return (long)offset + 1;
     }
 
     async Task<T> IEvDbRepository.GetAsync<T, TState>(
@@ -44,18 +40,22 @@ public class EvDbRepository : IEvDbRepository
                 syncNoSnap.SyncEvent(e);
             }
 
-            // TODO: [bnaya 2024-01-09] return agg;?
             return agg;
         }
-        long nextOffset = GetNextOffset(snapshot.Cursor.Offset);
+        long snapshotOffset = snapshot.Cursor.Offset;
+        long nextOffset = _snapshotOffset + 1;
         EvDbStreamCursor prm2 = new(snapshotId, nextOffset);
         IAsyncEnumerable<IEvDbStoredEvent> events = _storageAdapter.GetAsync(prm2, cancellation);
         var result =  factory.Create(snapshot);
         var syncSnap = (IEvDbStoredEventSync)result;
+        long offset = _streamOffset;
         await foreach (IEvDbStoredEvent e in events)
         {
             syncSnap.SyncEvent(e);
+            offset = e.StreamCursor.Offset;
         }
+        _streamOffset = offset;
+        _snapshotOffset = snapshotOffset;
         return result;
     }
 
@@ -73,12 +73,10 @@ public class EvDbRepository : IEvDbRepository
         }
         // TODO: [bnaya 2024-01-09] TBD: lock/immutable memory-snapshot 
 
-
-        //long lastStoredOffset = await _storageAdapter.GetLastOffsetAsync(aggregate, cancellation);
-        //if (lastStoredOffset != aggregate.LastStoredOffset)
-        //    throw new OCCException(aggregate, lastStoredOffset);
-        bool shouldStoreSnapshot = aggregate.EventsCount >= aggregate.MinEventsBetweenSnapshots;
+        long snapshotGap = _streamOffset + aggregate.EventsCount - _snapshotOffset;
+        bool shouldStoreSnapshot = snapshotGap >= aggregate.MinEventsBetweenSnapshots;
         await _storageAdapter.SaveAsync(aggregate, shouldStoreSnapshot, options, cancellation);
+        _streamOffset += aggregate.EventsCount;
         aggregate.ClearLocalEvents(); // TODO: [bnaya 2024-01-09] selective clear is needed
     }
 

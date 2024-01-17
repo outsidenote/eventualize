@@ -2,7 +2,9 @@
 namespace EvDb.Core;
 
 public interface IEvDbFoldingUnit
-{ 
+{
+    int MinEventsBetweenSnapshots { get; }
+
     void FoldEvent(IEvDbEvent e);
 }
 

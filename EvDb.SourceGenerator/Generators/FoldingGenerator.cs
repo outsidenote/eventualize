@@ -92,7 +92,7 @@ public partial class FoldingGenerator : BaseGenerator
 
         #endregion // var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
-        #region FactoryBase
+        #region FoldingBase
 
         #region var eventsPayloads = ...
 
@@ -136,6 +136,8 @@ public partial class FoldingGenerator : BaseGenerator
                             _jsonSerializerOptions = jsonSerializerOptions;
                         }
 
+                        public virtual int MinEventsBetweenSnapshots => 0;
+
                         {{stateType}} IEvDbFoldingUnit<{{stateType}}>.State => _state;
 
                         #region FoldEvent
@@ -160,7 +162,7 @@ public partial class FoldingGenerator : BaseGenerator
                     """);
         context.AddSource($"{foldingName}Base.generated.cs", builder.ToString());
 
-        #endregion // FactoryBase
+        #endregion // FoldingBase
 
         builder.Clear();
 

@@ -2,11 +2,23 @@ using EvDb.Scenes;
 using EvDb.UnitTests;
 using FakeItEasy;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
 using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
+
+using STATE_TYPE = System.Collections.Immutable.IImmutableDictionary<int, EvDb.UnitTests.StudentStats>;
+
+public interface IFoo
+{
+    Task<Bar<T>?> Get<T>(int x, string? s = null);
+}
+
+public record Bar<T>(string Key, T Value);
+
+
 
 public sealed class AggregateFactoryTests
 {
@@ -16,13 +28,14 @@ public sealed class AggregateFactoryTests
     public AggregateFactoryTests(ITestOutputHelper output)
     {
         _output = output;
-    }
+    } 
 
     [Fact]
     public async Task AggregateFactory_WhenInstantiatingWithEvents_Succeed()
     {
-        var aggregate = await AggregateGenSteps
-                        .GivenFactoryForStoredStreamWithEvents(_output)
+        var aggregate = await Steps
+                        .GivenFactoryForStoredStreamWithEvents(_output, _storageAdapter)
+                        .GivenNoSnapshot(_storageAdapter)
                         .WhenGetAggregateAsync();
 
         ThenStoredEventsAddedSuccessfully();
@@ -31,35 +44,42 @@ public sealed class AggregateFactoryTests
         {
             Assert.Single(aggregate.State);
             var studentAvg = aggregate.State.First().Value.Sum;
-            Assert.Equal(90, studentAvg);
+            Assert.Equal(180, studentAvg);
             Assert.Equal(0, aggregate.EventsCount);
         }
     }
 
-
     [Fact]
-    public async Task Aggregate_WhenInstantiatingWithSnapshotAndEvents_Succeed()
+    public async Task AggregateFactory_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
     {
-        //var aggregate = await AggregateGenSteps
-        //                .GivenFactoryForStoredStreamWithEvents(_output)
-        //                .WhenGetAggregateAsync();
+        var aggregate = await _storageAdapter.GivenAggregateRetrievedFromStore(_output, false);
 
-        //ThenStoredEventsAddedSuccessfully();
+        ThenStoredEventsAddedSuccessfully();
 
-        //void ThenStoredEventsAddedSuccessfully()
-        //{
-        //    Assert.Single(aggregate.State);
-        //    var studentAvg = aggregate.State.First().Avg;
-        //    Assert.Equal(60, studentAvg);
-        //    Assert.Equal(0, aggregate.EventsCount);
-        //}
-
-        //IAsyncEnumerable<IEvDbStoredEvent> events = TestAggregateConfigs.GetStoredEvents(3);
-        //var aggregate = await TestAggregateConfigs.GetTestAggregateAsync(new TestState(3, 3, 30), events);
-        //Assert.Empty(aggregate.PendingEvents);
-        //Assert.Equal(aggregate.State, new TestState(6, 6, 60));
+        void ThenStoredEventsAddedSuccessfully()
+        {
+            Assert.Single(aggregate.State);
+            var studentSum = aggregate.State.First().Value.Sum;
+            Assert.Equal(70, studentSum);
+            Assert.Equal(0, aggregate.EventsCount);
+        }
     }
 
+    [Fact]
+    public async Task AggregateFactory_WhenInstantiatingWithSnapshotAndEvents_Succeed()
+    {
+        var aggregate = await _storageAdapter.GivenAggregateRetrievedFromStore(_output);
+
+        ThenStoredEventsAddedSuccessfully();
+
+        void ThenStoredEventsAddedSuccessfully()
+        {
+            Assert.Single(aggregate.State);
+            var studentSum = aggregate.State.First().Value.Sum;
+            Assert.Equal(250, studentSum);
+            Assert.Equal(0, aggregate.EventsCount);
+        }
+    }
 
     [Fact(Skip = "until multi folding")]
     public void AggregateFactory_WhenFoldingEvents_Succeed()

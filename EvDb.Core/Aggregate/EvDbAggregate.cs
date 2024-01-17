@@ -157,7 +157,7 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
     public void ClearLocalEvents()
     {
         LastStoredOffset += _pendingEvents.Count;
-        _pendingEvents.Clear();
+        _pendingEvents = _pendingEvents.Clear();
     }
 
     async Task IEvDbAggregate<TState>.SaveAsync(CancellationToken cancellation)

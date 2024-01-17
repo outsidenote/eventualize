@@ -32,6 +32,8 @@ public partial class SchoolFactory
 
     public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
 
+    protected override int MinEventsBetweenSnapshots => 5;
+
     #endregion // Partition
 
     #region Fold // deprecate

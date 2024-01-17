@@ -1,9 +1,11 @@
 using Generator.Equals;
+using System.Diagnostics;
 
 namespace EvDb.Core;
 
 // TODO: [bnaya 2021-12-27] make it a struct with casting to EvDbEvent
 [Equatable]
+[DebuggerDisplay("{EventType}: {Data}")]
 public partial record EvDbStoredEvent(string EventType,
                     DateTime CapturedAt,
                     string CapturedBy,

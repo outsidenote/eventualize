@@ -13,6 +13,8 @@ internal partial class StudentStatsFolding
 
     protected override IEnumerable<StudentStats> DefaultState { get; } = [];
 
+    public override int MinEventsBetweenSnapshots => 5;
+
     #region Fold
 
     protected override IEnumerable<StudentStats> Fold(

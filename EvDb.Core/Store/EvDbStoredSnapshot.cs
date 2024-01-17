@@ -1,4 +1,5 @@
 ﻿using Generator.Equals;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
@@ -38,6 +39,7 @@ public class EvDbStoredSnapshot
 }
 
 [Equatable]
+[DebuggerDisplay("{State}, Offset:{Cursor.Offset}")]
 public partial record EvDbStoredSnapshot<T>(T State, EvDbSnapshotCursor Cursor)
 {
 };
