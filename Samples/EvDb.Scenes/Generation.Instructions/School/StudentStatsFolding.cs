@@ -6,17 +6,17 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-[EvDbFolding<IEnumerable<StudentAvg>, IStudentFlowEventTypes>]
-internal partial class StudentAvgFolding
+[EvDbFolding<IEnumerable<StudentStats>, IStudentFlowEventTypes>]
+internal partial class StudentStatsFolding
 {
     private readonly ConcurrentDictionary<int, StudentCalc> _students = new ();
 
-    protected override IEnumerable<StudentAvg> DefaultState { get; } = [];
+    protected override IEnumerable<StudentStats> DefaultState { get; } = [];
 
     #region Fold
 
-    protected override IEnumerable<StudentAvg> Fold(
-        IEnumerable<StudentAvg> state,
+    protected override IEnumerable<StudentStats> Fold(
+        IEnumerable<StudentStats> state,
         StudentEnlistedEvent enlisted,
         IEvDbEventMeta meta)
     {
@@ -27,8 +27,8 @@ internal partial class StudentAvgFolding
         return state;
     }
 
-    protected override IEnumerable<StudentAvg> Fold(
-        IEnumerable<StudentAvg> state,
+    protected override IEnumerable<StudentStats> Fold(
+        IEnumerable<StudentStats> state,
         StudentReceivedGradeEvent receivedGrade,
         IEvDbEventMeta meta)
     {
@@ -45,7 +45,7 @@ internal partial class StudentAvgFolding
         var result = _students.Values
                             .Where(m => m.Count != 0)
                             .Select(m =>
-                                new StudentAvg(m.StudentName, m.Sum / m.Count));
+                                new StudentStats(m.StudentName, m.Sum / m.Count, m.Count));
         return result.ToArray();
     }
 

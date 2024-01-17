@@ -4,10 +4,14 @@ using EvDb.UnitTests;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
 using Scenes;
+using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Xunit.Abstractions;
+
+using STATE_TYPE = System.Collections.Immutable.IImmutableDictionary<int, EvDb.UnitTests.StudentStats>;
+using TRY_GET_SNAPSHOT_RETURN_TYPE = Task<EvDbStoredSnapshot<System.Collections.Immutable.IImmutableDictionary<int, EvDb.UnitTests.StudentStats>>?>;
 
 internal static class AggregateGenSteps
 {
@@ -129,6 +133,58 @@ internal static class AggregateGenSteps
     }
 
     #endregion // MockGetAsync
+
+    #region MockTryGetSnapshotAsync
+
+    public static ISchoolFactory MockTryGetSnapshotAsync(
+        this ISchoolFactory factory,
+        IEvDbStorageAdapter storageAdapter,
+        string streamId = "1234",
+        JsonSerializerOptions? serializerOptions = null)
+    {
+        #region List<EvDbStoredEvent> storedEvents = ...
+
+        List<EvDbStoredEvent> storedEvents = [];
+
+        EvDbStreamAddress address = new(factory.Partition, streamId);
+        EvDbStreamCursor cursor = new(address, 0);
+        StudentEnlistedEvent studentEnlisted = AggregateGenSteps.CreateStudent();
+        var e = EvDbEventFactory.Create(studentEnlisted, serializerOptions);
+        var eStored = new EvDbStoredEvent(e, cursor);
+        storedEvents.Add(eStored);
+
+        for (int i = 1; i <= 3; i++)
+        {
+            EvDbStreamCursor csr = new(address, i);
+            var grade = new StudentReceivedGradeEvent(20992, studentEnlisted.Student.Id, 30 * i);
+            var gradeEvent = EvDbEventFactory.Create(grade, serializerOptions);
+            var gradeStoreEvent = new EvDbStoredEvent(gradeEvent, csr);
+            storedEvents.Add(gradeStoreEvent);
+        }
+
+        #endregion // List<EvDbStoredEvent> storedEvents = ...
+
+
+        var ct = A.CallTo(() => storageAdapter.TryGetSnapshotAsync<STATE_TYPE>(
+            A<EvDbSnapshotId>.Ignored, A<CancellationToken>.Ignored));
+        ct.ReturnsLazily<TRY_GET_SNAPSHOT_RETURN_TYPE>(async () =>
+        {
+            var student = studentEnlisted.Student;
+            var stat = new StudentStats(student.Name, 70, 10);
+            EvDbSnapshotCursor cursor = new(address, "Stats", 10);
+            STATE_TYPE state = ImmutableDictionary<int, StudentStats>.Empty.Add(student.Id, stat);
+
+            EvDbStoredSnapshot<STATE_TYPE>? result;
+            await Task.Yield();
+            result = new EvDbStoredSnapshot<STATE_TYPE> (state, cursor);
+            
+            return result;
+        });
+
+        return factory;
+    }
+
+    #endregion // MockTryGetSnapshotAsync
 
     #region CreateStudent
 

@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-[EvDbFactory<IStudentFlowEventTypes>()]
+[EvDbFactory<IStudentFlowEventTypes>]
 public partial class SchoolXFactory
 {
     #region Ctor
@@ -35,7 +35,7 @@ public partial class SchoolXFactory
 
     protected override Func<JsonSerializerOptions?, IEvDbFoldingUnit>[] FoldingsFactories { get; } =
         {
-             StudentAvgFolding.Create
+             StudentStatsFolding.Create
         };
 
     #endregion // FoldingsFactories
