@@ -6,8 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Scenes;
 using System.Collections.Immutable;
-using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Xunit.Abstractions;
 
@@ -15,6 +13,10 @@ using STATE_TYPE = System.Collections.Immutable.IImmutableDictionary<int, EvDb.U
 
 internal static class Steps
 {
+    private const int TEST_ID = 6628;
+    private const int STUDENT_ID = 2202;
+    private const int NUM_OF_GRADES = 3;
+
     public static string GenerateStreamId() => $"test-stream-{Guid.NewGuid():N}";
 
     #region CreateFactory
@@ -54,7 +56,7 @@ internal static class Steps
     public static (ISchoolFactory Factory, string StreamId) GivenFactoryForStoredStreamWithEvents(
         ITestOutputHelper output,
         IEvDbStorageAdapter storageAdapter,
-        string? streamId=  null,
+        string? streamId = null,
         Action<IEvDbStorageAdapter, string>? mockGetAsyncResult = null,
         bool withEvents = true)
     {
@@ -108,7 +110,7 @@ internal static class Steps
     {
 
         A.CallTo(() => storageAdapter.GetAsync(A<EvDbStreamCursor>.Ignored, A<CancellationToken>.Ignored))
-        .ReturnsLazily((EvDbStreamCursor cursor, CancellationToken ct) => 
+        .ReturnsLazily((EvDbStreamCursor cursor, CancellationToken ct) =>
         {
             if (withEvents)
             {
@@ -127,6 +129,20 @@ internal static class Steps
 
     #endregion // SetupMockGetAsync
 
+    #region SetupMockSaveThrowOcc
+
+    public static ISchoolFactory SetupMockSaveThrowOcc(
+        this ISchoolFactory factory,
+        IEvDbStorageAdapter storageAdapter)
+    {
+        A.CallTo(() => storageAdapter.SaveAsync<STATE_TYPE>(A<IEvDbAggregate<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            .ThrowsAsync(new OCCException());
+
+        return factory;
+    }
+
+    #endregion // SetupMockSaveThrowOcc
+
     #region CreateStoredEvents
 
     private static List<EvDbStoredEvent> CreateStoredEvents(
@@ -135,7 +151,7 @@ internal static class Steps
         JsonSerializerOptions? serializerOptions,
         long initOffset = 0)
     {
-        List<EvDbStoredEvent> storedEvents = [];
+        List<EvDbStoredEvent> storedEvents = new();
         EvDbStreamCursor cursor = new(factory.Partition, streamId, initOffset);
         StudentEnlistedEvent student = Steps.CreateStudentEnlistedEvent();
         if (initOffset == 0)
@@ -192,8 +208,8 @@ internal static class Steps
         STATE_TYPE state = ImmutableDictionary<int, StudentStats>.Empty
                                                     .Add(student.Id, stat);
 
-        EvDbStoredSnapshot<STATE_TYPE>? snp = 
-            new EvDbStoredSnapshot<STATE_TYPE> (state, cursor);      
+        EvDbStoredSnapshot<STATE_TYPE>? snp =
+            new EvDbStoredSnapshot<STATE_TYPE>(state, cursor);
         snapshot = snp;
 
         A.CallTo(() => storageAdapter.TryGetSnapshotAsync<STATE_TYPE>(
@@ -249,10 +265,28 @@ internal static class Steps
 
     #region WhenAddGrades
 
+    public static async Task<ISchool> GivenAddGradesAsync(this Task<ISchool> aggregateAsync,
+        int testId = TEST_ID,
+        int studentId = STUDENT_ID,
+        int numOfGrades = NUM_OF_GRADES,
+        Func<int, double>? gradeStrategy = null)
+    {
+        var aggregate = await aggregateAsync;
+        var result = aggregate.GivenAddGrades(testId, studentId, numOfGrades, gradeStrategy);
+        return result;
+    }
+
+    public static ISchool GivenAddGrades(this ISchool aggregate,
+        int testId = TEST_ID,
+        int studentId = STUDENT_ID,
+        int numOfGrades = NUM_OF_GRADES,
+        Func<int, double>? gradeStrategy = null) => 
+            aggregate.WhenAddGrades(testId, studentId, numOfGrades, gradeStrategy);
+
     public static ISchool WhenAddGrades(this ISchool aggregate,
-        int testId = 6628,
-        int studentId = 2202,
-        int numOfGrades = 3,
+        int testId = TEST_ID,
+        int studentId = STUDENT_ID,
+        int numOfGrades = NUM_OF_GRADES,
         Func<int, double>? gradeStrategy = null)
     {
         gradeStrategy = gradeStrategy ?? DefaultGradeStrategy;
@@ -285,4 +319,48 @@ internal static class Steps
     }
 
     #endregion // GivenAggregateRetrievedFromStore
+
+    #region GivenLocalAggregateWithPendingEvents
+
+    public static ISchool GivenLocalAggregateWithPendingEvents(
+        this IEvDbStorageAdapter storageAdapter,
+        ITestOutputHelper output)
+    {
+        return GivenLocalAggerate(output, storageAdapter)
+                            .WhenAddingPendingEvents();
+    }
+
+    #endregion // GivenLocalAggregateWithPendingEvents
+
+    #region WhenAggregateIsSaved
+
+    public async static Task<ISchool> WhenAggregateIsSavedAsync(
+        this ISchool aggregate)
+    {
+        await aggregate.SaveAsync();
+        return aggregate;
+    }
+
+    public async static Task<ISchool> WhenAggregateIsSavedAsync(
+        this Task<ISchool> aggregateAsync)
+    {
+        var aggregate = await aggregateAsync;
+        await aggregate.SaveAsync();
+        return aggregate;
+    }
+
+    #endregion // WhenAggregateIsSavedAsync
+
+    #region GivenStoredEvents
+
+    public static async Task<ISchool> GivenStoredEvents(
+        this IEvDbStorageAdapter storageAdapter,
+        ITestOutputHelper output)
+    {
+        ISchool aggregate = await storageAdapter.GivenLocalAggregateWithPendingEvents(output)
+                     .WhenAggregateIsSavedAsync();
+        return aggregate;
+    }
+
+    #endregion // GivenStoredEvents
 }

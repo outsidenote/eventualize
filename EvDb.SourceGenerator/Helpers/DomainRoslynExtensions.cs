@@ -1,7 +1,6 @@
-﻿using System.Text;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Text;
 
 namespace EvDb.SourceGenerator.Helpers;
 
@@ -21,6 +20,7 @@ internal static class DomainRoslynExtensions
         builder.AppendLine();
         var usingLines = syntax.GetUsing();
         builder.AppendLine("using System.Collections.Immutable;");
+        builder.AppendLine("using System.Text.Json;");
         foreach (var line in usingLines)
         {
             builder.AppendLine(line.Trim());

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 
 // TODO: [bnaya 2023-12-20] default timeout
 

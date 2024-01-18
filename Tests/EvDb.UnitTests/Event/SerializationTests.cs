@@ -1,22 +1,16 @@
 namespace EvDb.Core.Tests;
 
 using EvDb.UnitTests;
-using FakeItEasy;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit.Abstractions;
 
 using Scenes;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 
 public class SerializationTests
 {
     [Fact(Skip = "Polymorphism (IEvDbEventPayload)")]
     public void CourseCreatedEvent_Serialization_Succeed()
     {
-        IEvDbEventPayload payload =  new CourseCreatedEvent(1234, "Anatomy", 40);
+        IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
         var jdef = StudentFlowEventTypesContext.Default;
         JsonSerializerOptions options = null;
         var json = JsonSerializer.Serialize(payload, options);
@@ -28,7 +22,7 @@ public class SerializationTests
     [Fact]
     public void CourseCreatedEvent_Serialization_T_Succeed()
     {
-        var payload =  new CourseCreatedEvent(1234, "Anatomy", 40);
+        var payload = new CourseCreatedEvent(1234, "Anatomy", 40);
         var jdef = StudentFlowEventTypesContext.Default;
         JsonSerializerOptions options = null;
         var json = JsonSerializer.Serialize(payload, options);
@@ -40,7 +34,7 @@ public class SerializationTests
     [Fact(Skip = "Polymorphism (IEvDbEventPayload)")]
     public void CourseCreatedEvent_Serialization_Converter_Succeed()
     {
-        IEvDbEventPayload payload =  new CourseCreatedEvent(1234, "Anatomy", 40);
+        IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
         var jdef = StudentFlowEventTypesContext.Default;
         JsonSerializerOptions options = new();
         options.Converters.Add(jdef.CourseCreatedEvent.Converter);
@@ -54,7 +48,7 @@ public class SerializationTests
     [Fact(Skip = "Polymorphism (IEvDbEventPayload)")]
     public void CourseCreatedEvent_Serialization_Resolver_Succeed()
     {
-        IEvDbEventPayload payload =  new CourseCreatedEvent(1234, "Anatomy", 40);
+        IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
 
         var options = new JsonSerializerOptions
         {
@@ -70,7 +64,7 @@ public class SerializationTests
     [Fact]
     public void CourseCreatedEvent_Serialization_Resolver1_Succeed()
     {
-        IEvDbEventPayload payload =  new CourseCreatedEvent(1234, "Anatomy", 40);
+        IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
 
         var options = StudentFlowEventTypesContext.Default.CourseCreatedEvent;
 
@@ -83,7 +77,7 @@ public class SerializationTests
     [Fact]
     public void CourseCreatedEvent_Serialization_Null_Succeed()
     {
-        var payload =  new Test1("Anatomy", 40);
+        var payload = new Test1("Anatomy", 40);
 
         var json = JsonSerializer.Serialize(payload);
         var deserialized = JsonSerializer.Deserialize<Test1>(json);

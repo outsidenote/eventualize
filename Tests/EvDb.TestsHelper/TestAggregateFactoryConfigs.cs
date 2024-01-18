@@ -1,5 +1,3 @@
-using static EvDb.Core.Tests.TestHelper;
-
 namespace EvDb.Core.Tests;
 
 public static class TestAggregateFactoryConfigs

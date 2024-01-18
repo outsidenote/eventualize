@@ -1,16 +1,12 @@
 ﻿#pragma warning disable HAA0301 // Closure Allocation Source
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
 #pragma warning disable HAA0401 // Possible allocation of reference type enumerator
-using System.Collections.Immutable;
-using System;
-using System.Text;
-
+using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Threading;
-using EvDb.SourceGenerator.Helpers;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Reflection;
+using System.Text;
 
 namespace EvDb.SourceGenerator;
 
@@ -122,7 +118,7 @@ public partial class FoldingGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public abstract class {{foldingName}}Base:
+                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]                    public abstract class {{foldingName}}Base:
                         IEvDbFoldingUnit<{{stateType}}>
                     {        
                         protected abstract {{stateType}} DefaultState { get; }

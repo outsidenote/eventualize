@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace EvDb.Core;
+﻿namespace EvDb.Core;
 
 [Obsolete("Deprecated")]
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -18,5 +16,5 @@ public class EvDbAggregateFactoryAttribute<TState, TEventType> : Attribute
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class EvDbFactoryAttribute<TEventType> : Attribute
     where TEventType : IEvDbEventTypes
-{ 
+{
 }

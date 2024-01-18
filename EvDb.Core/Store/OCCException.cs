@@ -2,9 +2,8 @@
 
 namespace EvDb.Core
 {
-    public class OCCException : Exception 
+    public class OCCException : Exception
     {
-        [Obsolete("Shouldn't be used directly, used by the serialization", true)]
         public OCCException() { }
         [Obsolete("Shouldn't be used directly, used by the serialization", true)]
         public OCCException(string message) : base(message) { }

@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization.Metadata;
-
-namespace EvDb.Core;
+﻿namespace EvDb.Core;
 
 public interface IEvDbEventPayload
 {

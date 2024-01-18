@@ -1,15 +1,13 @@
 ﻿using EvDb.Core;
 using EvDb.Scenes;
 using System.Collections.Concurrent;
-using System.Text.Json;
-
 
 namespace EvDb.UnitTests;
 
 [EvDbFolding<IEnumerable<StudentStats>, IStudentFlowEventTypes>]
 internal partial class StudentStatsFolding
 {
-    private readonly ConcurrentDictionary<int, StudentCalc> _students = new ();
+    private readonly ConcurrentDictionary<int, StudentCalc> _students = new();
 
     protected override IEnumerable<StudentStats> DefaultState { get; } = [];
 

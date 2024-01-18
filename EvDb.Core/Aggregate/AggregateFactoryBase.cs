@@ -1,21 +1,14 @@
-﻿
-using System.CodeDom.Compiler;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Reflection;
+﻿using System.Diagnostics;
 using System.Text.Json;
 
 namespace EvDb.Core;
 
 [Obsolete("Deprecated")]
 [DebuggerDisplay("{Kind}...")]
-public abstract class AggregateFactoryBase<T, TState>:
+public abstract class AggregateFactoryBase<T, TState> :
         IEvDbFoldingLogic<TState>,
         IEvDbAggregateFactory<T, TState>
-    where T : IEvDbAggregate<TState>, IEvDbEventTypes  
+    where T : IEvDbAggregate<TState>, IEvDbEventTypes
 {
     protected readonly IEvDbRepository _repository;
 
@@ -76,7 +69,7 @@ public abstract class AggregateFactoryBase<T, TState>:
 }
 
 [DebuggerDisplay("{Kind}...")]
-public abstract class EvDbFactoryBase<T>: IEvDbFactory<T>
+public abstract class EvDbFactoryBase<T> : IEvDbFactory<T>
     where T : IEvDb, IEvDbEventTypes
 {
     protected readonly IEvDbRepositoryV1 _repository;
@@ -112,7 +105,7 @@ public abstract class EvDbFactoryBase<T>: IEvDbFactory<T>
 
     async Task<T> IEvDbFactory<T>.GetAsync(
         string streamId,
-        long lastStoredOffset = -1, 
+        long lastStoredOffset = -1,
         CancellationToken cancellationToken = default)
     {
         T agg = await _repository.GetAsync(this, streamId, cancellationToken);

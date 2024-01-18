@@ -1,16 +1,7 @@
-using EvDb.Scenes;
-using EvDb.UnitTests;
 using FakeItEasy;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Text.Json;
 using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
-
-using STATE_TYPE = System.Collections.Immutable.IImmutableDictionary<int, EvDb.UnitTests.StudentStats>;
-
 public interface IFoo
 {
     Task<Bar<T>?> Get<T>(int x, string? s = null);
@@ -28,7 +19,22 @@ public sealed class AggregateFactoryTests
     public AggregateFactoryTests(ITestOutputHelper output)
     {
         _output = output;
-    } 
+    }
+
+    [Fact]
+    public async Task AggregateFactory_WhenGettingDifferentAggregate_Succeed()
+    {
+        throw new NotImplementedException();
+        //var repoTestSteps = new EvDbRepositoryTestsSteps();
+        //var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
+        //var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
+        //var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
+        //var fetchedAggregate = await repository.GetAsync(aggregateFactory2, aggregate.StreamId.StreamId);
+        //repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
+    }
+
+
 
     [Fact]
     public async Task AggregateFactory_WhenInstantiatingWithEvents_Succeed()

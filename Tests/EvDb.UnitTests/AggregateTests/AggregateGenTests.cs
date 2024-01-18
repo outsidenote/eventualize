@@ -2,16 +2,8 @@ namespace EvDb.Core.Tests;
 
 using EvDb.UnitTests;
 using FakeItEasy;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit.Abstractions;
-
-using Scenes;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using CoreTests.EvDbRepositoryTests.TestStorageAdapterTests;
-using CoreTests.EvDbRepositoryTests;
-
+using Xunit.Abstractions;
 using STATE_TYPE = System.Collections.Immutable.IImmutableDictionary<int, EvDb.UnitTests.StudentStats>;
 
 public class AggregateGenTests
@@ -63,27 +55,75 @@ public class AggregateGenTests
     [Fact]
     public async Task Aggregate_WhenStoringAggregateWithoutSnapshot_Succeed()
     {
-        ISchool aggregate = Steps
-                            .GivenLocalAggerate(_output, _storageAdapter)
-                            .WhenAddingPendingEvents();
-        await aggregate.SaveAsync();
+        ISchool aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+                         .WhenAggregateIsSavedAsync();
 
-        Assert.Equal(0, aggregate.EventsCount);
+        ThenAggregateSavedWithoutSnapshot(aggregate);
 
-        A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregate<STATE_TYPE>>.Ignored, false, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
-            .MustHaveHappenedOnceExactly();
+        void ThenAggregateSavedWithoutSnapshot(ISchool aggregate)
+        {
+            Assert.Equal(0, aggregate.EventsCount);
 
-        aggregate.WhenAddGrades();
-
-        await aggregate.SaveAsync();
-
-        Assert.Equal(0, aggregate.EventsCount);
-
-        A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregate<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
-            .MustHaveHappenedOnceExactly();
-
-        A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregate<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
-            .MustHaveHappenedTwiceExactly();
+            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregate<STATE_TYPE>>.Ignored, false, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+                .MustHaveHappenedOnceExactly();
+        }
     }
+
+
+    [Fact]
+    public async Task Aggregate_WhenStoringAggregateWithSnapshot_Succeed()
+    {
+        ISchool aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+                         .GivenAddGrades()
+                         .WhenAggregateIsSavedAsync();
+
+        ThenAggregateSavedWithSnapshot(aggregate);
+
+        void ThenAggregateSavedWithSnapshot(ISchool aggregate)
+        {
+            Assert.Equal(0, aggregate.EventsCount);
+
+            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregate<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+                .MustHaveHappenedOnceExactly();
+
+            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregate<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+                .MustHaveHappenedOnceExactly();
+        }
+    }
+
+    [Fact]
+    public async Task Aggregate_WhenStoringAggregateWithSnapshotWithOffset_Succeed()
+    {
+        ISchool aggregate = await _storageAdapter.GivenStoredEvents(_output)
+                        .GivenAddGradesAsync()
+                        .WhenAggregateIsSavedAsync();
+
+        ThenAggregateSavedWithSnapshot(aggregate);
+
+        void ThenAggregateSavedWithSnapshot(ISchool aggregate)
+        {
+            Assert.Equal(0, aggregate.EventsCount);
+
+            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregate<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+                .MustHaveHappenedOnceExactly();
+
+            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregate<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+                .MustHaveHappenedTwiceExactly();
+        }
+    }
+
+    [Fact]
+    public async Task Aggregate_WhenStoringStaleAggregate_ThrowException()
+    {
+        //ISchool aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+
+        //ISchool aggregate = SetupMockSaveThrowOcc
+        throw new NotImplementedException("OCC");
+        //var repoTestSteps = new EvDbRepositoryTestsSteps();
+        //var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents(3);
+        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
+        //await Assert.ThrowsAsync<OCCException>(async () => await repository.SaveAsync(aggregate));
+    }
+
 
 }

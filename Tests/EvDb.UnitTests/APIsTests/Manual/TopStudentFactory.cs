@@ -6,11 +6,11 @@ using System.Text.Json;
 namespace EvDb.UnitTests;
 
 [EvDbAggregateFactory<ICollection<StudentScoreState>, IEducationEventTypes>]
-public partial class TopStudentFactory 
-{    
+public partial class TopStudentFactory
+{
     private readonly ConcurrentDictionary<int, StudentEntity> _students = new ConcurrentDictionary<int, StudentEntity>();
 
-    protected override ICollection<StudentScoreState> DefaultState { get; } = [];
+    protected override ICollection<StudentScoreState> DefaultState { get; } = new List<StudentScoreState>();
 
     public override string Kind { get; } = "top-student";
 
@@ -36,8 +36,8 @@ public partial class TopStudentFactory
         if (!_students.TryGetValue(receivedGrade.StudentId, out StudentEntity entity))
             throw new Exception("It's broken");
         StudentScoreState score = new(entity, receivedGrade.Grade);
-        IEnumerable<StudentScoreState> top = [score, .. topScores];
-        ICollection<StudentScoreState> ordered = [.. top.OrderByDescending(x => x.Score).Take(10)];
+        IEnumerable<StudentScoreState> top = new[] { score }.Concat(topScores);
+        ICollection<StudentScoreState> ordered = top.OrderByDescending(x => x.Score).Take(10).ToList();
         return ordered;
     }
 }

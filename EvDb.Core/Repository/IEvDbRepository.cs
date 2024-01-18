@@ -1,6 +1,5 @@
 ﻿
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
@@ -11,7 +10,7 @@ public interface IEvDbRepository
     //Task<IEvDbAggregate<TState>> GetAsync<TState>(IEvDbAggregate<TState> aggregate, CancellationToken cancellation = default);
     Task<T> GetAsync<T, TState>(
         IEvDbAggregateFactory<T, TState> factory,
-        string streamId, 
+        string streamId,
         CancellationToken cancellation = default)
             where T : IEvDbAggregate<TState>, IEvDbEventTypes;
 
@@ -23,7 +22,7 @@ public interface IEvDbRepositoryV1
     //Task<IEvDbAggregate<TState>> GetAsync<TState>(IEvDbAggregate<TState> aggregate, CancellationToken cancellation = default);
     Task<T> GetAsync<T>(
         IEvDbFactory<T> factory,
-        string streamId, 
+        string streamId,
         CancellationToken cancellation = default)
             where T : IEvDb, IEvDbEventTypes;
 

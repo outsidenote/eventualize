@@ -1,6 +1,4 @@
-using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
@@ -32,7 +30,7 @@ internal class EvDbRepository : IEvDbRepository
         if (snapshot == null)
         {
             EvDbStreamCursor streamCursor = new(streamAddress, 0);
-            T agg = factory.Create(streamId); 
+            T agg = factory.Create(streamId);
             var syncNoSnap = (IEvDbStoredEventSync)agg;
             IAsyncEnumerable<IEvDbStoredEvent> allEvents = _storageAdapter.GetAsync(streamCursor, cancellation);
             await foreach (IEvDbStoredEvent e in allEvents)
@@ -46,7 +44,7 @@ internal class EvDbRepository : IEvDbRepository
         long nextOffset = _snapshotOffset + 1;
         EvDbStreamCursor prm2 = new(snapshotId, nextOffset);
         IAsyncEnumerable<IEvDbStoredEvent> events = _storageAdapter.GetAsync(prm2, cancellation);
-        var result =  factory.Create(snapshot);
+        var result = factory.Create(snapshot);
         var syncSnap = (IEvDbStoredEventSync)result;
         long offset = _streamOffset;
         await foreach (IEvDbStoredEvent e in events)
@@ -61,7 +59,7 @@ internal class EvDbRepository : IEvDbRepository
 
     // TODO: [bnaya 2023-12-28] reduce duplication
     async Task IEvDbRepository.SaveAsync<TState>(
-        IEvDbAggregate<TState> aggregate, 
+        IEvDbAggregate<TState> aggregate,
         JsonSerializerOptions? options,
         CancellationToken cancellation)
     {
@@ -152,7 +150,7 @@ public class EvDbRepositoryV1 : IEvDbRepositoryV1
 
     // TODO: [bnaya 2023-12-28] reduce duplication
     async Task IEvDbRepositoryV1.SaveAsync(
-        IEvDb aggregate, 
+        IEvDb aggregate,
         JsonSerializerOptions? options,
         CancellationToken cancellation)
     {

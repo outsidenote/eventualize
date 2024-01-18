@@ -1,14 +1,10 @@
 ﻿#pragma warning disable HAA0301 // Closure Allocation Source
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
 #pragma warning disable HAA0401 // Possible allocation of reference type enumerator
-using System.Collections.Immutable;
-using System;
-using System.Text;
-
+using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Threading;
-using EvDb.SourceGenerator.Helpers;
+using System.Text;
 
 namespace EvDb.SourceGenerator;
 
@@ -49,10 +45,10 @@ public partial class EventPayloadTypesGenerator : BaseGenerator
         string name = typeSymbol.Name;
         var asm = GetType().Assembly.GetName();
         var payloadName = from atts in syntax.AttributeLists
-                  from att in atts.Attributes
-                  let fn = att.Name.ToFullString()
-                  where fn.StartsWith("EvDbEventPayload")
-                  select att.ArgumentList.Arguments[0].ToString();
+                          from att in atts.Attributes
+                          let fn = att.Name.ToFullString()
+                          where fn.StartsWith("EvDbEventPayload")
+                          select att.ArgumentList.Arguments[0].ToString();
         var key = payloadName.FirstOrDefault();
         if (key == null)
             return;

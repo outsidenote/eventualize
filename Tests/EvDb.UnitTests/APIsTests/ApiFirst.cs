@@ -1,7 +1,6 @@
 ﻿using EvDb.Core;
 using EvDb.Scenes;
 using FakeItEasy;
-using System.CodeDom.Compiler;
 
 namespace EvDb.UnitTests;
 

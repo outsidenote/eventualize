@@ -29,7 +29,7 @@ public interface IEvDbFactory
     JsonSerializerOptions? JsonSerializerOptions { get; }
 }
 
-public interface IEvDbFactory<T>: IEvDbFactory
+public interface IEvDbFactory<T> : IEvDbFactory
     where T : IEvDb, IEvDbEventTypes
 {
 

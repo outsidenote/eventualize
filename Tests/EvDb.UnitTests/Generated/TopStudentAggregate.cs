@@ -2,13 +2,12 @@
 using EvDb.Scenes;
 using System.CodeDom.Compiler;
 using System.Diagnostics;
-using System.Reflection;
 using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
 public interface ITopStudentAggregate : IEvDbAggregate<ICollection<StudentScoreState>>, IEducationEventTypes
-{ 
+{
 }
 
 [GeneratedCode("The following line should generated", "v0")]

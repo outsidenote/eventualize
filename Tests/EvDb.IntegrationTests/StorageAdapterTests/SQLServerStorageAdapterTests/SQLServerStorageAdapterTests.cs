@@ -113,4 +113,5 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         ICollection<IEvDbStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
         Assert.True(((IEvDbAggregate)aggregate).Events.SequenceEqual(events, EvDbEventComparer.Default));
     }
+
 }

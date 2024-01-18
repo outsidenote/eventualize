@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
@@ -12,7 +11,7 @@ public interface IEvDbEventMeta
     string CapturedBy { get; }
 }
 
-public interface IEvDbEvent: IEvDbEventMeta
+public interface IEvDbEvent : IEvDbEventMeta
 {
     T GetData<T>(JsonSerializerOptions? options = null);
     //T GetData<T>(JsonTypeInfo<T> context);

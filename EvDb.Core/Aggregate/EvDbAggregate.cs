@@ -1,8 +1,4 @@
-﻿
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using System.ComponentModel.Design;
+﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
@@ -123,7 +119,7 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
     #region AddEvent
 
     protected void AddEvent<T>(T payload, string? capturedBy = null)
-        where T: IEvDbEventPayload
+        where T : IEvDbEventPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
         IEvDbEvent e = EvDbEventFactory.Create(payload, capturedBy, Options);
@@ -205,7 +201,7 @@ public class EvDbClient : EvDbAggregate, IEvDb, IEvDbStoredEventSync
     #region AddEvent
 
     protected void AddEvent<T>(T payload, string? capturedBy = null)
-        where T: IEvDbEventPayload
+        where T : IEvDbEventPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
         IEvDbEvent e = EvDbEventFactory.Create(payload, capturedBy, Options);

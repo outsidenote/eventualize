@@ -1,7 +1,6 @@
 ﻿using Generator.Equals;
 using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
@@ -11,14 +10,14 @@ namespace EvDb.Core;
 [DebuggerDisplay("{EventType}")]
 public partial record EvDbEventMeta(string EventType,
                                        [property: IgnoreEquality] DateTime CapturedAt,
-                                       string CapturedBy): IEvDbEventMeta;
+                                       string CapturedBy) : IEvDbEventMeta;
 [Equatable]
 [DebuggerDisplay("{EventType}: {Data}")]
 public partial record EvDbEvent(string eventType,
                                        [property: IgnoreEquality] DateTime capturedAt,
                                        string capturedBy,
                                        string Data) :
-                                            EvDbEventMeta(eventType , capturedAt, capturedBy),
+                                            EvDbEventMeta(eventType, capturedAt, capturedBy),
                                             IEvDbEvent
 {
     T IEvDbEvent.GetData<T>(JsonSerializerOptions? options)

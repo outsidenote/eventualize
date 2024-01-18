@@ -1,14 +1,10 @@
 ﻿#pragma warning disable HAA0301 // Closure Allocation Source
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
 #pragma warning disable HAA0401 // Possible allocation of reference type enumerator
-using System.Collections.Immutable;
-using System;
-using System.Text;
-
+using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Threading;
-using EvDb.SourceGenerator.Helpers;
+using System.Text;
 
 namespace EvDb.SourceGenerator;
 
@@ -54,13 +50,13 @@ public partial class EventTypesGenerator : BaseGenerator
 
         var asm = GetType().Assembly.GetName();
         var attributes = from att in typeSymbol.GetAttributes()
-                   let text = att.AttributeClass?.Name
-                   where text == EventTargetAttribute
-                   let fullName = att.AttributeClass?.ToString()
-                   let genStart = fullName.IndexOf('<') + 1
-                   let genLen = fullName.Length - genStart - 1
-                   let generic = fullName.Substring(genStart, genLen)
-                   select generic;
+                         let text = att.AttributeClass?.Name
+                         where text == EventTargetAttribute
+                         let fullName = att.AttributeClass?.ToString()
+                         let genStart = fullName.IndexOf('<') + 1
+                         let genLen = fullName.Length - genStart - 1
+                         let generic = fullName.Substring(genStart, genLen)
+                         select generic;
         var adds = attributes.Select(m => $"void Add({m} payload, string? capturedBy = null);");
 
         builder.AppendLine($$"""

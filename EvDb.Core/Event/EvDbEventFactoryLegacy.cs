@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace EvDb.Core;
 
 [Obsolete("use EvDbEventFactory")]
-public class EvDbEventFactoryLegacy 
+public class EvDbEventFactoryLegacy
 {
     public readonly string EventType;
     public readonly string CapturedBy;

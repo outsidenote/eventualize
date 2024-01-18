@@ -1,9 +1,6 @@
 ﻿using EvDb.Core;
 using EvDb.Scenes;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.Intrinsics.X86;
 using System.Text.Json;
 
 
@@ -38,7 +35,7 @@ public partial class SchoolFactory
 
     #region Fold // deprecate
 
-    protected override IImmutableDictionary<int, StudentStats> DefaultState { get; } = ImmutableDictionary<int , StudentStats>.Empty;
+    protected override IImmutableDictionary<int, StudentStats> DefaultState { get; } = ImmutableDictionary<int, StudentStats>.Empty;
 
     protected override IImmutableDictionary<int, StudentStats> Fold(
         IImmutableDictionary<int, StudentStats> state,
@@ -47,7 +44,7 @@ public partial class SchoolFactory
     {
         int id = enlisted.Student.Id;
         string name = enlisted.Student.Name;
-        if(!state.ContainsKey(id)) 
+        if (!state.ContainsKey(id))
         {
             state = state.Add(id, new StudentStats(name, 0, 0));
         }

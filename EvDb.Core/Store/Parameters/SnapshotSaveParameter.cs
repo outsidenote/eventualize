@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
@@ -16,7 +15,7 @@ public readonly record struct SnapshotSaveParameter(
 {
     public static SnapshotSaveParameter Create<T>(
                     IEvDbAggregate<T> aggregate,
-                    JsonSerializerOptions? options = null) 
+                    JsonSerializerOptions? options = null)
     {
         string payload = JsonSerializer.Serialize(aggregate.State, options);
         return new(

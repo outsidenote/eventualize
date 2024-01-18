@@ -1,10 +1,9 @@
 ﻿using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 
 namespace EvDb.Core;
 
-public static class EvDbEventFactory 
+public static class EvDbEventFactory
 {
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
@@ -13,7 +12,7 @@ public static class EvDbEventFactory
         T data,
         string? capturedBy = null,
         JsonSerializerOptions? options = null)
-        where T: IEvDbEventPayload
+        where T : IEvDbEventPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
         var json = JsonSerializer.Serialize(data, options);
@@ -25,7 +24,7 @@ public static class EvDbEventFactory
         T data,
         JsonSerializerOptions? options,
         string? capturedBy = null)
-        where T: IEvDbEventPayload
+        where T : IEvDbEventPayload
     {
         var result = Create(data, capturedBy, options);
 

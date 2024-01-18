@@ -1,21 +1,18 @@
 ﻿using EvDb.Core;
 using EvDb.Scenes;
 using System.CodeDom.Compiler;
-using System.Data.SqlTypes;
 using System.Diagnostics;
-using System.Text.Json;
-using static EvDb.UnitTests.TopStudentFactory;
 
 namespace EvDb.UnitTests;
 
 [DebuggerDisplay("{Kind}...")]
 [GeneratedCode("from IEducationEventTypes<T0, T1,...>", "v0")]
-public abstract class TopStudentFactoryBase: 
+public abstract class TopStudentFactoryBase :
         AggregateFactoryBase<ITopStudentAggregate, ICollection<StudentScoreState>>
 {
     #region Ctor
 
-    public TopStudentFactoryBase(IEvDbStorageAdapter storageAdapter) :base(storageAdapter)
+    public TopStudentFactoryBase(IEvDbStorageAdapter storageAdapter) : base(storageAdapter)
     {
     }
 
@@ -24,7 +21,7 @@ public abstract class TopStudentFactoryBase:
     #region Create
 
     public override ITopStudentAggregate Create(
-        string streamId, 
+        string streamId,
         long lastStoredOffset = -1)
     {
         EvDbStreamAddress stream = new(Partition, streamId);
@@ -61,17 +58,17 @@ public abstract class TopStudentFactoryBase:
 
 
     #endregion // Create
- 
+
     #region FoldEvent
 
     protected override ICollection<StudentScoreState> FoldEvent(
-        ICollection<StudentScoreState> oldState, 
+        ICollection<StudentScoreState> oldState,
         IEvDbEvent someEvent)
     {
         ICollection<StudentScoreState> result;
         switch (someEvent.EventType)
         {
-            case  "course-created":
+            case "course-created":
                 {
                     var payload = someEvent.GetData<CourseCreatedEvent>(JsonSerializerOptions);
                     result = Fold(oldState, payload, someEvent);
@@ -84,11 +81,11 @@ public abstract class TopStudentFactoryBase:
                     break;
                 }
 
-                // TODO: others ...
+            // TODO: others ...
             default:
                 throw new NotSupportedException(someEvent.EventType);
         }
-        return result;  
+        return result;
     }
 
     #endregion // FoldEvent

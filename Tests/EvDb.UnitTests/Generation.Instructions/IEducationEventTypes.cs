@@ -1,7 +1,5 @@
 ﻿using EvDb.Core;
 using EvDb.Scenes;
-using EvDb.UnitTests;
-using System.Text.Json.Serialization;
 
 
 namespace EvDb.UnitTests;
