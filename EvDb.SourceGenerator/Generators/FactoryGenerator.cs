@@ -13,7 +13,7 @@ namespace EvDb.SourceGenerator;
 [Generator]
 public partial class FactoryGenerator : BaseGenerator
 {
-    protected override string EventTargetAttribute { get; } = "EvDbFactoryAttribute";
+    protected override string EventTargetAttribute { get; } = "EvDbStreamFactoryAttribute";
 
     #region OnGenerate
 

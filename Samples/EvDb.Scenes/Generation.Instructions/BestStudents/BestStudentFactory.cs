@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-[EvDbAggregateFactory<ICollection<StudentScoreState>, IStudentFlowEventTypes>]
+[EvDbAggregateFactory<ICollection<StudentScoreState>, ISchoolCollection>]
 public partial class BestStudentFactory
 {
     private readonly ConcurrentDictionary<int, StudentEntity> _students = new ConcurrentDictionary<int, StudentEntity>();

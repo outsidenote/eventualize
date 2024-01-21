@@ -2,7 +2,7 @@
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class EvDbFoldingAttribute
-    <TState, TEventType> : Attribute
-    where TEventType : IEvDbEventTypes
+    <TState, TEventAdder> : Attribute
+    where TEventAdder : IEvDbEventAdder
 {
 }

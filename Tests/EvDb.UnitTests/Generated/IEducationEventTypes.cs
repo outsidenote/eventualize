@@ -6,7 +6,7 @@ namespace EvDb.UnitTests;
 
 [GeneratedCode("The following line should generated", "v0")]
 partial interface IEducationEventTypes :
-    IEvDbEventTypes
+    IEvDbEventAdder
 {
     void Add(CourseCreatedEvent payload, string? capturedBy = null);
     void Add(ScheduleTestEvent payload, string? capturedBy = null);

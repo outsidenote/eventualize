@@ -8,7 +8,7 @@ namespace EvDb.Core;
 public abstract class AggregateFactoryBase<T, TState> :
         IEvDbFoldingLogic<TState>,
         IEvDbAggregateFactory<T, TState>
-    where T : IEvDbAggregate<TState>, IEvDbEventTypes
+    where T : IEvDbAggregate<TState>, IEvDbEventAdder
 {
     protected readonly IEvDbRepository _repository;
 
@@ -70,7 +70,7 @@ public abstract class AggregateFactoryBase<T, TState> :
 
 [DebuggerDisplay("{Kind}...")]
 public abstract class EvDbFactoryBase<T> : IEvDbFactory<T>
-    where T : IEvDb, IEvDbEventTypes
+    where T : IEvDb, IEvDbEventAdder
 {
     protected readonly IEvDbRepositoryV1 _repository;
 

@@ -1,10 +1,11 @@
 ﻿using EvDb.Core;
+using EvDb.Scenes;
 using System.Text.Json;
 
 
 namespace EvDb.UnitTests;
 
-[EvDbFactory<IStudentFlowEventTypes>]
+[EvDbStreamFactory<ISchoolCollection>]
 public partial class SchoolXFactory
 {
     #region Ctor
@@ -37,4 +38,6 @@ public partial class SchoolXFactory
         };
 
     #endregion // FoldingsFactories
+
+    
 }

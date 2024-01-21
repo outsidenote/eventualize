@@ -60,7 +60,7 @@ public partial class EventTypesGenerator : BaseGenerator
         var adds = attributes.Select(m => $"void Add({m} payload, string? capturedBy = null);");
 
         builder.AppendLine($$"""
-                    partial interface {{typeSymbol.Name}}: IEvDbEventTypes
+                    partial interface {{typeSymbol.Name}}: IEvDbEventAdder
                     {
                     """);
         foreach (var add in adds)

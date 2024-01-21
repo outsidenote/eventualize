@@ -12,7 +12,7 @@ public interface IEvDbRepository
         IEvDbAggregateFactory<T, TState> factory,
         string streamId,
         CancellationToken cancellation = default)
-            where T : IEvDbAggregate<TState>, IEvDbEventTypes;
+            where T : IEvDbAggregate<TState>, IEvDbEventAdder;
 
     Task SaveAsync<TState>(IEvDbAggregate<TState> aggregate, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
 }
@@ -24,7 +24,7 @@ public interface IEvDbRepositoryV1
         IEvDbFactory<T> factory,
         string streamId,
         CancellationToken cancellation = default)
-            where T : IEvDb, IEvDbEventTypes;
+            where T : IEvDb, IEvDbEventAdder;
 
     Task SaveAsync(IEvDb aggregate, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
 }

@@ -14,6 +14,6 @@ namespace EvDb.UnitTests;
 [EvDbEventType<StudentReceivedGradeEvent>]
 [EvDbEventType<StudentRegisteredToCourseEvent>]
 [EvDbEventType<StudentTestSubmittedEvent>]
-public partial interface IStudentFlowEventTypes
+public partial interface ISchoolCollection
 {
 }

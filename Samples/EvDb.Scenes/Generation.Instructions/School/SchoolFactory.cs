@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-[EvDbAggregateFactory<IImmutableDictionary<int, StudentStats>, IStudentFlowEventTypes>]
+[EvDbAggregateFactory<IImmutableDictionary<int, StudentStats>, ISchoolCollection>]
 public partial class SchoolFactory
 {
     #region Ctor
