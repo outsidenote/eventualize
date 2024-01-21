@@ -11,9 +11,9 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class FoldingGenerator : BaseGenerator
+public partial class ViewGenerator : BaseGenerator
 {
-    protected override string EventTargetAttribute { get; } = "EvDbFoldingAttribute";
+    protected override string EventTargetAttribute { get; } = "EvDbViewAttribute";
 
     #region OnGenerate
 
@@ -74,7 +74,7 @@ public partial class FoldingGenerator : BaseGenerator
                              let cls = (INamedTypeSymbol)(a.AttributeClass!)
                              where cls != null
                              let text = cls.Name
-                             where text == EventTypesGenerator.EventTarget
+                             where text == EventAdderGenerator.EventTarget
                              let payloadType = cls.TypeArguments.First()
                              let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
                              let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()

@@ -106,7 +106,7 @@ public partial class AggregateGenerator : BaseGenerator
                              let cls = (INamedTypeSymbol)(a.AttributeClass!)
                              where cls != null
                              let text = cls.Name
-                             where text == EventTypesGenerator.EventTarget
+                             where text == EventAdderGenerator.EventTarget
                              let payloadType = cls.TypeArguments.First()
                              let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
                              let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()
@@ -169,7 +169,7 @@ public partial class AggregateGenerator : BaseGenerator
                             long lastStoredOffset = -1)
                         {
                             EvDbStreamAddress stream = new(Partition, streamId);
-                            {{rootName}}__Aggregate agg =
+                            {{rootName}}__Collection agg =
                                 new(
                                     _repository,
                                     Kind,
@@ -186,7 +186,7 @@ public partial class AggregateGenerator : BaseGenerator
                         public override {{aggregateInterfaceType}} Create(EvDbStoredSnapshot<{{stateType}}> snapshot)
                         {
                             EvDbStreamAddress stream = snapshot.Cursor;
-                            {{rootName}}__Aggregate agg =
+                            {{rootName}}__Collection agg =
                                 new(
                                     _repository,
                                     Kind,
@@ -265,13 +265,13 @@ public partial class AggregateGenerator : BaseGenerator
 
                     """);
         builder.AppendLine($$"""
-                    public class {{rootName}}__Aggregate: EvDbAggregate<{{stateType}}>,
+                    public class {{rootName}}__Collection: EvDbAggregate<{{stateType}}>,
                     {{eventType}},
                             I{{rootName}}
                     { 
                         #region Ctor
 
-                        public {{rootName}}__Aggregate(
+                        public {{rootName}}__Collection(
                             IEvDbRepository repository,
                             string kind,
                             EvDbStreamAddress streamId,

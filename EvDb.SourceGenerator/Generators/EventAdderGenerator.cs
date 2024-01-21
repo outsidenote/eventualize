@@ -9,9 +9,9 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EventTypesGenerator : BaseGenerator
+public partial class EventAdderGenerator : BaseGenerator
 {
-    internal const string EventTarget = "EvDbEventTypeAttribute";
+    internal const string EventTarget = "EvDbEventAdderAttribute";
     protected override string EventTargetAttribute { get; } = EventTarget;
 
     #region OnGenerate

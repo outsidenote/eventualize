@@ -1,7 +1,7 @@
 ﻿namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Interface, AllowMultiple = true)]
-public class EvDbEventTypeAttribute<T> : Attribute
+public class EvDbEventAdderAttribute<T> : Attribute
     where T : IEvDbEventPayload
 {
 }

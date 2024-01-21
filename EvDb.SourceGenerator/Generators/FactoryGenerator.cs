@@ -135,7 +135,7 @@ public partial class FactoryGenerator : BaseGenerator
                             string streamId, 
                             long lastStoredOffset = -1)
                         {
-                            {{rootName}}__Aggregate agg =
+                            {{rootName}}__Collection agg =
                                 new(
                                     this,
                                     _foldings,
@@ -149,7 +149,7 @@ public partial class FactoryGenerator : BaseGenerator
                         // public override {{aggregateInterfaceType}} Create(EvDbStoredSnapshot? snapshot)
                         // {
                         //     EvDbStreamAddress stream = snapshot.Cursor;
-                        //     {{rootName}}__Aggregate agg =
+                        //     {{rootName}}__Collection agg =
                         //         new(
                         //             _repository,
                         //             Kind,
@@ -196,7 +196,7 @@ public partial class FactoryGenerator : BaseGenerator
                              let cls = (INamedTypeSymbol)(a.AttributeClass!)
                              where cls != null
                              let text = cls.Name
-                             where text == EventTypesGenerator.EventTarget
+                             where text == EventAdderGenerator.EventTarget
                              let payloadType = cls.TypeArguments.First()
                              let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
                              let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()
@@ -226,14 +226,14 @@ public partial class FactoryGenerator : BaseGenerator
 
                     """);
         builder.AppendLine($$"""
-                    public class {{rootName}}__Aggregate: 
+                    public class {{rootName}}__Collection: 
                             EvDbClient,
                             {{eventType}},
                             I{{rootName}}
                     { 
                         #region Ctor
 
-                        public {{rootName}}__Aggregate(
+                        public {{rootName}}__Collection(
                             IEvDbFactory factory,
                             IEnumerable<IEvDbFoldingUnit> foldings,
                             IEvDbRepositoryV1 repository,
