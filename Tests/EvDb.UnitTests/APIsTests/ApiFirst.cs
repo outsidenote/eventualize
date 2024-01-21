@@ -11,10 +11,11 @@ public class ApiFirst
     [Fact]
     public async Task ApiGeneratedDesign()
     {
-        BestStudentFactory factory = new BestStudentFactory(_storageAdapter);
-        IBestStudent agg = factory.Create("class a-3");
-        var course = new CourseCreatedEvent(123, "algorithm", 50);
-        agg.Add(course);
+        throw new NotImplementedException();
+        //BestStudentFactory factory = new BestStudentFactory(_storageAdapter);
+        //IBestStudent agg = factory.Create("class a-3");
+        //var course = new CourseCreatedEvent(123, "algorithm", 50);
+        //agg.Add(course);
     }
 
     [Fact]

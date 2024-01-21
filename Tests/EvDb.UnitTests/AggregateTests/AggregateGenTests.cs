@@ -19,7 +19,7 @@ public class AggregateGenTests
     [Fact]
     public void Aggregate_WhenAddingPendingEvent_Succeed()
     {
-        ISchool aggregate = Steps
+        ISchoolX aggregate = Steps
                             .GivenLocalAggerate(_output, _storageAdapter)
                             .WhenAddingPendingEvents();
 
@@ -27,10 +27,11 @@ public class AggregateGenTests
 
         void ThenPendingEventsAddedSuccessfully()
         {
-            Assert.Single(aggregate.State);
-            var studentSum = aggregate.State.First().Value.Sum;
-            Assert.Equal(180, studentSum);
-            Assert.Equal(4, aggregate.EventsCount);
+            throw new NotImplementedException();
+            //Assert.Single(aggregate.State);
+            //var studentSum = aggregate.State.First().Value.Sum;
+            //Assert.Equal(180, studentSum);
+            //Assert.Equal(4, aggregate.EventsCount);
         }
     }
 
@@ -45,22 +46,23 @@ public class AggregateGenTests
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            Assert.Single(aggregate.State);
-            var studentSum = aggregate.State.First().Value.Sum;
-            Assert.Equal(430, studentSum);
-            Assert.Equal(3, aggregate.EventsCount);
+            throw new NotImplementedException();
+            //Assert.Single(aggregate.State);
+            //var studentSum = aggregate.State.First().Value.Sum;
+            //Assert.Equal(430, studentSum);
+            //Assert.Equal(3, aggregate.EventsCount);
         }
     }
 
     [Fact]
     public async Task Aggregate_WhenStoringAggregateWithoutSnapshot_Succeed()
     {
-        ISchool aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+        ISchoolX aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
                          .WhenAggregateIsSavedAsync();
 
         ThenAggregateSavedWithoutSnapshot(aggregate);
 
-        void ThenAggregateSavedWithoutSnapshot(ISchool aggregate)
+        void ThenAggregateSavedWithoutSnapshot(ISchoolX aggregate)
         {
             Assert.Equal(0, aggregate.EventsCount);
 
@@ -73,13 +75,13 @@ public class AggregateGenTests
     [Fact]
     public async Task Aggregate_WhenStoringAggregateWithSnapshot_Succeed()
     {
-        ISchool aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+        ISchoolX aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
                          .GivenAddGrades()
                          .WhenAggregateIsSavedAsync();
 
         ThenAggregateSavedWithSnapshot(aggregate);
 
-        void ThenAggregateSavedWithSnapshot(ISchool aggregate)
+        void ThenAggregateSavedWithSnapshot(ISchoolX aggregate)
         {
             Assert.Equal(0, aggregate.EventsCount);
 
@@ -94,13 +96,13 @@ public class AggregateGenTests
     [Fact]
     public async Task Aggregate_WhenStoringAggregateWithSnapshotWithOffset_Succeed()
     {
-        ISchool aggregate = await _storageAdapter.GivenStoredEvents(_output)
+        ISchoolX aggregate = await _storageAdapter.GivenStoredEvents(_output)
                         .GivenAddGradesAsync()
                         .WhenAggregateIsSavedAsync();
 
         ThenAggregateSavedWithSnapshot(aggregate);
 
-        void ThenAggregateSavedWithSnapshot(ISchool aggregate)
+        void ThenAggregateSavedWithSnapshot(ISchoolX aggregate)
         {
             Assert.Equal(0, aggregate.EventsCount);
 

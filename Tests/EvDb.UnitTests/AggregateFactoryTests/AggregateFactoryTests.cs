@@ -48,10 +48,11 @@ public sealed class AggregateFactoryTests
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            Assert.Single(aggregate.State);
-            var studentAvg = aggregate.State.First().Value.Sum;
-            Assert.Equal(180, studentAvg);
-            Assert.Equal(0, aggregate.EventsCount);
+            throw new NotImplementedException();
+            //Assert.Single(aggregate.State);
+            //var studentAvg = aggregate.State.First().Value.Sum;
+            //Assert.Equal(180, studentAvg);
+            //Assert.Equal(0, aggregate.EventsCount);
         }
     }
 
@@ -64,10 +65,11 @@ public sealed class AggregateFactoryTests
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            Assert.Single(aggregate.State);
-            var studentSum = aggregate.State.First().Value.Sum;
-            Assert.Equal(70, studentSum);
-            Assert.Equal(0, aggregate.EventsCount);
+            throw new NotImplementedException();
+            //Assert.Single(aggregate.State);
+            //var studentSum = aggregate.State.First().Value.Sum;
+            //Assert.Equal(70, studentSum);
+            //Assert.Equal(0, aggregate.EventsCount);
         }
     }
 
@@ -80,10 +82,11 @@ public sealed class AggregateFactoryTests
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            Assert.Single(aggregate.State);
-            var studentSum = aggregate.State.First().Value.Sum;
-            Assert.Equal(250, studentSum);
-            Assert.Equal(0, aggregate.EventsCount);
+            throw new NotImplementedException();
+            //Assert.Single(aggregate.State);
+            //var studentSum = aggregate.State.First().Value.Sum;
+            //Assert.Equal(250, studentSum);
+            //Assert.Equal(0, aggregate.EventsCount);
         }
     }
 

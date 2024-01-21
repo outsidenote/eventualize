@@ -10,7 +10,7 @@ using System.Text;
 
 namespace EvDb.SourceGenerator;
 
-[Generator]
+// [Generator]
 public partial class AggregateGenerator : BaseGenerator
 {
     protected override string EventTargetAttribute { get; } = "EvDbAggregateFactoryAttribute";
