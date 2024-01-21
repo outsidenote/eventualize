@@ -14,7 +14,7 @@ public readonly record struct SnapshotSaveParameter(
                     string Payload)
 {
     public static SnapshotSaveParameter Create<T>(
-                    IEvDbAggregate<T> aggregate,
+                    IEvDbAggregateDeprecated<T> aggregate,
                     JsonSerializerOptions? options = null)
     {
         string payload = JsonSerializer.Serialize(aggregate.State, options);

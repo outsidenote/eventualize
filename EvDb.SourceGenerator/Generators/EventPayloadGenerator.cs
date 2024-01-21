@@ -9,7 +9,7 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EventPayloadTypesGenerator : BaseGenerator
+public partial class EventPayloadGenerator : BaseGenerator
 {
     protected override string EventTargetAttribute { get; } = "EvDbEventPayloadAttribute";
 

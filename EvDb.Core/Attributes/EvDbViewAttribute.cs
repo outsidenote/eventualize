@@ -5,4 +5,5 @@ public class EvDbViewAttribute
     <TState, TEventAdder> : Attribute
     where TEventAdder : IEvDbEventAdder
 {
+    
 }

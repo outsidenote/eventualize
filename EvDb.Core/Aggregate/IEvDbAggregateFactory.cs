@@ -5,7 +5,7 @@ namespace EvDb.Core;
 
 [Obsolete("Deprecated")]
 public interface IEvDbAggregateFactory<T, TState>
-    where T : IEvDbAggregate<TState>, IEvDbEventAdder
+    where T : IEvDbAggregateDeprecated<TState>, IEvDbEventAdder
 {
     EvDbPartitionAddress Partition { get; }
 
@@ -30,7 +30,7 @@ public interface IEvDbFactory
 }
 
 public interface IEvDbFactory<T> : IEvDbFactory
-    where T : IEvDb, IEvDbEventAdder
+    where T : IEvDbCollection, IEvDbEventAdder
 {
 
     T Create(string streamId,

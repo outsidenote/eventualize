@@ -136,7 +136,7 @@ internal static class Steps
         this ISchoolXFactory factory,
         IEvDbStorageAdapter storageAdapter)
     {
-        A.CallTo(() => storageAdapter.SaveAsync<STATE_TYPE>(A<IEvDbAggregate<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+        A.CallTo(() => storageAdapter.SaveAsync<STATE_TYPE>((Core.IEvDbAggregateDeprecated<STATE_TYPE>)A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
             .ThrowsAsync(new OCCException());
 
         return factory;

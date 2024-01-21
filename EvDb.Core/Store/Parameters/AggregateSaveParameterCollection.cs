@@ -10,7 +10,7 @@ public class AggregateSaveParameterCollection<T> : IEnumerable<AggregateSavePara
     private readonly string aggregateId;
     private readonly string aggregateType;
     private readonly long baseSeq;
-    public AggregateSaveParameterCollection(IEvDbAggregate aggregate)
+    public AggregateSaveParameterCollection(IEvDbCollectionMeta aggregate)
     {
         _domain = aggregate.StreamId.Domain;
         aggregateId = aggregate.StreamId.StreamId;

@@ -111,7 +111,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
         Assert.NotNull(asyncEvents);
         ICollection<IEvDbStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
-        Assert.True(((IEvDbAggregate)aggregate).Events.SequenceEqual(events, EvDbEventComparer.Default));
+        Assert.True(((IEvDbCollectionMeta)aggregate).Events.SequenceEqual(events, EvDbEventComparer.Default));
     }
 
 }

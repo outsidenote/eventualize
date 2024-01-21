@@ -42,7 +42,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         #endregion // Exception Handling
 
-        #region string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
+        #region string rootName = .., interfaceType = .., stateType = .., eventType = ..
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
         string factoryName = typeSymbol.Name;
@@ -56,8 +56,6 @@ public partial class FactoryGenerator : BaseGenerator
 
         AssemblyName asm = GetType().Assembly.GetName();
 
-        string aggregateInterfaceType = $"I{rootName}";
-
         AttributeData att = typeSymbol.GetAttributes()
                                   .Where(att => att.AttributeClass?.Name == EventTargetAttribute)
                                   .First();
@@ -65,7 +63,10 @@ public partial class FactoryGenerator : BaseGenerator
         ITypeSymbol eventTypeSymbol = args[0];
         string eventType = eventTypeSymbol.ToDisplayString();
 
-        #endregion // string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
+        string interfaceType = $"I{rootName}";
+        string factoryInterfaceType = $"{interfaceType}Factory";
+
+        #endregion // string rootName = .., interfaceType = .., stateType = .., eventType = ..
 
         #region Aggregate Interface
 
@@ -74,11 +75,11 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public interface {{aggregateInterfaceType}}: IEvDb, {{eventType}}
+                    public interface {{interfaceType}}: IEvDbCollection, {{eventType}}
                     { 
                     }
                     """);
-        context.AddSource($"{aggregateInterfaceType}.generated.cs", builder.ToString());
+        context.AddSource($"{interfaceType}.generated.cs", builder.ToString());
 
         #endregion // Aggregate Interface
 
@@ -91,11 +92,11 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public interface {{aggregateInterfaceType}}Factory: IEvDbFactory<{{aggregateInterfaceType}}>
+                    public interface {{factoryInterfaceType}}: IEvDbFactory<{{interfaceType}}>
                     { 
                     }
                     """);
-        context.AddSource($"{aggregateInterfaceType}Factory.generated.cs", builder.ToString());
+        context.AddSource($"{factoryInterfaceType}.generated.cs", builder.ToString());
 
         #endregion // Factory Interface
 
@@ -114,7 +115,7 @@ public partial class FactoryGenerator : BaseGenerator
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     public abstract class {{factoryName}}Base:
-                        EvDbFactoryBase<{{aggregateInterfaceType}}>
+                        EvDbFactoryBase<{{interfaceType}}>
                     {                
                         private readonly IImmutableList<IEvDbFoldingUnit> _foldings;
                         #region Ctor
@@ -131,7 +132,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                         #region Create
 
-                        public override {{aggregateInterfaceType}} Create(
+                        public override {{interfaceType}} Create(
                             string streamId, 
                             long lastStoredOffset = -1)
                         {
@@ -146,7 +147,7 @@ public partial class FactoryGenerator : BaseGenerator
                             return agg;
                         }
 
-                        // public override {{aggregateInterfaceType}} Create(EvDbStoredSnapshot? snapshot)
+                        // public override {{interfaceType}} Create(EvDbStoredSnapshot? snapshot)
                         // {
                         //     EvDbStreamAddress stream = snapshot.Cursor;
                         //     {{rootName}}__Collection agg =
@@ -180,7 +181,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     partial {{type}} {{factoryName}}: {{factoryName}}Base,
-                            {{aggregateInterfaceType}}Factory
+                            {{factoryInterfaceType}}
                     { 
                     }
                     """);
@@ -229,7 +230,7 @@ public partial class FactoryGenerator : BaseGenerator
                     public class {{rootName}}__Collection: 
                             EvDbClient,
                             {{eventType}},
-                            I{{rootName}}
+                            {{interfaceType}}
                     { 
                         #region Ctor
 

@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-public interface ITopStudentAggregate : IEvDbAggregate<ICollection<StudentScoreState>>, IEducationEventTypes
+public interface ITopStudentAggregate : IEvDbAggregateDeprecated<ICollection<StudentScoreState>>, IEducationEventTypes
 {
 }
 

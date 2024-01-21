@@ -73,7 +73,7 @@ public partial class AggregateGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public interface {{aggregateInterfaceType}}: IEvDbAggregate<{{stateType}}>, {{eventType}}
+                    public interface {{aggregateInterfaceType}}: IEvDbCollectionMeta<{{stateType}}>, {{eventType}}
                     { 
                     }
                     """);

@@ -8,7 +8,7 @@ public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
 
     IAsyncEnumerable<IEvDbStoredEvent> GetAsync(EvDbStreamCursor parameter, CancellationToken cancellation = default);
 
-    Task SaveAsync<T>(IEvDbAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
+    Task SaveAsync<T>(IEvDbAggregateDeprecated<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
 
-    Task<long> GetLastOffsetAsync<T>(IEvDbAggregate<T> aggregate, CancellationToken cancellation = default);
+    Task<long> GetLastOffsetAsync<T>(IEvDbAggregateDeprecated<T> aggregate, CancellationToken cancellation = default);
 }

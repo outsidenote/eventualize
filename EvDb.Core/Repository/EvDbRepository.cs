@@ -59,7 +59,7 @@ internal class EvDbRepository : IEvDbRepository
 
     // TODO: [bnaya 2023-12-28] reduce duplication
     async Task IEvDbRepository.SaveAsync<TState>(
-        IEvDbAggregate<TState> aggregate,
+        IEvDbAggregateDeprecated<TState> aggregate,
         JsonSerializerOptions? options,
         CancellationToken cancellation)
     {
@@ -78,7 +78,7 @@ internal class EvDbRepository : IEvDbRepository
         aggregate.ClearLocalEvents(); // TODO: [bnaya 2024-01-09] selective clear is needed
     }
 
-    //async Task IEvDbRepository.SaveAsync<T>(IEvDbAggregate<T> aggregate, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
+    //async Task IEvDbRepository.SaveAsync<T>(IEvDbAggregateDeprecated<T> aggregate, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
     //{
     //    if (aggregate.IsEmpty)
     //    {
@@ -150,7 +150,7 @@ public class EvDbRepositoryV1 : IEvDbRepositoryV1
 
     // TODO: [bnaya 2023-12-28] reduce duplication
     async Task IEvDbRepositoryV1.SaveAsync(
-        IEvDb aggregate,
+        IEvDbCollection aggregate,
         JsonSerializerOptions? options,
         CancellationToken cancellation)
     {
@@ -172,7 +172,7 @@ public class EvDbRepositoryV1 : IEvDbRepositoryV1
         //aggregate.ClearLocalEvents(); // TODO: [bnaya 2024-01-09] selective clear is needed
     }
 
-    //async Task IEvDbRepository.SaveAsync<T>(IEvDbAggregate<T> aggregate, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
+    //async Task IEvDbRepository.SaveAsync<T>(IEvDbAggregateDeprecated<T> aggregate, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
     //{
     //    if (aggregate.IsEmpty)
     //    {

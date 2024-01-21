@@ -9,7 +9,7 @@ namespace EvDb.Core;
 
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public abstract class EvDbAggregate : IEvDbAggregate
+public abstract class EvDbAggregate : IEvDbCollectionMeta
 {
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<IEvDbEvent> _pendingEvents = ImmutableList<IEvDbEvent>.Empty;
@@ -67,17 +67,17 @@ public abstract class EvDbAggregate : IEvDbAggregate
 
     #region IsEmpty
 
-    bool IEvDbAggregate.IsEmpty => _pendingEvents.Count == 0;
+    bool IEvDbCollectionMeta.IsEmpty => _pendingEvents.Count == 0;
 
     #endregion // IsEmpty
 
     public JsonSerializerOptions? Options { get; }
 
-    IEnumerable<IEvDbEvent> IEvDbAggregate.Events => _pendingEvents;
+    IEnumerable<IEvDbEvent> IEvDbCollectionMeta.Events => _pendingEvents;
 }
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvDbStoredEventSync
+public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregateDeprecated<TState>, IEvDbStoredEventSync
 {
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
@@ -156,7 +156,7 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
         _pendingEvents = _pendingEvents.Clear();
     }
 
-    async Task IEvDbAggregate<TState>.SaveAsync(CancellationToken cancellation)
+    async Task IEvDbAggregateDeprecated<TState>.SaveAsync(CancellationToken cancellation)
     {
         try
         {
@@ -173,7 +173,7 @@ public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregate<TState>, IEvD
 }
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbClient : EvDbAggregate, IEvDb, IEvDbStoredEventSync
+public class EvDbClient : EvDbAggregate, IEvDbCollection, IEvDbStoredEventSync
 {
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
@@ -240,7 +240,7 @@ public class EvDbClient : EvDbAggregate, IEvDb, IEvDbStoredEventSync
         _pendingEvents.Clear();
     }
 
-    async Task IEvDb.SaveAsync(CancellationToken cancellation)
+    async Task IEvDbCollection.SaveAsync(CancellationToken cancellation)
     {
         try
         {
