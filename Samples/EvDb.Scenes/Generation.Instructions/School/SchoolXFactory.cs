@@ -35,7 +35,7 @@ public partial class SchoolXFactory
 
     protected override Func<JsonSerializerOptions?, IEvDbView>[] ViewFactories { get; } =
         {
-             StudentStatsFolding.Create
+             StudentStatsView.Create
         };
 
     #endregion // ViewFactories

@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 namespace EvDb.UnitTests;
 
 [EvDbView<IEnumerable<StudentStats>, ISchoolCollection>]
-internal partial class StudentStatsFolding
+internal partial class StudentStatsView
 {
     private readonly ConcurrentDictionary<int, StudentCalc> _students = new();
 
