@@ -1,52 +1,41 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Reflection;
-using System.Text.Json;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
 namespace EvDb.Core;
 
-[Obsolete("Deprecated")]
-[DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbAggregate<TState> : EvDbCollectionMeta, IEvDbAggregateDeprecated<TState>, IEvDbCollectionHidden
+//[DebuggerDisplay("")]
+public class EvDbCollection : EvDbCollectionMeta, IEvDbCollection, IEvDbCollectionHidden
 {
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
-    protected readonly IEvDbRepository _repository;
+    protected readonly IEvDbRepositoryV1 _repository;
 
     #region Ctor
 
-    public EvDbAggregate(
-        IEvDbRepository repository,
-        string kind,
-        EvDbStreamAddress streamId,
-        IEvDbFoldingLogic<TState> foldingLogic,
-        int minEventsBetweenSnapshots,
-        TState state,
-        long lastStoredOffset,
-        JsonSerializerOptions? options)
-        : base(kind, streamId, minEventsBetweenSnapshots, lastStoredOffset, options)
+    public EvDbCollection(
+        IEvDbFactory factory,
+        IImmutableDictionary<string, IEvDbView> views,
+        IEvDbRepositoryV1 repository,
+        string streamId,
+        long lastStoredOffset)
+        : base(factory.Kind, new EvDbStreamAddress(factory.Partition, streamId), factory.MinEventsBetweenSnapshots, lastStoredOffset, factory.JsonSerializerOptions)
     {
-        State = state;
         _repository = repository;
-        FoldingLogic = foldingLogic;
+        _views = views;
     }
 
 
     #endregion // Ctor
 
-    #region FoldingLogic
+    #region Views
 
-    public readonly IEvDbFoldingLogic<TState> FoldingLogic;
+    protected IImmutableDictionary<string, IEvDbView> _views;
 
-    #endregion // FoldingLogic
+    #endregion // Views
 
-    #region State
-
-    public TState State { get; private set; }
-
-    #endregion // State
+    //IImmutableDictionary<string, IEvDbView> IEvDbCollectionHidden.Views => _views;
 
     #region AddEvent
 
@@ -65,8 +54,9 @@ public class EvDbAggregate<TState> : EvDbCollectionMeta, IEvDbAggregateDeprecate
             _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
             IImmutableList<IEvDbEvent> evs = _pendingEvents.Add(e);
             _pendingEvents = evs;
-            // TODO: [bnaya 2023-12-19] thread safe
-            State = FoldingLogic.FoldEvent(State, e);
+
+            foreach (IEvDbView folding in _views.Values)
+                folding.FoldEvent(e);
         }
         finally
         {
@@ -74,23 +64,22 @@ public class EvDbAggregate<TState> : EvDbCollectionMeta, IEvDbAggregateDeprecate
         }
     }
 
-    #endregion // AddEvent
-
     void IEvDbCollectionHidden.SyncEvent(IEvDbStoredEvent e)
     {
-        State = FoldingLogic.FoldEvent(State, e);
+        throw new NotImplementedException();
+        //State = FoldingLogic.FoldEvent(State, e);
         LastStoredOffset = e.StreamCursor.Offset;
     }
 
-    //IImmutableDictionary<string, IEvDbView> IEvDbCollectionHidden.Views => throw new NotImplementedException();
+    #endregion // AddEvent
 
     public void ClearLocalEvents()
     {
         LastStoredOffset += _pendingEvents.Count;
-        _pendingEvents = _pendingEvents.Clear();
+        _pendingEvents.Clear();
     }
 
-    async Task IEvDbAggregateDeprecated<TState>.SaveAsync(CancellationToken cancellation)
+    async Task IEvDbCollection.SaveAsync(CancellationToken cancellation)
     {
         try
         {

@@ -33,9 +33,10 @@ public partial class SchoolXFactory
 
     #region ViewFactories
 
-    protected override Func<JsonSerializerOptions?, IEvDbView>[] ViewFactories { get; } =
+    protected override Func<JsonSerializerOptions?, IEvDbView>[] ViewFactories { get; } = new []
         {
-             StudentStatsView.Create
+             StudentStatsView.Create,
+             StatsView.Create
         };
 
     #endregion // ViewFactories

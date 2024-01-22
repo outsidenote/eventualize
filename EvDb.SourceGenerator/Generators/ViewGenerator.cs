@@ -174,7 +174,7 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine($$"""
                     partial {{type}} {{typeSymbol.Name}}: {{viewName}}Base
                     { 
-                        public static IEvDbView<{{stateType}}> Create(JsonSerializerOptions? jsonSerializerOptions) => new {{typeSymbol.Name}}(jsonSerializerOptions);
+                        public static IEvDbView Create(JsonSerializerOptions? jsonSerializerOptions) => new {{typeSymbol.Name}}(jsonSerializerOptions);
 
                         private {{typeSymbol.Name}}(
                             JsonSerializerOptions? jsonSerializerOptions):base (jsonSerializerOptions)

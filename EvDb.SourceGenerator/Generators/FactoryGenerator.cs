@@ -3,18 +3,72 @@
 #pragma warning disable HAA0401 // Possible allocation of reference type enumerator
 using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Text;
 
 namespace EvDb.SourceGenerator;
 
+public class Ros : SymbolVisitor
+{
+    public static readonly SymbolVisitor Default = new Ros();
+
+    public override void DefaultVisit(ISymbol symbol)
+    {
+        base.DefaultVisit(symbol);
+    }
+
+    public override void Visit(ISymbol? symbol)
+    {
+        base.Visit(symbol);
+    }
+
+    public override void VisitArrayType(IArrayTypeSymbol symbol)
+    {
+        base.VisitArrayType(symbol);
+    }
+
+    public override void VisitField(IFieldSymbol symbol)
+    {
+        base.VisitField(symbol);
+    }
+
+    public override void VisitLocal(ILocalSymbol symbol)
+    {
+        base.VisitLocal(symbol);
+    }
+
+    public override void VisitMethod(IMethodSymbol symbol)
+    {
+        base.VisitMethod(symbol);
+    }
+
+    public override void VisitProperty(IPropertySymbol symbol)
+    {
+        base.VisitProperty(symbol);
+    }
+
+    public override void VisitNamedType(INamedTypeSymbol symbol)
+    {
+        base.VisitNamedType(symbol);
+    }
+
+    public override void VisitRangeVariable(IRangeVariableSymbol symbol)
+    {
+        base.VisitRangeVariable(symbol);
+    }
+}
+
+
 [Generator]
 public partial class FactoryGenerator : BaseGenerator
 {
     protected override string EventTargetAttribute { get; } = "EvDbStreamFactoryAttribute";
 
+  
     #region OnGenerate
 
     protected override void OnGenerate(

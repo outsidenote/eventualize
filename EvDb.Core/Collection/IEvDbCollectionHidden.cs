@@ -6,5 +6,5 @@ public interface IEvDbCollectionHidden
 {
     void SyncEvent(IEvDbStoredEvent e);
 
-    IImmutableDictionary<string, IEvDbView> Views { get; }
+    //IImmutableDictionary<string, IEvDbView> Views { get; }
 }
