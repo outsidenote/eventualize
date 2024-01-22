@@ -45,14 +45,12 @@ public partial class ViewGenerator : BaseGenerator
         #region string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
-        string foldingName = typeSymbol.Name;
-        string rootName = foldingName;
-        if (foldingName.EndsWith("Folding"))
-            rootName = foldingName.Substring(0, foldingName.Length - 7);
-        else if (foldingName.EndsWith("Fold"))
-            rootName = foldingName.Substring(0, foldingName.Length - 4);
+        string viewName = typeSymbol.Name;
+        string rootName = viewName;
+        if (viewName.EndsWith("View"))
+            rootName = viewName.Substring(0, viewName.Length - 4);
         else
-            foldingName = $"{foldingName}Folding";
+            viewName = $"{viewName}View";
 
         AssemblyName asm = GetType().Assembly.GetName();
 
@@ -65,7 +63,7 @@ public partial class ViewGenerator : BaseGenerator
         string stateType = args[0].ToDisplayString();
         ITypeSymbol eventTypeSymbol = args[1];
         string eventType = eventTypeSymbol.ToDisplayString();
-
+        
         #endregion // string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
 
         #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
@@ -88,7 +86,7 @@ public partial class ViewGenerator : BaseGenerator
 
         #endregion // var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
-        #region FoldingBase
+        #region ViewBase
 
         #region var eventsPayloads = ...
 
@@ -118,14 +116,14 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]                    public abstract class {{foldingName}}Base:
+                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]                    public abstract class {{viewName}}Base:
                         IEvDbView<{{stateType}}>
                     {        
                         protected abstract {{stateType}} DefaultState { get; }
                         private readonly JsonSerializerOptions? _jsonSerializerOptions;
                         private {{stateType}} _state;
                                          
-                        protected {{foldingName}}Base(
+                        protected {{viewName}}Base(
                             JsonSerializerOptions? jsonSerializerOptions)
                         {
                             _state = DefaultState;
@@ -156,31 +154,31 @@ public partial class ViewGenerator : BaseGenerator
                         #endregion // Fold
                     }
                     """);
-        context.AddSource($"{foldingName}Base.generated.cs", builder.ToString());
+        context.AddSource($"{viewName}Base.generated.cs", builder.ToString());
 
-        #endregion // FoldingBase
+        #endregion // ViewBase
 
         builder.Clear();
 
-        #region Folding
+        #region View
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial {{type}} {{foldingName}}: {{foldingName}}Base
+                    partial {{type}} {{typeSymbol.Name}}: {{viewName}}Base
                     { 
-                        public static IEvDbView<{{stateType}}> Create(JsonSerializerOptions? jsonSerializerOptions) => new {{foldingName}}(jsonSerializerOptions);
+                        public static IEvDbView<{{stateType}}> Create(JsonSerializerOptions? jsonSerializerOptions) => new {{typeSymbol.Name}}(jsonSerializerOptions);
 
-                        private {{foldingName}}(
+                        private {{typeSymbol.Name}}(
                             JsonSerializerOptions? jsonSerializerOptions):base (jsonSerializerOptions)
                         {
                         }
                     }
                     """);
-        context.AddSource($"{foldingName}.generated.cs", builder.ToString());
+        context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
 
-        #endregion // Folding
+        #endregion // Vew
     }
 
     #endregion // OnGenerate

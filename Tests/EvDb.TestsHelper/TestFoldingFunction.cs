@@ -2,6 +2,7 @@
 
 // TODO: options
 
+[Obsolete("Deprecated")]
 class TestFoldingFunction : IFoldingFunction<TestState>
 {
     TestState IFoldingFunction<TestState>.Fold(TestState oldState, IEvDbEvent serializedEvent)

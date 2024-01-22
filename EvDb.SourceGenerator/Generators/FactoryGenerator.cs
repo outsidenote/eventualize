@@ -130,14 +130,14 @@ public partial class FactoryGenerator : BaseGenerator
                     public abstract class {{factoryName}}Base:
                         EvDbFactoryBase<{{interfaceType}}>
                     {                
-                        private readonly IImmutableList<IEvDbView> _foldings;
+                        private readonly IImmutableList<IEvDbView> _views;
                         #region Ctor
 
                         public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
                         {
                             var options = JsonSerializerOptions; 
-                            var foldings = FoldingsFactories.Select(f => f(options));
-                            _foldings = ImmutableList.CreateRange<IEvDbView>(foldings
+                            var views = ViewFactories.Select(f => f(options));
+                            _views = ImmutableList.CreateRange<IEvDbView>(views
                             );
                         }
 
@@ -152,7 +152,7 @@ public partial class FactoryGenerator : BaseGenerator
                             {{rootName}}__Collection agg =
                                 new(
                                     this,
-                                    _foldings,
+                                    _views,
                                     _repository,
                                     streamId,
                                     lastStoredOffset);
@@ -168,7 +168,7 @@ public partial class FactoryGenerator : BaseGenerator
                         //             _repository,
                         //             Kind,
                         //             stream,
-                        //             _foldings,
+                        //             _views,
                         //             MinEventsBetweenSnapshots,
                         //             snapshot.Cursor.Offset,
                         //             JsonSerializerOptions);
@@ -178,7 +178,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                         #endregion // Create 
 
-                        protected abstract Func<JsonSerializerOptions?,IEvDbView>[] FoldingsFactories { get; }
+                        protected abstract Func<JsonSerializerOptions?,IEvDbView>[] ViewFactories { get; }
                     }
                     """);
         context.AddSource($"{factoryName}Base.generated.cs", builder.ToString());
@@ -249,11 +249,11 @@ public partial class FactoryGenerator : BaseGenerator
 
                         public {{rootName}}__Collection(
                             IEvDbFactory factory,
-                            IEnumerable<IEvDbView> foldings,
+                            IEnumerable<IEvDbView> views,
                             IEvDbRepositoryV1 repository,
                             string streamId,
                             long lastStoredOffset) : 
-                                base(factory, foldings, repository, streamId, lastStoredOffset)
+                                base(factory, views, repository, streamId, lastStoredOffset)
                         {
                         }
 

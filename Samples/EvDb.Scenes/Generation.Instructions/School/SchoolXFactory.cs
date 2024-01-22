@@ -31,12 +31,12 @@ public partial class SchoolXFactory
 
     #endregion // Partition
 
-    #region FoldingsFactories
+    #region ViewFactories
 
-    protected override Func<JsonSerializerOptions?, IEvDbView>[] FoldingsFactories { get; } =
+    protected override Func<JsonSerializerOptions?, IEvDbView>[] ViewFactories { get; } =
         {
              StudentStatsFolding.Create
         };
 
-    #endregion // FoldingsFactories
+    #endregion // ViewFactories
 }
