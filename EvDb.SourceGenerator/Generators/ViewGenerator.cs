@@ -119,7 +119,7 @@ public partial class ViewGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]                    public abstract class {{foldingName}}Base:
-                        IEvDbFoldingUnit<{{stateType}}>
+                        IEvDbView<{{stateType}}>
                     {        
                         protected abstract {{stateType}} DefaultState { get; }
                         private readonly JsonSerializerOptions? _jsonSerializerOptions;
@@ -134,11 +134,11 @@ public partial class ViewGenerator : BaseGenerator
 
                         public virtual int MinEventsBetweenSnapshots => 0;
 
-                        {{stateType}} IEvDbFoldingUnit<{{stateType}}>.State => _state;
+                        {{stateType}} IEvDbView<{{stateType}}>.State => _state;
 
                         #region FoldEvent
 
-                        void IEvDbFoldingUnit.FoldEvent(IEvDbEvent e)
+                        void IEvDbView.FoldEvent(IEvDbEvent e)
                         {
                             switch (e.EventType)
                             {
@@ -170,7 +170,7 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine($$"""
                     partial {{type}} {{foldingName}}: {{foldingName}}Base
                     { 
-                        public static IEvDbFoldingUnit<{{stateType}}> Create(JsonSerializerOptions? jsonSerializerOptions) => new {{foldingName}}(jsonSerializerOptions);
+                        public static IEvDbView<{{stateType}}> Create(JsonSerializerOptions? jsonSerializerOptions) => new {{foldingName}}(jsonSerializerOptions);
 
                         private {{foldingName}}(
                             JsonSerializerOptions? jsonSerializerOptions):base (jsonSerializerOptions)

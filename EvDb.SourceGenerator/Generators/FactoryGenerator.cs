@@ -130,14 +130,14 @@ public partial class FactoryGenerator : BaseGenerator
                     public abstract class {{factoryName}}Base:
                         EvDbFactoryBase<{{interfaceType}}>
                     {                
-                        private readonly IImmutableList<IEvDbFoldingUnit> _foldings;
+                        private readonly IImmutableList<IEvDbView> _foldings;
                         #region Ctor
 
                         public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
                         {
                             var options = JsonSerializerOptions; 
                             var foldings = FoldingsFactories.Select(f => f(options));
-                            _foldings = ImmutableList.CreateRange<IEvDbFoldingUnit>(foldings
+                            _foldings = ImmutableList.CreateRange<IEvDbView>(foldings
                             );
                         }
 
@@ -178,7 +178,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                         #endregion // Create 
 
-                        protected abstract Func<JsonSerializerOptions?,IEvDbFoldingUnit>[] FoldingsFactories { get; }
+                        protected abstract Func<JsonSerializerOptions?,IEvDbView>[] FoldingsFactories { get; }
                     }
                     """);
         context.AddSource($"{factoryName}Base.generated.cs", builder.ToString());
@@ -249,7 +249,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                         public {{rootName}}__Collection(
                             IEvDbFactory factory,
-                            IEnumerable<IEvDbFoldingUnit> foldings,
+                            IEnumerable<IEvDbView> foldings,
                             IEvDbRepositoryV1 repository,
                             string streamId,
                             long lastStoredOffset) : 

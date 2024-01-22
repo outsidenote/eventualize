@@ -153,7 +153,7 @@ public partial class AggregateGenerator : BaseGenerator
                     public abstract class {{factoryName}}Base:
                         AggregateFactoryBase<{{aggregateInterfaceType}}, {{stateType}}>
                     {                
-                        private readonly IImmutableList<IEvDbFoldingUnit> _foldings;
+                        private readonly IImmutableList<IEvDbView> _foldings;
                         #region Ctor
 
                         public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)

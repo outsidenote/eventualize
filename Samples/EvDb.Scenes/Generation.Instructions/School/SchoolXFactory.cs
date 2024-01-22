@@ -33,7 +33,7 @@ public partial class SchoolXFactory
 
     #region FoldingsFactories
 
-    protected override Func<JsonSerializerOptions?, IEvDbFoldingUnit>[] FoldingsFactories { get; } =
+    protected override Func<JsonSerializerOptions?, IEvDbView>[] FoldingsFactories { get; } =
         {
              StudentStatsFolding.Create
         };

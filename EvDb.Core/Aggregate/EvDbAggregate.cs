@@ -183,7 +183,7 @@ public class EvDbClient : EvDbAggregate, IEvDbCollection, IEvDbStoredEventSync
 
     public EvDbClient(
         IEvDbFactory factory,
-        IEnumerable<IEvDbFoldingUnit> foldings,
+        IEnumerable<IEvDbView> foldings,
         IEvDbRepositoryV1 repository,
         string streamId,
         long lastStoredOffset)
@@ -196,7 +196,7 @@ public class EvDbClient : EvDbAggregate, IEvDbCollection, IEvDbStoredEventSync
 
     #endregion // Ctor
 
-    public IEnumerable<IEvDbFoldingUnit> Foldings { get; }
+    public IEnumerable<IEvDbView> Foldings { get; }
 
     #region AddEvent
 
@@ -216,7 +216,7 @@ public class EvDbClient : EvDbAggregate, IEvDbCollection, IEvDbStoredEventSync
             IImmutableList<IEvDbEvent> evs = _pendingEvents.Add(e);
             _pendingEvents = evs;
 
-            foreach (IEvDbFoldingUnit folding in Foldings)
+            foreach (IEvDbView folding in Foldings)
                 folding.FoldEvent(e);
         }
         finally
