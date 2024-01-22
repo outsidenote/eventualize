@@ -16,7 +16,7 @@ public class EvDbCollection : EvDbCollectionMeta, IEvDbCollection, IEvDbCollecti
 
     public EvDbCollection(
         IEvDbFactory factory,
-        IImmutableDictionary<string, IEvDbView> views,
+        IImmutableList<IEvDbView> views,
         IEvDbRepositoryV1 repository,
         string streamId,
         long lastStoredOffset)
@@ -31,11 +31,9 @@ public class EvDbCollection : EvDbCollectionMeta, IEvDbCollection, IEvDbCollecti
 
     #region Views
 
-    protected IImmutableDictionary<string, IEvDbView> _views;
+    protected IImmutableList<IEvDbView> _views;
 
     #endregion // Views
-
-    //IImmutableDictionary<string, IEvDbView> IEvDbCollectionHidden.Views => _views;
 
     #region AddEvent
 
@@ -55,7 +53,7 @@ public class EvDbCollection : EvDbCollectionMeta, IEvDbCollection, IEvDbCollecti
             IImmutableList<IEvDbEvent> evs = _pendingEvents.Add(e);
             _pendingEvents = evs;
 
-            foreach (IEvDbView folding in _views.Values)
+            foreach (IEvDbView folding in _views)
                 folding.FoldEvent(e);
         }
         finally

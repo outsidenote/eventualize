@@ -5,5 +5,5 @@ public class EvDbViewAttribute
     <TState, TEventAdder> : Attribute
     where TEventAdder : IEvDbEventAdder
 {
-    public string? PropertyName { get; set; }
+    //public string? PropertyName { get; set; }
 }

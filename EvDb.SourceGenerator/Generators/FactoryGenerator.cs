@@ -184,19 +184,15 @@ public partial class FactoryGenerator : BaseGenerator
                     public abstract class {{factoryName}}Base:
                         EvDbFactoryBase<{{interfaceType}}>
                     {                
-                        private readonly ImmutableDictionary<string, IEvDbView> _views;
+                        private readonly IImmutableList<IEvDbView> _views;
                         #region Ctor
 
                         public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
                         {
                             var options = JsonSerializerOptions; 
-                            var views = ViewFactories.Select(f => 
-                                {
-                                    IEvDbView v = f(options);
-                                    return KeyValuePair.Create(v.PropertyName, v);
-                                });
+                            var views = ViewFactories.Select(f => f(options));
 
-                            _views = ImmutableDictionary.CreateRange<string, IEvDbView>(views);
+                            _views = ImmutableList.CreateRange<IEvDbView>(views);
                         }
 
                         #endregion // Ctor
@@ -307,7 +303,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                         public {{rootName}}__Collection(
                             IEvDbFactory factory,
-                            ImmutableDictionary<string, IEvDbView> views,
+                            IImmutableList<IEvDbView> views,
                             IEvDbRepositoryV1 repository,
                             string streamId,
                             long lastStoredOffset) : 

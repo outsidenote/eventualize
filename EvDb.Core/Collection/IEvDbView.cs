@@ -7,7 +7,7 @@ public interface IEvDbView
 
     void FoldEvent(IEvDbEvent e);
 
-    string PropertyName { get; }
+    //string PropertyName { get; }
 }
 
 public interface IEvDbView<out T> : IEvDbView

@@ -138,8 +138,6 @@ public partial class ViewGenerator : BaseGenerator
 
                         {{stateType}} IEvDbView<{{stateType}}>.State => _state;
 
-                        string IEvDbView.PropertyName { get; } = "{{propName}}";
-
                         #region FoldEvent
 
                         void IEvDbView.FoldEvent(IEvDbEvent e)
