@@ -5,8 +5,8 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-[EvDbStreamFactory<ISchoolCollection>]
-//[EvDbStreamFactory<ISchoolCollection>(CollectionName = "School")]
+[EvDbStreamFactory<ISchoolEventBundle>]
+//[EvDbStreamFactory<ISchoolEventBundle>(CollectionName = "School")]
 public partial class SchoolXFactory
 {
     #region Ctor
@@ -21,7 +21,7 @@ public partial class SchoolXFactory
 
     #region JsonSerializerOptions
 
-    public override JsonSerializerOptions? JsonSerializerOptions { get; } = StudentFlowEventTypesContext.Default.Options;
+    public override JsonSerializerOptions? JsonSerializerOptions { get; } = SchoolEventBundleContext.Default.Options;
 
     #endregion // JsonSerializerOptions
 

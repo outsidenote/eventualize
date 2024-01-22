@@ -73,7 +73,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     [Fact(Skip = "not active")]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithFutureState_ThrowException()
     {
-        // EvDbAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
+        // EvDbCollectionMeta<TestState> aggregate = PrepareAggregateWithPendingEvents();
         // IAsyncEnumerable<EvDbEvent> events =
         //                     aggregate.PendingEvents.ToAsync();
         // var aggregate2 =

@@ -124,21 +124,25 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
-
+        
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     public abstract class {{factoryName}}Base:
                         EvDbFactoryBase<{{interfaceType}}>
                     {                
-                        private readonly IImmutableList<IEvDbView> _views;
+                        private readonly ImmutableDictionary<string, IEvDbView> _views;
                         #region Ctor
 
                         public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
                         {
                             var options = JsonSerializerOptions; 
-                            var views = ViewFactories.Select(f => f(options));
-                            _views = ImmutableList.CreateRange<IEvDbView>(views
-                            );
+                            var views = ViewFactories.Select(f => 
+                                {
+                                    IEvDbView v = f(options);
+                                    return KeyValuePair.Create(v.PropertyName, v);
+                                });
+
+                            _views = ImmutableDictionary.CreateRange<string, IEvDbView>(views);
                         }
 
                         #endregion // Ctor
@@ -224,7 +228,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         #endregion // var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
-        #region Aggregate
+        #region Collection
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
@@ -241,7 +245,7 @@ public partial class FactoryGenerator : BaseGenerator
                     """);
         builder.AppendLine($$"""
                     public class {{rootName}}__Collection: 
-                            EvDbClient,
+                            EvDbCollection,
                             {{eventType}},
                             {{interfaceType}}
                     { 
@@ -249,7 +253,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                         public {{rootName}}__Collection(
                             IEvDbFactory factory,
-                            IEnumerable<IEvDbView> views,
+                            ImmutableDictionary<string, IEvDbView> views,
                             IEvDbRepositoryV1 repository,
                             string streamId,
                             long lastStoredOffset) : 
@@ -267,7 +271,7 @@ public partial class FactoryGenerator : BaseGenerator
                     """);
         context.AddSource($"{rootName}.generated.cs", builder.ToString());
 
-        #endregion // Aggregate
+        #endregion // Collection
     }
 
     #endregion // OnGenerate

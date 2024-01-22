@@ -5,7 +5,7 @@
 // [DebuggerDisplay("ID:{Id}, Type:{Type}")]
 // public record AggregateParameter(string Id, string Type)
 // {
-//     public AggregateParameter(EvDbAggregate aggregate)
+//     public AggregateParameter(EvDbCollectionMeta aggregate)
 //         : this(aggregate.StreamId.StreamId, aggregate.StreamUri.Partition) { }
 //     public EvDbStreamCursor ToSequence(long sequence = 0)
 //     {

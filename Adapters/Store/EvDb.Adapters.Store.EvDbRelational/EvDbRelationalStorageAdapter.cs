@@ -108,7 +108,7 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
     }
 
-    //async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
+    //async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbCollectionMeta<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
     //{
     //    SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, jsonTypeInfo) : null;
     //    await SaveAsync(aggregate, snapshotSaveParameter, cancellation);

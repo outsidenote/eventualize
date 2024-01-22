@@ -7,7 +7,7 @@ public partial record EvDbSnapshotId(string Domain, string Partition, string Str
 {
     public EvDbSnapshotId(EvDbStreamAddress streamId, string aggregateType)
         : this(streamId.Domain, streamId.Partition, streamId.StreamId, aggregateType) { }
-    public EvDbSnapshotId(EvDbAggregate aggregate)
+    public EvDbSnapshotId(EvDbCollectionMeta aggregate)
         : this(aggregate.StreamId, aggregate.Kind) { }
 
     public override string ToString()

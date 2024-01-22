@@ -63,8 +63,12 @@ public partial class ViewGenerator : BaseGenerator
         string stateType = args[0].ToDisplayString();
         ITypeSymbol eventTypeSymbol = args[1];
         string eventType = eventTypeSymbol.ToDisplayString();
-        
+
         #endregion // string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
+
+        KeyValuePair<string, TypedConstant> customPropertyName = att.NamedArguments.FirstOrDefault(m => m.Key == "CollectionName");
+
+        string propName = customPropertyName.Value.Value?.ToString() ?? rootName;
 
         #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
@@ -133,6 +137,8 @@ public partial class ViewGenerator : BaseGenerator
                         public virtual int MinEventsBetweenSnapshots => 0;
 
                         {{stateType}} IEvDbView<{{stateType}}>.State => _state;
+
+                        string IEvDbView.PropertyName { get; } = "{{propName}}";
 
                         #region FoldEvent
 

@@ -76,7 +76,7 @@ public static class TestHelper
     public static async Task<EvDbAggregate<TestState>> PrepareAggregateWithPendingEvents(int? minEventsBetweenSnapshots)
     {
         throw new NotImplementedException();
-        //EvDbAggregate<TestState> aggregate = await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
+        //EvDbCollectionMeta<TestState> aggregate = await TestAggregateConfigs.GetTestAggregateAsync(_emptyEvents, minEventsBetweenSnapshots);
         //for (int i = 0; i < 3; i++)
         //{
         //    var e = GetCorrectTestEvent();

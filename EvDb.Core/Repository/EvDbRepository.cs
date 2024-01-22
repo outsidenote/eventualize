@@ -31,7 +31,7 @@ internal class EvDbRepository : IEvDbRepository
         {
             EvDbStreamCursor streamCursor = new(streamAddress, 0);
             T agg = factory.Create(streamId);
-            var syncNoSnap = (IEvDbStoredEventSync)agg;
+            var syncNoSnap = (IEvDbCollectionHidden)agg;
             IAsyncEnumerable<IEvDbStoredEvent> allEvents = _storageAdapter.GetAsync(streamCursor, cancellation);
             await foreach (IEvDbStoredEvent e in allEvents)
             {
@@ -45,7 +45,7 @@ internal class EvDbRepository : IEvDbRepository
         EvDbStreamCursor prm2 = new(snapshotId, nextOffset);
         IAsyncEnumerable<IEvDbStoredEvent> events = _storageAdapter.GetAsync(prm2, cancellation);
         var result = factory.Create(snapshot);
-        var syncSnap = (IEvDbStoredEventSync)result;
+        var syncSnap = (IEvDbCollectionHidden)result;
         long offset = _streamOffset;
         await foreach (IEvDbStoredEvent e in events)
         {
@@ -126,7 +126,7 @@ public class EvDbRepositoryV1 : IEvDbRepositoryV1
         //{
         //    EvDbStreamCursor streamCursor = new(streamAddress, 0);
         //    T agg = factory.Create(streamId); 
-        //    var syncNoSnap = (IEvDbStoredEventSync)agg;
+        //    var syncNoSnap = (IEvDbCollectionHidden)agg;
         //    IAsyncEnumerable<IEvDbStoredEvent> allEvents = _storageAdapter.GetAsync(streamCursor, cancellation);
         //    await foreach (IEvDbStoredEvent e in allEvents)
         //    {
@@ -140,7 +140,7 @@ public class EvDbRepositoryV1 : IEvDbRepositoryV1
         //EvDbStreamCursor prm2 = new(snapshotId, nextOffset);
         //IAsyncEnumerable<IEvDbStoredEvent> events = _storageAdapter.GetAsync(prm2, cancellation);
         //var result =  factory.Create(snapshot);
-        //var syncSnap = (IEvDbStoredEventSync)result;
+        //var syncSnap = (IEvDbCollectionHidden)result;
         //await foreach (IEvDbStoredEvent e in events)
         //{
         //    syncSnap.SyncEvent(e);

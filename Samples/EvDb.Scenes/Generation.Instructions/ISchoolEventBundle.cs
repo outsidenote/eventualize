@@ -14,6 +14,6 @@ namespace EvDb.UnitTests;
 [EvDbEventAdder<StudentReceivedGradeEvent>]
 [EvDbEventAdder<StudentRegisteredToCourseEvent>]
 [EvDbEventAdder<StudentTestSubmittedEvent>]
-public partial interface ISchoolCollection
+public partial interface ISchoolEventBundle
 {
 }

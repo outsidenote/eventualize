@@ -9,7 +9,7 @@ namespace EvDb.Core;
 
 
 [DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public abstract class EvDbAggregate : IEvDbCollectionMeta
+public abstract class EvDbCollectionMeta : IEvDbCollectionMeta
 {
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<IEvDbEvent> _pendingEvents = ImmutableList<IEvDbEvent>.Empty;
@@ -18,7 +18,7 @@ public abstract class EvDbAggregate : IEvDbCollectionMeta
 
     #region Ctor
 
-    internal EvDbAggregate(
+    internal EvDbCollectionMeta(
         string kind,
         EvDbStreamAddress streamId,
         int minEventsBetweenSnapshots,
@@ -76,104 +76,8 @@ public abstract class EvDbAggregate : IEvDbCollectionMeta
     IEnumerable<IEvDbEvent> IEvDbCollectionMeta.Events => _pendingEvents;
 }
 
-[DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbAggregate<TState> : EvDbAggregate, IEvDbAggregateDeprecated<TState>, IEvDbStoredEventSync
-{
-    private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
-    private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
-    protected readonly IEvDbRepository _repository;
-
-    #region Ctor
-
-    public EvDbAggregate(
-        IEvDbRepository repository,
-        string kind,
-        EvDbStreamAddress streamId,
-        IEvDbFoldingLogic<TState> foldingLogic,
-        int minEventsBetweenSnapshots,
-        TState state,
-        long lastStoredOffset,
-        JsonSerializerOptions? options)
-        : base(kind, streamId, minEventsBetweenSnapshots, lastStoredOffset, options)
-    {
-        State = state;
-        _repository = repository;
-        FoldingLogic = foldingLogic;
-    }
-
-
-    #endregion // Ctor
-
-    #region FoldingLogic
-
-    public readonly IEvDbFoldingLogic<TState> FoldingLogic;
-
-    #endregion // FoldingLogic
-
-    #region State
-
-    public TState State { get; private set; }
-
-    #endregion // State
-
-    #region AddEvent
-
-    protected void AddEvent<T>(T payload, string? capturedBy = null)
-        where T : IEvDbEventPayload
-    {
-        capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
-        IEvDbEvent e = EvDbEventFactory.Create(payload, capturedBy, Options);
-        AddEvent(e);
-    }
-
-    private void AddEvent(IEvDbEvent e)
-    {
-        try
-        {
-            _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
-            IImmutableList<IEvDbEvent> evs = _pendingEvents.Add(e);
-            _pendingEvents = evs;
-            // TODO: [bnaya 2023-12-19] thread safe
-            State = FoldingLogic.FoldEvent(State, e);
-        }
-        finally
-        {
-            _dirtyLock.Release();
-        }
-    }
-
-    void IEvDbStoredEventSync.SyncEvent(IEvDbStoredEvent e)
-    {
-        State = FoldingLogic.FoldEvent(State, e);
-        LastStoredOffset = e.StreamCursor.Offset;
-    }
-
-    #endregion // AddEvent
-
-    public void ClearLocalEvents()
-    {
-        LastStoredOffset += _pendingEvents.Count;
-        _pendingEvents = _pendingEvents.Clear();
-    }
-
-    async Task IEvDbAggregateDeprecated<TState>.SaveAsync(CancellationToken cancellation)
-    {
-        try
-        {
-            await _dirtyLock.WaitAsync();// TODO: [bnaya 2024-01-09] re-consider the lock solution
-            {
-                await _repository.SaveAsync(this, Options, cancellation);
-            }
-        }
-        finally
-        {
-            _dirtyLock.Release();
-        }
-    }
-}
-
-[DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbClient : EvDbAggregate, IEvDbCollection, IEvDbStoredEventSync
+//[DebuggerDisplay("")]
+public class EvDbCollection : EvDbCollectionMeta, IEvDbCollection, IEvDbCollectionHidden
 {
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
@@ -181,22 +85,28 @@ public class EvDbClient : EvDbAggregate, IEvDbCollection, IEvDbStoredEventSync
 
     #region Ctor
 
-    public EvDbClient(
+    public EvDbCollection(
         IEvDbFactory factory,
-        IEnumerable<IEvDbView> foldings,
+        IImmutableDictionary<string, IEvDbView> views,
         IEvDbRepositoryV1 repository,
         string streamId,
         long lastStoredOffset)
         : base(factory.Kind, new EvDbStreamAddress(factory.Partition, streamId), factory.MinEventsBetweenSnapshots, lastStoredOffset, factory.JsonSerializerOptions)
     {
         _repository = repository;
-        Foldings = foldings;
+        _views = views;
     }
 
 
     #endregion // Ctor
 
-    public IEnumerable<IEvDbView> Foldings { get; }
+    #region Views
+
+    public IImmutableDictionary<string, IEvDbView> _views;
+
+    #endregion // Views
+
+    IImmutableDictionary<string, IEvDbView> IEvDbCollectionHidden.Views => _views;
 
     #region AddEvent
 
@@ -216,7 +126,7 @@ public class EvDbClient : EvDbAggregate, IEvDbCollection, IEvDbStoredEventSync
             IImmutableList<IEvDbEvent> evs = _pendingEvents.Add(e);
             _pendingEvents = evs;
 
-            foreach (IEvDbView folding in Foldings)
+            foreach (IEvDbView folding in _views.Values)
                 folding.FoldEvent(e);
         }
         finally
@@ -225,7 +135,7 @@ public class EvDbClient : EvDbAggregate, IEvDbCollection, IEvDbStoredEventSync
         }
     }
 
-    void IEvDbStoredEventSync.SyncEvent(IEvDbStoredEvent e)
+    void IEvDbCollectionHidden.SyncEvent(IEvDbStoredEvent e)
     {
         throw new NotImplementedException();
         //State = FoldingLogic.FoldEvent(State, e);

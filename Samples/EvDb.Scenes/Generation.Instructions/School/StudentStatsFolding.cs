@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace EvDb.UnitTests;
 
-[EvDbView<IEnumerable<StudentStats>, ISchoolCollection>]
+[EvDbView<IEnumerable<StudentStats>, ISchoolEventBundle>]
 internal partial class StudentStatsView
 {
     private readonly ConcurrentDictionary<int, StudentCalc> _students = new();
@@ -45,8 +45,33 @@ internal partial class StudentStatsView
         var result = _students.Values
                             .Where(m => m.Count != 0)
                             .Select(m =>
-                                new StudentStats(m.StudentName, m.Sum / m.Count, m.Count));
+                                new StudentStats(m.StudentName, m.Sum, m.Count));
         return result.ToArray();
+    }
+
+    #endregion // Fold
+}
+
+[EvDbView<Stats, ISchoolEventBundle>(PropertyName = "All")]
+internal partial class StatsView
+{
+    protected override Stats DefaultState { get; } = new Stats(0, 0);
+
+    public override int MinEventsBetweenSnapshots => 5;
+
+    #region Fold
+
+    protected override Stats Fold(
+        Stats state,
+        StudentReceivedGradeEvent receivedGrade,
+        IEvDbEventMeta meta)
+    {
+        var result = state with
+        {
+            Count = state.Count + 1,
+            Sum = state.Sum + receivedGrade.Grade,
+        };
+        return result;
     }
 
     #endregion // Fold

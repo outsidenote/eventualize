@@ -28,7 +28,7 @@ public readonly record struct SnapshotSaveParameter(
         );
     }
     //public static SnapshotSaveParameter Create<T>(
-    //                EvDbAggregate<T> aggregate,
+    //                EvDbCollectionMeta<T> aggregate,
     //                JsonTypeInfo<T> jsonTypeInfo) where T : notnull, new()
     //{
     //    return new(
