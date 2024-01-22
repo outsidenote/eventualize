@@ -17,4 +17,5 @@ public class EvDbAggregateFactoryAttribute<TState, TEventType> : Attribute
 public class EvDbStreamFactoryAttribute<TEventType> : Attribute
     where TEventType : IEvDbEventAdder
 {
+    public string? CollectionName { get; set; } 
 }

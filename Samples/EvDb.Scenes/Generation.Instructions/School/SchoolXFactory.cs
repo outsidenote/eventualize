@@ -6,6 +6,7 @@ using System.Text.Json;
 namespace EvDb.UnitTests;
 
 [EvDbStreamFactory<ISchoolCollection>]
+//[EvDbStreamFactory<ISchoolCollection>(CollectionName = "School")]
 public partial class SchoolXFactory
 {
     #region Ctor
@@ -38,6 +39,4 @@ public partial class SchoolXFactory
         };
 
     #endregion // FoldingsFactories
-
-    
 }

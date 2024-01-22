@@ -42,31 +42,44 @@ public partial class FactoryGenerator : BaseGenerator
 
         #endregion // Exception Handling
 
-        #region string rootName = .., interfaceType = .., stateType = .., eventType = ..
+        // TODO: CollectionName
+        #region eventType = .., factoryName = ..
+
+        AttributeData att = typeSymbol.GetAttributes()
+                                  .Where(att => att.AttributeClass?.Name == EventTargetAttribute)
+                                  .First();
+
+        ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
+        ITypeSymbol eventTypeSymbol = args[0];
+        string eventType = eventTypeSymbol.ToDisplayString();
+
+        KeyValuePair<string, TypedConstant> collectionName = att.NamedArguments.FirstOrDefault(m => m.Key == "CollectionName");
+            
+        string factoryName = collectionName.Value.Value?.ToString() ?? typeSymbol.Name;
+
+        #endregion // eventType = .., factoryName = ..
+
+        #region string rootName = .., interfaceType = .., stateType = ..
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
-        string factoryName = typeSymbol.Name;
         string rootName = factoryName;
         if (factoryName.EndsWith("Factory"))
             rootName = factoryName.Substring(0, factoryName.Length - 7);
         else
             factoryName = $"{factoryName}Factory";
         rootName = $"{rootName}";
-        factoryName = $"{factoryName}";
+        //factoryName = $"{factoryName}";
 
         AssemblyName asm = GetType().Assembly.GetName();
 
-        AttributeData att = typeSymbol.GetAttributes()
-                                  .Where(att => att.AttributeClass?.Name == EventTargetAttribute)
-                                  .First();
-        ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
-        ITypeSymbol eventTypeSymbol = args[0];
-        string eventType = eventTypeSymbol.ToDisplayString();
+        if (rootName == typeSymbol.Name)
+            rootName = $"{rootName}_";
+ 
 
         string interfaceType = $"I{rootName}";
         string factoryInterfaceType = $"{interfaceType}Factory";
 
-        #endregion // string rootName = .., interfaceType = .., stateType = .., eventType = ..
+        #endregion // string rootName = .., interfaceType = .., stateType = ..
 
         #region Aggregate Interface
 
@@ -180,12 +193,12 @@ public partial class FactoryGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial {{type}} {{factoryName}}: {{factoryName}}Base,
+                    partial {{type}} {{typeSymbol.Name}}: {{factoryName}}Base,
                             {{factoryInterfaceType}}
                     { 
                     }
                     """);
-        context.AddSource($"{factoryName}.generated.cs", builder.ToString());
+        context.AddSource($"{typeSymbol.Name}.factory.generated.cs", builder.ToString());
 
         #endregion // Factory
 
