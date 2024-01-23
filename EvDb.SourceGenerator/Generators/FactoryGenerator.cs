@@ -132,18 +132,26 @@ public partial class FactoryGenerator : BaseGenerator
                     public abstract class {{factoryName}}Base:
                         EvDbFactoryBase<{{interfaceType}}>
                     {                
-                        private readonly IImmutableList<IEvDbView> _views;
                         #region Ctor
 
                         public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
                         {
-                            var options = JsonSerializerOptions; 
-                            var views = ViewFactories.Select(f => f(options));
-
-                            _views = ImmutableList.CreateRange<IEvDbView>(views);
                         }
 
                         #endregion // Ctor
+
+                        #region CreateViews
+
+                        private IImmutableList<IEvDbView> CreateViews()
+                        {
+                            var options = JsonSerializerOptions; 
+                            var views = ViewFactories.Select(f => f(options));
+
+                            var immutable = ImmutableList.CreateRange<IEvDbView>(views);
+                            return immutable;
+                        }
+
+                        #endregion // CreateViews
 
                         #region Create
 
@@ -151,10 +159,11 @@ public partial class FactoryGenerator : BaseGenerator
                             string streamId, 
                             long lastStoredOffset = -1)
                         {
+                            var views = CreateViews();
                             {{rootName}}__Collection collection =
                                 new(
                                     this,
-                                    _views,
+                                    views,
                                     _repository,
                                     streamId,
                                     lastStoredOffset);
@@ -250,7 +259,7 @@ public partial class FactoryGenerator : BaseGenerator
                         #region Ctor
 
                         public {{rootName}}__Collection(
-                            IEvDbFactory factory,
+                            IEvDbStreamConfig factory,
                             IImmutableList<IEvDbView> views,
                             IEvDbRepositoryV1 repository,
                             string streamId,

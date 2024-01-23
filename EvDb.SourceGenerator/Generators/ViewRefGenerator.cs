@@ -16,7 +16,7 @@ namespace EvDb.SourceGenerator;
 [Generator]
 public partial class ViewRefGenerator : BaseGenerator
 {
-    private const string _eventTarget = "EvDbViewRef";
+    private const string _eventTarget = "EvDbAttachView";
     protected override string EventTargetAttribute { get; } = $"{_eventTarget}Attribute";
 
     #region OnGenerate
@@ -163,7 +163,7 @@ public partial class ViewRefGenerator : BaseGenerator
                     {{string.Join("", propsCol)}}
                                         }
                     """);
-        context.AddSource($"{{rootName}}__Collection.view-ref.generated.cs", builder.ToString());
+        context.AddSource($"{rootName}__Collection.view-ref.generated.cs", builder.ToString());
 
         #endregion // Collection
     }

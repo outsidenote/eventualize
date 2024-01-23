@@ -15,7 +15,7 @@ public class EvDbCollection : EvDbCollectionMeta, IEvDbCollection, IEvDbCollecti
     #region Ctor
 
     public EvDbCollection(
-        IEvDbFactory factory,
+        IEvDbStreamConfig factory,
         IImmutableList<IEvDbView> views,
         IEvDbRepositoryV1 repository,
         string streamId,

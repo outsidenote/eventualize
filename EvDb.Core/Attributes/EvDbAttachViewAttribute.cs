@@ -2,7 +2,7 @@
 namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class EvDbViewRefAttribute<T> : Attribute
+public class EvDbAttachViewAttribute<T> : Attribute
     where T : IEvDbView
 {
     public string? PropertyName { get; set; }

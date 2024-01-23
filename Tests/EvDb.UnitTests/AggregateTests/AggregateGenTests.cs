@@ -19,7 +19,7 @@ public class AggregateGenTests
     [Fact]
     public void Aggregate_WhenAddingPendingEvent_Succeed()
     {
-        ISchoolX aggregate = Steps
+        ISchoolStream aggregate = Steps
                             .GivenLocalAggerate(_output, _storageAdapter)
                             .WhenAddingPendingEvents();
 
@@ -57,12 +57,12 @@ public class AggregateGenTests
     [Fact]
     public async Task Aggregate_WhenStoringAggregateWithoutSnapshot_Succeed()
     {
-        ISchoolX aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+        ISchoolStream aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
                          .WhenAggregateIsSavedAsync();
 
         ThenAggregateSavedWithoutSnapshot(aggregate);
 
-        void ThenAggregateSavedWithoutSnapshot(ISchoolX aggregate)
+        void ThenAggregateSavedWithoutSnapshot(ISchoolStream aggregate)
         {
             Assert.Equal(0, aggregate.EventsCount);
 
@@ -75,13 +75,13 @@ public class AggregateGenTests
     [Fact]
     public async Task Aggregate_WhenStoringAggregateWithSnapshot_Succeed()
     {
-        ISchoolX aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+        ISchoolStream aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
                          .GivenAddGrades()
                          .WhenAggregateIsSavedAsync();
 
         ThenAggregateSavedWithSnapshot(aggregate);
 
-        void ThenAggregateSavedWithSnapshot(ISchoolX aggregate)
+        void ThenAggregateSavedWithSnapshot(ISchoolStream aggregate)
         {
             Assert.Equal(0, aggregate.EventsCount);
 
@@ -96,13 +96,13 @@ public class AggregateGenTests
     [Fact]
     public async Task Aggregate_WhenStoringAggregateWithSnapshotWithOffset_Succeed()
     {
-        ISchoolX aggregate = await _storageAdapter.GivenStoredEvents(_output)
+        ISchoolStream aggregate = await _storageAdapter.GivenStoredEvents(_output)
                         .GivenAddGradesAsync()
                         .WhenAggregateIsSavedAsync();
 
         ThenAggregateSavedWithSnapshot(aggregate);
 
-        void ThenAggregateSavedWithSnapshot(ISchoolX aggregate)
+        void ThenAggregateSavedWithSnapshot(ISchoolStream aggregate)
         {
             Assert.Equal(0, aggregate.EventsCount);
 

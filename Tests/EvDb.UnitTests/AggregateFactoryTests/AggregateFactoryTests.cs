@@ -26,33 +26,31 @@ public sealed class AggregateFactoryTests
     {
         throw new NotImplementedException();
         //var repoTestSteps = new EvDbRepositoryTestsSteps();
-        //var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
-        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
+        //var stream = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(stream);
         //var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
         //var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
-        //var fetchedAggregate = await repository.GetAsync(aggregateFactory2, aggregate.StreamId.StreamId);
+        //var fetchedAggregate = await repository.GetAsync(aggregateFactory2, stream.StreamId.StreamId);
         //repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
     }
-
-
 
     [Fact]
     public async Task AggregateFactory_WhenInstantiatingWithEvents_Succeed()
     {
-        var aggregate = await Steps
+        var stream = await Steps
                         .GivenFactoryForStoredStreamWithEvents(_output, _storageAdapter)
                         .GivenNoSnapshot(_storageAdapter)
                         .WhenGetAggregateAsync();
-
+        
         ThenStoredEventsAddedSuccessfully();
 
         void ThenStoredEventsAddedSuccessfully()
         {
             throw new NotImplementedException();
-            //Assert.Single(aggregate.State);
-            //var studentAvg = aggregate.State.First().Value.Sum;
+            //Assert.Single(stream.State);
+            //var studentAvg = stream.State.First().Value.Sum;
             //Assert.Equal(180, studentAvg);
-            //Assert.Equal(0, aggregate.EventsCount);
+            //Assert.Equal(0, stream.EventsCount);
         }
     }
 
@@ -66,10 +64,10 @@ public sealed class AggregateFactoryTests
         void ThenStoredEventsAddedSuccessfully()
         {
             throw new NotImplementedException();
-            //Assert.Single(aggregate.State);
-            //var studentSum = aggregate.State.First().Value.Sum;
+            //Assert.Single(stream.State);
+            //var studentSum = stream.State.First().Value.Sum;
             //Assert.Equal(70, studentSum);
-            //Assert.Equal(0, aggregate.EventsCount);
+            //Assert.Equal(0, stream.EventsCount);
         }
     }
 
@@ -83,10 +81,10 @@ public sealed class AggregateFactoryTests
         void ThenStoredEventsAddedSuccessfully()
         {
             throw new NotImplementedException();
-            //Assert.Single(aggregate.State);
-            //var studentSum = aggregate.State.First().Value.Sum;
+            //Assert.Single(stream.State);
+            //var studentSum = stream.State.First().Value.Sum;
             //Assert.Equal(250, studentSum);
-            //Assert.Equal(0, aggregate.EventsCount);
+            //Assert.Equal(0, stream.EventsCount);
         }
     }
 

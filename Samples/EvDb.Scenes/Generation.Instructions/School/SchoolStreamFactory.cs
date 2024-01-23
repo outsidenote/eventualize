@@ -5,14 +5,14 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
-[EvDbViewRef<StudentStatsView>]
-[EvDbViewRef<StatsView>(PropertyName = "ALL")]
-[EvDbStreamFactory<ISchoolEventBundle>]
-public partial class SchoolXFactory
+[EvDbAttachView<StudentStatsView>]
+[EvDbAttachView<StatsView>(PropertyName = "ALL")]
+[EvDbStreamFactory<ISchoolStreamAdders>]
+public partial class SchoolStreamFactory
 {
     #region Ctor
 
-    public SchoolXFactory(IEvDbStorageAdapter storageAdapter) : base(storageAdapter)
+    public SchoolStreamFactory(IEvDbStorageAdapter storageAdapter) : base(storageAdapter)
     {
     }
 
@@ -22,7 +22,7 @@ public partial class SchoolXFactory
 
     #region JsonSerializerOptions
 
-    public override JsonSerializerOptions? JsonSerializerOptions { get; } = SchoolEventBundleContext.Default.Options;
+    public override JsonSerializerOptions? JsonSerializerOptions { get; } = SchoolStreamAddersContext.Default.Options;
 
     #endregion // JsonSerializerOptions
 

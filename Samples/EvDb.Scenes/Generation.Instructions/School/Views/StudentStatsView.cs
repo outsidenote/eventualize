@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace EvDb.UnitTests;
 
-[EvDbView<IEnumerable<StudentStats>, ISchoolEventBundle>]
+[EvDbView<IEnumerable<StudentStats>, ISchoolStreamAdders>]
 internal partial class StudentStatsView
 {
     private readonly ConcurrentDictionary<int, StudentCalc> _students = new();

@@ -13,6 +13,6 @@ namespace EvDb.UnitTests;
 [JsonSerializable(typeof(StudentReceivedGradeEvent))]
 [JsonSerializable(typeof(StudentRegisteredToCourseEvent))]
 [JsonSerializable(typeof(StudentTestSubmittedEvent))]
-public partial class SchoolEventBundleContext : JsonSerializerContext
+public partial class SchoolStreamAddersContext : JsonSerializerContext
 {
 }

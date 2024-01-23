@@ -11,7 +11,7 @@ public class SerializationTests
     public void CourseCreatedEvent_Serialization_Succeed()
     {
         IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
-        var jdef = SchoolEventBundleContext.Default;
+        var jdef = SchoolStreamAddersContext.Default;
         JsonSerializerOptions options = null;
         var json = JsonSerializer.Serialize(payload, options);
         var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
@@ -23,7 +23,7 @@ public class SerializationTests
     public void CourseCreatedEvent_Serialization_T_Succeed()
     {
         var payload = new CourseCreatedEvent(1234, "Anatomy", 40);
-        var jdef = SchoolEventBundleContext.Default;
+        var jdef = SchoolStreamAddersContext.Default;
         JsonSerializerOptions options = null;
         var json = JsonSerializer.Serialize(payload, options);
         var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
@@ -35,7 +35,7 @@ public class SerializationTests
     public void CourseCreatedEvent_Serialization_Converter_Succeed()
     {
         IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
-        var jdef = SchoolEventBundleContext.Default;
+        var jdef = SchoolStreamAddersContext.Default;
         JsonSerializerOptions options = new();
         options.Converters.Add(jdef.CourseCreatedEvent.Converter);
         options.Converters.Add(jdef.ScheduleTestEvent.Converter);
@@ -52,7 +52,7 @@ public class SerializationTests
 
         var options = new JsonSerializerOptions
         {
-            TypeInfoResolver = SchoolEventBundleContext.Default
+            TypeInfoResolver = SchoolStreamAddersContext.Default
         };
 
         var json = JsonSerializer.Serialize(payload, options);
@@ -66,7 +66,7 @@ public class SerializationTests
     {
         IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
 
-        var options = SchoolEventBundleContext.Default.CourseCreatedEvent;
+        var options = SchoolStreamAddersContext.Default.CourseCreatedEvent;
 
         var json = JsonSerializer.Serialize(payload, options);
         var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
