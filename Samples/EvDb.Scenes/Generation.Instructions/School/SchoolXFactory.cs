@@ -8,7 +8,6 @@ namespace EvDb.UnitTests;
 [EvDbViewRef<StudentStatsView>]
 [EvDbViewRef<StatsView>(PropertyName = "ALL")]
 [EvDbStreamFactory<ISchoolEventBundle>]
-//[EvDbStreamFactory<ISchoolEventBundle>(CollectionName = "School")]
 public partial class SchoolXFactory
 {
     #region Ctor
