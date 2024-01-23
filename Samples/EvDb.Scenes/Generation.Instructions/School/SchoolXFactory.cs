@@ -5,6 +5,8 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
+[EvDbViewRef<StudentStatsView>]
+[EvDbViewRef<StatsView>(PropertyName = "ALL")]
 [EvDbStreamFactory<ISchoolEventBundle>]
 //[EvDbStreamFactory<ISchoolEventBundle>(CollectionName = "School")]
 public partial class SchoolXFactory
@@ -30,14 +32,4 @@ public partial class SchoolXFactory
     public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
 
     #endregion // Partition
-
-    #region ViewFactories
-
-    protected override Func<JsonSerializerOptions?, IEvDbView>[] ViewFactories { get; } = new []
-        {
-             StudentStatsView.Create,
-             StatsView.Create
-        };
-
-    #endregion // ViewFactories
 }

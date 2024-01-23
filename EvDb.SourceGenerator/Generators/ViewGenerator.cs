@@ -13,7 +13,8 @@ namespace EvDb.SourceGenerator;
 [Generator]
 public partial class ViewGenerator : BaseGenerator
 {
-    protected override string EventTargetAttribute { get; } = "EvDbViewAttribute";
+    internal const string EVENT_TARGET = "EvDbViewAttribute";
+    protected override string EventTargetAttribute { get; } = EVENT_TARGET;
 
     #region OnGenerate
 
@@ -57,8 +58,7 @@ public partial class ViewGenerator : BaseGenerator
         string aggregateInterfaceType = $"I{rootName}";
 
         AttributeData att = typeSymbol.GetAttributes()
-                                  .Where(att => att.AttributeClass?.Name == EventTargetAttribute)
-                                  .First();
+                                  .First(att => att.AttributeClass?.Name == EventTargetAttribute);
         ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         string stateType = args[0].ToDisplayString();
         ITypeSymbol eventTypeSymbol = args[1];

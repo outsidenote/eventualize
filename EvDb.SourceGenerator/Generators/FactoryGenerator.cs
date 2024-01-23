@@ -12,62 +12,12 @@ using System.Text;
 
 namespace EvDb.SourceGenerator;
 
-public class Ros : SymbolVisitor
-{
-    public static readonly SymbolVisitor Default = new Ros();
-
-    public override void DefaultVisit(ISymbol symbol)
-    {
-        base.DefaultVisit(symbol);
-    }
-
-    public override void Visit(ISymbol? symbol)
-    {
-        base.Visit(symbol);
-    }
-
-    public override void VisitArrayType(IArrayTypeSymbol symbol)
-    {
-        base.VisitArrayType(symbol);
-    }
-
-    public override void VisitField(IFieldSymbol symbol)
-    {
-        base.VisitField(symbol);
-    }
-
-    public override void VisitLocal(ILocalSymbol symbol)
-    {
-        base.VisitLocal(symbol);
-    }
-
-    public override void VisitMethod(IMethodSymbol symbol)
-    {
-        base.VisitMethod(symbol);
-    }
-
-    public override void VisitProperty(IPropertySymbol symbol)
-    {
-        base.VisitProperty(symbol);
-    }
-
-    public override void VisitNamedType(INamedTypeSymbol symbol)
-    {
-        base.VisitNamedType(symbol);
-    }
-
-    public override void VisitRangeVariable(IRangeVariableSymbol symbol)
-    {
-        base.VisitRangeVariable(symbol);
-    }
-}
-
-
 [Generator]
 public partial class FactoryGenerator : BaseGenerator
 {
-    protected override string EventTargetAttribute { get; } = "EvDbStreamFactoryAttribute";
-
+    internal const string EVENT_TARGET = "EvDbStreamFactory";
+    internal const string EVENT_TARGET_ATTRIBUTE = "EvDbStreamFactoryAttribute";
+    protected override string EventTargetAttribute => EVENT_TARGET_ATTRIBUTE;
   
     #region OnGenerate
 
@@ -100,8 +50,7 @@ public partial class FactoryGenerator : BaseGenerator
         #region eventType = .., factoryName = ..
 
         AttributeData att = typeSymbol.GetAttributes()
-                                  .Where(att => att.AttributeClass?.Name == EventTargetAttribute)
-                                  .First();
+                                  .First(att => att.AttributeClass?.Name == EventTargetAttribute);
 
         ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         ITypeSymbol eventTypeSymbol = args[0];
@@ -113,16 +62,15 @@ public partial class FactoryGenerator : BaseGenerator
 
         #endregion // eventType = .., factoryName = ..
 
+        string type = typeSymbol.ToType(syntax, cancellationToken);
+
         #region string rootName = .., interfaceType = .., stateType = ..
 
-        string type = typeSymbol.ToType(syntax, cancellationToken);
         string rootName = factoryName;
         if (factoryName.EndsWith("Factory"))
             rootName = factoryName.Substring(0, factoryName.Length - 7);
         else
             factoryName = $"{factoryName}Factory";
-        rootName = $"{rootName}";
-        //factoryName = $"{factoryName}";
 
         AssemblyName asm = GetType().Assembly.GetName();
 
@@ -142,7 +90,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public interface {{interfaceType}}: IEvDbCollection, {{eventType}}
+                    public partial interface {{interfaceType}}: IEvDbCollection, {{eventType}}
                     { 
                     }
                     """);
@@ -203,7 +151,7 @@ public partial class FactoryGenerator : BaseGenerator
                             string streamId, 
                             long lastStoredOffset = -1)
                         {
-                            {{rootName}}__Collection agg =
+                            {{rootName}}__Collection collection =
                                 new(
                                     this,
                                     _views,
@@ -211,13 +159,13 @@ public partial class FactoryGenerator : BaseGenerator
                                     streamId,
                                     lastStoredOffset);
 
-                            return agg;
+                            return collection;
                         }
 
                         // public override {{interfaceType}} Create(EvDbStoredSnapshot? snapshot)
                         // {
                         //     EvDbStreamAddress stream = snapshot.Cursor;
-                        //     {{rootName}}__Collection agg =
+                        //     {{rootName}}__Collection collection =
                         //         new(
                         //             _repository,
                         //             Kind,
@@ -227,7 +175,7 @@ public partial class FactoryGenerator : BaseGenerator
                         //             snapshot.Cursor.Offset,
                         //             JsonSerializerOptions);
                         // 
-                        //     return agg;
+                        //     return collection;
                         // }
 
                         #endregion // Create 
@@ -294,7 +242,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                     """);
         builder.AppendLine($$"""
-                    public class {{rootName}}__Collection: 
+                    public partial class {{rootName}}__Collection: 
                             EvDbCollection,
                             {{eventType}},
                             {{interfaceType}}
