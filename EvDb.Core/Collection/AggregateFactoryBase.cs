@@ -70,7 +70,7 @@ public abstract class AggregateFactoryBase<T, TState> :
 
 [DebuggerDisplay("{Kind}...")]
 public abstract class EvDbFactoryBase<T> : IEvDbFactory<T>
-    where T : IEvDbCollection, IEvDbEventAdder
+    where T : IEvDbStream, IEvDbEventAdder
 {
     protected readonly IEvDbRepositoryV1 _repository;
 

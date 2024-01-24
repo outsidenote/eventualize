@@ -105,15 +105,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #endregion // Factory
 
-        var colAtt = typeSymbol.GetAttributes()
-                          .First(att =>
-                          {
-                              string? name = att.AttributeClass?.Name;
-                              bool match = FactoryGenerator.EVENT_TARGET == name || FactoryGenerator.EVENT_TARGET_ATTRIBUTE == name;
-                              return match;
-                          });
-        KeyValuePair<string, TypedConstant> collectionName = colAtt.NamedArguments.FirstOrDefault(m => m.Key == "CollectionName");
-        string factoryName = collectionName.Value.Value?.ToString() ?? typeSymbol.Name;
+        string factoryName = $"EvDb{typeSymbol.Name}";
         string rootName = factoryName;
         if (factoryName.EndsWith("Factory"))
             rootName = factoryName.Substring(0, factoryName.Length - 7);
@@ -158,12 +150,12 @@ public partial class ViewRefGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial class {{rootName}}__Collection
+                    partial class {{rootName}}
                     { 
                     {{string.Join("", propsCol)}}
                                         }
                     """);
-        context.AddSource($"{rootName}__Collection.view-ref.generated.cs", builder.ToString());
+        context.AddSource($"{rootName}.view-ref.generated.cs", builder.ToString());
 
         #endregion // Collection
     }

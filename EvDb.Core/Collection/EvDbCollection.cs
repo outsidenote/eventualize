@@ -6,7 +6,7 @@ using System.Reflection;
 namespace EvDb.Core;
 
 //[DebuggerDisplay("")]
-public class EvDbCollection : EvDbCollectionMeta, IEvDbCollection, IEvDbCollectionHidden
+public class EvDbCollection : EvDbCollectionMeta, IEvDbStream, IEvDbCollectionHidden
 {
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
@@ -77,7 +77,7 @@ public class EvDbCollection : EvDbCollectionMeta, IEvDbCollection, IEvDbCollecti
         _pendingEvents.Clear();
     }
 
-    async Task IEvDbCollection.SaveAsync(CancellationToken cancellation)
+    async Task IEvDbStream.SaveAsync(CancellationToken cancellation)
     {
         try
         {

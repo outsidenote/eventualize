@@ -7,7 +7,7 @@ namespace EvDb.UnitTests;
 
 [EvDbAttachView<StudentStatsView>]
 [EvDbAttachView<StatsView>(PropertyName = "ALL")]
-[EvDbStreamFactory<ISchoolStreamAdders>]
+[EvDbStreamFactory<IEvDbSchoolStreamAdders>]
 public partial class SchoolStreamFactory
 {
     #region Ctor

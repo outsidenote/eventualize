@@ -21,16 +21,16 @@ internal static class Steps
 
     #region CreateFactory
 
-    private static ISchoolStreamFactory CreateFactory(
+    private static IEvDbSchoolStreamFactory CreateFactory(
         ITestOutputHelper output,
         IEvDbStorageAdapter? storageAdapter)
     {
         storageAdapter = storageAdapter;
         ServiceCollection services = new();
         services.AddSingleton(storageAdapter);
-        services.AddSingleton<ISchoolStreamFactory, SchoolStreamFactory>();
+        services.AddSingleton<IEvDbSchoolStreamFactory, SchoolStreamFactory>();
         var sp = services.BuildServiceProvider();
-        ISchoolStreamFactory factory = sp.GetRequiredService<ISchoolStreamFactory>();
+        IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
         return factory;
     }
 
@@ -38,13 +38,13 @@ internal static class Steps
 
     #region GivenLocalAggerate
 
-    public static ISchoolStream GivenLocalAggerate(
+    public static IEvDbSchoolStream GivenLocalAggerate(
         ITestOutputHelper output,
         IEvDbStorageAdapter? storageAdapter,
         string? streamId = null)
     {
         streamId = streamId ?? GenerateStreamId();
-        ISchoolStreamFactory factory = CreateFactory(output, storageAdapter);
+        IEvDbSchoolStreamFactory factory = CreateFactory(output, storageAdapter);
         var aggregate = factory.Create(streamId);
         return aggregate;
     }
@@ -53,7 +53,7 @@ internal static class Steps
 
     #region GivenFactoryForStoredStreamWithEvents
 
-    public static (ISchoolStreamFactory Factory, string StreamId) GivenFactoryForStoredStreamWithEvents(
+    public static (IEvDbSchoolStreamFactory Factory, string StreamId) GivenFactoryForStoredStreamWithEvents(
         ITestOutputHelper output,
         IEvDbStorageAdapter storageAdapter,
         string? streamId = null,
@@ -62,7 +62,7 @@ internal static class Steps
     {
         throw new NotImplementedException();
         streamId = streamId ?? GenerateStreamId();
-        ISchoolStreamFactory factory = CreateFactory(output, storageAdapter);
+        IEvDbSchoolStreamFactory factory = CreateFactory(output, storageAdapter);
 
         if (mockGetAsyncResult == null)
         {
@@ -79,7 +79,7 @@ internal static class Steps
 
     #region WhenGetAggregateAsync
 
-    public static async Task<ISchoolStream> WhenGetAggregateAsync(this (ISchoolStreamFactory Factory, string StreamId) input)
+    public static async Task<IEvDbSchoolStream> WhenGetAggregateAsync(this (IEvDbSchoolStreamFactory Factory, string StreamId) input)
     {
         var (factory, streamId) = input;
         var result = await factory.GetAsync(streamId);
@@ -90,7 +90,7 @@ internal static class Steps
 
     #region WhenAddingPendingEvents
 
-    public static ISchoolStream WhenAddingPendingEvents(this ISchoolStream aggregate)
+    public static IEvDbSchoolStream WhenAddingPendingEvents(this IEvDbSchoolStream aggregate)
     {
         aggregate.EnlistStudent()
                   .WhenAddGrades();
@@ -102,8 +102,8 @@ internal static class Steps
 
     #region SetupMockGetAsync
 
-    public static ISchoolStreamFactory SetupMockGetAsync(
-        this ISchoolStreamFactory factory,
+    public static IEvDbSchoolStreamFactory SetupMockGetAsync(
+        this IEvDbSchoolStreamFactory factory,
         IEvDbStorageAdapter storageAdapter,
         string streamId,
         JsonSerializerOptions? serializerOptions = null,
@@ -132,8 +132,8 @@ internal static class Steps
 
     #region SetupMockSaveThrowOcc
 
-    public static ISchoolStreamFactory SetupMockSaveThrowOcc(
-        this ISchoolStreamFactory factory,
+    public static IEvDbSchoolStreamFactory SetupMockSaveThrowOcc(
+        this IEvDbSchoolStreamFactory factory,
         IEvDbStorageAdapter storageAdapter)
     {
         A.CallTo(() => storageAdapter.SaveAsync<STATE_TYPE>((Core.IEvDbAggregateDeprecated<STATE_TYPE>)A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
@@ -147,7 +147,7 @@ internal static class Steps
     #region CreateStoredEvents
 
     private static List<EvDbStoredEvent> CreateStoredEvents(
-        ISchoolStreamFactory factory,
+        IEvDbSchoolStreamFactory factory,
         string streamId,
         JsonSerializerOptions? serializerOptions,
         long initOffset = 0)
@@ -178,8 +178,8 @@ internal static class Steps
 
     #region GivenNoSnapshot
 
-    public static (ISchoolStreamFactory Factory, string StreamId) GivenNoSnapshot(
-        this (ISchoolStreamFactory Factory, string StreamId) input,
+    public static (IEvDbSchoolStreamFactory Factory, string StreamId) GivenNoSnapshot(
+        this (IEvDbSchoolStreamFactory Factory, string StreamId) input,
         IEvDbStorageAdapter storageAdapter)
     {
         A.CallTo(() => storageAdapter.TryGetSnapshotAsync<STATE_TYPE>(
@@ -196,8 +196,8 @@ internal static class Steps
 
     #region GivenHavingSnapshot
 
-    public static (ISchoolStreamFactory Factory, string StreamId) GivenHavingSnapshot(
-        this (ISchoolStreamFactory Factory, string StreamId) input,
+    public static (IEvDbSchoolStreamFactory Factory, string StreamId) GivenHavingSnapshot(
+        this (IEvDbSchoolStreamFactory Factory, string StreamId) input,
         IEvDbStorageAdapter storageAdapter,
         out EvDbStoredSnapshot<STATE_TYPE>? snapshot)
     {
@@ -253,7 +253,7 @@ internal static class Steps
 
     #region EnlistStudent
 
-    public static ISchoolStream EnlistStudent(this ISchoolStream aggregate,
+    public static IEvDbSchoolStream EnlistStudent(this IEvDbSchoolStream aggregate,
         int studentId = 2202,
         string studentName = "Lora")
     {
@@ -266,7 +266,7 @@ internal static class Steps
 
     #region WhenAddGrades
 
-    public static async Task<ISchoolStream> GivenAddGradesAsync(this Task<ISchoolStream> aggregateAsync,
+    public static async Task<IEvDbSchoolStream> GivenAddGradesAsync(this Task<IEvDbSchoolStream> aggregateAsync,
         int testId = TEST_ID,
         int studentId = STUDENT_ID,
         int numOfGrades = NUM_OF_GRADES,
@@ -277,14 +277,14 @@ internal static class Steps
         return result;
     }
 
-    public static ISchoolStream GivenAddGrades(this ISchoolStream aggregate,
+    public static IEvDbSchoolStream GivenAddGrades(this IEvDbSchoolStream aggregate,
         int testId = TEST_ID,
         int studentId = STUDENT_ID,
         int numOfGrades = NUM_OF_GRADES,
         Func<int, double>? gradeStrategy = null) => 
             aggregate.WhenAddGrades(testId, studentId, numOfGrades, gradeStrategy);
 
-    public static ISchoolStream WhenAddGrades(this ISchoolStream aggregate,
+    public static IEvDbSchoolStream WhenAddGrades(this IEvDbSchoolStream aggregate,
         int testId = TEST_ID,
         int studentId = STUDENT_ID,
         int numOfGrades = NUM_OF_GRADES,
@@ -306,7 +306,7 @@ internal static class Steps
 
     #region GivenAggregateRetrievedFromStore
 
-    public static async Task<ISchoolStream> GivenAggregateRetrievedFromStore(
+    public static async Task<IEvDbSchoolStream> GivenAggregateRetrievedFromStore(
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output,
         bool withEvents = true)
@@ -323,7 +323,7 @@ internal static class Steps
 
     #region GivenLocalAggregateWithPendingEvents
 
-    public static ISchoolStream GivenLocalAggregateWithPendingEvents(
+    public static IEvDbSchoolStream GivenLocalAggregateWithPendingEvents(
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output)
     {
@@ -335,15 +335,15 @@ internal static class Steps
 
     #region WhenAggregateIsSaved
 
-    public async static Task<ISchoolStream> WhenAggregateIsSavedAsync(
-        this ISchoolStream aggregate)
+    public async static Task<IEvDbSchoolStream> WhenAggregateIsSavedAsync(
+        this IEvDbSchoolStream aggregate)
     {
         await aggregate.SaveAsync();
         return aggregate;
     }
 
-    public async static Task<ISchoolStream> WhenAggregateIsSavedAsync(
-        this Task<ISchoolStream> aggregateAsync)
+    public async static Task<IEvDbSchoolStream> WhenAggregateIsSavedAsync(
+        this Task<IEvDbSchoolStream> aggregateAsync)
     {
         var aggregate = await aggregateAsync;
         await aggregate.SaveAsync();
@@ -354,11 +354,11 @@ internal static class Steps
 
     #region GivenStoredEvents
 
-    public static async Task<ISchoolStream> GivenStoredEvents(
+    public static async Task<IEvDbSchoolStream> GivenStoredEvents(
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output)
     {
-        ISchoolStream aggregate = await storageAdapter.GivenLocalAggregateWithPendingEvents(output)
+        IEvDbSchoolStream aggregate = await storageAdapter.GivenLocalAggregateWithPendingEvents(output)
                      .WhenAggregateIsSavedAsync();
         return aggregate;
     }

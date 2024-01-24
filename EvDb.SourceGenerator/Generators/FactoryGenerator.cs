@@ -46,7 +46,6 @@ public partial class FactoryGenerator : BaseGenerator
 
         #endregion // Exception Handling
 
-        // TODO: CollectionName
         #region eventType = .., factoryName = ..
 
         AttributeData att = typeSymbol.GetAttributes()
@@ -55,10 +54,8 @@ public partial class FactoryGenerator : BaseGenerator
         ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         ITypeSymbol eventTypeSymbol = args[0];
         string eventType = eventTypeSymbol.ToDisplayString();
-
-        KeyValuePair<string, TypedConstant> collectionName = att.NamedArguments.FirstOrDefault(m => m.Key == "CollectionName");
             
-        string factoryName = collectionName.Value.Value?.ToString() ?? typeSymbol.Name;
+        string factoryName =  $"EvDb{typeSymbol.Name}";
 
         #endregion // eventType = .., factoryName = ..
 
@@ -90,7 +87,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public partial interface {{interfaceType}}: IEvDbCollection, {{eventType}}
+                    public partial interface {{interfaceType}}: IEvDbStream, {{eventType}}
                     { 
                     }
                     """);
@@ -160,7 +157,7 @@ public partial class FactoryGenerator : BaseGenerator
                             long lastStoredOffset = -1)
                         {
                             var views = CreateViews();
-                            {{rootName}}__Collection collection =
+                            {{rootName}} collection =
                                 new(
                                     this,
                                     views,
@@ -174,7 +171,7 @@ public partial class FactoryGenerator : BaseGenerator
                         // public override {{interfaceType}} Create(EvDbStoredSnapshot? snapshot)
                         // {
                         //     EvDbStreamAddress stream = snapshot.Cursor;
-                        //     {{rootName}}__Collection collection =
+                        //     {{rootName}} collection =
                         //         new(
                         //             _repository,
                         //             Kind,
@@ -251,14 +248,14 @@ public partial class FactoryGenerator : BaseGenerator
 
                     """);
         builder.AppendLine($$"""
-                    public partial class {{rootName}}__Collection: 
+                    public partial class {{rootName}}: 
                             EvDbCollection,
                             {{eventType}},
                             {{interfaceType}}
                     { 
                         #region Ctor
 
-                        public {{rootName}}__Collection(
+                        public {{rootName}}(
                             IEvDbStreamConfig factory,
                             IImmutableList<IEvDbView> views,
                             IEvDbRepositoryV1 repository,

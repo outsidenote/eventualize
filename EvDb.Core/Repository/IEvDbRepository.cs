@@ -24,7 +24,7 @@ public interface IEvDbRepositoryV1
         IEvDbFactory<T> factory,
         string streamId,
         CancellationToken cancellation = default)
-            where T : IEvDbCollection, IEvDbEventAdder;
+            where T : IEvDbStream, IEvDbEventAdder;
 
-    Task SaveAsync(IEvDbCollection aggregate, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
+    Task SaveAsync(IEvDbStream aggregate, JsonSerializerOptions? options = null, CancellationToken cancellation = default);
 }

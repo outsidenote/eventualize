@@ -46,7 +46,7 @@ public partial class ViewGenerator : BaseGenerator
         #region string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
-        string viewName = typeSymbol.Name;
+        string viewName = $"EvDb{typeSymbol.Name}";
         string rootName = viewName;
         if (viewName.EndsWith("View"))
             rootName = viewName.Substring(0, viewName.Length - 4);
@@ -66,9 +66,6 @@ public partial class ViewGenerator : BaseGenerator
 
         #endregion // string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
 
-        KeyValuePair<string, TypedConstant> customPropertyName = att.NamedArguments.FirstOrDefault(m => m.Key == "CollectionName");
-
-        string propName = customPropertyName.Value.Value?.ToString() ?? rootName;
 
         #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 

@@ -3,7 +3,7 @@
 
 // TODO: [bnaya 2023-01-23] Encapsulate IEvDbStreamConfig in a property
 public interface IEvDbFactory<T> : IEvDbStreamConfig  
-    where T : IEvDbCollection, IEvDbEventAdder
+    where T : IEvDbStream, IEvDbEventAdder
 {
 
     T Create(string streamId,

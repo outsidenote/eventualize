@@ -169,7 +169,7 @@ public partial class AggregateGenerator : BaseGenerator
                             long lastStoredOffset = -1)
                         {
                             EvDbStreamAddress stream = new(Partition, streamId);
-                            {{rootName}}__Collection agg =
+                            {{rootName}} agg =
                                 new(
                                     _repository,
                                     Kind,
@@ -186,7 +186,7 @@ public partial class AggregateGenerator : BaseGenerator
                         public override {{aggregateInterfaceType}} Create(EvDbStoredSnapshot<{{stateType}}> snapshot)
                         {
                             EvDbStreamAddress stream = snapshot.Cursor;
-                            {{rootName}}__Collection agg =
+                            {{rootName}} agg =
                                 new(
                                     _repository,
                                     Kind,
@@ -265,13 +265,13 @@ public partial class AggregateGenerator : BaseGenerator
 
                     """);
         builder.AppendLine($$"""
-                    public class {{rootName}}__Collection: EvDbAggregate<{{stateType}}>,
+                    public class {{rootName}}: EvDbAggregate<{{stateType}}>,
                     {{eventType}},
                             I{{rootName}}
                     { 
                         #region Ctor
 
-                        public {{rootName}}__Collection(
+                        public {{rootName}}(
                             IEvDbRepository repository,
                             string kind,
                             EvDbStreamAddress streamId,

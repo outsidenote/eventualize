@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbCollection : IEvDbCollectionMeta
+public interface IEvDbStream : IEvDbCollectionMeta
 {
     /// <summary>
     /// Saves pending events into the injected storage.

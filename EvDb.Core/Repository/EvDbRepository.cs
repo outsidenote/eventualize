@@ -150,7 +150,7 @@ public class EvDbRepositoryV1 : IEvDbRepositoryV1
 
     // TODO: [bnaya 2023-12-28] reduce duplication
     async Task IEvDbRepositoryV1.SaveAsync(
-        IEvDbCollection aggregate,
+        IEvDbStream aggregate,
         JsonSerializerOptions? options,
         CancellationToken cancellation)
     {

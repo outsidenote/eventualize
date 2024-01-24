@@ -3,7 +3,7 @@ using EvDb.Scenes;
 
 namespace EvDb.UnitTests;
 
-[EvDbView<Stats, ISchoolStreamAdders>]
+[EvDbView<Stats, IEvDbSchoolStreamAdders>]
 internal partial class StatsView
 {
     protected override Stats DefaultState { get; } = new Stats(0, 0);
