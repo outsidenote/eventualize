@@ -233,7 +233,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         #endregion // var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
-        #region Collection
+        #region Stream
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
@@ -264,9 +264,12 @@ public partial class FactoryGenerator : BaseGenerator
                             long lastStoredOffset) : 
                                 base(factory, views, repository, streamId, lastStoredOffset)
                         {
+                            Views = new {{rootName}}Views(views);
                         }
 
                         #endregion // Ctor
+                    
+                        public {{rootName}}Views Views { get; }
                     
                         #region Add
 
@@ -276,7 +279,7 @@ public partial class FactoryGenerator : BaseGenerator
                     """);
         context.AddSource($"{rootName}.generated.cs", builder.ToString());
 
-        #endregion // Collection
+        #endregion // Stream
     }
 
     #endregion // OnGenerate

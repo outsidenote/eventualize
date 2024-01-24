@@ -15,19 +15,6 @@ public sealed class AggregateFactoryTests
     }
 
     [Fact]
-    public async Task AggregateFactory_WhenGettingDifferentAggregate_Succeed()
-    {
-        throw new NotImplementedException();
-        //var repoTestSteps = new EvDbRepositoryTestsSteps();
-        //var stream = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
-        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(stream);
-        //var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
-        //var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
-        //var fetchedAggregate = await repository.GetAsync(aggregateFactory2, stream.StreamAddress.StreamAddress);
-        //repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
-    }
-
-    [Fact]
     public async Task AggregateFactory_WhenInstantiatingWithEvents_Succeed()
     {
         var stream = await Steps
@@ -39,12 +26,26 @@ public sealed class AggregateFactoryTests
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            throw new NotImplementedException();
-            //Assert.Single(stream.State);
-            //var studentAvg = stream.State.First().Value.Sum;
-            //Assert.Equal(180, studentAvg);
-            //Assert.Equal(0, stream.EventsCount);
+            Assert.Single(stream.Views.StudentStats);
+            var studentAvg = stream.Views.StudentStats.First().Sum;
+            Assert.Equal(180, studentAvg);
+            Assert.Equal(0, stream.EventsCount);
+
+            Assert.Equal(180, stream.Views.ALL.Sum);
         }
+    }
+
+    [Fact]
+    public async Task AggregateFactory_WhenGettingDifferentAggregate_Succeed()
+    {
+        throw new NotImplementedException();
+        //var repoTestSteps = new EvDbRepositoryTestsSteps();
+        //var stream = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
+        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(stream);
+        //var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
+        //var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
+        //var fetchedAggregate = await repository.GetAsync(aggregateFactory2, stream.StreamAddress.StreamAddress);
+        //repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
     }
 
     [Fact]

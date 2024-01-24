@@ -11,6 +11,7 @@
 
 
 	<ItemGroup>
+		<None Include="..\..\..\..\.editorconfig" Link=".editorconfig" />
 		<None Include="..\..\..\..\docs\README.md">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>

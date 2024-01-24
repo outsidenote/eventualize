@@ -15,6 +15,7 @@ internal static class DomainRoslynExtensions
         builder.AppendLine("#nullable enable");
 
         builder.AppendLine($"#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.");
+        builder.AppendLine($"#pragma warning disable CS0105 // Using directive appeared previously in this namespace");
         builder.AppendLine($"#pragma warning disable CS0108 // hides inherited member.");
         builder.AppendLine();
         var usingLines = syntax.GetUsing();

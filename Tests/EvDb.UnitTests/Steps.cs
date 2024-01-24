@@ -60,7 +60,6 @@ internal static class Steps
         Action<IEvDbStorageAdapter, string>? mockGetAsyncResult = null,
         bool withEvents = true)
     {
-        throw new NotImplementedException();
         streamId = streamId ?? GenerateStreamId();
         IEvDbSchoolStreamFactory factory = CreateFactory(output, storageAdapter);
 
@@ -113,17 +112,16 @@ internal static class Steps
         A.CallTo(() => storageAdapter.GetAsync(A<EvDbStreamCursor>.Ignored, A<CancellationToken>.Ignored))
         .ReturnsLazily((EvDbStreamCursor cursor, CancellationToken ct) =>
         {
-            throw new NotImplementedException();
-            //if (withEvents)
-            //{
-            //    List<EvDbStoredEvent> storedEvents = CreateStoredEvents(
-            //                    factory,
-            //                    streamId,
-            //                    serializerOptions,
-            //                    cursor.Offset);
-            //    return storedEvents.ToAsync();
-            //}
-            //return Array.Empty<EvDbStoredEvent>().ToAsync();
+            if (withEvents)
+            {
+                List<EvDbStoredEvent> storedEvents = CreateStoredEvents(
+                                factory,
+                                streamId,
+                                serializerOptions,
+                                cursor.Offset);
+                return storedEvents.ToAsync();
+            }
+            return Array.Empty<EvDbStoredEvent>().ToAsync();
         });
 
         return factory;

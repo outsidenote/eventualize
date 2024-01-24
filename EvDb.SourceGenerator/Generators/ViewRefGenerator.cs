@@ -115,13 +115,37 @@ public partial class ViewRefGenerator : BaseGenerator
 
         builder.Clear();
 
-        #region Collection Interface
+        #region Stream Interface
+
+        var ctorInit = propsNames.Select((p, i) =>
+                                $$"""
+                                        {{p.Name}} = ((IEvDbView<{{p.StateType}}>)views[{{i}}]).State;
+
+                                """);
 
         var propsColInterface = propsNames.Select(p =>
                                         $$"""
-                                                    {{p.StateType}} {{p.Name}} { get; }
+                                                    public {{p.StateType}} {{p.Name}} { get; }
 
                                                 """);
+
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    public class {{rootName}}Views
+                    { 
+                        public {{rootName}}Views(IImmutableList<IEvDbView> views)
+                        {
+                    {{string.Join("", ctorInit)}}
+                        }
+                    {{string.Join("", propsColInterface)}}
+                    }
+                    """);
+        context.AddSource($"{rootName}Views.view-ref.generated.cs", builder.ToString());
+
+        builder.Clear();
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
@@ -129,35 +153,12 @@ public partial class ViewRefGenerator : BaseGenerator
         builder.AppendLine($$"""
                     partial interface {{interfaceType}}
                     { 
-                    {{string.Join("", propsColInterface)}}
+                        {{rootName}}Views Views { get; }
                     }
                     """);
         context.AddSource($"{interfaceType}.view-ref.generated.cs", builder.ToString());
 
-        #endregion // Collection Interface
-
-        builder.Clear();
-
-        #region Collection
-
-        var propsCol = propsNames.Select((p, i) =>
-                                        $$"""
-                                                    {{p.StateType}} {{interfaceType}}.{{p.Name}} => ((IEvDbView<{{p.StateType}}>)_views[{{i}}]).State;
-
-                                                """);
-
-        builder.AppendHeader(syntax, typeSymbol);
-        builder.AppendLine();
-
-        builder.AppendLine($$"""
-                    partial class {{rootName}}
-                    { 
-                    {{string.Join("", propsCol)}}
-                                        }
-                    """);
-        context.AddSource($"{rootName}.view-ref.generated.cs", builder.ToString());
-
-        #endregion // Collection
+        #endregion // Stream Interface
     }
 
     #endregion // OnGenerate
