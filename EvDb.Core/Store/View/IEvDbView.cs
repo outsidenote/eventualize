@@ -7,7 +7,12 @@ public interface IEvDbView
 
     void FoldEvent(IEvDbEvent e);
 
-    //string PropertyName { get; }
+    /// <summary>
+    /// Gets the name of the view.
+    /// </summary>
+    EvDbViewAddress Address { get; }
+
+    long LatestStoredOffset { get; set; }
 }
 
 public interface IEvDbView<out T> : IEvDbView

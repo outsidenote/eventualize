@@ -11,6 +11,6 @@ public partial record EvDbStreamCursor(string Domain, string Partition, string S
         : this(streamId.Domain, streamId.Partition, streamId.StreamId, offset) { }
     public EvDbStreamCursor(EvDbPartitionAddress partition, string streamId, long offset = 0)
         : this(partition.Domain, partition.Partition, streamId, offset) { }
-    public EvDbStreamCursor(IEvDbCollectionMeta aggregate)
-        : this(aggregate.StreamId.Domain, aggregate.StreamId.Partition, aggregate.StreamId.StreamId, aggregate.LastStoredOffset + 1) { }
+    public EvDbStreamCursor(IEvDbStreamStore aggregate)
+        : this(aggregate.StreamAddress.Domain, aggregate.StreamAddress.Partition, aggregate.StreamAddress.StreamId, aggregate.LastStoredOffset + 1) { }
 }

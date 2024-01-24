@@ -7,15 +7,15 @@ namespace EvDb.Core
         public OCCException() { }
         [Obsolete("Shouldn't be used directly, used by the serialization", true)]
         public OCCException(string message) : base(message) { }
-        public OCCException(IEvDbCollectionMeta aggregate) : this(aggregate, -1)
+        public OCCException(IEvDbStreamStore streamStore) : this(streamStore, -1)
         {
         }
-        public OCCException(IEvDbCollectionMeta aggregate, long storedLastOffset) : base(PrepareMessageFromAggregate(aggregate, storedLastOffset))
+        public OCCException(IEvDbStreamStore streamStore, long storedLastOffset) : base(PrepareMessageFromAggregate(streamStore, storedLastOffset))
         {
         }
-        private static string PrepareMessageFromAggregate(IEvDbCollectionMeta aggregate, long lastStoredOffset)
+        private static string PrepareMessageFromAggregate(IEvDbStreamStore streamStore, long lastStoredOffset)
         {
-            return $"Kind={aggregate.Kind}, StreamId='{aggregate.StreamId}', aggregateLastStoredOffset={aggregate.LastStoredOffset}, ActualLastStoredOffset={lastStoredOffset}";
+            return $"{streamStore.StreamAddress}, StreamLastStoredOffset={streamStore.LastStoredOffset}, ActualLastStoredOffset={lastStoredOffset}";
         }
     }
 }

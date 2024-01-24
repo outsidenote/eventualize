@@ -6,4 +6,10 @@ public class EvDbViewAttribute
     <TState, TEventAdder> : Attribute
     where TEventAdder : IEvDbEventAdder
 {
+    public EvDbViewAttribute(string name)
+    {
+        Name = name;
+    }
+
+    public string Name { get; }
 }

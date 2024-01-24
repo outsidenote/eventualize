@@ -14,13 +14,13 @@ internal static class DomainRoslynExtensions
     {
         builder.AppendLine("#nullable enable");
 
-        builder.AppendLine($"// Generated on {DateTimeOffset.UtcNow:yyyy-MM-dd}");
         builder.AppendLine($"#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.");
         builder.AppendLine($"#pragma warning disable CS0108 // hides inherited member.");
         builder.AppendLine();
         var usingLines = syntax.GetUsing();
         builder.AppendLine("using System.Collections.Immutable;");
         builder.AppendLine("using System.Text.Json;");
+        builder.AppendLine($"// ####################  GENERATED AT: {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss} ####################");
         foreach (var line in usingLines)
         {
             builder.AppendLine(line.Trim());

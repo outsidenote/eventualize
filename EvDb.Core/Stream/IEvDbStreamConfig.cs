@@ -5,8 +5,7 @@ namespace EvDb.Core;
 
 public interface IEvDbStreamConfig
 {
-    EvDbPartitionAddress Partition { get; }
-    string Kind { get; }
+    EvDbPartitionAddress PartitionAddress { get; }
 
     int MinEventsBetweenSnapshots { get; }
 

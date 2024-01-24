@@ -1,26 +1,28 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Immutable;
+using System.Text.Json;
+
 namespace EvDb.Core;
 
-public interface IEvDbCollectionMeta
+public interface IEvDbStreamStore 
 {
     /// <summary>
-    /// The purpose of the aggregation.
+    /// Saves pending events into the injected storage.
     /// </summary>
-    string Kind { get; }
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    Task SaveAsync(CancellationToken cancellation = default);
+
+    // TODO: [bnaya 2024-01-09] selective clear is needed
+    void ClearLocalEvents();
+
+    //Task GetAsync<TState>(string streamId, CancellationToken cancellation = default);
 
     /// <summary>
     /// Bookmark to the last successful event persistence.
     /// </summary>
     long LastStoredOffset { get; }
 
-    /// <summary>
-    /// Throttle snapshot persistence.
-    /// </summary>
-    int MinEventsBetweenSnapshots { get; }
-
-    EvDbStreamAddress StreamId { get; }
-
-    EvDbSnapshotId SnapshotId { get; }
+    EvDbStreamAddress StreamAddress { get; }
 
     /// <summary>
     /// Indicating whether this instance is empty i.e. not having events.

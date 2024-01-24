@@ -64,10 +64,11 @@ public class AggregateGenTests
 
         void ThenAggregateSavedWithoutSnapshot(IEvDbSchoolStream aggregate)
         {
-            Assert.Equal(0, aggregate.EventsCount);
+            throw new NotImplementedException();
+            //Assert.Equal(0, aggregate.EventsCount);
 
-            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, false, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
-                .MustHaveHappenedOnceExactly();
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, false, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //    .MustHaveHappenedOnceExactly();
         }
     }
 
@@ -85,11 +86,12 @@ public class AggregateGenTests
         {
             Assert.Equal(0, aggregate.EventsCount);
 
-            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
-                .MustHaveHappenedOnceExactly();
+            throw new NotImplementedException();
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //    .MustHaveHappenedOnceExactly();
 
-            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
-                .MustHaveHappenedOnceExactly();
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //    .MustHaveHappenedOnceExactly();
         }
     }
 
@@ -106,11 +108,12 @@ public class AggregateGenTests
         {
             Assert.Equal(0, aggregate.EventsCount);
 
-            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
-                .MustHaveHappenedOnceExactly();
+            throw new NotImplementedException();
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //    .MustHaveHappenedOnceExactly();
 
-            A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
-                .MustHaveHappenedTwiceExactly();
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //    .MustHaveHappenedTwiceExactly();
         }
     }
 

@@ -10,11 +10,11 @@ public class AggregateSaveParameterCollection<T> : IEnumerable<AggregateSavePara
     private readonly string aggregateId;
     private readonly string aggregateType;
     private readonly long baseSeq;
-    public AggregateSaveParameterCollection(IEvDbCollectionMeta aggregate)
+    public AggregateSaveParameterCollection(IEvDbStreamStore aggregate)
     {
-        _domain = aggregate.StreamId.Domain;
-        aggregateId = aggregate.StreamId.StreamId;
-        aggregateType = aggregate.StreamId.Partition;
+        _domain = aggregate.StreamAddress.Domain;
+        aggregateId = aggregate.StreamAddress.StreamId;
+        aggregateType = aggregate.StreamAddress.Partition;
         baseSeq = aggregate.LastStoredOffset + 1;
         Events = aggregate.Events;
     }

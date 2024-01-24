@@ -96,7 +96,7 @@ public partial class ViewRefGenerator : BaseGenerator
         builder.AppendLine($$"""
                     partial {{type}} {{typeSymbol.Name}}
                     {                                     
-                        protected override Func<JsonSerializerOptions?, IEvDbView>[] ViewFactories { get; } = new []
+                        protected override Func<EvDbStreamAddress, JsonSerializerOptions?, IEvDbView>[] ViewFactories { get; } = new []
                             {{{string.Join(",", propsCreates)}}
                             };
                     }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 
@@ -7,46 +6,41 @@ using System.Text.Json;
 
 namespace EvDb.Core;
 
-[Obsolete("Deprecated")]
-[DebuggerDisplay("LastStoredOffset: {LastStoredOffset}, State: {State}")]
-public class EvDbAggregate<TState> : EvDbCollectionMeta, IEvDbAggregateDeprecated<TState>, IEvDbCollectionHidden
+//[DebuggerDisplay("")]
+public class EvDbStream : IEvDbStreamStore, IEvDbStreamSync
 {
+    // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
+    protected internal IImmutableList<IEvDbEvent> _pendingEvents = ImmutableList<IEvDbEvent>.Empty;
+
+    protected static readonly SemaphoreSlim _dirtyLock = new SemaphoreSlim(1);
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
     protected readonly IEvDbRepository _repository;
 
     #region Ctor
 
-    public EvDbAggregate(
+    public EvDbStream(
+        IEvDbStreamConfig factory,
+        IImmutableList<IEvDbView> views,
         IEvDbRepository repository,
-        string kind,
-        EvDbStreamAddress streamId,
-        IEvDbFoldingLogic<TState> foldingLogic,
-        int minEventsBetweenSnapshots,
-        TState state,
-        long lastStoredOffset,
-        JsonSerializerOptions? options)
-        : base(kind, streamId, minEventsBetweenSnapshots, lastStoredOffset, options)
+        string streamId,
+        long lastStoredOffset)
     {
-        State = state;
         _repository = repository;
-        FoldingLogic = foldingLogic;
+        _views = views;
+        StreamAddress = new EvDbStreamAddress(factory.PartitionAddress, streamId);
+        LastStoredOffset = lastStoredOffset;
+        Options = factory.JsonSerializerOptions;
     }
 
 
     #endregion // Ctor
 
-    #region FoldingLogic
+    #region Views
 
-    public readonly IEvDbFoldingLogic<TState> FoldingLogic;
+    protected IImmutableList<IEvDbView> _views;
 
-    #endregion // FoldingLogic
-
-    #region State
-
-    public TState State { get; private set; }
-
-    #endregion // State
+    #endregion // Views
 
     #region AddEvent
 
@@ -65,8 +59,9 @@ public class EvDbAggregate<TState> : EvDbCollectionMeta, IEvDbAggregateDeprecate
             _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
             IImmutableList<IEvDbEvent> evs = _pendingEvents.Add(e);
             _pendingEvents = evs;
-            // TODO: [bnaya 2023-12-19] thread safe
-            State = FoldingLogic.FoldEvent(State, e);
+
+            foreach (IEvDbView folding in _views)
+                folding.FoldEvent(e);
         }
         finally
         {
@@ -74,23 +69,22 @@ public class EvDbAggregate<TState> : EvDbCollectionMeta, IEvDbAggregateDeprecate
         }
     }
 
-    #endregion // AddEvent
-
-    void IEvDbCollectionHidden.SyncEvent(IEvDbStoredEvent e)
+    void IEvDbStreamSync.SyncEvent(IEvDbStoredEvent e)
     {
-        State = FoldingLogic.FoldEvent(State, e);
+        throw new NotImplementedException();
+        //State = FoldingLogic.FoldEvent(State, e);
         LastStoredOffset = e.StreamCursor.Offset;
     }
 
-    //IImmutableDictionary<string, IEvDbView> IEvDbCollectionHidden.Views => throw new NotImplementedException();
+    #endregion // AddEvent
 
     public void ClearLocalEvents()
     {
         LastStoredOffset += _pendingEvents.Count;
-        _pendingEvents = _pendingEvents.Clear();
+        _pendingEvents.Clear();
     }
 
-    async Task IEvDbAggregateDeprecated<TState>.SaveAsync(CancellationToken cancellation)
+    async Task IEvDbStreamStore.SaveAsync(CancellationToken cancellation)
     {
         try
         {
@@ -104,5 +98,29 @@ public class EvDbAggregate<TState> : EvDbCollectionMeta, IEvDbAggregateDeprecate
             _dirtyLock.Release();
         }
     }
+
+    #region StreamId
+
+    public EvDbStreamAddress StreamAddress { get; init; }
+
+    #endregion // StreamAddress
+
+    public int EventsCount => _pendingEvents.Count;
+
+    #region LastStoredOffset
+
+    public long LastStoredOffset { get; protected set; } = -1;
+
+    #endregion // LastStoredOffset
+
+    #region IsEmpty
+
+    bool IEvDbStreamStore.IsEmpty => _pendingEvents.Count == 0;
+
+    #endregion // IsEmpty
+
+    public JsonSerializerOptions? Options { get; }
+
+    IEnumerable<IEvDbEvent> IEvDbStreamStore.Events => _pendingEvents;
 }
 

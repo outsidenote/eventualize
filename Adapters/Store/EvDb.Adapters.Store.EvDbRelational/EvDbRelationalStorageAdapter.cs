@@ -58,13 +58,14 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     #region IEvDbStorageAdapter Members
 
 
-    async Task<long> IEvDbStorageAdapter.GetLastOffsetAsync<T>(IEvDbAggregateDeprecated<T> aggregate, CancellationToken cancellation)
+    async Task<long> IEvDbStorageAdapter.GetLastOffsetAsync<T>(EvDbStreamAddress streamAddress, CancellationToken cancellation )
     {
-        cancellation.ThrowIfCancellationRequested();
-        DbConnection conn = await _connectionTask;
-        string query = _queries.GetLastSnapshotSnapshot;
-        long offset = await conn.ExecuteScalarAsync<long>(query, aggregate.StreamId);
-        return offset;
+        throw new NotImplementedException();
+        //cancellation.ThrowIfCancellationRequested();
+        //DbConnection conn = await _connectionTask;
+        //string query = _queries.GetLastSnapshotSnapshot;
+        //long offset = await conn.ExecuteScalarAsync<long>(query, aggregate.StreamAddress);
+        //return offset;
     }
 
     /// <summary>
@@ -75,7 +76,7 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     async Task<EvDbStoredSnapshot<T>?> IEvDbStorageAdapter.TryGetSnapshotAsync<T>(
-        EvDbSnapshotId snapshotId, CancellationToken cancellation)
+        EvDbViewAddress snapshotId, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
@@ -102,10 +103,11 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
     }
 
-    async Task IEvDbStorageAdapter.SaveAsync<T>(IEvDbAggregateDeprecated<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options, CancellationToken cancellation)
+    async Task IEvDbStorageAdapter.SaveAsync<T>(IEvDbStreamStore streamStore, IEnumerable<IEvDbView> views, bool storeSnapshot, JsonSerializerOptions? options, CancellationToken cancellation)
     {
-        SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, options) : null;
-        await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
+        throw new NotImplementedException();
+        //SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, options) : null;
+        //await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
     }
 
     //async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbCollectionMeta<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
@@ -115,33 +117,34 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     //}
 
     // TODO: [bnaya 2023-12-13] avoid racing
-    private async Task SaveAsync<T>(IEvDbAggregateDeprecated<T> aggregate, SnapshotSaveParameter? snapshotSaveParameter, CancellationToken cancellation)
+    private async Task SaveAsync<T>(IEvDbStreamStore streamStore, IEnumerable<IEvDbView> views, SnapshotSaveParameter? snapshotSaveParameter, CancellationToken cancellation)
     {
-        cancellation.ThrowIfCancellationRequested();
-        DbConnection conn = await _connectionTask;
-        string query = _queries.Save;
-        string snapQuery = _queries.SaveSnapshot;
+        throw new NotImplementedException();
+        //cancellation.ThrowIfCancellationRequested();
+        //DbConnection conn = await _connectionTask;
+        //string query = _queries.Save;
+        //string snapQuery = _queries.SaveSnapshot;
 
-        // TODO: [bnaya 2023-12-20] Thread safety (lock async) clear the pending on succeed?, transaction?,  
-        try
-        {
-            var parameter = new AggregateSaveParameterCollection<T>(aggregate/*, domain? */);
+        //// TODO: [bnaya 2023-12-20] Thread safety (lock async) clear the pending on succeed?, transaction?,  
+        //try
+        //{
+        //    var parameter = new AggregateSaveParameterCollection<T>(aggregate/*, domain? */);
 
-            int affected = await conn.ExecuteAsync(query, parameter);
-            if (snapshotSaveParameter != null)
-            {
-                int snapshot = await conn.ExecuteAsync(snapQuery, snapshotSaveParameter);
-                if (snapshot != 1)
-                    throw new DataException("Snapshot not saved");
-            }
-            // TODO: [bnaya 2023-12-20] do the logging right
-            _logger.LogDebug("{count} events saved", affected);
-        }
-        catch (DbException e)
-            when (e.Message.Contains("Violation of PRIMARY KEY constraint"))
-        {
-            throw new OCCException(aggregate);
-        }
+        //    int affected = await conn.ExecuteAsync(query, parameter);
+        //    if (snapshotSaveParameter != null)
+        //    {
+        //        int snapshot = await conn.ExecuteAsync(snapQuery, snapshotSaveParameter);
+        //        if (snapshot != 1)
+        //            throw new DataException("Snapshot not saved");
+        //    }
+        //    // TODO: [bnaya 2023-12-20] do the logging right
+        //    _logger.LogDebug("{count} events saved", affected);
+        //}
+        //catch (DbException e)
+        //    when (e.Message.Contains("Violation of PRIMARY KEY constraint"))
+        //{
+        //    throw new OCCException(aggregate);
+        //}
     }
 
     #endregion // IEvDbStorageAdapter Members

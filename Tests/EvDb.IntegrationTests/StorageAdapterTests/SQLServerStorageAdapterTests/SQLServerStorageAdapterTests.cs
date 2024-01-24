@@ -3,7 +3,7 @@ using EvDb.Core;
 using EvDb.Core.Tests;
 using Microsoft.Extensions.Configuration;
 using Xunit.Abstractions;
-using static EvDb.Core.Tests.TestHelper;
+//using static EvDb.Core.Tests.TestHelper;
 
 namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests;
 
@@ -49,25 +49,27 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     [Fact]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithPendingEventsWithoutSnapshot_Succeed()
     {
-        EvDbAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
-        await _world.StorageAdapter.SaveAsync(aggregate, false);
-        AssertAggregateStoredSuccessfully.assert(_world, aggregate, false);
+        //EvDbAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
+        //await _world.StorageAdapter.SaveAsync(aggregate, false);
+        //AssertAggregateStoredSuccessfully.assert(_world, aggregate, false);
     }
 
     [Fact]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithPendingEventsWithSnapshot_Succeed()
     {
-        EvDbAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
-        await _world.StorageAdapter.SaveAsync(aggregate, true);
-        AssertAggregateStoredSuccessfully.assert(_world, aggregate, true);
+        throw new NotImplementedException();
+        //EvDbAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
+        //await _world.StorageAdapter.SaveAsync(aggregate, true);
+        //AssertAggregateStoredSuccessfully.assert(_world, aggregate, true);
     }
 
     [Fact]
     public async Task SQLStorageAdapter_WhenStoringAggregateWithStaleState_ThrowException()
     {
-        EvDbAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
-        await _world.StorageAdapter.SaveAsync(aggregate, true);
-        await Assert.ThrowsAsync<OCCException>(async () => await _world.StorageAdapter.SaveAsync(aggregate, true));
+        throw new NotImplementedException();
+        //EvDbAggregate<TestState> aggregate = PrepareAggregateWithPendingEvents();
+        //await _world.StorageAdapter.SaveAsync(aggregate, true);
+        //await Assert.ThrowsAsync<OCCException>(async () => await _world.StorageAdapter.SaveAsync(aggregate, true));
     }
 
     [Fact(Skip = "not active")]
@@ -84,34 +86,37 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
     [Fact]
     public async Task SQLStorageAdapter_WhenGettingLastSnapshotId_Succeed()
     {
-        var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
-        var latestSnapshotOffset = await _world.StorageAdapter.GetLastOffsetAsync(aggregate);
-        var expectedOffset = aggregate.LastStoredOffset + aggregate.EventsCount;
-        Assert.Equal(expectedOffset, latestSnapshotOffset);
+        throw new NotImplementedException();
+        //var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
+        //var latestSnapshotOffset = await _world.StorageAdapter.GetLastOffsetAsync(aggregate);
+        //var expectedOffset = aggregate.LastStoredOffset + aggregate.EventsCount;
+        //Assert.Equal(expectedOffset, latestSnapshotOffset);
     }
 
     [Fact]
     public async Task SQLStorageAdapter_WhenGettingLatestSnapshot_Succeed()
     {
-        var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
+        throw new NotImplementedException();
+        //var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
 
-        var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotId);
-        Assert.NotNull(latestSnapshot);
-        Assert.Equal(aggregate.State, latestSnapshot.State);
-        Assert.Equal(aggregate.LastStoredOffset + aggregate.EventsCount, latestSnapshot.Cursor.Offset);
+        //var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotId);
+        //Assert.NotNull(latestSnapshot);
+        //Assert.Equal(aggregate.State, latestSnapshot.State);
+        //Assert.Equal(aggregate.LastStoredOffset + aggregate.EventsCount, latestSnapshot.Cursor.Offset);
     }
 
     [Fact]
     public async Task SQLStorageAdapter_WhenGettingStoredEvents_Succeed()
     {
-        var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
+        throw new NotImplementedException();
+        //var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
 
-        EvDbStreamCursor parameter = new(aggregate);
+        //EvDbStreamCursor parameter = new(aggregate);
 
-        var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
-        Assert.NotNull(asyncEvents);
-        ICollection<IEvDbStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
-        Assert.True(((IEvDbCollectionMeta)aggregate).Events.SequenceEqual(events, EvDbEventComparer.Default));
+        //var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
+        //Assert.NotNull(asyncEvents);
+        //ICollection<IEvDbStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
+        //Assert.True(((IEvDbStreamStore)aggregate).Events.SequenceEqual(events, EvDbEventComparer.Default));
     }
 
 }

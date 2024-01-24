@@ -113,16 +113,17 @@ internal static class Steps
         A.CallTo(() => storageAdapter.GetAsync(A<EvDbStreamCursor>.Ignored, A<CancellationToken>.Ignored))
         .ReturnsLazily((EvDbStreamCursor cursor, CancellationToken ct) =>
         {
-            if (withEvents)
-            {
-                List<EvDbStoredEvent> storedEvents = CreateStoredEvents(
-                                factory,
-                                streamId,
-                                serializerOptions,
-                                cursor.Offset);
-                return storedEvents.ToAsync();
-            }
-            return Array.Empty<EvDbStoredEvent>().ToAsync();
+            throw new NotImplementedException();
+            //if (withEvents)
+            //{
+            //    List<EvDbStoredEvent> storedEvents = CreateStoredEvents(
+            //                    factory,
+            //                    streamId,
+            //                    serializerOptions,
+            //                    cursor.Offset);
+            //    return storedEvents.ToAsync();
+            //}
+            //return Array.Empty<EvDbStoredEvent>().ToAsync();
         });
 
         return factory;
@@ -136,10 +137,11 @@ internal static class Steps
         this IEvDbSchoolStreamFactory factory,
         IEvDbStorageAdapter storageAdapter)
     {
-        A.CallTo(() => storageAdapter.SaveAsync<STATE_TYPE>((Core.IEvDbAggregateDeprecated<STATE_TYPE>)A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
-            .ThrowsAsync(new OCCException());
+        throw new NotImplementedException() ;
+        //A.CallTo(() => storageAdapter.SaveAsync<STATE_TYPE>((Core.IEvDbAggregateDeprecated<STATE_TYPE>)A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+        //    .ThrowsAsync(new OCCException());
 
-        return factory;
+        //return factory;
     }
 
     #endregion // SetupMockSaveThrowOcc
@@ -153,7 +155,7 @@ internal static class Steps
         long initOffset = 0)
     {
         List<EvDbStoredEvent> storedEvents = new();
-        EvDbStreamCursor cursor = new(factory.Partition, streamId, initOffset);
+        EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset);
         StudentEnlistedEvent student = Steps.CreateStudentEnlistedEvent();
         if (initOffset == 0)
         {
@@ -164,7 +166,7 @@ internal static class Steps
 
         for (int i = 1; i <= 3; i++)
         {
-            EvDbStreamCursor csr = new(factory.Partition, streamId, initOffset + i);
+            EvDbStreamCursor csr = new(factory.PartitionAddress, streamId, initOffset + i);
             double gradeValue = DefaultGradeStrategy(i);
             var grade = new StudentReceivedGradeEvent(20992, student.Student.Id, gradeValue);
             var gradeEvent = EvDbEventFactory.Create(grade, serializerOptions);
@@ -183,7 +185,7 @@ internal static class Steps
         IEvDbStorageAdapter storageAdapter)
     {
         A.CallTo(() => storageAdapter.TryGetSnapshotAsync<STATE_TYPE>(
-                    A<EvDbSnapshotId>.Ignored, A<CancellationToken>.Ignored))
+                    A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
             .ReturnsLazily<Task<EvDbStoredSnapshot<STATE_TYPE>?>>(() =>
             {
                 return Task.FromResult<EvDbStoredSnapshot<STATE_TYPE>?>(null);
@@ -202,7 +204,7 @@ internal static class Steps
         out EvDbStoredSnapshot<STATE_TYPE>? snapshot)
     {
         var (factory, streamId) = input;
-        EvDbStreamAddress address = new(factory.Partition, streamId);
+        EvDbStreamAddress address = new(factory.PartitionAddress, streamId);
         var student = CreateStudentEntity();
         var stat = new StudentStats(student.Name, 70, 20);
         EvDbSnapshotCursor cursor = new(address, "Stats", 10);
@@ -214,7 +216,7 @@ internal static class Steps
         snapshot = snp;
 
         A.CallTo(() => storageAdapter.TryGetSnapshotAsync<STATE_TYPE>(
-                    A<EvDbSnapshotId>.Ignored, A<CancellationToken>.Ignored))
+                    A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
             .ReturnsLazily<Task<EvDbStoredSnapshot<STATE_TYPE>?>>(async () =>
         {
             await Task.Yield();

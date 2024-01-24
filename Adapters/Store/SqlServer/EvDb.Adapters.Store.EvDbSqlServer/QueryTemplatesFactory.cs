@@ -27,10 +27,10 @@ internal static class QueryTemplatesFactory
                     aggregate_type as {nameof(EvDbeSnapshotRelationalRecrod.AggregateType)},
                     offset as {nameof(EvDbeSnapshotRelationalRecrod.Offset)}
                 FROM {storageContext}snapshot
-                WHERE domain = @{nameof(EvDbSnapshotId.Domain)}
-                    AND stream_type = @{nameof(EvDbSnapshotId.Partition)}
-                    AND stream_id = @{nameof(EvDbSnapshotId.StreamId)}
-                    AND aggregate_type = @{nameof(EvDbSnapshotId.Kind)}
+                WHERE domain = @{nameof(EvDbViewAddress.Domain)}
+                    AND stream_type = @{nameof(EvDbViewAddress.Partition)}
+                    AND stream_id = @{nameof(EvDbViewAddress.StreamId)}
+                    AND aggregate_type = @{nameof(EvDbViewAddress.ViewName)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,

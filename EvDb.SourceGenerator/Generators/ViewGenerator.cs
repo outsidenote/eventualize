@@ -66,6 +66,8 @@ public partial class ViewGenerator : BaseGenerator
 
         #endregion // string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
 
+        TypedConstant nameConst = att.ConstructorArguments.First();
+        string? name = nameConst.Value?.ToString();
 
         #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
@@ -117,7 +119,8 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]                    public abstract class {{viewName}}Base:
+                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")] 
+                    public abstract class {{viewName}}Base:
                         IEvDbView<{{stateType}}>
                     {        
                         protected abstract {{stateType}} DefaultState { get; }
@@ -125,11 +128,18 @@ public partial class ViewGenerator : BaseGenerator
                         private {{stateType}} _state;
                                          
                         protected {{viewName}}Base(
+                            EvDbStreamAddress address, 
                             JsonSerializerOptions? jsonSerializerOptions)
                         {
+                            _address = new EvDbViewAddress(address, "{{name}}");
                             _state = DefaultState;
                             _jsonSerializerOptions = jsonSerializerOptions;
                         }
+
+                        private readonly EvDbViewAddress _address;
+                        EvDbViewAddress IEvDbView.Address => _address;
+
+                        long IEvDbView.LatestStoredOffset { get; set; } = -1;
 
                         public virtual int MinEventsBetweenSnapshots => 0;
 
@@ -169,10 +179,11 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine($$"""
                     partial {{type}} {{typeSymbol.Name}}: {{viewName}}Base
                     { 
-                        public static IEvDbView Create(JsonSerializerOptions? jsonSerializerOptions) => new {{typeSymbol.Name}}(jsonSerializerOptions);
+                        public static IEvDbView Create(EvDbStreamAddress address, JsonSerializerOptions? jsonSerializerOptions) => new {{typeSymbol.Name}}(address, jsonSerializerOptions);
 
                         private {{typeSymbol.Name}}(
-                            JsonSerializerOptions? jsonSerializerOptions):base (jsonSerializerOptions)
+                            EvDbStreamAddress address, 
+                            JsonSerializerOptions? jsonSerializerOptions):base (address,jsonSerializerOptions)
                         {
                         }
                     }

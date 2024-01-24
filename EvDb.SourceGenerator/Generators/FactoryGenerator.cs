@@ -87,7 +87,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public partial interface {{interfaceType}}: IEvDbStream, {{eventType}}
+                    public partial interface {{interfaceType}}: IEvDbStreamStore, {{eventType}}
                     { 
                     }
                     """);
@@ -139,10 +139,10 @@ public partial class FactoryGenerator : BaseGenerator
 
                         #region CreateViews
 
-                        private IImmutableList<IEvDbView> CreateViews()
+                        private IImmutableList<IEvDbView> CreateViews(EvDbStreamAddress address)
                         {
                             var options = JsonSerializerOptions; 
-                            var views = ViewFactories.Select(f => f(options));
+                            var views = ViewFactories.Select(f => f(address, options));
 
                             var immutable = ImmutableList.CreateRange<IEvDbView>(views);
                             return immutable;
@@ -156,7 +156,8 @@ public partial class FactoryGenerator : BaseGenerator
                             string streamId, 
                             long lastStoredOffset = -1)
                         {
-                            var views = CreateViews();
+                            var address = new EvDbStreamAddress(PartitionAddress, streamId);
+                            var views = CreateViews(address);
                             {{rootName}} collection =
                                 new(
                                     this,
@@ -186,7 +187,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                         #endregion // Create 
 
-                        protected abstract Func<JsonSerializerOptions?,IEvDbView>[] ViewFactories { get; }
+                        protected abstract Func<EvDbStreamAddress, JsonSerializerOptions?,IEvDbView>[] ViewFactories { get; }
                     }
                     """);
         context.AddSource($"{factoryName}Base.generated.cs", builder.ToString());
@@ -249,7 +250,7 @@ public partial class FactoryGenerator : BaseGenerator
                     """);
         builder.AppendLine($$"""
                     public partial class {{rootName}}: 
-                            EvDbCollection,
+                            EvDbStream,
                             {{eventType}},
                             {{interfaceType}}
                     { 
@@ -258,7 +259,7 @@ public partial class FactoryGenerator : BaseGenerator
                         public {{rootName}}(
                             IEvDbStreamConfig factory,
                             IImmutableList<IEvDbView> views,
-                            IEvDbRepositoryV1 repository,
+                            IEvDbRepository repository,
                             string streamId,
                             long lastStoredOffset) : 
                                 base(factory, views, repository, streamId, lastStoredOffset)

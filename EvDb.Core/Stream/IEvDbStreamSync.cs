@@ -2,9 +2,7 @@
 
 namespace EvDb.Core;
 
-public interface IEvDbCollectionHidden
+public interface IEvDbStreamSync
 {
     void SyncEvent(IEvDbStoredEvent e);
-
-    //IImmutableDictionary<string, IEvDbView> Views { get; }
 }

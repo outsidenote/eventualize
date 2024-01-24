@@ -1,5 +1,6 @@
 ﻿using EvDb.Core;
 using EvDb.Scenes;
+using System.Collections.Immutable;
 using System.Text.Json;
 
 
@@ -18,8 +19,6 @@ public partial class SchoolStreamFactory
 
     #endregion // Ctor
 
-    public override string Kind { get; } = "student-avg";
-
     #region JsonSerializerOptions
 
     public override JsonSerializerOptions? JsonSerializerOptions { get; } = SchoolStreamAddersContext.Default.Options;
@@ -28,7 +27,7 @@ public partial class SchoolStreamFactory
 
     #region Partition
 
-    public override EvDbPartitionAddress Partition { get; } = new EvDbPartitionAddress("school-records", "students");
+    public override EvDbPartitionAddress PartitionAddress { get; } = new EvDbPartitionAddress("school-records", "students");
 
-    #endregion // Partition
+    #endregion // PartitionAddress
 }

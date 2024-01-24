@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("{StreamId}, {Partition}, {Offset}")]
+[DebuggerDisplay("{StreamAddress}, {PartitionAddress}, {Offset}")]
 public readonly record struct SnapshotSaveParameter(
                     string Domain,
                     string Partition,
@@ -14,16 +14,17 @@ public readonly record struct SnapshotSaveParameter(
                     string Payload)
 {
     public static SnapshotSaveParameter Create<T>(
-                    IEvDbAggregateDeprecated<T> aggregate,
+                    IEvDbStreamStore streamStore,
+                    IEvDbView<T> aggregate,
                     JsonSerializerOptions? options = null)
     {
         string payload = JsonSerializer.Serialize(aggregate.State, options);
         return new(
-            aggregate.SnapshotId.Domain,
-            aggregate.SnapshotId.Partition,
-            aggregate.SnapshotId.StreamId,
-            aggregate.SnapshotId.Kind,
-            aggregate.LastStoredOffset + aggregate.EventsCount,
+            aggregate.Address.Domain,
+            aggregate.Address.Partition,
+            aggregate.Address.StreamId,
+            aggregate.Address.ViewName,
+            streamStore.LastStoredOffset + streamStore.EventsCount,
             payload
         );
     }
@@ -33,8 +34,8 @@ public readonly record struct SnapshotSaveParameter(
     //{
     //    return new(
     //        aggregate.SnapshotId.Domain,
-    //        aggregate.SnapshotId.Partition,
-    //        aggregate.SnapshotId.StreamId,
+    //        aggregate.SnapshotId.PartitionAddress,
+    //        aggregate.SnapshotId.StreamAddress,
     //        aggregate.SnapshotId.Kind,
     //        aggregate.LastStoredOffset + aggregate.EventsCount,
     //        JsonSerializer.Serialize(aggregate.State, jsonTypeInfo)

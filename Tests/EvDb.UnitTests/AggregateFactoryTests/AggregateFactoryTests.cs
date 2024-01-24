@@ -2,13 +2,6 @@ using FakeItEasy;
 using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
-public interface IFoo
-{
-    Task<Bar<T>?> Get<T>(int x, string? s = null);
-}
-
-public record Bar<T>(string Key, T Value);
-
 
 
 public sealed class AggregateFactoryTests
@@ -30,7 +23,7 @@ public sealed class AggregateFactoryTests
         //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(stream);
         //var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
         //var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
-        //var fetchedAggregate = await repository.GetAsync(aggregateFactory2, stream.StreamId.StreamId);
+        //var fetchedAggregate = await repository.GetAsync(aggregateFactory2, stream.StreamAddress.StreamAddress);
         //repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
     }
 
