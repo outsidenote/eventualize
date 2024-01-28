@@ -5,6 +5,7 @@ using EvDb.UnitTests;
 using Scenes;
 using System.Text.Json;
 
+
 public class SerializationTests
 {
     [Fact(Skip = "Polymorphism (IEvDbEventPayload)")]

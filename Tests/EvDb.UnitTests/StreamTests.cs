@@ -6,12 +6,12 @@ using System.Text.Json;
 using Xunit.Abstractions;
 using STATE_TYPE = System.Collections.Immutable.IImmutableDictionary<int, EvDb.UnitTests.StudentStats>;
 
-public class StreamGenTests
+public class StreamTests
 {
     private readonly IEvDbStorageAdapter _storageAdapter = A.Fake<IEvDbStorageAdapter>();
     private readonly ITestOutputHelper _output;
 
-    public StreamGenTests(ITestOutputHelper output)
+    public StreamTests(ITestOutputHelper output)
     {
         _output = output;
     }

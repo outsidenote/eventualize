@@ -116,20 +116,17 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")] 
                     public abstract class {{viewClassName}}Base: 
-                        EvDbViewBase,
-                        IEvDbView<{{stateType}}>
-                    {        
-                        protected abstract {{stateType}} DefaultState { get; }
-                        private {{stateType}} _state;
-                        
+                        EvDbViewBase<{{stateType}}>
+                    {                                
                         #region Ctor
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address, 
                             JsonSerializerOptions? options):
-                                base(new EvDbViewAddress(address, "{{name}}"), options)
+                                base(new EvDbViewAddress(address, "{{name}}"), 
+                                EvDbStoredSnapshot.Empty,
+                                options)
                         {
-                            _state = DefaultState;
                         }
 
                         protected {{viewClassName}}Base(
@@ -138,16 +135,12 @@ public partial class ViewGenerator : BaseGenerator
                             JsonSerializerOptions? options):
                                 base(
                                     new EvDbViewAddress(address, "{{name}}"), 
-                                    options,
-                                    snapshot.Offset)
+                                    snapshot,
+                                    options)
                         {
-                            {{stateType}} state = JsonSerializer.Deserialize<{{stateType}}>(snapshot.State, options);
-                            _state = state;
                         }
 
                         #endregion // Ctor
-
-                        {{stateType}} IEvDbView<{{stateType}}>.State => _state;
 
                         #region OnFoldEvent
 

@@ -231,15 +231,14 @@ internal static class Steps
         this (IEvDbSchoolStreamFactory Factory, string StreamId) input,
         IEvDbStorageAdapter storageAdapter)
     {
-        throw new NotImplementedException();
-        //A.CallTo(() => storageAdapter.TryGetSnapshotAsync(
-        //            A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
-        //    .ReturnsLazily<Task<EvDbStoredSnapshot>>(() =>
-        //    {
-        //        return Task.FromResult<EvDbStoredSnapshotDeprecated<STATE_TYPE>?>(null);
-        //    });
+        A.CallTo(() => storageAdapter.TryGetSnapshotAsync(
+                    A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
+            .ReturnsLazily<Task<EvDbStoredSnapshot>>(() =>
+            {
+                return Task.FromResult(EvDbStoredSnapshot.Empty);
+            });
 
-        //return input;
+        return input;
     }
 
     #endregion // GivenNoSnapshot

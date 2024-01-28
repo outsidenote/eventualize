@@ -13,6 +13,9 @@ namespace EvDb.UnitTests;
 [JsonSerializable(typeof(StudentReceivedGradeEvent))]
 [JsonSerializable(typeof(StudentRegisteredToCourseEvent))]
 [JsonSerializable(typeof(StudentTestSubmittedEvent))]
+//[JsonSerializable(typeof(StudentStats[]))]
+//[JsonSerializable(typeof(MyStats))]
+//[JsonSourceGenerationOptions(DefaultIgnoreCondition = JsonIgnoreCondition.Always)]
 public partial class SchoolStreamAddersContext : JsonSerializerContext
 {
 }

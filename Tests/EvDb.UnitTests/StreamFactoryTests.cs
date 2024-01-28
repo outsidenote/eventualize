@@ -4,12 +4,12 @@ using Xunit.Abstractions;
 namespace EvDb.Core.Tests;
 
 
-public sealed class AggregateFactoryTests
+public sealed class StreamFactoryTests
 {
     private readonly IEvDbStorageAdapter _storageAdapter = A.Fake<IEvDbStorageAdapter>();
     private readonly ITestOutputHelper _output;
 
-    public AggregateFactoryTests(ITestOutputHelper output)
+    public StreamFactoryTests(ITestOutputHelper output)
     {
         _output = output;
     }

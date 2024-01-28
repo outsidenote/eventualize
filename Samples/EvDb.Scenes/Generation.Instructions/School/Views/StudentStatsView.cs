@@ -4,19 +4,19 @@ using System.Collections.Concurrent;
 
 namespace EvDb.UnitTests;
 
-[EvDbView<IEnumerable<StudentStats>, IEvDbSchoolStreamAdders>("student-stats")]
+[EvDbView<StudentStats[], IEvDbSchoolStreamAdders>("student-stats")]
 internal partial class StudentStatsView
 {
     private readonly ConcurrentDictionary<int, StudentCalc> _students = new();
 
-    protected override IEnumerable<StudentStats> DefaultState { get; } = [];
+    protected override StudentStats[] DefaultState { get; } = [];
 
     public override int MinEventsBetweenSnapshots => 5;
 
     #region Fold
 
-    protected override IEnumerable<StudentStats> Fold(
-        IEnumerable<StudentStats> state,
+    protected override StudentStats[] Fold(
+        StudentStats[] state,
         StudentEnlistedEvent payload,
         IEvDbEventMeta meta)
     {
@@ -27,8 +27,8 @@ internal partial class StudentStatsView
         return state;
     }
 
-    protected override IEnumerable<StudentStats> Fold(
-        IEnumerable<StudentStats> state,
+    protected override StudentStats[] Fold(
+        StudentStats[] state,
         StudentReceivedGradeEvent receivedGrade,
         IEvDbEventMeta meta)
     {

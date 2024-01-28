@@ -4,6 +4,27 @@
 
 namespace EvDb.Core;
 
+public abstract class EvDbViewBase<T> : EvDbViewBase, IEvDbView<T>
+{
+    protected T _state;
+
+    protected EvDbViewBase(
+        EvDbViewAddress address,
+        EvDbStoredSnapshot snapshot,
+        JsonSerializerOptions? options):
+            base(address, options, snapshot.Offset)
+    {
+        if (snapshot == EvDbStoredSnapshot.Empty)
+            _state = DefaultState;
+        else
+            _state = JsonSerializer.Deserialize<T>(snapshot.State, options);
+    }
+
+    protected abstract T DefaultState { get; }
+
+    T IEvDbView<T>.State => _state;
+}
+
 public abstract class EvDbViewBase :
     IEvDbView
 {
@@ -12,7 +33,7 @@ public abstract class EvDbViewBase :
 
     protected EvDbViewBase(
         EvDbViewAddress address,
-        JsonSerializerOptions? options, 
+        JsonSerializerOptions? options,
         long lastFoldedOffset = -1)
     {
         _options = options;
