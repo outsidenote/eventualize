@@ -1,5 +1,4 @@
-﻿
-namespace EvDb.Core;
+﻿namespace EvDb.Core;
 
 public interface IEvDbView
 {
@@ -13,6 +12,10 @@ public interface IEvDbView
     EvDbViewAddress Address { get; }
 
     long LatestStoredOffset { get; set; }
+
+    bool ShouldStoreSnapshot { get; }
+
+    void OnSaved();
 }
 
 public interface IEvDbView<out T> : IEvDbView

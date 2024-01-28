@@ -104,7 +104,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public interface {{factoryInterfaceType}}: IEvDbFactory<{{interfaceType}}>
+                    public interface {{factoryInterfaceType}}: IEvDbStreamFactory<{{interfaceType}}>
                     { 
                     }
                     """);
@@ -127,7 +127,7 @@ public partial class FactoryGenerator : BaseGenerator
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     public abstract class {{factoryName}}Base:
-                        EvDbFactoryBase<{{interfaceType}}>
+                        EvDbStreamFactoryBase<{{interfaceType}}>
                     {                
                         #region Ctor
 
@@ -137,57 +137,26 @@ public partial class FactoryGenerator : BaseGenerator
 
                         #endregion // Ctor
 
-                        #region CreateViews
+                        #region OnCreate
 
-                        private IImmutableList<IEvDbView> CreateViews(EvDbStreamAddress address)
+                        protected override {{rootName}} OnCreate(
+                                string streamId,
+                                IImmutableList<IEvDbView> views,
+                                long lastStoredEventOffset)
                         {
-                            var options = JsonSerializerOptions; 
-                            var views = ViewFactories.Select(f => f(address, options));
-
-                            var immutable = ImmutableList.CreateRange<IEvDbView>(views);
-                            return immutable;
-                        }
-
-                        #endregion // CreateViews
-
-                        #region Create
-
-                        public override {{interfaceType}} Create(
-                            string streamId, 
-                            long lastStoredOffset = -1)
-                        {
-                            var address = new EvDbStreamAddress(PartitionAddress, streamId);
-                            var views = CreateViews(address);
-                            {{rootName}} collection =
+                            {{rootName}} stream =
                                 new(
                                     this,
                                     views,
-                                    _repository,
+                                    _storageAdapter,
                                     streamId,
-                                    lastStoredOffset);
+                                    lastStoredEventOffset);
 
-                            return collection;
+                            return stream;
                         }
 
-                        // public override {{interfaceType}} Create(EvDbStoredSnapshot? snapshot)
-                        // {
-                        //     EvDbStreamAddress stream = snapshot.Cursor;
-                        //     {{rootName}} collection =
-                        //         new(
-                        //             _repository,
-                        //             Kind,
-                        //             stream,
-                        //             _views,
-                        //             MinEventsBetweenSnapshots,
-                        //             snapshot.Cursor.Offset,
-                        //             JsonSerializerOptions);
-                        // 
-                        //     return collection;
-                        // }
+                        #endregion // OnCreate
 
-                        #endregion // Create 
-
-                        protected abstract Func<EvDbStreamAddress, JsonSerializerOptions?,IEvDbView>[] ViewFactories { get; }
                     }
                     """);
         context.AddSource($"{factoryName}Base.generated.cs", builder.ToString());
@@ -259,10 +228,10 @@ public partial class FactoryGenerator : BaseGenerator
                         public {{rootName}}(
                             IEvDbStreamConfig factory,
                             IImmutableList<IEvDbView> views,
-                            IEvDbRepository repository,
+                            IEvDbStorageAdapter storageAdapter,
                             string streamId,
                             long lastStoredOffset) : 
-                                base(factory, views, repository, streamId, lastStoredOffset)
+                                base(factory, views, storageAdapter, streamId, lastStoredOffset)
                         {
                             Views = new {{rootName}}Views(views);
                         }

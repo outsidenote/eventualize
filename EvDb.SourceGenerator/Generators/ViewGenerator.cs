@@ -46,16 +46,11 @@ public partial class ViewGenerator : BaseGenerator
         #region string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
-        string viewName = $"EvDb{typeSymbol.Name}";
-        string rootName = viewName;
-        if (viewName.EndsWith("View"))
-            rootName = viewName.Substring(0, viewName.Length - 4);
-        else
-            viewName = $"{viewName}View";
+        string viewClassName = $"EvDb{typeSymbol.Name}";
+        if (!viewClassName.EndsWith("View"))
+            viewClassName = $"{viewClassName}View";
 
         AssemblyName asm = GetType().Assembly.GetName();
-
-        string aggregateInterfaceType = $"I{rootName}";
 
         AttributeData att = typeSymbol.GetAttributes()
                                   .First(att => att.AttributeClass?.Name == EventTargetAttribute);
@@ -64,7 +59,7 @@ public partial class ViewGenerator : BaseGenerator
         ITypeSymbol eventTypeSymbol = args[1];
         string eventType = eventTypeSymbol.ToDisplayString();
 
-        #endregion // string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
+        #endregion // string baseName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
 
         TypedConstant nameConst = att.ConstructorArguments.First();
         string? name = nameConst.Value?.ToString();
@@ -108,7 +103,7 @@ public partial class ViewGenerator : BaseGenerator
                 $$"""
                     case "{{p.Key}}":
                             {
-                                var payload = e.GetData<{{p.Type}}>(_jsonSerializerOptions);
+                                var payload = e.GetData<{{p.Type}}>(_options);
                                 _state = Fold(_state, payload, e);
                                 break;
                             }
@@ -120,34 +115,43 @@ public partial class ViewGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")] 
-                    public abstract class {{viewName}}Base:
+                    public abstract class {{viewClassName}}Base: 
+                        EvDbViewBase,
                         IEvDbView<{{stateType}}>
                     {        
                         protected abstract {{stateType}} DefaultState { get; }
-                        private readonly JsonSerializerOptions? _jsonSerializerOptions;
                         private {{stateType}} _state;
-                                         
-                        protected {{viewName}}Base(
+                        
+                        #region Ctor
+
+                        protected {{viewClassName}}Base(
                             EvDbStreamAddress address, 
-                            JsonSerializerOptions? jsonSerializerOptions)
+                            JsonSerializerOptions? options):
+                                base(new EvDbViewAddress(address, "{{name}}"), options)
                         {
-                            _address = new EvDbViewAddress(address, "{{name}}");
                             _state = DefaultState;
-                            _jsonSerializerOptions = jsonSerializerOptions;
                         }
 
-                        private readonly EvDbViewAddress _address;
-                        EvDbViewAddress IEvDbView.Address => _address;
+                        protected {{viewClassName}}Base(
+                            EvDbStreamAddress address,
+                            EvDbStoredSnapshot snapshot, 
+                            JsonSerializerOptions? options):
+                                base(
+                                    new EvDbViewAddress(address, "{{name}}"), 
+                                    options,
+                                    snapshot.Offset)
+                        {
+                            {{stateType}} state = JsonSerializer.Deserialize<{{stateType}}>(snapshot.State, options);
+                            _state = state;
+                        }
 
-                        long IEvDbView.LatestStoredOffset { get; set; } = -1;
-
-                        public virtual int MinEventsBetweenSnapshots => 0;
+                        #endregion // Ctor
 
                         {{stateType}} IEvDbView<{{stateType}}>.State => _state;
 
-                        #region FoldEvent
+                        #region OnFoldEvent
 
-                        void IEvDbView.FoldEvent(IEvDbEvent e)
+                        protected override void OnFoldEvent(IEvDbEvent e)
                         {
                             switch (e.EventType)
                             {
@@ -157,7 +161,7 @@ public partial class ViewGenerator : BaseGenerator
                             }
                         }
 
-                        #endregion // FoldEvent
+                        #endregion // OnFoldEvent
 
                         #region Fold
 
@@ -165,7 +169,7 @@ public partial class ViewGenerator : BaseGenerator
                         #endregion // Fold
                     }
                     """);
-        context.AddSource($"{viewName}Base.generated.cs", builder.ToString());
+        context.AddSource($"{viewClassName}Base.generated.cs", builder.ToString());
 
         #endregion // ViewBase
 
@@ -177,20 +181,57 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial {{type}} {{typeSymbol.Name}}: {{viewName}}Base
+                    partial {{type}} {{typeSymbol.Name}}: {{viewClassName}}Base
                     { 
-                        public static IEvDbView Create(EvDbStreamAddress address, JsonSerializerOptions? jsonSerializerOptions) => new {{typeSymbol.Name}}(address, jsonSerializerOptions);
-
-                        private {{typeSymbol.Name}}(
+                        internal {{typeSymbol.Name}}(
                             EvDbStreamAddress address, 
-                            JsonSerializerOptions? jsonSerializerOptions):base (address,jsonSerializerOptions)
+                            JsonSerializerOptions? options):
+                                    base (address,options)
+                        {
+                        }
+
+                        internal {{typeSymbol.Name}}(
+                            EvDbStreamAddress address,
+                            EvDbStoredSnapshot snapshot, 
+                            JsonSerializerOptions? options):
+                                base (
+                                    address,
+                                    snapshot,
+                                    options)
                         {
                         }
                     }
                     """);
         context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
 
-        #endregion // Vew
+        #endregion // View
+
+        builder.Clear();
+
+        #region View Factory
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    internal class {{typeSymbol.Name}}Factory: IEvDbViewFactory
+                    { 
+                        public static readonly IEvDbViewFactory Default = new {{typeSymbol.Name}}Factory();
+
+                        string IEvDbViewFactory.ViewName { get; } = "{{name}}";
+
+                        IEvDbView IEvDbViewFactory.CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options) => 
+                                new {{typeSymbol.Name}}(address, options);
+
+                        IEvDbView IEvDbViewFactory.CreateFromSnapshot(EvDbStreamAddress address,
+                            EvDbStoredSnapshot snapshot,
+                            JsonSerializerOptions? options) => 
+                                new {{typeSymbol.Name}}(address, snapshot, options);
+                    }
+                    """);
+        context.AddSource($"{typeSymbol.Name}Factory.generated.cs", builder.ToString());
+
+        #endregion // View Factory
     }
 
     #endregion // OnGenerate

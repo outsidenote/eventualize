@@ -10,14 +10,16 @@ namespace EvDb.Core;
 [DebuggerDisplay("{EventType}")]
 public partial record EvDbEventMeta(string EventType,
                                        [property: IgnoreEquality] DateTime CapturedAt,
-                                       string CapturedBy) : IEvDbEventMeta;
+                                       string CapturedBy,
+                                       EvDbStreamCursor StreamCursor) : IEvDbEventMeta;
 [Equatable]
 [DebuggerDisplay("{EventType}: {Data}")]
 public partial record EvDbEvent(string eventType,
                                        [property: IgnoreEquality] DateTime capturedAt,
                                        string capturedBy,
+                                       EvDbStreamCursor StreamCursor,
                                        string Data) :
-                                            EvDbEventMeta(eventType, capturedAt, capturedBy),
+                                            EvDbEventMeta(eventType, capturedAt, capturedBy, StreamCursor),
                                             IEvDbEvent
 {
     T IEvDbEvent.GetData<T>(JsonSerializerOptions? options)

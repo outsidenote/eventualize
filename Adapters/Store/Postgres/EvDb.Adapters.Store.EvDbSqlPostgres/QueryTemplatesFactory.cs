@@ -19,7 +19,7 @@ internal static class QueryTemplatesFactory
                         AND stream_id = @{nameof(EvDbStreamAddress.StreamId)}
                 """,
             TryGetSnapshot = $"""
-                SELECT json_data as {nameof(EvDbStoredSnapshot<object>.State)}, offset as {nameof(EvDbStoredSnapshot<object>.Cursor.Offset)}
+                SELECT json_data as {nameof(EvDbStoredSnapshot.State)}, offset as {nameof(EvDbStoredSnapshot.Offset)}
                 FROM {storageContext}snapshot
                 WHERE domain = @{nameof(EvDbStreamAddress.Domain)}
                     AND stream_type = @{nameof(EvDbStreamAddress.Partition)}

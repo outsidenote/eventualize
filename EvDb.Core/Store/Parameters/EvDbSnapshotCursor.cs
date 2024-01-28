@@ -5,14 +5,12 @@ namespace EvDb.Core;
 
 [DebuggerDisplay("ID:{Id}, Type:{Type}, Seq:{Sequence}")]
 [Equatable]
-public partial record EvDbSnapshotCursor(string Domain, string Partition, string StreamId, string AggregateType, long Offset = 0) : EvDbViewAddress(Domain, Partition, StreamId, AggregateType)
+public partial record EvDbSnapshotCursor(string Domain, string Partition, string StreamId, string ViewName, long Offset = 0) : EvDbViewAddress(Domain, Partition, StreamId, ViewName)
 {
     public static readonly EvDbSnapshotCursor Empty = new EvDbSnapshotCursor("N/A", "N/A", "N/A", "N/A", -1);
 
-    public EvDbSnapshotCursor(EvDbStreamAddress streamId, string aggregateType, long offset = 0)
-        : this(streamId.Domain, streamId.Partition, streamId.StreamId, aggregateType, offset) { }
-
-
+    public EvDbSnapshotCursor(EvDbStreamAddress streamAddress, string viewName, long offset = 0)
+        : this(streamAddress.Domain, streamAddress.Partition, streamAddress.StreamId, viewName, offset) { }
 
     public static bool operator ==(EvDbSnapshotCursor cursor, EvDbViewAddress id)
     {

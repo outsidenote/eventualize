@@ -6,12 +6,12 @@ using System.Text.Json;
 using Xunit.Abstractions;
 using STATE_TYPE = System.Collections.Immutable.IImmutableDictionary<int, EvDb.UnitTests.StudentStats>;
 
-public class AggregateGenTests
+public class StreamGenTests
 {
     private readonly IEvDbStorageAdapter _storageAdapter = A.Fake<IEvDbStorageAdapter>();
     private readonly ITestOutputHelper _output;
 
-    public AggregateGenTests(ITestOutputHelper output)
+    public StreamGenTests(ITestOutputHelper output)
     {
         _output = output;
     }
@@ -28,10 +28,10 @@ public class AggregateGenTests
         void ThenPendingEventsAddedSuccessfully()
         {
             throw new NotImplementedException();
-            //Assert.Single(aggregate.State);
-            //var studentSum = aggregate.State.First().Value.Sum;
+            //Assert.Single(stream.State);
+            //var studentSum = stream.State.First().Value.Sum;
             //Assert.Equal(180, studentSum);
-            //Assert.Equal(4, aggregate.EventsCount);
+            //Assert.Equal(4, stream.EventsCount);
         }
     }
 
@@ -47,10 +47,10 @@ public class AggregateGenTests
         void ThenStoredEventsAddedSuccessfully()
         {
             throw new NotImplementedException();
-            //Assert.Single(aggregate.State);
-            //var studentSum = aggregate.State.First().Value.Sum;
+            //Assert.Single(stream.State);
+            //var studentSum = stream.State.First().Value.Sum;
             //Assert.Equal(430, studentSum);
-            //Assert.Equal(3, aggregate.EventsCount);
+            //Assert.Equal(3, stream.EventsCount);
         }
     }
 
@@ -65,7 +65,7 @@ public class AggregateGenTests
         void ThenAggregateSavedWithoutSnapshot(IEvDbSchoolStream aggregate)
         {
             throw new NotImplementedException();
-            //Assert.Equal(0, aggregate.EventsCount);
+            //Assert.Equal(0, stream.EventsCount);
 
             //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, false, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
             //    .MustHaveHappenedOnceExactly();
@@ -82,9 +82,10 @@ public class AggregateGenTests
 
         ThenAggregateSavedWithSnapshot(aggregate);
 
-        void ThenAggregateSavedWithSnapshot(IEvDbSchoolStream aggregate)
+        void ThenAggregateSavedWithSnapshot(IEvDbSchoolStream stream)
         {
-            Assert.Equal(0, aggregate.EventsCount);
+            var data = (IEvDbStreamStoreData)stream;
+            Assert.Equal(0, data.EventsCount);
 
             throw new NotImplementedException();
             //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
@@ -104,9 +105,10 @@ public class AggregateGenTests
 
         ThenAggregateSavedWithSnapshot(aggregate);
 
-        void ThenAggregateSavedWithSnapshot(IEvDbSchoolStream aggregate)
+        void ThenAggregateSavedWithSnapshot(IEvDbSchoolStream stream)
         {
-            Assert.Equal(0, aggregate.EventsCount);
+            var data = (IEvDbStreamStoreData) stream;
+            Assert.Equal(0, data.EventsCount);
 
             throw new NotImplementedException();
             //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
@@ -120,14 +122,14 @@ public class AggregateGenTests
     [Fact]
     public async Task Aggregate_WhenStoringStaleAggregate_ThrowException()
     {
-        //ISchool aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+        //ISchool stream = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
 
-        //ISchool aggregate = SetupMockSaveThrowOcc
+        //ISchool stream = SetupMockSaveThrowOcc
         throw new NotImplementedException("OCC");
         //var repoTestSteps = new EvDbRepositoryTestsSteps();
-        //var aggregate = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents(3);
-        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(aggregate);
-        //await Assert.ThrowsAsync<OCCException>(async () => await repository.SaveAsync(aggregate));
+        //var stream = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents(3);
+        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(stream);
+        //await Assert.ThrowsAsync<OCCException>(async () => await repository.SaveAsync(stream));
     }
 
 

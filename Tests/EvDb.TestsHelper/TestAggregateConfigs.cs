@@ -55,7 +55,7 @@
 //    {
 //        throw new NotImplementedException();
 //        //var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory();
-//        //var snap = EvDbStoredSnapshot.Create<TestState>(snapshot);
+//        //var snap = EvDbStoredSnapshotFactory.Create<TestState>(snapshot);
 //        //return await aggregateFactory.CreateAsync(
 //        //    Guid.NewGuid().ToString(),
 //        //    events,

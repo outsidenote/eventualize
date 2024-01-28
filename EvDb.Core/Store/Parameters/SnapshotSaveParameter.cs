@@ -13,32 +13,33 @@ public readonly record struct SnapshotSaveParameter(
                     // TODO: [bnaya 2023-12-20] use ISnapshotPayload
                     string Payload)
 {
+    [Obsolete("Deprecated")]
     public static SnapshotSaveParameter Create<T>(
-                    IEvDbStreamStore streamStore,
-                    IEvDbView<T> aggregate,
+                    IEvDbStreamStoreData streamStore,
+                    IEvDbView<T> view,
                     JsonSerializerOptions? options = null)
     {
-        string payload = JsonSerializer.Serialize(aggregate.State, options);
+        string payload = JsonSerializer.Serialize(view.State, options);
         return new(
-            aggregate.Address.Domain,
-            aggregate.Address.Partition,
-            aggregate.Address.StreamId,
-            aggregate.Address.ViewName,
+            view.Address.Domain,
+            view.Address.Partition,
+            view.Address.StreamId,
+            view.Address.ViewName,
             streamStore.LastStoredOffset + streamStore.EventsCount,
             payload
         );
     }
     //public static SnapshotSaveParameter Create<T>(
-    //                EvDbCollectionMeta<T> aggregate,
+    //                EvDbCollectionMeta<T> view,
     //                JsonTypeInfo<T> jsonTypeInfo) where T : notnull, new()
     //{
     //    return new(
-    //        aggregate.SnapshotId.Domain,
-    //        aggregate.SnapshotId.PartitionAddress,
-    //        aggregate.SnapshotId.StreamAddress,
-    //        aggregate.SnapshotId.Kind,
-    //        aggregate.LastStoredOffset + aggregate.EventsCount,
-    //        JsonSerializer.Serialize(aggregate.State, jsonTypeInfo)
+    //        view.SnapshotId.Domain,
+    //        view.SnapshotId.PartitionAddress,
+    //        view.SnapshotId.StreamAddress,
+    //        view.SnapshotId.Kind,
+    //        view.LastStoredOffset + view.EventsCount,
+    //        JsonSerializer.Serialize(view.State, jsonTypeInfo)
     //    );
     //}
 };

@@ -1,13 +1,17 @@
 ﻿using System.Collections.Immutable;
 using System.Reflection;
 using System.Text.Json;
+using System.Transactions;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
 namespace EvDb.Core;
 
+
 //[DebuggerDisplay("")]
-public class EvDbStream : IEvDbStreamStore, IEvDbStreamSync
+public class EvDbStream :
+        IEvDbStreamStore,
+        IEvDbStreamStoreData
 {
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<IEvDbEvent> _pendingEvents = ImmutableList<IEvDbEvent>.Empty;
@@ -15,19 +19,18 @@ public class EvDbStream : IEvDbStreamStore, IEvDbStreamSync
     protected static readonly SemaphoreSlim _dirtyLock = new SemaphoreSlim(1);
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
-    protected readonly IEvDbRepository _repository;
 
     #region Ctor
 
     public EvDbStream(
         IEvDbStreamConfig factory,
         IImmutableList<IEvDbView> views,
-        IEvDbRepository repository,
+        IEvDbStorageAdapter storageAdapter,
         string streamId,
         long lastStoredOffset)
     {
-        _repository = repository;
         _views = views;
+        _storageAdapter = storageAdapter;
         StreamAddress = new EvDbStreamAddress(factory.PartitionAddress, streamId);
         LastStoredOffset = lastStoredOffset;
         Options = factory.JsonSerializerOptions;
@@ -39,8 +42,28 @@ public class EvDbStream : IEvDbStreamStore, IEvDbStreamSync
     #region Views
 
     protected IImmutableList<IEvDbView> _views;
+    IEnumerable<IEvDbView> IEvDbStreamStoreData.Views => _views;
+
+    private readonly IEvDbStorageAdapter _storageAdapter;
 
     #endregion // Views
+
+    #region GetNextOffset
+
+    private EvDbStreamCursor GetNextOffset()
+    {
+        if (_pendingEvents.Count == 0)
+        { 
+            var empty = new EvDbStreamCursor(StreamAddress, 0);
+            return empty;
+        }
+        IEvDbEvent e = _pendingEvents[_pendingEvents.Count - 1];
+        long offset = e.StreamCursor.Offset;
+        var result = new EvDbStreamCursor(StreamAddress, offset + 1);
+        return result;
+    }
+
+    #endregion // GetNextOffset
 
     #region AddEvent
 
@@ -48,17 +71,13 @@ public class EvDbStream : IEvDbStreamStore, IEvDbStreamSync
         where T : IEvDbEventPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
-        IEvDbEvent e = EvDbEventFactory.Create(payload, capturedBy, Options);
-        AddEvent(e);
-    }
-
-    private void AddEvent(IEvDbEvent e)
-    {
+        var json = JsonSerializer.Serialize(payload, Options);
         try
         {
+            EvDbStreamCursor cursor = GetNextOffset();
+            IEvDbEvent e = new EvDbEvent(payload.EventType, DateTime.UtcNow, capturedBy, cursor, json);
             _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
-            IImmutableList<IEvDbEvent> evs = _pendingEvents.Add(e);
-            _pendingEvents = evs;
+            _pendingEvents = _pendingEvents.Add(e); 
 
             foreach (IEvDbView folding in _views)
                 folding.FoldEvent(e);
@@ -67,13 +86,6 @@ public class EvDbStream : IEvDbStreamStore, IEvDbStreamSync
         {
             _dirtyLock.Release();
         }
-    }
-
-    void IEvDbStreamSync.SyncEvent(IEvDbStoredEvent e)
-    {
-        throw new NotImplementedException();
-        //State = FoldingLogic.FoldEvent(State, e);
-        LastStoredOffset = e.StreamCursor.Offset;
     }
 
     #endregion // AddEvent
@@ -86,11 +98,25 @@ public class EvDbStream : IEvDbStreamStore, IEvDbStreamSync
 
     async Task IEvDbStreamStore.SaveAsync(CancellationToken cancellation)
     {
+        IEvDbStreamStoreData self = this;
         try
         {
             await _dirtyLock.WaitAsync();// TODO: [bnaya 2024-01-09] re-consider the lock solution
             {
-                await _repository.SaveAsync(this, Options, cancellation);
+                if (self.IsEmpty)
+                {
+                    await Task.FromResult(true);
+                    return;
+                }
+
+                await _storageAdapter.SaveAsync(this, cancellation);
+                IEvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
+                LastStoredOffset = ev.StreamCursor.Offset;
+                _pendingEvents = ImmutableList<IEvDbEvent>.Empty;
+                foreach (var view in _views)
+                {
+                    view.OnSaved();
+                }
             }
         }
         finally
@@ -115,12 +141,12 @@ public class EvDbStream : IEvDbStreamStore, IEvDbStreamSync
 
     #region IsEmpty
 
-    bool IEvDbStreamStore.IsEmpty => _pendingEvents.Count == 0;
+    bool IEvDbStreamStoreData.IsEmpty => _pendingEvents.Count == 0;
 
     #endregion // IsEmpty
 
     public JsonSerializerOptions? Options { get; }
 
-    IEnumerable<IEvDbEvent> IEvDbStreamStore.Events => _pendingEvents;
+    IEnumerable<IEvDbEvent> IEvDbStreamStoreData.Events => _pendingEvents;
 }
 

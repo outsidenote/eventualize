@@ -12,7 +12,7 @@ public partial record EvDbStoredEvent(string EventType,
                     string Data,
                     DateTime StoredAt,
                     EvDbStreamCursor StreamCursor)
-                        : EvDbEvent(EventType, CapturedAt, CapturedBy, Data)
+                        : EvDbEvent(EventType, CapturedAt, CapturedBy, StreamCursor, Data)
                             , IEvDbStoredEvent
 {
     public EvDbStoredEvent(IEvDbEvent e, EvDbStreamCursor StreamCursor)
@@ -24,7 +24,4 @@ public partial record EvDbStoredEvent(string EventType,
               new EvDbStreamCursor(cursor))
     {
     }
-
-    public IEvDbEvent PendingEvent { get; }
-    public EvDbSnapshotCursor Cursor { get; }
 }

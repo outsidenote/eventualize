@@ -83,12 +83,12 @@ public partial class ViewRefGenerator : BaseGenerator
         var propsCreates = propsNames.Select(p =>
                                                 $$"""
 
-                                                        {{p.Type}}.Create
+                                                        {{p.Type}}Factory.Default
                                                 """);
 
         #endregion // propsNames = .., props = .., propsCreates = ..
 
-        #region Factory
+        #region Stream Factory
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
@@ -96,14 +96,14 @@ public partial class ViewRefGenerator : BaseGenerator
         builder.AppendLine($$"""
                     partial {{type}} {{typeSymbol.Name}}
                     {                                     
-                        protected override Func<EvDbStreamAddress, JsonSerializerOptions?, IEvDbView>[] ViewFactories { get; } = new []
+                        protected override IEvDbViewFactory[] ViewFactories { get; } = new []
                             {{{string.Join(",", propsCreates)}}
                             };
                     }
                     """);
         context.AddSource($"{typeSymbol.Name}.view-ref.generated.cs", builder.ToString());
 
-        #endregion // Factory
+        #endregion // Stream Factory
 
         string factoryName = $"EvDb{typeSymbol.Name}";
         string rootName = factoryName;

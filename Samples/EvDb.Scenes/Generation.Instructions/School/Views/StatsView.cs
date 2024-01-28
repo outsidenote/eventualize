@@ -14,13 +14,13 @@ internal partial class StatsView
 
     protected override Stats Fold(
         Stats state,
-        StudentReceivedGradeEvent receivedGrade,
+        StudentReceivedGradeEvent payload,
         IEvDbEventMeta meta)
     {
         var result = state with
         {
             Count = state.Count + 1,
-            Sum = state.Sum + receivedGrade.Grade,
+            Sum = state.Sum + payload.Grade,
         };
         return result;
     }

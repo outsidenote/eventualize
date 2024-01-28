@@ -17,11 +17,11 @@ internal partial class StudentStatsView
 
     protected override IEnumerable<StudentStats> Fold(
         IEnumerable<StudentStats> state,
-        StudentEnlistedEvent enlisted,
+        StudentEnlistedEvent payload,
         IEvDbEventMeta meta)
     {
-        int id = enlisted.Student.Id;
-        string name = enlisted.Student.Name;
+        int id = payload.Student.Id;
+        string name = payload.Student.Name;
         _students.TryAdd(id,
             new StudentCalc(id, name, 0, 0));
         return state;

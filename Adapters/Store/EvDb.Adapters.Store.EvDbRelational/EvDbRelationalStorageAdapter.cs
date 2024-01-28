@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
 using System.Text.Json;
+using System.Transactions;
 
 // TODO: [bnaya 2023-12-20] default timeout
 
@@ -75,17 +76,17 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     /// <param name="snapshotId">The snapshot id.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    async Task<EvDbStoredSnapshot<T>?> IEvDbStorageAdapter.TryGetSnapshotAsync<T>(
-        EvDbViewAddress snapshotId, CancellationToken cancellation)
+    async Task<EvDbStoredSnapshot> IEvDbStorageAdapter.TryGetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation = default)
     {
-        cancellation.ThrowIfCancellationRequested();
-        DbConnection conn = await _connectionTask;
+        throw new NotImplementedException();
+        //cancellation.ThrowIfCancellationRequested();
+        //DbConnection conn = await _connectionTask;
 
-        string query = _queries.TryGetSnapshot;
+        //string query = _queries.TryGetSnapshot;
 
-        var record = await conn.QuerySingleOrDefaultAsync<EvDbeSnapshotRelationalRecrod>(query, snapshotId) ?? throw new NoNullAllowedException("snapshot");
-        var snapshot = EvDbStoredSnapshot.Create<T>(record);
-        return snapshot;
+        //var record = await conn.QuerySingleOrDefaultAsync<EvDbeSnapshotRelationalRecrod>(query, snapshotId) ?? throw new NoNullAllowedException("snapshot");
+        //var snapshot = EvDbStoredSnapshotFactory.Create<T>(record);
+        //return snapshot;
     }
 
     async IAsyncEnumerable<IEvDbStoredEvent> IEvDbStorageAdapter.GetAsync(EvDbStreamCursor parameter, CancellationToken cancellation)
@@ -103,8 +104,20 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
     }
 
-    async Task IEvDbStorageAdapter.SaveAsync<T>(IEvDbStreamStore streamStore, IEnumerable<IEvDbView> views, bool storeSnapshot, JsonSerializerOptions? options, CancellationToken cancellation)
+    async Task IEvDbStorageAdapter.SaveAsync(IEvDbStreamStoreData streamStore, CancellationToken cancellation)
     {
+        using var tx = new TransactionScope();
+
+        // TODO: Save Stream's events
+
+        foreach (var view in streamStore.Views)
+        {
+            if (view.ShouldStoreSnapshot)
+            { 
+                // TODO: Save snapshots
+            }
+        }
+
         throw new NotImplementedException();
         //SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, options) : null;
         //await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
@@ -117,9 +130,9 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     //}
 
     // TODO: [bnaya 2023-12-13] avoid racing
-    private async Task SaveAsync<T>(IEvDbStreamStore streamStore, IEnumerable<IEvDbView> views, SnapshotSaveParameter? snapshotSaveParameter, CancellationToken cancellation)
-    {
-        throw new NotImplementedException();
+    //private async Task SaveAsync<T>(IEvDbStreamStore streamStore, IEnumerable<IEvDbView> views, SnapshotSaveParameter? snapshotSaveParameter, CancellationToken cancellation)
+    //{
+        //throw new NotImplementedException();
         //cancellation.ThrowIfCancellationRequested();
         //DbConnection conn = await _connectionTask;
         //string query = _queries.Save;
@@ -145,7 +158,7 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         //{
         //    throw new OCCException(aggregate);
         //}
-    }
+    //}
 
     #endregion // IEvDbStorageAdapter Members
 

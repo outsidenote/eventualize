@@ -29,7 +29,7 @@ public sealed class AggregateFactoryTests
             Assert.Single(stream.Views.StudentStats);
             var studentAvg = stream.Views.StudentStats.First().Sum;
             Assert.Equal(180, studentAvg);
-            Assert.Equal(0, stream.EventsCount);
+            Assert.Equal(0, ((IEvDbStreamStoreData)stream).EventsCount);
 
             Assert.Equal(180, stream.Views.ALL.Sum);
         }
