@@ -1,4 +1,5 @@
 using Generator.Equals;
+using System.Diagnostics;
 
 namespace EvDb.Core;
 
@@ -9,6 +10,7 @@ namespace EvDb.Core;
 /// <param name="Partition">Representation of a stream partition under the domain, like a User</param>
 /// <param name="StreamId">The instance of a stream entity like { User: 'Joe' }</param>
 [Equatable]
+[DebuggerDisplay("Domain:{Domain}, Partition:{Partition}, StreamId:{StreamId}")]
 public partial record EvDbStreamAddress(string Domain, string Partition, string StreamId)
     : EvDbPartitionAddress(Domain, Partition)
 {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using System.Transactions;
@@ -8,7 +9,7 @@ using System.Transactions;
 namespace EvDb.Core;
 
 
-//[DebuggerDisplay("")]
+[DebuggerDisplay("{StreamAddress}, Stored Offset:{LastStoredOffset} ,Count:{EventsCount}")]
 public class EvDbStream :
         IEvDbStreamStore,
         IEvDbStreamStoreData
@@ -52,12 +53,12 @@ public class EvDbStream :
 
     private EvDbStreamCursor GetNextOffset()
     {
-        if (_pendingEvents.Count == 0)
+        if (EventsCount == 0)
         { 
             var empty = new EvDbStreamCursor(StreamAddress, 0);
             return empty;
         }
-        IEvDbEvent e = _pendingEvents[_pendingEvents.Count - 1];
+        IEvDbEvent e = _pendingEvents[EventsCount - 1];
         long offset = e.StreamCursor.Offset;
         var result = new EvDbStreamCursor(StreamAddress, offset + 1);
         return result;
@@ -90,11 +91,7 @@ public class EvDbStream :
 
     #endregion // AddEvent
 
-    public void ClearLocalEvents()
-    {
-        LastStoredOffset += _pendingEvents.Count;
-        _pendingEvents.Clear();
-    }
+    #region SaveAsync
 
     async Task IEvDbStreamStore.SaveAsync(CancellationToken cancellation)
     {
@@ -125,6 +122,8 @@ public class EvDbStream :
         }
     }
 
+    #endregion // SaveAsync
+
     #region StreamId
 
     public EvDbStreamAddress StreamAddress { get; init; }
@@ -141,7 +140,7 @@ public class EvDbStream :
 
     #region IsEmpty
 
-    bool IEvDbStreamStoreData.IsEmpty => _pendingEvents.Count == 0;
+    public bool IsEmpty => _pendingEvents.Count == 0;
 
     #endregion // IsEmpty
 
