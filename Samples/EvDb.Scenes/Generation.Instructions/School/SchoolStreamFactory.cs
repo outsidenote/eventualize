@@ -21,7 +21,7 @@ public partial class SchoolStreamFactory
 
     #region JsonSerializerOptions
 
-    public override JsonSerializerOptions? JsonSerializerOptions { get; } = null;
+    public override JsonSerializerOptions? JsonSerializerOptions { get; } = null; //  SchoolStreamAddersContext.Default.Options;
     // TODO: [bnaya 2024-01-28] use: SchoolStreamAddersContext.Default.Options;
 
     #endregion // JsonSerializerOptions

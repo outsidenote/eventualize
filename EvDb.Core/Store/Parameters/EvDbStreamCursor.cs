@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("ID:{Id}, Type:{Type}, Seq:{Sequence}")]
+[DebuggerDisplay("Offset:{Offset}")]
 [Equatable]
 public partial record EvDbStreamCursor(string Domain, string Partition, string StreamId, long Offset = 0) : EvDbStreamAddress(Domain, Partition, StreamId)
 {
