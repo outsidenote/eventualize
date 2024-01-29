@@ -89,7 +89,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         throw new NotImplementedException();
         //var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
         //var latestSnapshotOffset = await _world.StorageAdapter.GetLastOffsetAsync(aggregate);
-        //var expectedOffset = aggregate.LastStoredOffset + aggregate.EventsCount;
+        //var expectedOffset = aggregate.StoreOffset + aggregate.CountOfPendingEvents;
         //Assert.Equal(expectedOffset, latestSnapshotOffset);
     }
 
@@ -102,7 +102,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         //var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotId);
         //Assert.NotNull(latestSnapshot);
         //Assert.Equal(aggregate.State, latestSnapshot.State);
-        //Assert.Equal(aggregate.LastStoredOffset + aggregate.EventsCount, latestSnapshot.Cursor.Offset);
+        //Assert.Equal(aggregate.StoreOffset + aggregate.CountOfPendingEvents, latestSnapshot.Cursor.Offset);
     }
 
     [Fact]

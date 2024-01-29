@@ -9,7 +9,7 @@ using System.Transactions;
 namespace EvDb.Core;
 
 
-[DebuggerDisplay("{StreamAddress}, Stored Offset:{LastStoredOffset} ,Count:{EventsCount}")]
+[DebuggerDisplay("{StreamAddress}, Stored Offset:{StoreOffset} ,Count:{CountOfPendingEvents}")]
 public class EvDbStream :
         IEvDbStreamStore,
         IEvDbStreamStoreData
@@ -33,7 +33,7 @@ public class EvDbStream :
         _views = views;
         _storageAdapter = storageAdapter;
         StreamAddress = new EvDbStreamAddress(factory.PartitionAddress, streamId);
-        LastStoredOffset = lastStoredOffset;
+        StoreOffset = lastStoredOffset;
         Options = factory.JsonSerializerOptions;
     }
 
@@ -53,12 +53,12 @@ public class EvDbStream :
 
     private EvDbStreamCursor GetNextOffset()
     {
-        if (EventsCount == 0)
+        if (CountOfPendingEvents == 0)
         { 
             var empty = new EvDbStreamCursor(StreamAddress, 0);
             return empty;
         }
-        IEvDbEvent e = _pendingEvents[EventsCount - 1];
+        IEvDbEvent e = _pendingEvents[CountOfPendingEvents - 1];
         long offset = e.StreamCursor.Offset;
         var result = new EvDbStreamCursor(StreamAddress, offset + 1);
         return result;
@@ -95,12 +95,11 @@ public class EvDbStream :
 
     async Task IEvDbStreamStore.SaveAsync(CancellationToken cancellation)
     {
-        IEvDbStreamStoreData self = this;
         try
         {
             await _dirtyLock.WaitAsync();// TODO: [bnaya 2024-01-09] re-consider the lock solution
             {
-                if (self.IsEmpty)
+                if (!this.HasPendingEvents)
                 {
                     await Task.FromResult(true);
                     return;
@@ -108,7 +107,7 @@ public class EvDbStream :
 
                 await _storageAdapter.SaveAsync(this, cancellation);
                 IEvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
-                LastStoredOffset = ev.StreamCursor.Offset;
+                StoreOffset = ev.StreamCursor.Offset;
                 _pendingEvents = ImmutableList<IEvDbEvent>.Empty;
                 foreach (var view in _views)
                 {
@@ -130,19 +129,19 @@ public class EvDbStream :
 
     #endregion // StreamAddress
 
-    public int EventsCount => _pendingEvents.Count;
+    public int CountOfPendingEvents => _pendingEvents.Count;
 
     #region LastStoredOffset
 
-    public long LastStoredOffset { get; protected set; } = -1;
+    public long StoreOffset { get; protected set; } = -1;
 
-    #endregion // LastStoredOffset
+    #endregion // StoreOffset
 
     #region IsEmpty
 
-    public bool IsEmpty => _pendingEvents.Count == 0;
+    public bool HasPendingEvents => _pendingEvents.Count > 0;
 
-    #endregion // IsEmpty
+    #endregion // HasPendingEvents
 
     public JsonSerializerOptions? Options { get; }
 

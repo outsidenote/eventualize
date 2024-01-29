@@ -15,7 +15,7 @@ public readonly record struct SnapshotSaveParameter(
 {
     [Obsolete("Deprecated")]
     public static SnapshotSaveParameter Create<T>(
-                    IEvDbStreamStoreData streamStore,
+                    IEvDbStreamStore streamStore,
                     IEvDbView<T> view,
                     JsonSerializerOptions? options = null)
     {
@@ -25,7 +25,7 @@ public readonly record struct SnapshotSaveParameter(
             view.Address.Partition,
             view.Address.StreamId,
             view.Address.ViewName,
-            streamStore.LastStoredOffset + streamStore.EventsCount,
+            streamStore.StoreOffset + streamStore.CountOfPendingEvents,
             payload
         );
     }
@@ -38,7 +38,7 @@ public readonly record struct SnapshotSaveParameter(
     //        view.SnapshotId.PartitionAddress,
     //        view.SnapshotId.StreamAddress,
     //        view.SnapshotId.Kind,
-    //        view.LastStoredOffset + view.EventsCount,
+    //        view.StoreOffset + view.CountOfPendingEvents,
     //        JsonSerializer.Serialize(view.State, jsonTypeInfo)
     //    );
     //}

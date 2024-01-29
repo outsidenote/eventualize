@@ -46,7 +46,7 @@ public abstract class EvDbViewBase :
     public void OnSaved()
     {
         if (ShouldStoreSnapshot)
-            LatestStoredOffset = _lastFoldedOffset;
+            StoreOffset = _lastFoldedOffset;
     }
 
     #endregion // OnSaved
@@ -57,7 +57,7 @@ public abstract class EvDbViewBase :
     {
         get
         {
-            long numEventsSinceLatestSnapshot = _lastFoldedOffset - LatestStoredOffset;
+            long numEventsSinceLatestSnapshot = _lastFoldedOffset - StoreOffset;
             bool result = numEventsSinceLatestSnapshot >= MinEventsBetweenSnapshots;
             return result;
         }
@@ -67,7 +67,7 @@ public abstract class EvDbViewBase :
 
     public EvDbViewAddress Address { get; }
 
-    public long LatestStoredOffset { get; set; } = -1;
+    public long StoreOffset { get; set; } = -1;
 
     public virtual int MinEventsBetweenSnapshots => 0;
 

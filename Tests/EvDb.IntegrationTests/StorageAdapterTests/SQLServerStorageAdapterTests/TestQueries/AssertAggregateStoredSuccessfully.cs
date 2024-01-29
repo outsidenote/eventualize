@@ -12,7 +12,7 @@
 //            var reader = sqlCommand.ExecuteReader();
 //            reader.Read();
 //            var numStoredEvents = reader.GetInt32(0);
-//            Assert.Equal(aggregate.EventsCount, numStoredEvents);
+//            Assert.Equal(aggregate.CountOfPendingEvents, numStoredEvents);
 
 //            if (!isSnapshotStored)
 //                return;
@@ -21,7 +21,7 @@
 //            reader = sqlCommand.ExecuteReader();
 //            reader.Read();
 //            var snapshotOffset = reader.GetInt64(0);
-//            Assert.Equal(aggregate.LastStoredOffset + aggregate.EventsCount, snapshotOffset);
+//            Assert.Equal(aggregate.StoreOffset + aggregate.CountOfPendingEvents, snapshotOffset);
 //        }
 
 //        private static DbCommand GetStoredEventsSqlCommand(SQLServerAdapterTestWorld world, EvDbAggregate<TestState> aggregate)

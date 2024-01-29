@@ -32,8 +32,7 @@ internal static class Steps
         JsonSerializerOptions? options = null)
         where T : IEvDbEventPayload
     {
-        IEvDbStreamStoreData streamData = (IEvDbStreamStoreData)stream;
-        EvDbStreamCursor cursor = new EvDbStreamCursor(streamData.StreamAddress, offset);
+        EvDbStreamCursor cursor = new EvDbStreamCursor(stream.StreamAddress, offset);
         var result = CreateEvent(data, cursor, capturedBy, options);
         return result;
     }

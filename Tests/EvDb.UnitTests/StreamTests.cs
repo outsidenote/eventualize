@@ -31,7 +31,7 @@ public class StreamTests
             //Assert.Single(stream.State);
             //var studentSum = stream.State.First().Value.Sum;
             //Assert.Equal(180, studentSum);
-            //Assert.Equal(4, stream.EventsCount);
+            //Assert.Equal(4, stream.CountOfPendingEvents);
         }
     }
 
@@ -50,7 +50,7 @@ public class StreamTests
             //Assert.Single(stream.State);
             //var studentSum = stream.State.First().Value.Sum;
             //Assert.Equal(430, studentSum);
-            //Assert.Equal(3, stream.EventsCount);
+            //Assert.Equal(3, stream.CountOfPendingEvents);
         }
     }
 
@@ -65,7 +65,7 @@ public class StreamTests
         void ThenAggregateSavedWithoutSnapshot(IEvDbSchoolStream aggregate)
         {
             throw new NotImplementedException();
-            //Assert.Equal(0, stream.EventsCount);
+            //Assert.Equal(0, stream.CountOfPendingEvents);
 
             //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, false, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
             //    .MustHaveHappenedOnceExactly();
@@ -84,8 +84,7 @@ public class StreamTests
 
         void ThenAggregateSavedWithSnapshot(IEvDbSchoolStream stream)
         {
-            var data = (IEvDbStreamStoreData)stream;
-            Assert.Equal(0, data.EventsCount);
+            Assert.Equal(0, stream.CountOfPendingEvents);
 
             throw new NotImplementedException();
             //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
@@ -107,8 +106,7 @@ public class StreamTests
 
         void ThenAggregateSavedWithSnapshot(IEvDbSchoolStream stream)
         {
-            var data = (IEvDbStreamStoreData) stream;
-            Assert.Equal(0, data.EventsCount);
+            Assert.Equal(0, stream.CountOfPendingEvents);
 
             throw new NotImplementedException();
             //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))

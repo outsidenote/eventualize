@@ -62,7 +62,7 @@ public static class TestHelper
     //    {
     //        throw new NotImplementedException();
     //        //var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(useFoldingLogic2);
-    //        //var newLastStoreOffset = aggregate.LastStoredOffset + aggregate.EventsCount;
+    //        //var newLastStoreOffset = aggregate.StoreOffset + aggregate.CountOfPendingEvents;
     //        //var newAggregate = aggregateFactory.Create(aggregate.StreamAddress.StreamAddress, aggregate.State, newLastStoreOffset);
     //        //var events = TestAggregateConfigs.GetPendingEvents(3);
     //        //foreach (var e in events)

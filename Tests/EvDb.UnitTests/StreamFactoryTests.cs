@@ -15,13 +15,13 @@ public sealed class StreamFactoryTests
     }
 
     [Fact]
-    public async Task AggregateFactory_WhenInstantiatingWithEvents_Succeed()
+    public async Task StreamFactory_WhenInstantiatingWithEvents_Succeed()
     {
         var stream = await Steps
                         .GivenFactoryForStoredStreamWithEvents(_output, _storageAdapter)
                         .GivenNoSnapshot(_storageAdapter)
                         .WhenGetAggregateAsync();
-        
+
         ThenStoredEventsAddedSuccessfully();
 
         void ThenStoredEventsAddedSuccessfully()
@@ -29,27 +29,52 @@ public sealed class StreamFactoryTests
             Assert.Single(stream.Views.StudentStats);
             var studentAvg = stream.Views.StudentStats.First().Sum;
             Assert.Equal(180, studentAvg);
-            Assert.Equal(0, ((IEvDbStreamStoreData)stream).EventsCount);
+            Assert.Equal(0, stream.CountOfPendingEvents);
 
             Assert.Equal(180, stream.Views.ALL.Sum);
         }
     }
 
     [Fact]
-    public async Task AggregateFactory_WhenGettingDifferentAggregate_Succeed()
+    public async Task StreamFactory_WhenGettingDifferent_Succeed()
     {
-        throw new NotImplementedException();
-        //var repoTestSteps = new EvDbRepositoryTestsSteps();
-        //var stream = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents();
-        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(stream);
-        //var aggregateFactory2 = TestAggregateFactoryConfigs.GetAggregateFactory(true);
-        //var aggregate2 = TestStorageAdapterTestsSteps.PrepareAggregateWithPendingEvents(true);
-        //var fetchedAggregate = await repository.GetAsync(aggregateFactory2, stream.StreamAddress.StreamAddress);
-        //repoTestSteps.AssertFetchedAggregateStateIsCorrect(aggregate2, fetchedAggregate);
+        var (factory, streamId) = Steps
+                        .GivenFactoryForStoredStreamWithEvents(_output, _storageAdapter);
+
+        string stream1Id = streamId + "-a";
+        string stream2Id = streamId + "-b";
+
+        UnitTests.IEvDbSchoolStream stream1 = await (factory, stream1Id)
+                         .GivenNoSnapshot(_storageAdapter)
+                         .WhenGetAggregateAsync();
+        var stream2 = await (factory, stream2Id)
+                        .GivenNoSnapshot(_storageAdapter)
+                        .WhenGetAggregateAsync();
+
+        ThenStoredEventsAddedSuccessfully();
+
+        void ThenStoredEventsAddedSuccessfully()
+        {
+            Assert.Equal(stream1Id, stream1.StreamAddress.StreamId);
+            Assert.Single(stream1.Views.StudentStats);
+            var studentAvg1 = stream1.Views.StudentStats.First().Sum;
+            Assert.Equal(180, studentAvg1);
+            Assert.Equal(0, stream1.CountOfPendingEvents);
+
+            Assert.Equal(180, stream1.Views.ALL.Sum);
+
+            Assert.Equal(stream2Id, stream2.StreamAddress.StreamId);
+            Assert.Single(stream2.Views.StudentStats);
+            var studentAvg2 = stream2.Views.StudentStats.First().Sum;
+            Assert.Equal(180, studentAvg2);
+            Assert.Equal(0, stream2.CountOfPendingEvents);
+
+            Assert.Equal(180, stream2.Views.ALL.Sum);
+        }
     }
 
     [Fact]
-    public async Task AggregateFactory_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
+    public async Task StreamFactory_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
     {
         var aggregate = await _storageAdapter.GivenAggregateRetrievedFromStore(_output, false);
 
@@ -61,12 +86,12 @@ public sealed class StreamFactoryTests
             //Assert.Single(stream.State);
             //var studentSum = stream.State.First().Value.Sum;
             //Assert.Equal(70, studentSum);
-            //Assert.Equal(0, stream.EventsCount);
+            //Assert.Equal(0, stream.CountOfPendingEvents);
         }
     }
 
     [Fact]
-    public async Task AggregateFactory_WhenInstantiatingWithSnapshotAndEvents_Succeed()
+    public async Task StreamFactory_WhenInstantiatingWithSnapshotAndEvents_Succeed()
     {
         var aggregate = await _storageAdapter.GivenAggregateRetrievedFromStore(_output);
 
@@ -78,12 +103,12 @@ public sealed class StreamFactoryTests
             //Assert.Single(stream.State);
             //var studentSum = stream.State.First().Value.Sum;
             //Assert.Equal(250, studentSum);
-            //Assert.Equal(0, stream.EventsCount);
+            //Assert.Equal(0, stream.CountOfPendingEvents);
         }
     }
 
     [Fact(Skip = "until multi folding")]
-    public void AggregateFactory_WhenFoldingEvents_Succeed()
+    public void StreamFactory_WhenFoldingEvents_Succeed()
     {
         throw new NotImplementedException();
 
