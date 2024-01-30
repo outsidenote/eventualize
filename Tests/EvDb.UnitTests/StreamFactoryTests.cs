@@ -80,7 +80,7 @@ public sealed class StreamFactoryTests
     [Fact]
     public async Task StreamFactory_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
     {
-        var stream = await _storageAdapter.GivenAggregateRetrievedFromStore(
+        var stream = await _storageAdapter.GivenStreamRetrievedFromStore(
                                 _output,
                                 false);
 
@@ -107,7 +107,7 @@ public sealed class StreamFactoryTests
     [Fact]
     public async Task StreamFactory_WhenInstantiatingWithSnapshotAndEvents_Succeed()
     {
-        var stream = await _storageAdapter.GivenAggregateRetrievedFromStore(
+        var stream = await _storageAdapter.GivenStreamRetrievedFromStore(
                                 _output,
                                 true);
 
@@ -128,6 +128,34 @@ public sealed class StreamFactoryTests
             Assert.Equal(student.Id, studentStat.StudentId);
             Assert.Equal(student.Name, studentStat.StudentName);
             Assert.Equal(250, studentStat.Sum);
+            Assert.Equal(23, studentStat.Count);
+        }
+    }
+
+    [Fact]
+    public async Task StreamFactory_WhenInstantiatingWithSnapshotOnDifferentOffsetAndEvents_Succeed()
+    {
+        var stream = await _storageAdapter.GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset(
+                                _output,
+                                true);
+
+        ThenStoredEventsAddedSuccessfully();
+
+        void ThenStoredEventsAddedSuccessfully()
+        {
+            Assert.Equal(63, stream.StoreOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.LastFoldedOffset));
+
+            Assert.Equal(380, stream.Views.ALL.Sum);
+            Assert.Equal(103, stream.Views.ALL.Count);
+            Assert.Single(stream.Views.StudentStats.Students);
+
+            StudentStats studentStat = stream.Views.StudentStats.Students[0];
+            var student = Steps.CreateStudentEntity();
+            Assert.Equal(student.Id, studentStat.StudentId);
+            Assert.Equal(student.Name, studentStat.StudentName);
+            Assert.Equal(220, studentStat.Sum);
             Assert.Equal(23, studentStat.Count);
         }
     }

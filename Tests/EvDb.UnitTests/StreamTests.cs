@@ -39,7 +39,7 @@ public class StreamTests
     [Fact]
     public async Task Aggregate_WhenInstantiatingWithSnapshotAndEvents_Succeed()
     {
-        var aggregate = await _storageAdapter.GivenAggregateRetrievedFromStore(_output);
+        var aggregate = await _storageAdapter.GivenStreamRetrievedFromStore(_output);
         aggregate.WhenAddGrades();
 
         ThenStoredEventsAddedSuccessfully();
@@ -57,7 +57,7 @@ public class StreamTests
     [Fact]
     public async Task Aggregate_WhenStoringAggregateWithoutSnapshot_Succeed()
     {
-        IEvDbSchoolStream aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+        IEvDbSchoolStream aggregate = await _storageAdapter.GivenLocalStreamWithPendingEvents(_output)
                          .WhenAggregateIsSavedAsync();
 
         ThenAggregateSavedWithoutSnapshot(aggregate);
@@ -76,7 +76,7 @@ public class StreamTests
     [Fact]
     public async Task Aggregate_WhenStoringAggregateWithSnapshot_Succeed()
     {
-        IEvDbSchoolStream aggregate = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+        IEvDbSchoolStream aggregate = await _storageAdapter.GivenLocalStreamWithPendingEvents(_output)
                          .GivenAddGrades()
                          .WhenAggregateIsSavedAsync();
 
@@ -120,7 +120,7 @@ public class StreamTests
     [Fact]
     public async Task Aggregate_WhenStoringStaleAggregate_ThrowException()
     {
-        //ISchool stream = await _storageAdapter.GivenLocalAggregateWithPendingEvents(_output)
+        //ISchool stream = await _storageAdapter.GivenLocalStreamWithPendingEvents(_output)
 
         //ISchool stream = SetupMockSaveThrowOcc
         throw new NotImplementedException("OCC");

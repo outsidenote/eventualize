@@ -254,6 +254,22 @@ internal static class Steps
 
     #endregion // GivenHavingSnapshotsWithSameOffset
 
+    #region GivenHavingSnapshotsWithDifferentOffset
+
+    public static (IEvDbSchoolStreamFactory Factory, string StreamId) GivenHavingSnapshotsWithDifferentOffset(
+        this (IEvDbSchoolStreamFactory Factory, string StreamId) input,
+        IEvDbStorageAdapter storageAdapter)
+    {
+        return GivenHavingSnapshots(input, storageAdapter, 
+            n => n switch
+            { 
+                StatsView.ViewName => 60,
+                StudentStatsView.ViewName => 61
+            });
+    }
+
+    #endregion // GivenHavingSnapshotsWithDifferentOffset
+
     #region GivenHavingSnapshot
 
     public static (IEvDbSchoolStreamFactory Factory, string StreamId) GivenHavingSnapshots(
@@ -392,26 +408,43 @@ internal static class Steps
 
     public static double DefaultGradeStrategy(int i) => i * 30;
 
-    #region GivenAggregateRetrievedFromStore
+    #region GivenStreamRetrievedFromStore
 
-    public static async Task<IEvDbSchoolStream> GivenAggregateRetrievedFromStore(
+    public static async Task<IEvDbSchoolStream> GivenStreamRetrievedFromStore(
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output,
         bool withEvents = true)
     {
-        var aggregate = await Steps
+        var stream = await Steps
                         .GivenFactoryForStoredStreamWithEvents(output, storageAdapter, withEvents: withEvents)
                         .GivenHavingSnapshotsWithSameOffset(storageAdapter)
                         .WhenGetAggregateAsync();
-        return aggregate;
+        return stream;
 
     }
 
-    #endregion // GivenAggregateRetrievedFromStore
+    #endregion // GivenStreamRetrievedFromStore
 
-    #region GivenLocalAggregateWithPendingEvents
+    #region GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset
 
-    public static IEvDbSchoolStream GivenLocalAggregateWithPendingEvents(
+    public static async Task<IEvDbSchoolStream> GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset(
+        this IEvDbStorageAdapter storageAdapter,
+        ITestOutputHelper output,
+        bool withEvents = true)
+    {
+        var stream = await Steps
+                        .GivenFactoryForStoredStreamWithEvents(output, storageAdapter, withEvents: withEvents)
+                        .GivenHavingSnapshotsWithDifferentOffset(storageAdapter)
+                        .WhenGetAggregateAsync();
+        return stream;
+
+    }
+
+    #endregion // GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset
+
+    #region GivenLocalStreamWithPendingEvents
+
+    public static IEvDbSchoolStream GivenLocalStreamWithPendingEvents(
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output)
     {
@@ -419,7 +452,7 @@ internal static class Steps
                             .WhenAddingPendingEvents();
     }
 
-    #endregion // GivenLocalAggregateWithPendingEvents
+    #endregion // GivenLocalStreamWithPendingEvents
 
     #region WhenAggregateIsSaved
 
@@ -446,7 +479,7 @@ internal static class Steps
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output)
     {
-        IEvDbSchoolStream aggregate = await storageAdapter.GivenLocalAggregateWithPendingEvents(output)
+        IEvDbSchoolStream aggregate = await storageAdapter.GivenLocalStreamWithPendingEvents(output)
                      .WhenAggregateIsSavedAsync();
         return aggregate;
     }
