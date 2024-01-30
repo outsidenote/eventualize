@@ -1,4 +1,8 @@
+using EvDb.Scenes;
+using EvDb.UnitTests;
 using FakeItEasy;
+using System.Collections;
+using System.Collections.Immutable;
 using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
@@ -26,8 +30,8 @@ public sealed class StreamFactoryTests
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            Assert.Single(stream.Views.StudentStats);
-            var studentAvg = stream.Views.StudentStats.First().Sum;
+            Assert.Single(stream.Views.StudentStats.Students);
+            var studentAvg = stream.Views.StudentStats.Students[0].Sum;
             Assert.Equal(180, studentAvg);
             Assert.Equal(0, stream.CountOfPendingEvents);
 
@@ -56,16 +60,16 @@ public sealed class StreamFactoryTests
         void ThenStoredEventsAddedSuccessfully()
         {
             Assert.Equal(stream1Id, stream1.StreamAddress.StreamId);
-            Assert.Single(stream1.Views.StudentStats);
-            var studentAvg1 = stream1.Views.StudentStats.First().Sum;
+            Assert.Single(stream1.Views.StudentStats.Students);
+            var studentAvg1 = stream1.Views.StudentStats.Students[0].Sum;
             Assert.Equal(180, studentAvg1);
             Assert.Equal(0, stream1.CountOfPendingEvents);
 
             Assert.Equal(180, stream1.Views.ALL.Sum);
 
             Assert.Equal(stream2Id, stream2.StreamAddress.StreamId);
-            Assert.Single(stream2.Views.StudentStats);
-            var studentAvg2 = stream2.Views.StudentStats.First().Sum;
+            Assert.Single(stream2.Views.StudentStats.Students);
+            var studentAvg2 = stream2.Views.StudentStats.Students[0].Sum;
             Assert.Equal(180, studentAvg2);
             Assert.Equal(0, stream2.CountOfPendingEvents);
 
@@ -76,34 +80,55 @@ public sealed class StreamFactoryTests
     [Fact]
     public async Task StreamFactory_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
     {
-        var aggregate = await _storageAdapter.GivenAggregateRetrievedFromStore(_output, false);
+        var stream = await _storageAdapter.GivenAggregateRetrievedFromStore(
+                                _output,
+                                false);
 
         ThenStoredEventsAddedSuccessfully();
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            throw new NotImplementedException();
-            //Assert.Single(stream.State);
-            //var studentSum = stream.State.First().Value.Sum;
-            //Assert.Equal(70, studentSum);
-            //Assert.Equal(0, stream.CountOfPendingEvents);
+            Assert.Equal(60, stream.StoreOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.LastFoldedOffset));
+
+            Assert.Equal(200, stream.Views.ALL.Sum);
+            Assert.Equal(100, stream.Views.ALL.Count);
+            Assert.Single(stream.Views.StudentStats.Students);
+
+            StudentStats studentStat = stream.Views.StudentStats.Students[0];
+            var student = Steps.CreateStudentEntity();
+            Assert.Equal(student.Name, studentStat.StudentName);
+            Assert.Equal(70, studentStat.Sum);
+            Assert.Equal(20, studentStat.Count);
         }
     }
 
     [Fact]
     public async Task StreamFactory_WhenInstantiatingWithSnapshotAndEvents_Succeed()
     {
-        var aggregate = await _storageAdapter.GivenAggregateRetrievedFromStore(_output);
+        var stream = await _storageAdapter.GivenAggregateRetrievedFromStore(
+                                _output,
+                                true);
 
         ThenStoredEventsAddedSuccessfully();
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            throw new NotImplementedException();
-            //Assert.Single(stream.State);
-            //var studentSum = stream.State.First().Value.Sum;
-            //Assert.Equal(250, studentSum);
-            //Assert.Equal(0, stream.CountOfPendingEvents);
+            Assert.Equal(63, stream.StoreOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.LastFoldedOffset));
+
+            Assert.Equal(380, stream.Views.ALL.Sum);
+            Assert.Equal(103, stream.Views.ALL.Count);
+            Assert.Single(stream.Views.StudentStats.Students);
+
+            StudentStats studentStat = stream.Views.StudentStats.Students[0];
+            var student = Steps.CreateStudentEntity();
+            Assert.Equal(student.Id, studentStat.StudentId);
+            Assert.Equal(student.Name, studentStat.StudentName);
+            Assert.Equal(250, studentStat.Sum);
+            Assert.Equal(23, studentStat.Count);
         }
     }
 

@@ -1,6 +1,6 @@
-﻿namespace EvDb.UnitTests;
+﻿namespace EvDb.Scenes;
 
-public readonly record struct StudentStats(string Student, double Sum, int Count)
+public readonly record struct StudentStats(int StudentId, string StudentName, double Sum, int Count)
 {
     public StudentStats AddGrade(double grade) => this with { Count = Count + 1, Sum = Sum + grade };
 }

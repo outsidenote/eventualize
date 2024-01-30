@@ -1,52 +1,33 @@
 ﻿using EvDb.Core;
 using EvDb.Scenes;
 using System.Collections.Concurrent;
+using System.Xml.Linq;
 
 namespace EvDb.UnitTests;
 
-[EvDbView<StudentStats[], IEvDbSchoolStreamAdders>("student-stats")]
+[EvDbView<StudentStatsState, IEvDbSchoolStreamAdders>("student-stats")]
 internal partial class StudentStatsView
 {
-    private readonly ConcurrentDictionary<int, StudentCalc> _students = new();
-
-    protected override StudentStats[] DefaultState { get; } = [];
+    protected override StudentStatsState DefaultState { get; } = StudentStatsState.Empty;
 
     public override int MinEventsBetweenSnapshots => 5;
 
     #region Fold
 
-    protected override StudentStats[] Fold(
-        StudentStats[] state,
+    protected override StudentStatsState Fold(
+        StudentStatsState state,
         StudentEnlistedEvent payload,
         IEvDbEventMeta meta)
     {
-        int id = payload.Student.Id;
-        string name = payload.Student.Name;
-        _students.TryAdd(id,
-            new StudentCalc(id, name, 0, 0));
-        return state;
+        return state.Add(payload);
     }
 
-    protected override StudentStats[] Fold(
-        StudentStats[] state,
-        StudentReceivedGradeEvent receivedGrade,
+    protected override StudentStatsState Fold(
+        StudentStatsState state,
+        StudentReceivedGradeEvent payload,
         IEvDbEventMeta meta)
     {
-        if (!_students.TryGetValue(receivedGrade.StudentId, out StudentCalc entity))
-            throw new Exception("It's broken");
-
-        _students[receivedGrade.StudentId] = entity with
-        {
-            Count = entity.Count + 1,
-            Sum = entity.Sum + receivedGrade.Grade,
-        };
-
-
-        var result = _students.Values
-                            .Where(m => m.Count != 0)
-                            .Select(m =>
-                                new StudentStats(m.StudentName, m.Sum, m.Count));
-        return result.ToArray();
+       return state.Update(payload);
     }
 
     #endregion // Fold

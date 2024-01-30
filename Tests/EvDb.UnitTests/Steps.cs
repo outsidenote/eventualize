@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Text.Json;
 using Xunit.Abstractions;
 
-using STATE_TYPE = System.Collections.Immutable.IImmutableDictionary<int, EvDb.UnitTests.StudentStats>;
+using STATE_TYPE = EvDb.Scenes.StudentStatsState;
 
 internal static class Steps
 {
@@ -184,7 +184,7 @@ internal static class Steps
         IEvDbStorageAdapter storageAdapter)
     {
         throw new NotImplementedException() ;
-        //A.CallTo(() => storageAdapter.SaveAsync<STATE_TYPE>((Core.IEvDbAggregateDeprecated<STATE_TYPE>)A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+        //A.CallTo(() => storageAdapter.SaveAsync<STATE_TYPE>((Core.IEvDbAggregateDeprecated<STATE_TYPE>)A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<Options>.Ignored, A<CancellationToken>.Ignored))
         //    .ThrowsAsync(new OCCException());
 
         //return factory;
@@ -201,22 +201,23 @@ internal static class Steps
         long initOffset = 0)
     {
         List<EvDbStoredEvent> storedEvents = new();
-        EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset);
         StudentEnlistedEvent student = Steps.CreateStudentEnlistedEvent();
-        if (initOffset == 0)
+        bool withEnlisted = initOffset == 0;
+        if (withEnlisted)
         {
+            EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset);
             var e = student.CreateEvent(factory,streamId, options: serializerOptions);
             var eStored = new EvDbStoredEvent(e, cursor);
             storedEvents.Add(eStored);
+            initOffset++;
         }
-
-        for (int i = 1; i <= 3; i++)
+        for (int i = 0; i < 3; i++)
         {
-            EvDbStreamCursor csr = new(factory.PartitionAddress, streamId, initOffset + i);
-            double gradeValue = DefaultGradeStrategy(i);
+            EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset + i);
+            double gradeValue = DefaultGradeStrategy(i + 1);
             var grade = new StudentReceivedGradeEvent(20992, student.Student.Id, gradeValue);
             var gradeEvent = grade.CreateEvent(factory,streamId, options: serializerOptions);
-            var gradeStoreEvent = new EvDbStoredEvent(gradeEvent, csr);
+            var gradeStoreEvent = new EvDbStoredEvent(gradeEvent, cursor);
             storedEvents.Add(gradeStoreEvent);
         }
         return storedEvents;
@@ -242,38 +243,76 @@ internal static class Steps
 
     #endregion // GivenNoSnapshot
 
+    #region GivenHavingSnapshotsWithSameOffset
+
+    public static (IEvDbSchoolStreamFactory Factory, string StreamId) GivenHavingSnapshotsWithSameOffset(
+        this (IEvDbSchoolStreamFactory Factory, string StreamId) input,
+        IEvDbStorageAdapter storageAdapter)
+    {
+        return GivenHavingSnapshots(input, storageAdapter, _ => 60);
+    }
+
+    #endregion // GivenHavingSnapshotsWithSameOffset
+
     #region GivenHavingSnapshot
 
-    public static (IEvDbSchoolStreamFactory Factory, string StreamId) GivenHavingSnapshot(
+    public static (IEvDbSchoolStreamFactory Factory, string StreamId) GivenHavingSnapshots(
         this (IEvDbSchoolStreamFactory Factory, string StreamId) input,
         IEvDbStorageAdapter storageAdapter,
-        out EvDbStoredSnapshot snapshot)
+        Func<string, long> getSnapshotOffset)
     {
-        throw new NotImplementedException();
-        //var (factory, streamId) = input;
-        //EvDbStreamAddress address = new(factory.PartitionAddress, streamId);
-        //var student = CreateStudentEntity();
-        //var stat = new StudentStats(student.Name, 70, 20);
-        //EvDbSnapshotCursor cursor = new(address, "Stats", 10);
-        //STATE_TYPE state = ImmutableDictionary<int, StudentStats>.Empty
-        //                                            .Add(student.Id, stat);
+        A.CallTo(() => storageAdapter.TryGetSnapshotAsync(
+                    A<EvDbViewAddress>.That.Matches(a => a.ViewName == StudentStatsView.ViewName), A<CancellationToken>.Ignored))
+            .ReturnsLazily<EvDbStoredSnapshot>(() =>
+                {
+                    long offset = getSnapshotOffset(StudentStatsView.ViewName);
+                    var snapshot = CreateStudentStatsSnapshot(offset, input.Factory.Options);
+                    return snapshot;
+                });
 
-        //EvDbStoredSnapshotDeprecated<STATE_TYPE>? snp =
-        //    new EvDbStoredSnapshotDeprecated<STATE_TYPE>(state, cursor);
-        //snapshot = snp;
+        A.CallTo(() => storageAdapter.TryGetSnapshotAsync(
+                    A<EvDbViewAddress>.That.Matches(a => a.ViewName == StatsView.ViewName), A<CancellationToken>.Ignored))
+            .ReturnsLazily<EvDbStoredSnapshot>(() =>
+                {
+                    long offset = getSnapshotOffset(StatsView.ViewName);
+                    var snapshot = CreateStatsSnapshot(offset, input.Factory.Options);
+                    return snapshot;
+                });
 
-        //A.CallTo(() => storageAdapter.TryGetSnapshotAsync<STATE_TYPE>(
-        //            A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
-        //    .ReturnsLazily<Task<EvDbStoredSnapshotDeprecated<STATE_TYPE>?>>(async () =>
-        //{
-        //    await Task.Yield();
-        //    return snp;
-        //});
-
-        //return input;
+        return input;
     }
 
     #endregion // GivenHavingSnapshot
+
+    #region CreateStudentStatsSnapshot
+
+    public static EvDbStoredSnapshot CreateStudentStatsSnapshot(long offset, JsonSerializerOptions? options)
+    {
+        var student = CreateStudentEntity();
+        var stat = new StudentStats(student.Id, student.Name, 70, 20);
+
+        STATE_TYPE state = new STATE_TYPE() { Students = [stat] };
+        string json = JsonSerializer.Serialize(state, options);
+        EvDbStoredSnapshot snp =
+            new EvDbStoredSnapshot(offset, json);
+        return snp;
+    }
+
+    #endregion // CreateStudentStatsSnapshot
+
+    #region CreateStatsSnapshot
+
+    public static EvDbStoredSnapshot CreateStatsSnapshot(long offset, JsonSerializerOptions? options)
+    {
+        var state = new Stats(200, 100);
+
+        string json = JsonSerializer.Serialize(state, options);
+        EvDbStoredSnapshot snp =
+            new EvDbStoredSnapshot(offset, json);
+        return snp;
+    }
+
+    #endregion // CreateStatsSnapshot
 
     #region CreateStudentEntity
 
@@ -362,7 +401,7 @@ internal static class Steps
     {
         var aggregate = await Steps
                         .GivenFactoryForStoredStreamWithEvents(output, storageAdapter, withEvents: withEvents)
-                        .GivenHavingSnapshot(storageAdapter, out var snapshot)
+                        .GivenHavingSnapshotsWithSameOffset(storageAdapter)
                         .WhenGetAggregateAsync();
         return aggregate;
 

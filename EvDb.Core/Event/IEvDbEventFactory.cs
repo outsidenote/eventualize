@@ -5,7 +5,7 @@ namespace EvDb.Core;
 
 //public interface IEvDbEventFactory
 //{
-//    IEvDbEvent Create<T>(T data, string capturedBy, JsonSerializerOptions? options = null)
+//    IEvDbEvent Create<T>(T data, string capturedBy, Options? options = null)
 //        where T : IEvDbEventPayload;
 //    IEvDbEvent Create<T>(T data, string capturedBy, JsonTypeInfo<T> jsonType)
 //        where T : IEvDbEventPayload;

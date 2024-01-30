@@ -80,7 +80,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         #endregion // string rootName = .., interfaceType = .., stateType = ..
 
-        #region Aggregate Interface
+        #region Stream Interface
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
@@ -93,7 +93,7 @@ public partial class FactoryGenerator : BaseGenerator
                     """);
         context.AddSource($"{interfaceType}.generated.cs", builder.ToString());
 
-        #endregion // Aggregate Interface
+        #endregion // Stream Interface
 
         builder.Clear();
 

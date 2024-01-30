@@ -34,7 +34,7 @@ public partial record EvDbStoredSnapshotDeprecated<T>(T State, EvDbSnapshotCurso
 };
 
 [Equatable]
-[DebuggerDisplay("{State}, Offset:{Cursor.Offset}")]
+[DebuggerDisplay("{State}, Offset:{Offset}")]
 public partial record EvDbStoredSnapshot(
             long Offset,
             string State)

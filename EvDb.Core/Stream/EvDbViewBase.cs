@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
@@ -6,47 +7,50 @@ namespace EvDb.Core;
 
 public abstract class EvDbViewBase<T> : EvDbViewBase, IEvDbView<T>
 {
-    protected T _state;
-
     protected EvDbViewBase(
         EvDbViewAddress address,
         EvDbStoredSnapshot snapshot,
-        JsonSerializerOptions? options):
+        JsonSerializerOptions? options) :
             base(address, options, snapshot.Offset)
     {
         if (snapshot == EvDbStoredSnapshot.Empty)
-            _state = DefaultState;
+            State = DefaultState;
         else
-            _state = JsonSerializer.Deserialize<T>(snapshot.State, options);
+            State = JsonSerializer.Deserialize<T>(snapshot.State, options);
     }
 
     protected abstract T DefaultState { get; }
 
-    T IEvDbView<T>.State => _state;
+    public virtual T State { get; protected set; }
 }
 
+[DebuggerDisplay("Offset:[Stored: {StoreOffset}, Folded:{LastFoldedOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
 public abstract class EvDbViewBase :
     IEvDbView
 {
     protected readonly JsonSerializerOptions? _options;
-    private long _lastFoldedOffset;
+
+    #region Ctor
 
     protected EvDbViewBase(
         EvDbViewAddress address,
         JsonSerializerOptions? options,
-        long lastFoldedOffset = -1)
+        long storedOffset = -1)
     {
         _options = options;
-        _lastFoldedOffset = lastFoldedOffset;
+        StoreOffset = storedOffset;
+        LastFoldedOffset = storedOffset;
         Address = address;
     }
+
+    #endregion // Ctor
 
     #region onSaved
 
     public void OnSaved()
     {
         if (ShouldStoreSnapshot)
-            StoreOffset = _lastFoldedOffset;
+            StoreOffset = LastFoldedOffset;
     }
 
     #endregion // OnSaved
@@ -57,7 +61,7 @@ public abstract class EvDbViewBase :
     {
         get
         {
-            long numEventsSinceLatestSnapshot = _lastFoldedOffset - StoreOffset;
+            long numEventsSinceLatestSnapshot = LastFoldedOffset - StoreOffset;
             bool result = numEventsSinceLatestSnapshot >= MinEventsBetweenSnapshots;
             return result;
         }
@@ -67,18 +71,24 @@ public abstract class EvDbViewBase :
 
     public EvDbViewAddress Address { get; }
 
+    public long LastFoldedOffset { get; private set; }
+
     public long StoreOffset { get; set; } = -1;
 
     public virtual int MinEventsBetweenSnapshots => 0;
 
+    #region FoldEvent
+
     public void FoldEvent(IEvDbEvent e)
     {
         long offset = e.StreamCursor.Offset;
-        if (_lastFoldedOffset >= offset)
+        if (LastFoldedOffset >= offset)
             return;
         OnFoldEvent(e);
-        _lastFoldedOffset = offset;
+        LastFoldedOffset = offset;
     }
+
+    #endregion // FoldEvent
 
     protected abstract void OnFoldEvent(IEvDbEvent e);
 }

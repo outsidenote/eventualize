@@ -113,10 +113,6 @@ public partial class ViewRefGenerator : BaseGenerator
             rootName = $"{rootName}_";
         string interfaceType = $"I{rootName}";
 
-        builder.Clear();
-
-        #region Stream Interface
-
         var ctorInit = propsNames.Select((p, i) =>
                                 $$"""
                                         {{p.Name}} = ((IEvDbView<{{p.StateType}}>)views[{{i}}]).State;
@@ -130,22 +126,42 @@ public partial class ViewRefGenerator : BaseGenerator
                                                 """);
 
 
+        builder.Clear();
+
+        #region Views Encapsulation
+
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
         builder.AppendLine($$"""
                     public class {{rootName}}Views
                     { 
+                        private readonly IImmutableList<IEvDbView> _views;
+                    
                         public {{rootName}}Views(IImmutableList<IEvDbView> views)
                         {
+                            _views = views;
+                    
                     {{string.Join("", ctorInit)}}
                         }
                     {{string.Join("", propsColInterface)}}
+                    
+                        public IEnumerable<IEvDbViewMetadata> ToMetadata()
+                        {
+                            foreach (var view in _views)
+                            {
+                                yield return view;
+                            }
+                        }
                     }
                     """);
         context.AddSource($"{rootName}Views.view-ref.generated.cs", builder.ToString());
 
+        #endregion // Views Encapsulation
+
         builder.Clear();
+
+        #region Stream Interface
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();

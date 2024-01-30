@@ -4,7 +4,7 @@ using EvDb.UnitTests;
 using FakeItEasy;
 using System.Text.Json;
 using Xunit.Abstractions;
-using STATE_TYPE = System.Collections.Immutable.IImmutableDictionary<int, EvDb.UnitTests.StudentStats>;
+using STATE_TYPE = EvDb.Scenes.StudentStats;
 
 public class StreamTests
 {
@@ -67,7 +67,7 @@ public class StreamTests
             throw new NotImplementedException();
             //Assert.Equal(0, stream.CountOfPendingEvents);
 
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, false, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, false, A<Options>.Ignored, A<CancellationToken>.Ignored))
             //    .MustHaveHappenedOnceExactly();
         }
     }
@@ -87,10 +87,10 @@ public class StreamTests
             Assert.Equal(0, stream.CountOfPendingEvents);
 
             throw new NotImplementedException();
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<Options>.Ignored, A<CancellationToken>.Ignored))
             //    .MustHaveHappenedOnceExactly();
 
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<Options>.Ignored, A<CancellationToken>.Ignored))
             //    .MustHaveHappenedOnceExactly();
         }
     }
@@ -109,10 +109,10 @@ public class StreamTests
             Assert.Equal(0, stream.CountOfPendingEvents);
 
             throw new NotImplementedException();
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<Options>.Ignored, A<CancellationToken>.Ignored))
             //    .MustHaveHappenedOnceExactly();
 
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<JsonSerializerOptions>.Ignored, A<CancellationToken>.Ignored))
+            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<Options>.Ignored, A<CancellationToken>.Ignored))
             //    .MustHaveHappenedTwiceExactly();
         }
     }

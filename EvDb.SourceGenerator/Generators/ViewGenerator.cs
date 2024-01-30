@@ -104,7 +104,7 @@ public partial class ViewGenerator : BaseGenerator
                     case "{{p.Key}}":
                             {
                                 var payload = e.GetData<{{p.Type}}>(_options);
-                                _state = Fold(_state, payload, e);
+                                State = Fold(State, payload, e);
                                 break;
                             }
                         
@@ -118,12 +118,14 @@ public partial class ViewGenerator : BaseGenerator
                     public abstract class {{viewClassName}}Base: 
                         EvDbViewBase<{{stateType}}>
                     {                                
+                        public const string ViewName = "{{name}}";
+                    
                         #region Ctor
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address, 
                             JsonSerializerOptions? options):
-                                base(new EvDbViewAddress(address, "{{name}}"), 
+                                base(new EvDbViewAddress(address, ViewName), 
                                 EvDbStoredSnapshot.Empty,
                                 options)
                         {
@@ -134,7 +136,7 @@ public partial class ViewGenerator : BaseGenerator
                             EvDbStoredSnapshot snapshot, 
                             JsonSerializerOptions? options):
                                 base(
-                                    new EvDbViewAddress(address, "{{name}}"), 
+                                    new EvDbViewAddress(address, ViewName), 
                                     snapshot,
                                     options)
                         {

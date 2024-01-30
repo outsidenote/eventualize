@@ -34,7 +34,7 @@ public class EvDbStream :
         _storageAdapter = storageAdapter;
         StreamAddress = new EvDbStreamAddress(factory.PartitionAddress, streamId);
         StoreOffset = lastStoredOffset;
-        Options = factory.JsonSerializerOptions;
+        Options = factory.Options;
     }
 
 

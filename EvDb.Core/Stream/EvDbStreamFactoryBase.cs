@@ -23,7 +23,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     public virtual int MinEventsBetweenSnapshots { get; }
 
-    public virtual JsonSerializerOptions? JsonSerializerOptions { get; }
+    public virtual JsonSerializerOptions? Options { get; }
 
     #region Create
 
@@ -46,33 +46,33 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     {
         var address = new EvDbStreamAddress(PartitionAddress, streamId);
         long minSnapshotOffset = -1; 
-        long lastStoredEventOffset = -1;
         List<IEvDbView> views = new(ViewFactories.Length);
         foreach (IEvDbViewFactory viewFactory in ViewFactories)
         {
             EvDbViewAddress viewAddress = new(address, viewFactory.ViewName);
             EvDbStoredSnapshot snapshot = await _storageAdapter.TryGetSnapshotAsync(viewAddress, cancellationToken);
             minSnapshotOffset = minSnapshotOffset == -1
-                                    ? snapshot.Offset + 1
-                                    : Math.Min(minSnapshotOffset, snapshot.Offset + 1);
-            IEvDbView view = viewFactory.CreateFromSnapshot(address, snapshot, JsonSerializerOptions);
+                                    ? snapshot.Offset
+                                    : Math.Min(minSnapshotOffset, snapshot.Offset);
+            IEvDbView view = viewFactory.CreateFromSnapshot(address, snapshot, Options);
             views.Add(view);    
         }
         var immutableViews = views.ToImmutableList();
         
-        var cursor = new EvDbStreamCursor(PartitionAddress, streamId, minSnapshotOffset);
+        var cursor = new EvDbStreamCursor(PartitionAddress, streamId, minSnapshotOffset + 1);
         IAsyncEnumerable<IEvDbStoredEvent> events = 
             _storageAdapter.GetAsync(cursor, cancellationToken);
-        
+
+        long streamOffset = minSnapshotOffset;
         await foreach (IEvDbStoredEvent e in events)
         {
             foreach (IEvDbView view in views)
             {
                 view.FoldEvent(e);
             }
-            lastStoredEventOffset = e.StreamCursor.Offset;
+            streamOffset = e.StreamCursor.Offset;
         }
-        T stream = OnCreate(streamId, immutableViews, lastStoredEventOffset);
+        T stream = OnCreate(streamId, immutableViews, streamOffset);
 
         return stream;
     }
@@ -92,7 +92,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     protected IImmutableList<IEvDbView> CreateEmptyViews(EvDbStreamAddress address)
     {
-        var options = JsonSerializerOptions;
+        var options = Options;
         var views = ViewFactories.Select(viewFactory => viewFactory.CreateEmpty(address, options));
 
         var immutable = ImmutableList.CreateRange(views);
