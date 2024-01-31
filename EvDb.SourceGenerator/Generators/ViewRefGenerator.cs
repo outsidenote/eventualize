@@ -113,15 +113,9 @@ public partial class ViewRefGenerator : BaseGenerator
             rootName = $"{rootName}_";
         string interfaceType = $"I{rootName}";
 
-        var ctorInit = propsNames.Select((p, i) =>
-                                $$"""
-                                        {{p.Name}} = ((IEvDbView<{{p.StateType}}>)views[{{i}}]).State;
-
-                                """);
-
-        var propsColInterface = propsNames.Select(p =>
+        var propsColInterface = propsNames.Select((p, i) =>
                                         $$"""
-                                                    public {{p.StateType}} {{p.Name}} { get; }
+                                                    public {{p.StateType}} {{p.Name}} => ((IEvDbView<{{p.StateType}}>)_views[{{i}}]).State;
 
                                                 """);
 
@@ -141,8 +135,6 @@ public partial class ViewRefGenerator : BaseGenerator
                         public {{rootName}}Views(IImmutableList<IEvDbView> views)
                         {
                             _views = views;
-                    
-                    {{string.Join("", ctorInit)}}
                         }
                     {{string.Join("", propsColInterface)}}
                     

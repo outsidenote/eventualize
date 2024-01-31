@@ -42,20 +42,20 @@ public class EvDbStream :
 
     #region Views
 
-    protected IImmutableList<IEvDbView> _views;
+    protected readonly IImmutableList<IEvDbView> _views;
     IEnumerable<IEvDbView> IEvDbStreamStoreData.Views => _views;
 
     private readonly IEvDbStorageAdapter _storageAdapter;
 
     #endregion // Views
 
-    #region GetNextOffset
+    #region GetNextCursor
 
-    private EvDbStreamCursor GetNextOffset()
+    private EvDbStreamCursor GetNextCursor()
     {
         if (CountOfPendingEvents == 0)
         { 
-            var empty = new EvDbStreamCursor(StreamAddress, 0);
+            var empty = new EvDbStreamCursor(StreamAddress, StoreOffset + 1);
             return empty;
         }
         IEvDbEvent e = _pendingEvents[CountOfPendingEvents - 1];
@@ -64,7 +64,7 @@ public class EvDbStream :
         return result;
     }
 
-    #endregion // GetNextOffset
+    #endregion // GetNextCursor
 
     #region AddEvent
 
@@ -75,7 +75,7 @@ public class EvDbStream :
         var json = JsonSerializer.Serialize(payload, Options);
         try
         {
-            EvDbStreamCursor cursor = GetNextOffset();
+            EvDbStreamCursor cursor = GetNextCursor();
             IEvDbEvent e = new EvDbEvent(payload.EventType, DateTime.UtcNow, capturedBy, cursor, json);
             _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
             _pendingEvents = _pendingEvents.Add(e); 

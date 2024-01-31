@@ -24,7 +24,7 @@ public sealed class StreamFactoryTests
         var stream = await Steps
                         .GivenFactoryForStoredStreamWithEvents(_output, _storageAdapter)
                         .GivenNoSnapshot(_storageAdapter)
-                        .WhenGetAggregateAsync();
+                        .WhenGetStreamAsync();
 
         ThenStoredEventsAddedSuccessfully();
 
@@ -50,10 +50,10 @@ public sealed class StreamFactoryTests
 
         UnitTests.IEvDbSchoolStream stream1 = await (factory, stream1Id)
                          .GivenNoSnapshot(_storageAdapter)
-                         .WhenGetAggregateAsync();
+                         .WhenGetStreamAsync();
         var stream2 = await (factory, stream2Id)
                         .GivenNoSnapshot(_storageAdapter)
-                        .WhenGetAggregateAsync();
+                        .WhenGetStreamAsync();
 
         ThenStoredEventsAddedSuccessfully();
 
@@ -61,18 +61,18 @@ public sealed class StreamFactoryTests
         {
             Assert.Equal(stream1Id, stream1.StreamAddress.StreamId);
             Assert.Single(stream1.Views.StudentStats.Students);
-            var studentAvg1 = stream1.Views.StudentStats.Students[0].Sum;
-            Assert.Equal(180, studentAvg1);
+            var student1 = stream1.Views.StudentStats.Students[0];
+            Assert.Equal(180, student1.Sum);
+            Assert.Equal(3, student1.Count);
             Assert.Equal(0, stream1.CountOfPendingEvents);
-
             Assert.Equal(180, stream1.Views.ALL.Sum);
 
             Assert.Equal(stream2Id, stream2.StreamAddress.StreamId);
             Assert.Single(stream2.Views.StudentStats.Students);
-            var studentAvg2 = stream2.Views.StudentStats.Students[0].Sum;
-            Assert.Equal(180, studentAvg2);
+            var student2 = stream2.Views.StudentStats.Students[0];
+            Assert.Equal(180, student2.Sum);
+            Assert.Equal(3, student1.Count);
             Assert.Equal(0, stream2.CountOfPendingEvents);
-
             Assert.Equal(180, stream2.Views.ALL.Sum);
         }
     }
@@ -90,7 +90,7 @@ public sealed class StreamFactoryTests
         {
             Assert.Equal(60, stream.StoreOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.LastFoldedOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.FoldOffset));
 
             Assert.Equal(200, stream.Views.ALL.Sum);
             Assert.Equal(100, stream.Views.ALL.Count);
@@ -117,7 +117,7 @@ public sealed class StreamFactoryTests
         {
             Assert.Equal(63, stream.StoreOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.LastFoldedOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.FoldOffset));
 
             Assert.Equal(380, stream.Views.ALL.Sum);
             Assert.Equal(103, stream.Views.ALL.Count);
@@ -135,9 +135,7 @@ public sealed class StreamFactoryTests
     [Fact]
     public async Task StreamFactory_WhenInstantiatingWithSnapshotOnDifferentOffsetAndEvents_Succeed()
     {
-        var stream = await _storageAdapter.GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset(
-                                _output,
-                                true);
+        var stream = await _storageAdapter.GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset(_output);
 
         ThenStoredEventsAddedSuccessfully();
 
@@ -147,7 +145,7 @@ public sealed class StreamFactoryTests
             Assert.Equal(63, stream.StoreOffset);
             Assert.Equal(61, meta.First().StoreOffset);
             Assert.Equal(60, meta.Last().StoreOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.LastFoldedOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.FoldOffset));
 
             Assert.Equal(380, stream.Views.ALL.Sum);
             Assert.Equal(103, stream.Views.ALL.Count);

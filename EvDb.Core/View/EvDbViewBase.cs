@@ -24,7 +24,7 @@ public abstract class EvDbViewBase<T> : EvDbViewBase, IEvDbView<T>
     public virtual T State { get; protected set; }
 }
 
-[DebuggerDisplay("Offset:[Stored: {StoreOffset}, Folded:{LastFoldedOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
+[DebuggerDisplay("Offset:[Stored: {StoreOffset}, Folded:{FoldOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
 public abstract class EvDbViewBase :
     IEvDbView
 {
@@ -39,7 +39,7 @@ public abstract class EvDbViewBase :
     {
         _options = options;
         StoreOffset = storedOffset;
-        LastFoldedOffset = storedOffset;
+        FoldOffset = storedOffset;
         Address = address;
     }
 
@@ -50,7 +50,7 @@ public abstract class EvDbViewBase :
     public void OnSaved()
     {
         if (ShouldStoreSnapshot)
-            StoreOffset = LastFoldedOffset;
+            StoreOffset = FoldOffset;
     }
 
     #endregion // OnSaved
@@ -61,7 +61,9 @@ public abstract class EvDbViewBase :
     {
         get
         {
-            long numEventsSinceLatestSnapshot = LastFoldedOffset - StoreOffset;
+            long numEventsSinceLatestSnapshot = StoreOffset == -1 
+                ? FoldOffset 
+                : FoldOffset - StoreOffset;
             bool result = numEventsSinceLatestSnapshot >= MinEventsBetweenSnapshots;
             return result;
         }
@@ -71,7 +73,7 @@ public abstract class EvDbViewBase :
 
     public EvDbViewAddress Address { get; }
 
-    public long LastFoldedOffset { get; private set; }
+    public long FoldOffset { get; private set; }
 
     public long StoreOffset { get; set; } = -1;
 
@@ -82,10 +84,10 @@ public abstract class EvDbViewBase :
     public void FoldEvent(IEvDbEvent e)
     {
         long offset = e.StreamCursor.Offset;
-        if (LastFoldedOffset >= offset)
+        if (FoldOffset >= offset)
             return;
         OnFoldEvent(e);
-        LastFoldedOffset = offset;
+        FoldOffset = offset;
     }
 
     #endregion // FoldEvent

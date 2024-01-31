@@ -2,7 +2,10 @@
 
 public interface IEvDbViewMetadata
 {
-    long LastFoldedOffset { get; }
+    /// <summary>
+    /// Gets the offset of the last folded event.
+    /// </summary>
+    long FoldOffset { get; }
 
     int MinEventsBetweenSnapshots { get; }
 

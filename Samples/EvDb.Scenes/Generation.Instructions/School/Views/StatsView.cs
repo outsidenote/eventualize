@@ -8,7 +8,7 @@ internal partial class StatsView
 {
     protected override Stats DefaultState { get; } = new Stats(0, 0);
 
-    public override int MinEventsBetweenSnapshots => 5;
+    public override int MinEventsBetweenSnapshots => 4;
 
     #region Fold
 

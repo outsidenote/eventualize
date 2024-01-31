@@ -1,5 +1,6 @@
 namespace EvDb.Core.Tests;
 
+using EvDb.Scenes;
 using EvDb.UnitTests;
 using FakeItEasy;
 using System.Text.Json;
@@ -17,117 +18,126 @@ public class StreamTests
     }
 
     [Fact]
-    public void Aggregate_WhenAddingPendingEvent_Succeed()
+    public void Stream_WhenAddingPendingEvent_Succeed()
     {
-        IEvDbSchoolStream aggregate = Steps
-                            .GivenLocalAggerate(_output, _storageAdapter)
-                            .WhenAddingPendingEvents();
+        IEvDbSchoolStream stream = _storageAdapter
+                            .GivenLocalStreamWithPendingEvents(_output);
 
         ThenPendingEventsAddedSuccessfully();
 
         void ThenPendingEventsAddedSuccessfully()
         {
-            throw new NotImplementedException();
-            //Assert.Single(stream.State);
-            //var studentSum = stream.State.First().Value.Sum;
-            //Assert.Equal(180, studentSum);
-            //Assert.Equal(4, stream.CountOfPendingEvents);
+            Assert.Equal(-1, stream.StoreOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(-1, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(3, v.FoldOffset));
+
+            Assert.Equal(180, stream.Views.ALL.Sum);
+            Assert.Equal(3, stream.Views.ALL.Count);
+            Assert.Single(stream.Views.StudentStats.Students);
+
+            StudentStats studentStat = stream.Views.StudentStats.Students[0];
+            var student = Steps.CreateStudentEntity();
+            Assert.Equal(student.Id, studentStat.StudentId);
+            Assert.Equal(student.Name, studentStat.StudentName);
+            Assert.Equal(180, studentStat.Sum);
+            Assert.Equal(3, studentStat.Count);
         }
     }
 
-
     [Fact]
-    public async Task Aggregate_WhenInstantiatingWithSnapshotAndEvents_Succeed()
+    public async Task Stream_WhenStoringWithoutSnapshotting_Succeed()
     {
-        var aggregate = await _storageAdapter.GivenStreamRetrievedFromStore(_output);
-        aggregate.WhenAddGrades();
+        IEvDbSchoolStream stream = await _storageAdapter
+                            .GivenLocalStreamWithPendingEvents(_output)
+                            .WhenStreamIsSavedAsync();
 
-        ThenStoredEventsAddedSuccessfully();
+        ThenStreamSavedWithoutSnapshot(stream);
 
-        void ThenStoredEventsAddedSuccessfully()
+        void ThenStreamSavedWithoutSnapshot(IEvDbSchoolStream aggregate)
         {
-            throw new NotImplementedException();
-            //Assert.Single(stream.State);
-            //var studentSum = stream.State.First().Value.Sum;
-            //Assert.Equal(430, studentSum);
-            //Assert.Equal(3, stream.CountOfPendingEvents);
+            Assert.Equal(3, stream.StoreOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(-1, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(3, v.FoldOffset));
+
+            Assert.Equal(180, stream.Views.ALL.Sum);
+            Assert.Equal(3, stream.Views.ALL.Count);
+            Assert.Single(stream.Views.StudentStats.Students);
+
+            StudentStats studentStat = stream.Views.StudentStats.Students[0];
+            var student = Steps.CreateStudentEntity();
+            Assert.Equal(student.Id, studentStat.StudentId);
+            Assert.Equal(student.Name, studentStat.StudentName);
+            Assert.Equal(180, studentStat.Sum);
+            Assert.Equal(3, studentStat.Count);
         }
     }
 
     [Fact]
-    public async Task Aggregate_WhenStoringAggregateWithoutSnapshot_Succeed()
+    public async Task Stream_WhenStoringWithSnapshotting_Succeed()
     {
-        IEvDbSchoolStream aggregate = await _storageAdapter.GivenLocalStreamWithPendingEvents(_output)
-                         .WhenAggregateIsSavedAsync();
+        IEvDbSchoolStream stream = await _storageAdapter
+                            .GivenLocalStreamWithPendingEvents(_output, 6)
+                            .WhenStreamIsSavedAsync();
 
-        ThenAggregateSavedWithoutSnapshot(aggregate);
+        ThenStreamSavedWithSnapshot(stream);
 
-        void ThenAggregateSavedWithoutSnapshot(IEvDbSchoolStream aggregate)
+        void ThenStreamSavedWithSnapshot(IEvDbSchoolStream aggregate)
         {
-            throw new NotImplementedException();
-            //Assert.Equal(0, stream.CountOfPendingEvents);
+            Assert.Equal(6, stream.StoreOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
 
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, false, A<Options>.Ignored, A<CancellationToken>.Ignored))
-            //    .MustHaveHappenedOnceExactly();
+            Assert.Equal(630, stream.Views.ALL.Sum);
+            Assert.Equal(6, stream.Views.ALL.Count);
+            Assert.Single(stream.Views.StudentStats.Students);
+
+            StudentStats studentStat = stream.Views.StudentStats.Students[0];
+            var student = Steps.CreateStudentEntity();
+            Assert.Equal(student.Id, studentStat.StudentId);
+            Assert.Equal(student.Name, studentStat.StudentName);
+            Assert.Equal(630, studentStat.Sum);
+            Assert.Equal(6, studentStat.Count);
         }
     }
 
-
     [Fact]
-    public async Task Aggregate_WhenStoringAggregateWithSnapshot_Succeed()
+    public async Task Stream_WhenStoringWithSnapshottingWhenStoringTwice_Succeed()
     {
-        IEvDbSchoolStream aggregate = await _storageAdapter.GivenLocalStreamWithPendingEvents(_output)
-                         .GivenAddGrades()
-                         .WhenAggregateIsSavedAsync();
+        IEvDbSchoolStream stream = await _storageAdapter
+                            .GivenLocalStreamWithPendingEvents(_output)
+                            .GivenStreamIsSavedAsync()
+                            .GivenAddingPendingEventsAsync()
+                            .WhenStreamIsSavedAsync();
 
-        ThenAggregateSavedWithSnapshot(aggregate);
+        ThenStreamSavedWithSnapshot(stream);
 
-        void ThenAggregateSavedWithSnapshot(IEvDbSchoolStream stream)
+        void ThenStreamSavedWithSnapshot(IEvDbSchoolStream aggregate)
         {
-            Assert.Equal(0, stream.CountOfPendingEvents);
+            Assert.Equal(6, stream.StoreOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
 
-            throw new NotImplementedException();
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<Options>.Ignored, A<CancellationToken>.Ignored))
-            //    .MustHaveHappenedOnceExactly();
+            Assert.Equal(360, stream.Views.ALL.Sum);
+            Assert.Equal(6, stream.Views.ALL.Count);
+            Assert.Single(stream.Views.StudentStats.Students);
 
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<Options>.Ignored, A<CancellationToken>.Ignored))
-            //    .MustHaveHappenedOnceExactly();
+            StudentStats studentStat = stream.Views.StudentStats.Students[0];
+            var student = Steps.CreateStudentEntity();
+            Assert.Equal(student.Id, studentStat.StudentId);
+            Assert.Equal(student.Name, studentStat.StudentName);
+            Assert.Equal(360, studentStat.Sum);
+            Assert.Equal(6, studentStat.Count);
         }
     }
 
-    [Fact]
-    public async Task Aggregate_WhenStoringAggregateWithSnapshotWithOffset_Succeed()
-    {
-        IEvDbSchoolStream aggregate = await _storageAdapter.GivenStoredEvents(_output)
-                        .GivenAddGradesAsync()
-                        .WhenAggregateIsSavedAsync();
-
-        ThenAggregateSavedWithSnapshot(aggregate);
-
-        void ThenAggregateSavedWithSnapshot(IEvDbSchoolStream stream)
-        {
-            Assert.Equal(0, stream.CountOfPendingEvents);
-
-            throw new NotImplementedException();
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, true, A<Options>.Ignored, A<CancellationToken>.Ignored))
-            //    .MustHaveHappenedOnceExactly();
-
-            //A.CallTo(() => _storageAdapter.SaveAsync(A<IEvDbAggregateDeprecated<STATE_TYPE>>.Ignored, A<bool>.Ignored, A<Options>.Ignored, A<CancellationToken>.Ignored))
-            //    .MustHaveHappenedTwiceExactly();
-        }
-    }
 
     [Fact]
-    public async Task Aggregate_WhenStoringStaleAggregate_ThrowException()
+    public async Task Stream_WhenStoringStaleStream_ThrowException()
     {
-        //ISchool stream = await _storageAdapter.GivenLocalStreamWithPendingEvents(_output)
+        IEvDbSchoolStream stream = _storageAdapter
+                    .GivenStreamWithStaleEvents(_output);
 
-        //ISchool stream = SetupMockSaveThrowOcc
-        throw new NotImplementedException("OCC");
-        //var repoTestSteps = new EvDbRepositoryTestsSteps();
-        //var stream = TestStorageAdapterTestsSteps.PrepareAggregateWithEvents(3);
-        //IEvDbRepository repository = await repoTestSteps.PrepareTestRepositoryWithStoredAggregate(stream);
-        //await Assert.ThrowsAsync<OCCException>(async () => await repository.SaveAsync(stream));
+        await Assert.ThrowsAsync<OCCException>(async () => await stream.SaveAsync(default));
     }
 
 
