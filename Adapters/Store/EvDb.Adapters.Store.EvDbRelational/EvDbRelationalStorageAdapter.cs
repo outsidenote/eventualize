@@ -58,25 +58,14 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     #region IEvDbStorageAdapter Members
 
-
-    async Task<long> IEvDbStorageAdapter.GetLastOffsetAsync<T>(EvDbStreamAddress streamAddress, CancellationToken cancellation )
-    {
-        throw new NotImplementedException();
-        //cancellation.ThrowIfCancellationRequested();
-        //DbConnection conn = await _connectionTask;
-        //string query = _queries.GetLastSnapshotSnapshot;
-        //long offset = await conn.ExecuteScalarAsync<long>(query, aggregate.StreamAddress);
-        //return offset;
-    }
-
     /// <summary>
-    /// Tries the get snapshot asynchronous.
+    /// Tries to get a view's snapshot.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="snapshotId">The snapshot id.</param>
+    /// <param name="viewAddress">The view address.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    async Task<EvDbStoredSnapshot> IEvDbStorageAdapter.TryGetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation = default)
+    /// <exception cref="System.NotImplementedException"></exception>
+    async Task<EvDbStoredSnapshot> IEvDbStorageAdapter.GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation = default)
     {
         throw new NotImplementedException();
         //cancellation.ThrowIfCancellationRequested();
@@ -89,7 +78,7 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         //return snapshot;
     }
 
-    async IAsyncEnumerable<IEvDbStoredEvent> IEvDbStorageAdapter.GetAsync(EvDbStreamCursor parameter, CancellationToken cancellation)
+    async IAsyncEnumerable<IEvDbStoredEvent> IEvDbStorageAdapter.GetEventsAsync(EvDbStreamCursor parameter, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;

@@ -99,7 +99,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
         throw new NotImplementedException();
         //var aggregate = await SQLServerStorageAdapterTestsSteps.StoreAggregateTwice(_world.StorageAdapter);
 
-        //var latestSnapshot = await _world.StorageAdapter.TryGetSnapshotAsync<TestState>(aggregate.SnapshotId);
+        //var latestSnapshot = await _world.StorageAdapter.GetSnapshotAsync<TestState>(aggregate.SnapshotId);
         //Assert.NotNull(latestSnapshot);
         //Assert.Equal(aggregate.State, latestSnapshot.State);
         //Assert.Equal(aggregate.StoreOffset + aggregate.CountOfPendingEvents, latestSnapshot.Cursor.Offset);
@@ -113,7 +113,7 @@ public sealed class SQLServerStorageAdapterTests : IDisposable
 
         //EvDbStreamCursor parameter = new(aggregate);
 
-        //var asyncEvents = _world.StorageAdapter.GetAsync(parameter);
+        //var asyncEvents = _world.StorageAdapter.GetEventsAsync(parameter);
         //Assert.NotNull(asyncEvents);
         //ICollection<IEvDbStoredEvent>? events = await asyncEvents.ToEnumerableAsync();
         //Assert.True(((IEvDbStreamStore)aggregate).Events.SequenceEqual(events, EvDbEventComparer.Default));

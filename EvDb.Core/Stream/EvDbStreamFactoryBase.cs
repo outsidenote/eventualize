@@ -50,7 +50,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         foreach (IEvDbViewFactory viewFactory in ViewFactories)
         {
             EvDbViewAddress viewAddress = new(address, viewFactory.ViewName);
-            EvDbStoredSnapshot snapshot = await _storageAdapter.TryGetSnapshotAsync(viewAddress, cancellationToken);
+            EvDbStoredSnapshot snapshot = await _storageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
             minSnapshotOffset = minSnapshotOffset == -1
                                     ? snapshot.Offset
                                     : Math.Min(minSnapshotOffset, snapshot.Offset);
@@ -61,7 +61,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         
         var cursor = new EvDbStreamCursor(PartitionAddress, streamId, minSnapshotOffset + 1);
         IAsyncEnumerable<IEvDbStoredEvent> events = 
-            _storageAdapter.GetAsync(cursor, cancellationToken);
+            _storageAdapter.GetEventsAsync(cursor, cancellationToken);
 
         long streamOffset = minSnapshotOffset;
         await foreach (IEvDbStoredEvent e in events)
@@ -77,7 +77,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         return stream;
     }
 
-    #endregion // GetAsync
+    #endregion // GetEventsAsync
 
     #region OnCreateAsync
 

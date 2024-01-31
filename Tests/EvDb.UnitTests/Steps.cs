@@ -168,7 +168,7 @@ internal static class Steps
         bool withEvents = true)
     {
 
-        A.CallTo(() => storageAdapter.GetAsync(A<EvDbStreamCursor>.Ignored, A<CancellationToken>.Ignored))
+        A.CallTo(() => storageAdapter.GetEventsAsync(A<EvDbStreamCursor>.Ignored, A<CancellationToken>.Ignored))
         .ReturnsLazily((EvDbStreamCursor cursor, CancellationToken ct) =>
         {
             if (withEvents)
@@ -242,7 +242,7 @@ internal static class Steps
         this (IEvDbSchoolStreamFactory Factory, string StreamId) input,
         IEvDbStorageAdapter storageAdapter)
     {
-        A.CallTo(() => storageAdapter.TryGetSnapshotAsync(
+        A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
             .ReturnsLazily<Task<EvDbStoredSnapshot>>(() =>
             {
@@ -288,7 +288,7 @@ internal static class Steps
         IEvDbStorageAdapter storageAdapter,
         Func<string, long> getSnapshotOffset)
     {
-        A.CallTo(() => storageAdapter.TryGetSnapshotAsync(
+        A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == StudentStatsView.ViewName), A<CancellationToken>.Ignored))
             .ReturnsLazily<EvDbStoredSnapshot>(() =>
                 {
@@ -297,7 +297,7 @@ internal static class Steps
                     return snapshot;
                 });
 
-        A.CallTo(() => storageAdapter.TryGetSnapshotAsync(
+        A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == StatsView.ViewName), A<CancellationToken>.Ignored))
             .ReturnsLazily<EvDbStoredSnapshot>(() =>
                 {
