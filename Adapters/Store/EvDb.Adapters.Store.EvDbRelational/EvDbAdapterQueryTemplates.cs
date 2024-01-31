@@ -9,23 +9,19 @@ namespace EvDb.Core.Adapters;
 public readonly partial record struct EvDbAdapterQueryTemplates
 {
     /// <summary>
-    /// Get last snapshot sequence identifier.
-    /// </summary>
-    public string GetLastSnapshotSnapshot { get; init; }
-    /// <summary>
     /// Get latest snapshot.
     /// </summary>
-    public string TryGetSnapshot { get; init; }
+    public string GetSnapshot { get; init; }
     /// <summary>
     /// Get events.
     /// </summary>
     public string GetEvents { get; init; }
     /// <summary>
-    /// Save.
+    /// SaveEvents.
     /// </summary>
-    public string Save { get; init; }
+    public string SaveEvents { get; init; }
     /// <summary>
-    /// Save snapshot.
+    /// SaveEvents snapshot.
     /// </summary>
     public string SaveSnapshot { get; init; }
 }

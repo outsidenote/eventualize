@@ -1,6 +1,6 @@
 //using EvDb.Core;
 //using EvDb.Core.Tests;
-//using System.Data.Common;
+//using System.Payload.Common;
 
 //namespace CoreTests.StorageAdapterTests.SQLServerStorageAdapterTests.TestQueries
 //{

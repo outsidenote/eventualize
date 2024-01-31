@@ -24,7 +24,7 @@ internal static class Steps
 
     #region CreateEvent
 
-    private static IEvDbEvent CreateEvent<T>(
+    private static EvDbEvent CreateEvent<T>(
         this T data,
         IEvDbStreamStore stream,
         long offset = 0,
@@ -37,7 +37,7 @@ internal static class Steps
         return result;
     }
 
-    private static IEvDbEvent CreateEvent<T>(
+    private static EvDbEvent CreateEvent<T>(
         this T data,
         IEvDbSchoolStreamFactory factory,
         string streamId,
@@ -52,7 +52,7 @@ internal static class Steps
         return result;
     }
 
-    private static IEvDbEvent CreateEvent<T>(
+    private static EvDbEvent CreateEvent<T>(
         this T data,
         EvDbStreamCursor streamCursor,
         string? capturedBy = null,
@@ -61,7 +61,7 @@ internal static class Steps
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
         var json = JsonSerializer.Serialize(data, options);
-        var result = new EvDbEvent(data.EventType, DateTime.UtcNow, capturedBy, streamCursor, json);
+        var result = new EvDbEvent(data.EventType, DateTimeOffset.UtcNow, capturedBy, streamCursor, json);
         return result;
     }
 
@@ -173,14 +173,14 @@ internal static class Steps
         {
             if (withEvents)
             {
-                List<EvDbStoredEvent> storedEvents = CreateStoredEvents(
+                List<EvDbEvent> storedEvents = CreateStoredEvents(
                                 factory,
                                 streamId,
                                 serializerOptions,
                                 cursor.Offset);
                 return storedEvents.ToAsync();
             }
-            return Array.Empty<EvDbStoredEvent>().ToAsync();
+            return Array.Empty<EvDbEvent>().ToAsync();
         });
 
         return factory;
@@ -205,21 +205,20 @@ internal static class Steps
 
     #region CreateStoredEvents
 
-    private static List<EvDbStoredEvent> CreateStoredEvents(
+    private static List<EvDbEvent> CreateStoredEvents(
         IEvDbSchoolStreamFactory factory,
         string streamId,
         JsonSerializerOptions? serializerOptions,
         long initOffset = 0)
     {
-        List<EvDbStoredEvent> storedEvents = new();
+        List<EvDbEvent> storedEvents = new();
         StudentEnlistedEvent student = Steps.CreateStudentEnlistedEvent();
         bool withEnlisted = initOffset == 0;
         if (withEnlisted)
         {
             EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset);
             var e = student.CreateEvent(factory,streamId, options: serializerOptions);
-            var eStored = new EvDbStoredEvent(e, cursor);
-            storedEvents.Add(eStored);
+            storedEvents.Add(e);
             initOffset++;
         }
         for (int i = 0; i < 3; i++)
@@ -228,8 +227,7 @@ internal static class Steps
             double gradeValue = DefaultGradeStrategy(i + 1);
             var grade = new StudentReceivedGradeEvent(20992, student.Student.Id, gradeValue);
             var gradeEvent = grade.CreateEvent(factory,streamId, options: serializerOptions);
-            var gradeStoreEvent = new EvDbStoredEvent(gradeEvent, cursor);
-            storedEvents.Add(gradeStoreEvent);
+            storedEvents.Add(gradeEvent);
         }
         return storedEvents;
     }

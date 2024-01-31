@@ -2,7 +2,7 @@
 
 public interface IEvDbView: IEvDbViewMetadata
 {
-    void FoldEvent(IEvDbEvent e);
+    void FoldEvent(EvDbEvent e);
 
     void OnSaved();
 }

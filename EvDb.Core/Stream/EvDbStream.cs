@@ -15,7 +15,7 @@ public class EvDbStream :
         IEvDbStreamStoreData
 {
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
-    protected internal IImmutableList<IEvDbEvent> _pendingEvents = ImmutableList<IEvDbEvent>.Empty;
+    protected internal IImmutableList<EvDbEvent> _pendingEvents = ImmutableList<EvDbEvent>.Empty;
 
     protected static readonly SemaphoreSlim _dirtyLock = new SemaphoreSlim(1);
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
@@ -58,7 +58,7 @@ public class EvDbStream :
             var empty = new EvDbStreamCursor(StreamAddress, StoreOffset + 1);
             return empty;
         }
-        IEvDbEvent e = _pendingEvents[CountOfPendingEvents - 1];
+        EvDbEvent e = _pendingEvents[CountOfPendingEvents - 1];
         long offset = e.StreamCursor.Offset;
         var result = new EvDbStreamCursor(StreamAddress, offset + 1);
         return result;
@@ -76,7 +76,7 @@ public class EvDbStream :
         try
         {
             EvDbStreamCursor cursor = GetNextCursor();
-            IEvDbEvent e = new EvDbEvent(payload.EventType, DateTime.UtcNow, capturedBy, cursor, json);
+            EvDbEvent e = new EvDbEvent(payload.EventType, DateTimeOffset.UtcNow, capturedBy, cursor, json);
             _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
             _pendingEvents = _pendingEvents.Add(e); 
 
@@ -106,9 +106,9 @@ public class EvDbStream :
                 }
 
                 await _storageAdapter.SaveAsync(this, cancellation);
-                IEvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
+                EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
                 StoreOffset = ev.StreamCursor.Offset;
-                _pendingEvents = ImmutableList<IEvDbEvent>.Empty;
+                _pendingEvents = ImmutableList<EvDbEvent>.Empty;
                 foreach (var view in _views)
                 {
                     view.OnSaved();
@@ -145,6 +145,6 @@ public class EvDbStream :
 
     public JsonSerializerOptions? Options { get; }
 
-    IEnumerable<IEvDbEvent> IEvDbStreamStoreData.Events => _pendingEvents;
+    IEnumerable<EvDbEvent> IEvDbStreamStoreData.Events => _pendingEvents;
 }
 

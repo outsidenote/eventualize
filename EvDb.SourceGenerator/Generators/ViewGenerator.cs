@@ -146,7 +146,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         #region OnFoldEvent
 
-                        protected override void OnFoldEvent(IEvDbEvent e)
+                        protected override void OnFoldEvent(EvDbEvent e)
                         {
                             switch (e.EventType)
                             {

@@ -60,11 +60,11 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         var immutableViews = views.ToImmutableList();
         
         var cursor = new EvDbStreamCursor(PartitionAddress, streamId, minSnapshotOffset + 1);
-        IAsyncEnumerable<IEvDbStoredEvent> events = 
+        IAsyncEnumerable<EvDbEvent> events = 
             _storageAdapter.GetEventsAsync(cursor, cancellationToken);
 
         long streamOffset = minSnapshotOffset;
-        await foreach (IEvDbStoredEvent e in events)
+        await foreach (EvDbEvent e in events)
         {
             foreach (IEvDbView view in views)
             {

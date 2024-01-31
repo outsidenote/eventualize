@@ -71,24 +71,26 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         //cancellation.ThrowIfCancellationRequested();
         //DbConnection conn = await _connectionTask;
 
-        //string query = _queries.TryGetSnapshot;
+        //string query = _queries.GetSnapshot;
 
         //var record = await conn.QuerySingleOrDefaultAsync<EvDbeSnapshotRelationalRecrod>(query, snapshotId) ?? throw new NoNullAllowedException("snapshot");
         //var snapshot = EvDbStoredSnapshotFactory.Create<T>(record);
         //return snapshot;
     }
 
-    async IAsyncEnumerable<IEvDbStoredEvent> IEvDbStorageAdapter.GetEventsAsync(EvDbStreamCursor parameter, CancellationToken cancellation)
+    async IAsyncEnumerable<EvDbEvent> IEvDbStorageAdapter.GetEventsAsync(
+                    EvDbStreamCursor streamCursor, 
+                    CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetEvents;
 
-        DbDataReader reader = await conn.ExecuteReaderAsync(query, parameter);
+        DbDataReader reader = await conn.ExecuteReaderAsync(query, streamCursor);
         var parser = reader.GetRowParser<EvDbStoredEventRecord>();
         while (await reader.ReadAsync())
         {
-            EvDbStoredEvent e = parser(reader);
+            EvDbEvent e = parser(reader);
             yield return e;
         }
     }
@@ -97,13 +99,13 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     {
         using var tx = new TransactionScope();
 
-        // TODO: Save Stream's events
+        // TODO: SaveEvents Stream's events
 
         foreach (var view in streamStore.Views)
         {
             if (view.ShouldStoreSnapshot)
             { 
-                // TODO: Save snapshots
+                // TODO: SaveEvents snapshots
             }
         }
 
@@ -124,7 +126,7 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         //throw new NotImplementedException();
         //cancellation.ThrowIfCancellationRequested();
         //DbConnection conn = await _connectionTask;
-        //string query = _queries.Save;
+        //string query = _queries.SaveEvents;
         //string snapQuery = _queries.SaveSnapshot;
 
         //// TODO: [bnaya 2023-12-20] Thread safety (lock async) clear the pending on succeed?, transaction?,  

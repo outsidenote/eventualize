@@ -3,6 +3,7 @@ namespace EvDb.Core.Tests;
 using EvDb.Scenes;
 using EvDb.UnitTests;
 using FakeItEasy;
+using System.Data;
 using System.Text.Json;
 using Xunit.Abstractions;
 using STATE_TYPE = EvDb.Scenes.StudentStats;
@@ -136,7 +137,7 @@ public class StreamTests
     {
         IEvDbSchoolStream stream = _storageAdapter
                     .GivenStreamWithStaleEvents(_output);
-
+       
         await Assert.ThrowsAsync<OCCException>(async () => await stream.SaveAsync(default));
     }
 

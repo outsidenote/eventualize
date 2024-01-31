@@ -81,7 +81,7 @@ public abstract class EvDbViewBase :
 
     #region FoldEvent
 
-    public void FoldEvent(IEvDbEvent e)
+    public void FoldEvent(EvDbEvent e)
     {
         long offset = e.StreamCursor.Offset;
         if (FoldOffset >= offset)
@@ -92,6 +92,6 @@ public abstract class EvDbViewBase :
 
     #endregion // FoldEvent
 
-    protected abstract void OnFoldEvent(IEvDbEvent e);
+    protected abstract void OnFoldEvent(EvDbEvent e);
 }
 

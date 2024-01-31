@@ -16,7 +16,7 @@
 //        //return result;
 //    }
 
-//    public static EvDbAggregate<TestState> GetTestAggregate(IEnumerable<IEvDbEvent> events)
+//    public static EvDbAggregate<TestState> GetTestAggregate(IEnumerable<EvDbEvent> events)
 //    {
 //        throw new NotImplementedException();
 //        //var id = Guid.NewGuid().ToString();
@@ -38,7 +38,7 @@
 //        //    return await aggregateFactory.CreateAsync(Guid.NewGuid().ToString(), events);
 //    }
 
-//    public static EvDbAggregate<TestState> GetTestAggregate(IEnumerable<IEvDbEvent>? events, int? minEventsBetweenSnapshots)
+//    public static EvDbAggregate<TestState> GetTestAggregate(IEnumerable<EvDbEvent>? events, int? minEventsBetweenSnapshots)
 //    {
 //        throw new NotImplementedException();
 //        //var aggregateFactory = TestAggregateFactoryConfigs.GetAggregateFactory(minEventsBetweenSnapshots ?? 3);
@@ -74,10 +74,10 @@
 //        //return events.ToAsync();
 //    }
 
-//    public static IEnumerable<IEvDbEvent> GetPendingEvents(uint numEvents)
+//    public static IEnumerable<EvDbEvent> GetPendingEvents(uint numEvents)
 //    {
 //        throw new NotImplementedException();
-//        //IEnumerable<IEvDbEvent> events = [];
+//        //IEnumerable<EvDbEvent> events = [];
 //        //for (int offset = 0; offset < 3; offset++)
 //        //{
 //        //    events = events.Concat([TestHelper.GetCorrectTestEvent()]);

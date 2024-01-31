@@ -8,5 +8,5 @@ public interface IEvDbStreamStoreData
 
     IEnumerable<IEvDbView> Views { get; }
 
-    IEnumerable<IEvDbEvent> Events { get; }
+    IEnumerable<EvDbEvent> Events { get; }
 }

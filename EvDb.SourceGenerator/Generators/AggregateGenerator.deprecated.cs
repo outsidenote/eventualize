@@ -131,7 +131,7 @@ public partial class AggregateGenerator : BaseGenerator
                     protected virtual {stateType} Fold(
                             {stateType} state,
                             {p.Type} payload,
-                            IEvDbEventMeta meta) => state;
+                            EvDbEvent meta) => state;
 
                 """);
 
@@ -206,7 +206,7 @@ public partial class AggregateGenerator : BaseGenerator
 
                         protected override {{stateType}} FoldEvent(
                             {{stateType}} oldState, 
-                            IEvDbEvent e)
+                            EvDbEvent e)
                         {
                             {{stateType}} result;
                             switch (e.EventType)

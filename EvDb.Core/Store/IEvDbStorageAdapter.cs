@@ -21,7 +21,7 @@ public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
     /// <param name="streamCursor">The streamCursor.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    IAsyncEnumerable<IEvDbStoredEvent> GetEventsAsync(
+    IAsyncEnumerable<EvDbEvent> GetEventsAsync(
                                 EvDbStreamCursor streamCursor, 
                                 CancellationToken cancellation = default);
 

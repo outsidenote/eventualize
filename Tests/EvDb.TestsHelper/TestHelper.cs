@@ -2,8 +2,6 @@ namespace EvDb.Core.Tests;
 
 public static class TestHelper
 {
-    private static readonly IAsyncEnumerable<IEvDbStoredEvent> _emptyEvents = AsyncEnumerable<IEvDbStoredEvent>.Empty;
-
     public static async IAsyncEnumerable<T> ToAsync<T>(this IEnumerable<T> self)
     {
         foreach (var item in self)
@@ -35,7 +33,7 @@ public static class TestHelper
     //public readonly static IEvDbEventFactory<TestEventDataType> TestEventFactory =
     //    new EvDbEventFactoryLegacy<TestEventDataType>(TestEventType, "TestOperation");
 
-    //public static IEvDbEvent GetCorrectTestEvent()
+    //public static EvDbEvent GetCorrectTestEvent()
     //{
     //    return TestEventFactory.Create(CorrectEventData);
     //}
@@ -44,10 +42,10 @@ public static class TestHelper
     //{
     //    var cursor = new EvDbStreamCursor(StreamId, offset);
     //    return EvDbStoredEventFactory.Create(TestEventType,
-    //        DateTime.UtcNow,
+    //        DateTimeOffset.UtcNow,
     //        "TestOperation",
     //        CorrectEventData,
-    //        DateTime.UtcNow,
+    //        DateTimeOffset.UtcNow,
     //        cursor);
     //}
 
@@ -87,7 +85,7 @@ public static class TestHelper
     //    }
     //    public static EvDbAggregate<TestState> PrepareAggregateWithEvents()
     //    {
-    //        List<IEvDbEvent> events = (List<IEvDbEvent>)TestAggregateConfigs.GetStoredEvents(3);
+    //        List<EvDbEvent> events = (List<EvDbEvent>)TestAggregateConfigs.GetStoredEvents(3);
     //        return TestAggregateConfigs.GetTestAggregate(events);
     //    }
 }

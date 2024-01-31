@@ -21,6 +21,7 @@ internal partial class StudentStatsView
     {
         return state.Add(payload);
     }
+    
 
     protected override StudentStatsState Fold(
         StudentStatsState state,
