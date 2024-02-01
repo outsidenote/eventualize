@@ -3,7 +3,7 @@ namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class EvDbAttachViewAttribute<T> : Attribute
-    where T : IEvDbView
+    where T : IEvDbViewStore
 {
     public string? PropertyName { get; set; }
 }

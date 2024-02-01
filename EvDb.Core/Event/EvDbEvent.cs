@@ -4,6 +4,7 @@ using System.Text.Json;
 
 namespace EvDb.Core;
 
+// TODO: [bnaya 2024-02-01] hide the payload
 [Equatable]
 [DebuggerDisplay("{EventType}: {Payload}")]
 public partial record struct EvDbEvent(string EventType,

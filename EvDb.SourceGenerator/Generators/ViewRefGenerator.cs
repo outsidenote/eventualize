@@ -115,7 +115,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         var propsColInterface = propsNames.Select((p, i) =>
                                         $$"""
-                                                    public {{p.StateType}} {{p.Name}} => ((IEvDbView<{{p.StateType}}>)_views[{{i}}]).State;
+                                                    public {{p.StateType}} {{p.Name}} => ((IEvDbViewStore<{{p.StateType}}>)_views[{{i}}]).State;
 
                                                 """);
 
@@ -130,15 +130,15 @@ public partial class ViewRefGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public class {{rootName}}Views
                     { 
-                        private readonly IImmutableList<IEvDbView> _views;
+                        private readonly IImmutableList<IEvDbViewStore> _views;
                     
-                        public {{rootName}}Views(IImmutableList<IEvDbView> views)
+                        public {{rootName}}Views(IImmutableList<IEvDbViewStore> views)
                         {
                             _views = views;
                         }
                     {{string.Join("", propsColInterface)}}
                     
-                        public IEnumerable<IEvDbViewMetadata> ToMetadata()
+                        public IEnumerable<IEvDbView> ToMetadata()
                         {
                             foreach (var view in _views)
                             {

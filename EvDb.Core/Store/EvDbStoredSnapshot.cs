@@ -7,9 +7,11 @@ namespace EvDb.Core;
 
 [Equatable]
 [DebuggerDisplay("{State}, Offset:{Offset}")]
-public partial record EvDbStoredSnapshot(
+public readonly partial record struct EvDbStoredSnapshot(
             long Offset,
             string State)
 {
-    public static readonly EvDbStoredSnapshot Empty = new EvDbStoredSnapshot(-1, string.Empty);
+    public EvDbStoredSnapshot() : this(-1, string.Empty) { }
+
+    public static readonly EvDbStoredSnapshot Empty = new EvDbStoredSnapshot();
 }

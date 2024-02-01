@@ -1,13 +1,23 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbView: IEvDbViewMetadata
+public interface IEvDbView
 {
-    void FoldEvent(EvDbEvent e);
+    /// <summary>
+    /// Gets the offset of the last folded event.
+    /// </summary>
+    long FoldOffset { get; }
 
-    void OnSaved();
-}
+    int MinEventsBetweenSnapshots { get; }
 
-public interface IEvDbView<out T> : IEvDbView
-{
-    T State { get; }
+    /// <summary>
+    /// Gets the name of the view.
+    /// </summary>
+    EvDbViewAddress Address { get; }
+
+    /// <summary>
+    /// The offset of the last snapshot that was stored.
+    /// </summary>
+    long StoreOffset { get; set; }
+
+    bool ShouldStoreSnapshot { get; }
 }

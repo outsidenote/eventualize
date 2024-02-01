@@ -103,7 +103,7 @@ public partial class ViewGenerator : BaseGenerator
                 $$"""
                     case "{{p.Key}}":
                             {
-                                var payload = e.GetData<{{p.Type}}>(_options);
+                                var payload = c.GetData<{{p.Type}}>(_options);
                                 State = Fold(State, payload, e);
                                 break;
                             }
@@ -116,7 +116,7 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")] 
                     public abstract class {{viewClassName}}Base: 
-                        EvDbViewBase<{{stateType}}>
+                        EvDbView<{{stateType}}>
                     {                                
                         public const string ViewName = "{{name}}";
                     
@@ -148,6 +148,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected override void OnFoldEvent(EvDbEvent e)
                         {
+                            IEvDbEventConverter c = e;
                             switch (e.EventType)
                             {
                             {{string.Join("", foldMap)}}
@@ -215,10 +216,10 @@ public partial class ViewGenerator : BaseGenerator
 
                         string IEvDbViewFactory.ViewName { get; } = "{{name}}";
 
-                        IEvDbView IEvDbViewFactory.CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options) => 
+                        IEvDbViewStore IEvDbViewFactory.CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options) => 
                                 new {{typeSymbol.Name}}(address, options);
 
-                        IEvDbView IEvDbViewFactory.CreateFromSnapshot(EvDbStreamAddress address,
+                        IEvDbViewStore IEvDbViewFactory.CreateFromSnapshot(EvDbStreamAddress address,
                             EvDbStoredSnapshot snapshot,
                             JsonSerializerOptions? options) => 
                                 new {{typeSymbol.Name}}(address, snapshot, options);

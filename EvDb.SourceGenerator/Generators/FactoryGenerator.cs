@@ -141,7 +141,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                         protected override {{rootName}} OnCreate(
                                 string streamId,
-                                IImmutableList<IEvDbView> views,
+                                IImmutableList<IEvDbViewStore> views,
                                 long lastStoredEventOffset)
                         {
                             {{rootName}} stream =
@@ -227,7 +227,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                         public {{rootName}}(
                             IEvDbStreamConfig factory,
-                            IImmutableList<IEvDbView> views,
+                            IImmutableList<IEvDbViewStore> views,
                             IEvDbStorageAdapter storageAdapter,
                             string streamId,
                             long lastStoredOffset) : 

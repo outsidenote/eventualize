@@ -46,7 +46,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     {
         var address = new EvDbStreamAddress(PartitionAddress, streamId);
         long minSnapshotOffset = -1; 
-        List<IEvDbView> views = new(ViewFactories.Length);
+        List<IEvDbViewStore> views = new(ViewFactories.Length);
         foreach (IEvDbViewFactory viewFactory in ViewFactories)
         {
             EvDbViewAddress viewAddress = new(address, viewFactory.ViewName);
@@ -54,7 +54,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
             minSnapshotOffset = minSnapshotOffset == -1
                                     ? snapshot.Offset
                                     : Math.Min(minSnapshotOffset, snapshot.Offset);
-            IEvDbView view = viewFactory.CreateFromSnapshot(address, snapshot, Options);
+            IEvDbViewStore view = viewFactory.CreateFromSnapshot(address, snapshot, Options);
             views.Add(view);    
         }
         var immutableViews = views.ToImmutableList();
@@ -66,7 +66,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         long streamOffset = minSnapshotOffset;
         await foreach (EvDbEvent e in events)
         {
-            foreach (IEvDbView view in views)
+            foreach (IEvDbViewStore view in views)
             {
                 view.FoldEvent(e);
             }
@@ -83,14 +83,14 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     protected abstract T OnCreate(
         string streamId,
-        IImmutableList<IEvDbView> views,
+        IImmutableList<IEvDbViewStore> views,
         long lastStoredEventOffset);
 
     #endregion // OnCreateAsync
 
     #region CreateEmptyViews
 
-    protected IImmutableList<IEvDbView> CreateEmptyViews(EvDbStreamAddress address)
+    protected IImmutableList<IEvDbViewStore> CreateEmptyViews(EvDbStreamAddress address)
     {
         var options = Options;
         var views = ViewFactories.Select(viewFactory => viewFactory.CreateEmpty(address, options));

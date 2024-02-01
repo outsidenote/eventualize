@@ -5,9 +5,9 @@ using System.Text.Json;
 
 namespace EvDb.Core;
 
-public abstract class EvDbViewBase<T> : EvDbViewBase, IEvDbView<T>
+public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
 {
-    protected EvDbViewBase(
+    protected EvDbView(
         EvDbViewAddress address,
         EvDbStoredSnapshot snapshot,
         JsonSerializerOptions? options) :
@@ -22,17 +22,23 @@ public abstract class EvDbViewBase<T> : EvDbViewBase, IEvDbView<T>
     protected abstract T DefaultState { get; }
 
     public virtual T State { get; protected set; }
+
+    public override EvDbStoredSnapshot GetSnapshot()
+    {
+        string state = JsonSerializer.Serialize<T>(State, _options);
+        var snapshot = new EvDbStoredSnapshot(FoldOffset, state);
+        return snapshot;
+    }
 }
 
 [DebuggerDisplay("Offset:[Stored: {StoreOffset}, Folded:{FoldOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
-public abstract class EvDbViewBase :
-    IEvDbView
+public abstract class EvDbView : IEvDbViewStore
 {
     protected readonly JsonSerializerOptions? _options;
 
     #region Ctor
 
-    protected EvDbViewBase(
+    protected EvDbView(
         EvDbViewAddress address,
         JsonSerializerOptions? options,
         long storedOffset = -1)
@@ -45,7 +51,7 @@ public abstract class EvDbViewBase :
 
     #endregion // Ctor
 
-    #region onSaved
+    #region OnSaved
 
     public void OnSaved()
     {
@@ -70,6 +76,8 @@ public abstract class EvDbViewBase :
     }
 
     #endregion // ShouldStoreSnapshot
+
+    public abstract EvDbStoredSnapshot GetSnapshot();
 
     public EvDbViewAddress Address { get; }
 

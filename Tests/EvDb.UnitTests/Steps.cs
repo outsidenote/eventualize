@@ -39,21 +39,6 @@ internal static class Steps
 
     private static EvDbEvent CreateEvent<T>(
         this T data,
-        IEvDbSchoolStreamFactory factory,
-        string streamId,
-        long offset = 0,
-        string? capturedBy = null,
-        JsonSerializerOptions? options = null)
-        where T : IEvDbEventPayload
-    {
-        var srmId = new EvDbStreamAddress(factory.PartitionAddress, streamId);
-        EvDbStreamCursor cursor = new EvDbStreamCursor(srmId, offset);
-        var result = CreateEvent(data, cursor, capturedBy, options);
-        return result;
-    }
-
-    private static EvDbEvent CreateEvent<T>(
-        this T data,
         EvDbStreamCursor streamCursor,
         string? capturedBy = null,
         JsonSerializerOptions? options = null)
@@ -217,7 +202,7 @@ internal static class Steps
         if (withEnlisted)
         {
             EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset);
-            var e = student.CreateEvent(factory,streamId, options: serializerOptions);
+            var e = student.CreateEvent(cursor, options: serializerOptions);
             storedEvents.Add(e);
             initOffset++;
         }
@@ -226,7 +211,7 @@ internal static class Steps
             EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset + i);
             double gradeValue = DefaultGradeStrategy(i + 1);
             var grade = new StudentReceivedGradeEvent(20992, student.Student.Id, gradeValue);
-            var gradeEvent = grade.CreateEvent(factory,streamId, options: serializerOptions);
+            var gradeEvent = grade.CreateEvent(cursor, options: serializerOptions);
             storedEvents.Add(gradeEvent);
         }
         return storedEvents;

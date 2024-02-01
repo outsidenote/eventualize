@@ -7,9 +7,9 @@ public interface IEvDbViewFactory
 { 
     string ViewName { get; }
 
-    IEvDbView CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options);
+    IEvDbViewStore CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options);
 
-    IEvDbView CreateFromSnapshot(EvDbStreamAddress address,
+    IEvDbViewStore CreateFromSnapshot(EvDbStreamAddress address,
         EvDbStoredSnapshot snapshot,
         JsonSerializerOptions? options);
 }

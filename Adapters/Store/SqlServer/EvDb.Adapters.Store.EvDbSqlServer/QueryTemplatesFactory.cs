@@ -18,18 +18,23 @@ internal static class QueryTemplatesFactory
                 SELECT {toSnakeCase(nameof(EvDbStoredSnapshot.State))} as {nameof(EvDbStoredSnapshot.State)}, 
                         {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} as {nameof(EvDbStoredSnapshot.Offset)}
                 FROM {storageContext}snapshot
-                WHERE {toSnakeCase(nameof(EvDbStreamAddress.Domain))} = @{nameof(EvDbStreamAddress.Domain)}
-                    AND {toSnakeCase(nameof(EvDbStreamAddress.Partition))} = @{nameof(EvDbStreamAddress.Partition)}
-                    AND {toSnakeCase(nameof(EvDbStreamAddress.StreamId))} = @{nameof(EvDbStreamAddress.StreamId)}
+                WHERE {toSnakeCase(nameof(EvDbViewAddress.Domain))} = @{nameof(EvDbViewAddress.Domain)}
+                    AND {toSnakeCase(nameof(EvDbViewAddress.Partition))} = @{nameof(EvDbViewAddress.Partition)}
+                    AND {toSnakeCase(nameof(EvDbViewAddress.StreamId))} = @{nameof(EvDbViewAddress.StreamId)}
+                    AND {toSnakeCase(nameof(EvDbViewAddress.ViewName))} = @{nameof(EvDbViewAddress.ViewName)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
             GetEvents = $"""
                 SELECT
-                    {toSnakeCase(nameof(EvDbEvent.EventType))} as {nameof(EvDbEvent.EventType)},
-                    {toSnakeCase(nameof(EvDbEvent.CapturedAt))} as {nameof(EvDbEvent.CapturedAt)},
-                    {toSnakeCase(nameof(EvDbEvent.CapturedBy))} as {nameof(EvDbEvent.CapturedBy)},
-                    {toSnakeCase(nameof(EvDbEvent.Payload))} as {nameof(EvDbEvent.Payload)}                  
+                    {toSnakeCase(nameof(EvDbEventRecord.Domain))} as {nameof(EvDbEventRecord.Domain)},
+                    {toSnakeCase(nameof(EvDbEventRecord.Partition))} as {nameof(EvDbEventRecord.Partition)},
+                    {toSnakeCase(nameof(EvDbEventRecord.StreamId))} as {nameof(EvDbEventRecord.StreamId)},
+                    {toSnakeCase(nameof(EvDbEventRecord.Offset))} as {nameof(EvDbEventRecord.Offset)},
+                    {toSnakeCase(nameof(EvDbEventRecord.EventType))} as {nameof(EvDbEventRecord.EventType)},
+                    {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} as {nameof(EvDbEventRecord.CapturedAt)},
+                    {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} as {nameof(EvDbEventRecord.CapturedBy)},
+                    {toSnakeCase(nameof(EvDbEventRecord.Payload))} as {nameof(EvDbEventRecord.Payload)}                  
                 FROM {storageContext}event
                 WHERE {toSnakeCase(nameof(EvDbStreamCursor.Domain))} = @{nameof(EvDbStreamCursor.Domain)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.Partition))} = @{nameof(EvDbStreamCursor.Partition)}
@@ -39,23 +44,23 @@ internal static class QueryTemplatesFactory
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"""
                     INSERT INTO {storageContext}event (
-                        {toSnakeCase(nameof(StoreEventsParameter.Domain))},
-                        {toSnakeCase(nameof(StoreEventsParameter.Partition))}, 
-                        {toSnakeCase(nameof(StoreEventsParameter.StreamId))},
-                        {toSnakeCase(nameof(StoreEventsParameter.Offset))},
-                        {toSnakeCase(nameof(StoreEventsParameter.EventType))}, 
-                        {toSnakeCase(nameof(StoreEventsParameter.Payload))},
-                        {toSnakeCase(nameof(StoreEventsParameter.CapturedBy))},
-                        {toSnakeCase(nameof(StoreEventsParameter.CapturedAt))}) 
+                        {toSnakeCase(nameof(EvDbEventRecord.Domain))},
+                        {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
+                        {toSnakeCase(nameof(EvDbEventRecord.StreamId))},
+                        {toSnakeCase(nameof(EvDbEventRecord.Offset))},
+                        {toSnakeCase(nameof(EvDbEventRecord.EventType))}, 
+                        {toSnakeCase(nameof(EvDbEventRecord.Payload))},
+                        {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))},
+                        {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))}) 
                     VALUES (
-                        @{nameof(StoreEventsParameter.Domain)}, 
-                        @{nameof(StoreEventsParameter.Partition)}, 
-                        @{nameof(StoreEventsParameter.StreamId)}, 
-                        @{nameof(StoreEventsParameter.Offset)}, 
-                        @{nameof(StoreEventsParameter.EventType)}, 
-                        @{nameof(StoreEventsParameter.Payload)},
-                        @{nameof(StoreEventsParameter.CapturedBy)},
-                        @{nameof(StoreEventsParameter.CapturedAt)})
+                        @{nameof(EvDbEventRecord.Domain)}, 
+                        @{nameof(EvDbEventRecord.Partition)}, 
+                        @{nameof(EvDbEventRecord.StreamId)}, 
+                        @{nameof(EvDbEventRecord.Offset)}, 
+                        @{nameof(EvDbEventRecord.EventType)}, 
+                        @{nameof(EvDbEventRecord.Payload)},
+                        @{nameof(EvDbEventRecord.CapturedBy)},
+                        @{nameof(EvDbEventRecord.CapturedAt)})
                     """,
             SaveSnapshot = $"""
             INSERT INTO {storageContext}snapshot (

@@ -25,7 +25,7 @@ public class EvDbStream :
 
     public EvDbStream(
         IEvDbStreamConfig factory,
-        IImmutableList<IEvDbView> views,
+        IImmutableList<IEvDbViewStore> views,
         IEvDbStorageAdapter storageAdapter,
         string streamId,
         long lastStoredOffset)
@@ -42,8 +42,8 @@ public class EvDbStream :
 
     #region Views
 
-    protected readonly IImmutableList<IEvDbView> _views;
-    IEnumerable<IEvDbView> IEvDbStreamStoreData.Views => _views;
+    protected readonly IImmutableList<IEvDbViewStore> _views;
+    IEnumerable<IEvDbView> IEvDbStreamStoreData.Views => _views.Cast<IEvDbView>();
 
     private readonly IEvDbStorageAdapter _storageAdapter;
 
@@ -80,7 +80,7 @@ public class EvDbStream :
             _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
             _pendingEvents = _pendingEvents.Add(e); 
 
-            foreach (IEvDbView folding in _views)
+            foreach (IEvDbViewStore folding in _views)
                 folding.FoldEvent(e);
         }
         finally
