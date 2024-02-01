@@ -7,6 +7,8 @@ internal static class QueryTemplatesFactory
 {
     public static EvDbMigrationQueryTemplates Create(EvDbStorageContext storageContext)
     {
+        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
+
         return new EvDbMigrationQueryTemplates
         {
             DestroyEnvironment = $"""
@@ -16,64 +18,82 @@ internal static class QueryTemplatesFactory
             CreateEnvironment = $"""
             -- Create the event table
             CREATE TABLE {storageContext}event (
-                domain NVARCHAR(40) NOT NULL,
-                stream_type NVARCHAR(40) NOT NULL,
-                stream_id NVARCHAR(40) NOT NULL,
-                offset BIGINT NOT NULL,
-                captured_at DATETIME NOT NULL,
-                event_type NVARCHAR(40) NOT NULL,
-                captured_by NVARCHAR(40) NOT NULL,
-                json_data NVARCHAR(MAX) NOT NULL,
-                stored_at DATETIME DEFAULT GETDATE() NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.Domain))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.Partition))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.StreamId))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.Offset))} BIGINT NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.EventType))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} datetimeoffset NOT NULL,
+                stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.Payload))} NVARCHAR(MAX) NOT NULL,
     
-                CONSTRAINT PK_{storageContext}event PRIMARY KEY (domain, stream_type, stream_id, offset),
-                CONSTRAINT CK_{storageContext}event_domain_not_empty CHECK (LEN(domain) > 0),
-                CONSTRAINT CK_{storageContext}event_stream_type_not_empty CHECK (LEN(stream_type) > 0),
-                CONSTRAINT CK_{storageContext}event_stream_id_not_empty CHECK (LEN(stream_id) > 0),
-                CONSTRAINT CK_{storageContext}event_event_type_not_empty CHECK (LEN(event_type) > 0),
-                CONSTRAINT CK_{storageContext}event_captured_by_not_empty CHECK (LEN(captured_by) > 0),
-                CONSTRAINT CK_{storageContext}event_json_data_not_empty CHECK (LEN(json_data) > 0)
+                CONSTRAINT PK_{storageContext}event PRIMARY KEY (
+                        {toSnakeCase(nameof(EvDbEventRecord.Domain))}, 
+                        {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
+                        {toSnakeCase(nameof(EvDbEventRecord.StreamId))}, 
+                        {toSnakeCase(nameof(EvDbEventRecord.Offset))}),
+                CONSTRAINT CK_{storageContext}event_domain_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbEventRecord.Domain))}) > 0),
+                CONSTRAINT CK_{storageContext}event_stream_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbEventRecord.Partition))}) > 0),
+                CONSTRAINT CK_{storageContext}event_stream_id_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbEventRecord.StreamId))}) > 0),
+                CONSTRAINT CK_{storageContext}event_event_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbEventRecord.EventType))}) > 0),
+                CONSTRAINT CK_{storageContext}event_captured_by_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbEventRecord.CapturedBy))}) > 0),
+                CONSTRAINT CK_{storageContext}event_json_data_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbEventRecord.Payload))}) > 0)
             );
 
             -- Index for getting distinct values for each column domain
-            CREATE INDEX IX_event_domain
-            ON {storageContext}event (domain);
+            CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.Domain))}
+            ON {storageContext}event ({toSnakeCase(nameof(EvDbEventRecord.Domain))});
 
             -- Index for getting distinct values for columns domain and stream_type together
-            CREATE INDEX stream_type
-            ON {storageContext}event (domain, stream_type);
+            CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.Domain))}_{toSnakeCase(nameof(EvDbEventRecord.Partition))}
+            ON {storageContext}event (
+                    {toSnakeCase(nameof(EvDbEventRecord.Domain))},
+                    {toSnakeCase(nameof(EvDbEventRecord.Partition))});
 
             -- Index for getting distinct values for columns domain, stream_type, and stream_id together
-            CREATE INDEX stream_id
-            ON {storageContext}event (domain, stream_type, stream_id);
+            CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.Domain))}_{toSnakeCase(nameof(EvDbEventRecord.Partition))}_{toSnakeCase(nameof(EvDbEventRecord.EventType))}
+            ON {storageContext}event (
+                    {toSnakeCase(nameof(EvDbEventRecord.Domain))}, 
+                    {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
+                    {toSnakeCase(nameof(EvDbEventRecord.EventType))});
 
             -- Index for getting records with a specific value in column event_type and a value of captured_at within a given time range, sorted by captured_at
-            CREATE INDEX IX_event_event_type_captured_at
-            ON {storageContext}event (event_type, captured_at);
+            CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.EventType))}_{toSnakeCase(nameof(EvDbEventRecord.CapturedAt))}
+            ON {storageContext}event ({toSnakeCase(nameof(EvDbEventRecord.EventType))}, {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))});
 
 
 
             -- Create the snapshot table
             CREATE TABLE {storageContext}snapshot (
-                domain NVARCHAR(40) NOT NULL,
-                stream_type NVARCHAR(40) NOT NULL,
-                stream_id NVARCHAR(40) NOT NULL,
-                aggregate_type NVARCHAR(40) NOT NULL,
-                offset BIGINT NOT NULL,
-                json_data NVARCHAR(MAX) NOT NULL,
-                stored_at DATETIME DEFAULT GETDATE() NOT NULL,
+                {toSnakeCase(nameof(EvDbViewAddress.Domain))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbViewAddress.Partition))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbViewAddress.StreamId))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbViewAddress.ViewName))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} BIGINT NOT NULL,
+                {toSnakeCase(nameof(EvDbStoredSnapshot.State))} NVARCHAR(MAX) NOT NULL,
+                stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
     
-                CONSTRAINT PK_{storageContext}snapshot PRIMARY KEY (domain, stream_type, stream_id, offset),
-                CONSTRAINT CK_{storageContext}snapshot_domain_not_empty CHECK (LEN(domain) > 0),
-                CONSTRAINT CK_{storageContext}snapshot_stream_type_not_empty CHECK (LEN(stream_type) > 0),
-                CONSTRAINT CK_{storageContext}snapshot_stream_id_not_empty CHECK (LEN(stream_id) > 0),
-                CONSTRAINT CK_{storageContext}snapshot_aggregate_type_not_empty CHECK (LEN(aggregate_type) > 0),
-                CONSTRAINT CK_{storageContext}snapshot_json_data_not_empty CHECK (LEN(json_data) > 0)
+                CONSTRAINT PK_{storageContext}snapshot PRIMARY KEY (
+                            {toSnakeCase(nameof(EvDbViewAddress.Domain))},  
+                            {toSnakeCase(nameof(EvDbViewAddress.Partition))},   
+                            {toSnakeCase(nameof(EvDbViewAddress.StreamId))}, 
+                            {toSnakeCase(nameof(EvDbViewAddress.ViewName))},
+                            {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))}),
+                CONSTRAINT CK_{storageContext}snapshot_domain_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbViewAddress.Domain))}) > 0),
+                CONSTRAINT CK_{storageContext}snapshot_stream_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbViewAddress.Partition))}) > 0),
+                CONSTRAINT CK_{storageContext}snapshot_stream_id_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbViewAddress.StreamId))}) > 0),
+                CONSTRAINT CK_{storageContext}snapshot_aggregate_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbViewAddress.ViewName))}) > 0),
+                CONSTRAINT CK_{storageContext}snapshot_json_data_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbStoredSnapshot.State))}) > 0)
             );
 
             -- Index for finding records with an earlier point in time value in column stored_at than some given value, and that other records in the group exist
             CREATE INDEX IX_snapshot_earlier_stored_at
-            ON {storageContext}snapshot (domain, stream_type, stream_id, aggregate_type, stored_at);
+            ON {storageContext}snapshot (
+                {toSnakeCase(nameof(EvDbViewAddress.Domain))}, 
+                {toSnakeCase(nameof(EvDbViewAddress.Partition))}, 
+                {toSnakeCase(nameof(EvDbViewAddress.StreamId))},
+                {toSnakeCase(nameof(EvDbViewAddress.ViewName))}, stored_at);
             """
         };
     }
