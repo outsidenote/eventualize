@@ -1,8 +1,5 @@
 using EvDb.Scenes;
-using EvDb.UnitTests;
 using FakeItEasy;
-using System.Collections;
-using System.Collections.Immutable;
 using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;

@@ -1,9 +1,10 @@
 ﻿// TODO: [bnaya 2023-12-20] default timeout
 
-using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace EvDb.Core.Adapters;
 
+[DebuggerDisplay("EventType:{EventType}, Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbEventRecord
 {
     public string Domain { get; init; }

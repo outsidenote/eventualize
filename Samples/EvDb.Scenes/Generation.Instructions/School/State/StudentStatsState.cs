@@ -1,14 +1,10 @@
-﻿using EvDb.Scenes;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Text.Json.Serialization;
 
 namespace EvDb.Scenes;
 
 [DebuggerDisplay("Count: {Students.Count}")]
-public record StudentStatsState 
+public record StudentStatsState
 {
     public static readonly StudentStatsState Empty = new StudentStatsState();
 
@@ -36,10 +32,10 @@ public record StudentStatsState
         var students = Students
                             .Remove(v)
                             .Add(v with
-                                {
-                                    Count = v.Count + 1,
-                                    Sum = v.Sum + receivedGrade.Grade,
-                                });
+                            {
+                                Count = v.Count + 1,
+                                Sum = v.Sum + receivedGrade.Grade,
+                            });
         return this with { Students = students };
     }
 

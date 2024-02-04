@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
-using System.Text.Json;
 using System.Transactions;
 
 // TODO: [bnaya 2023-12-20] default timeout
@@ -75,6 +74,8 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         string query = _queries.GetSnapshot;
 
         var snapshot = await conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshot>(query, viewAddress);
+        if (snapshot == default)
+            snapshot = EvDbStoredSnapshot.Empty;
         return snapshot;
     }
 
@@ -99,19 +100,19 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
-        using var tx = new TransactionScope();
+        using var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
         string saveEventsQuery = _queries.SaveEvents;
         string saveSnapshotQuery = _queries.SaveSnapshot;
 
-        var events = streamData.Events.Cast<EvDbEventRecord>().ToArray();
+        var events = streamData.Events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
         await conn.ExecuteAsync(saveEventsQuery, events);
 
         foreach (IEvDbViewStore view in streamData.Views)
         {
             if (view.ShouldStoreSnapshot)
             {
-                EvDbStoredSnapshot snapshot = view.GetSnapshot();
+                EvDbStoredSnapshotAddress snapshot = view.GetSnapshot();
                 await conn.ExecuteAsync(saveSnapshotQuery, snapshot);
             }
         }

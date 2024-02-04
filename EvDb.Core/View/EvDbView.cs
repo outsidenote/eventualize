@@ -23,10 +23,10 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
 
     public virtual T State { get; protected set; }
 
-    public override EvDbStoredSnapshot GetSnapshot()
+    public override EvDbStoredSnapshotAddress GetSnapshot()
     {
         string state = JsonSerializer.Serialize<T>(State, _options);
-        var snapshot = new EvDbStoredSnapshot(FoldOffset, state);
+        var snapshot = new EvDbStoredSnapshotAddress(Address, FoldOffset, state);
         return snapshot;
     }
 }
@@ -67,8 +67,8 @@ public abstract class EvDbView : IEvDbViewStore
     {
         get
         {
-            long numEventsSinceLatestSnapshot = StoreOffset == -1 
-                ? FoldOffset 
+            long numEventsSinceLatestSnapshot = StoreOffset == -1
+                ? FoldOffset
                 : FoldOffset - StoreOffset;
             bool result = numEventsSinceLatestSnapshot >= MinEventsBetweenSnapshots;
             return result;
@@ -77,7 +77,7 @@ public abstract class EvDbView : IEvDbViewStore
 
     #endregion // ShouldStoreSnapshot
 
-    public abstract EvDbStoredSnapshot GetSnapshot();
+    public abstract EvDbStoredSnapshotAddress GetSnapshot();
 
     public EvDbViewAddress Address { get; }
 

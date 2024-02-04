@@ -1,6 +1,5 @@
-namespace EvDb.Core
+namespace EvDb.Core;
+
+public readonly record struct EvDbPartitionAddress(string Domain, string Partition)
 {
-    public record EvDbPartitionAddress(string Domain, string Partition)
-    {
-    }
 }

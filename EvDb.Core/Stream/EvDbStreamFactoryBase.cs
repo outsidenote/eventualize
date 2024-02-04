@@ -45,7 +45,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         CancellationToken cancellationToken)
     {
         var address = new EvDbStreamAddress(PartitionAddress, streamId);
-        long minSnapshotOffset = -1; 
+        long minSnapshotOffset = -1;
         List<IEvDbViewStore> views = new(ViewFactories.Length);
         foreach (IEvDbViewFactory viewFactory in ViewFactories)
         {
@@ -55,12 +55,12 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
                                     ? snapshot.Offset
                                     : Math.Min(minSnapshotOffset, snapshot.Offset);
             IEvDbViewStore view = viewFactory.CreateFromSnapshot(address, snapshot, Options);
-            views.Add(view);    
+            views.Add(view);
         }
         var immutableViews = views.ToImmutableList();
-        
+
         var cursor = new EvDbStreamCursor(PartitionAddress, streamId, minSnapshotOffset + 1);
-        IAsyncEnumerable<EvDbEvent> events = 
+        IAsyncEnumerable<EvDbEvent> events =
             _storageAdapter.GetEventsAsync(cursor, cancellationToken);
 
         long streamOffset = minSnapshotOffset;

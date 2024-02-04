@@ -3,9 +3,7 @@
 using EvDb.UnitTests;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Scenes;
-using System.Collections.Immutable;
 using System.Reflection;
 using System.Text.Json;
 using Xunit.Abstractions;
@@ -254,9 +252,9 @@ internal static class Steps
         this (IEvDbSchoolStreamFactory Factory, string StreamId) input,
         IEvDbStorageAdapter storageAdapter)
     {
-        return GivenHavingSnapshots(input, storageAdapter, 
+        return GivenHavingSnapshots(input, storageAdapter,
             n => n switch
-            { 
+            {
                 StatsView.ViewName => 60,
                 StudentStatsView.ViewName => 61
             });
@@ -379,7 +377,7 @@ internal static class Steps
         int testId = TEST_ID,
         int studentId = STUDENT_ID,
         int numOfGrades = NUM_OF_GRADES,
-        Func<int, double>? gradeStrategy = null) => 
+        Func<int, double>? gradeStrategy = null) =>
             stream.WhenAddGrades(testId, studentId, numOfGrades, gradeStrategy);
 
     public static IEvDbSchoolStream WhenAddGrades(this IEvDbSchoolStream stream,

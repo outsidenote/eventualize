@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace EvDb.Core;
 
 public interface IEvDbViewFactory
-{ 
+{
     string ViewName { get; }
 
     IEvDbViewStore CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options);

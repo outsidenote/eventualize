@@ -3,9 +3,7 @@
 #pragma warning disable HAA0401 // Possible allocation of reference type enumerator
 using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Text;
@@ -18,7 +16,7 @@ public partial class FactoryGenerator : BaseGenerator
     internal const string EVENT_TARGET = "EvDbStreamFactory";
     internal const string EVENT_TARGET_ATTRIBUTE = "EvDbStreamFactoryAttribute";
     protected override string EventTargetAttribute => EVENT_TARGET_ATTRIBUTE;
-  
+
     #region OnGenerate
 
     protected override void OnGenerate(
@@ -54,8 +52,8 @@ public partial class FactoryGenerator : BaseGenerator
         ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         ITypeSymbol eventTypeSymbol = args[0];
         string eventType = eventTypeSymbol.ToDisplayString();
-            
-        string factoryName =  $"EvDb{typeSymbol.Name}";
+
+        string factoryName = $"EvDb{typeSymbol.Name}";
 
         #endregion // eventType = .., factoryName = ..
 
@@ -73,7 +71,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         if (rootName == typeSymbol.Name)
             rootName = $"{rootName}_";
- 
+
 
         string interfaceType = $"I{rootName}";
         string factoryInterfaceType = $"{interfaceType}Factory";
@@ -123,7 +121,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
-        
+
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     public abstract class {{factoryName}}Base:

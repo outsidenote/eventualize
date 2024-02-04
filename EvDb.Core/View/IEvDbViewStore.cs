@@ -1,12 +1,12 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbViewStore: IEvDbView
+public interface IEvDbViewStore : IEvDbView
 {
     void FoldEvent(EvDbEvent e);
 
     void OnSaved();
 
-    EvDbStoredSnapshot GetSnapshot();
+    EvDbStoredSnapshotAddress GetSnapshot();
 }
 
 public interface IEvDbViewStore<out T> : IEvDbViewStore

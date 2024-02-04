@@ -2,44 +2,13 @@ namespace EvDb.Core.Tests;
 
 using EvDb.Scenes;
 using EvDb.UnitTests;
-using FakeItEasy;
 using Xunit.Abstractions;
 
-public class StreamTests
+public class SqlServerStreamTests : IntegrationTests
 {
-    private readonly IEvDbStorageAdapter _storageAdapter = A.Fake<IEvDbStorageAdapter>();
-    private readonly ITestOutputHelper _output;
-
-    public StreamTests(ITestOutputHelper output)
+    public SqlServerStreamTests(ITestOutputHelper output) :
+        base(output, StoreType.SqlServer)
     {
-        _output = output;
-    }
-
-    [Fact]
-    public void Stream_WhenAddingPendingEvent_Succeed()
-    {
-        IEvDbSchoolStream stream = _storageAdapter
-                            .GivenLocalStreamWithPendingEvents(_output);
-
-        ThenPendingEventsAddedSuccessfully();
-
-        void ThenPendingEventsAddedSuccessfully()
-        {
-            Assert.Equal(-1, stream.StoreOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(-1, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(3, v.FoldOffset));
-
-            Assert.Equal(180, stream.Views.ALL.Sum);
-            Assert.Equal(3, stream.Views.ALL.Count);
-            Assert.Single(stream.Views.StudentStats.Students);
-
-            StudentStats studentStat = stream.Views.StudentStats.Students[0];
-            var student = Steps.CreateStudentEntity();
-            Assert.Equal(student.Id, studentStat.StudentId);
-            Assert.Equal(student.Name, studentStat.StudentName);
-            Assert.Equal(180, studentStat.Sum);
-            Assert.Equal(3, studentStat.Count);
-        }
     }
 
     [Fact]
@@ -49,9 +18,9 @@ public class StreamTests
                             .GivenLocalStreamWithPendingEvents(_output)
                             .WhenStreamIsSavedAsync();
 
-        ThenStreamSavedWithoutSnapshot(stream);
+        ThenStreamSavedWithoutSnapshot();
 
-        void ThenStreamSavedWithoutSnapshot(IEvDbSchoolStream aggregate)
+        void ThenStreamSavedWithoutSnapshot()
         {
             Assert.Equal(3, stream.StoreOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(-1, v.StoreOffset));
@@ -129,14 +98,13 @@ public class StreamTests
     }
 
 
-    [Fact]
+    [Fact(Skip = "OCC state should be generated")]
     public async Task Stream_WhenStoringStaleStream_ThrowException()
     {
-        IEvDbSchoolStream stream = _storageAdapter
-                    .GivenStreamWithStaleEvents(_output);
+        throw new NotImplementedException();
+        //IEvDbSchoolStream stream = _storageAdapter
+        //            .GivenStreamWithStaleEvents(_output);
 
-        await Assert.ThrowsAsync<OCCException>(async () => await stream.SaveAsync(default));
+        //await Assert.ThrowsAsync<OCCException>(async () => await stream.SaveAsync(default));
     }
-
-
 }

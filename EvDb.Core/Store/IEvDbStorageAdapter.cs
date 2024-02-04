@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace EvDb.Core;
 
 public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
@@ -12,7 +10,7 @@ public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
     /// <returns></returns>
     /// <exception cref="System.NotImplementedException"></exception>
     Task<EvDbStoredSnapshot> GetSnapshotAsync(
-                                EvDbViewAddress viewAddress, 
+                                EvDbViewAddress viewAddress,
                                 CancellationToken cancellation = default);
 
     /// <summary>
@@ -22,7 +20,7 @@ public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     IAsyncEnumerable<EvDbEvent> GetEventsAsync(
-                                EvDbStreamCursor streamCursor, 
+                                EvDbStreamCursor streamCursor,
                                 CancellationToken cancellation = default);
 
     /// <summary>
@@ -32,6 +30,6 @@ public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     Task SaveAsync(
-        IEvDbStreamStoreData streamStore, 
+        IEvDbStreamStoreData streamStore,
         CancellationToken cancellation = default);
 }

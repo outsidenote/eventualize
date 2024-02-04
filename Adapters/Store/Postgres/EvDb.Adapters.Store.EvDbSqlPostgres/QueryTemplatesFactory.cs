@@ -1,6 +1,5 @@
 ﻿using EvDb.Core;
 using EvDb.Core.Adapters;
-using System.Text.Json;
 
 namespace EvDb.Adapters.Store.Postgres;
 

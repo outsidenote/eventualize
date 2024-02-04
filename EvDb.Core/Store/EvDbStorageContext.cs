@@ -1,49 +1,35 @@
 namespace EvDb.Core;
 
-public record EvDbStorageContext
+public class EvDbStorageContext
 {
-    public static EvDbStorageContext Default { get; } = new EvDbStorageContext();
-    public static EvDbStorageContext CreateWithEnvironment(string prefix = "_eventualize_")
+    public EvDbStorageContext(string prefix, Env environment)
     {
-        Env env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT ");
-        string id = string.IsNullOrEmpty(env)
-                            ? prefix
-                            : $"_{prefix}_{env}_";
-        return new EvDbStorageContext
+        Id = (prefix, environment) switch
         {
-            Id = id,
-        };
-    }
-    public static EvDbStorageContext CreateUnique(bool withEnvironment = true, string prefix = "_eventualize_")
-    {
-        Env env = withEnvironment
-            ? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT ") ?? string.Empty
-            : string.Empty;
-        Guid guid = Guid.NewGuid();
-        string unique = string.IsNullOrEmpty(env)
-                            ? $"{prefix}{guid:N}_"
-                            : $"{prefix}{env}_{guid:N}_";
-        return new EvDbStorageContext
-        {
-            Id = unique,
+            (null, Env e) when (string.IsNullOrEmpty(e)) => string.Empty,
+            ("", Env e) when (string.IsNullOrEmpty(e)) => string.Empty,
+            (string p, Env e) when (string.IsNullOrEmpty(e)) => $"{p}_",
+            (null, Env e) => $"{e}_",
+            ("", Env e) => $"{e}_",
+            _ => $"{prefix}_{environment}_"
         };
     }
 
-    private EvDbStorageContext()
+    public static EvDbStorageContext CreateWithEnvironment(string prefix = "", string environmentKey = "ASPNETCORE_ENVIRONMENT")
     {
+        Env env = Environment.GetEnvironmentVariable(environmentKey);
+
+        return new EvDbStorageContext(prefix, env);
     }
 
     /// <summary>
     /// Gets the context identifier.
     /// </summary>
-    public string Id { get; init; } = string.Empty;
-
+    public string Id { get; }
 
     public override string ToString() => Id;
 
     #region Cast overloads
-
-    //public static implicit operator StorageContext(string id) => new StorageContext { Id = id };
 
     public static implicit operator string(EvDbStorageContext context) => context.ToString();
 

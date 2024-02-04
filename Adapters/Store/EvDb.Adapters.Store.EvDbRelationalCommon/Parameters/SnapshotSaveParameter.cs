@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Text.Json;
 
 namespace EvDb.Core;
 
@@ -13,14 +12,14 @@ public readonly record struct SnapshotSaveParameter(
                     string State)
 {
     public SnapshotSaveParameter(EvDbViewAddress viewAddress, EvDbStoredSnapshot storedSnapshot)
-        : this (
+        : this(
               viewAddress.Domain,
-              viewAddress.Partition, 
-              viewAddress.StreamId, 
+              viewAddress.Partition,
+              viewAddress.StreamId,
               viewAddress.ViewName,
               storedSnapshot.Offset,
               storedSnapshot.State)
     {
-            
+
     }
 };

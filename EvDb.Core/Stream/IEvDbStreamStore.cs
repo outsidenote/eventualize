@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-
-namespace EvDb.Core;
+﻿namespace EvDb.Core;
 
 public interface IEvDbStreamStore
 {

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
-using System.Transactions;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
@@ -54,7 +53,7 @@ public class EvDbStream :
     private EvDbStreamCursor GetNextCursor()
     {
         if (CountOfPendingEvents == 0)
-        { 
+        {
             var empty = new EvDbStreamCursor(StreamAddress, StoreOffset + 1);
             return empty;
         }
@@ -78,7 +77,7 @@ public class EvDbStream :
             EvDbStreamCursor cursor = GetNextCursor();
             EvDbEvent e = new EvDbEvent(payload.EventType, DateTimeOffset.UtcNow, capturedBy, cursor, json);
             _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
-            _pendingEvents = _pendingEvents.Add(e); 
+            _pendingEvents = _pendingEvents.Add(e);
 
             foreach (IEvDbViewStore folding in _views)
                 folding.FoldEvent(e);

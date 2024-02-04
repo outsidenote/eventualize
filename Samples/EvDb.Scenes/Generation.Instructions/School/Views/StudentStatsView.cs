@@ -1,7 +1,5 @@
 ﻿using EvDb.Core;
 using EvDb.Scenes;
-using System.Collections.Concurrent;
-using System.Xml.Linq;
 
 namespace EvDb.UnitTests;
 
@@ -21,14 +19,14 @@ internal partial class StudentStatsView
     {
         return state.Add(payload);
     }
-    
+
 
     protected override StudentStatsState Fold(
         StudentStatsState state,
         StudentReceivedGradeEvent payload,
         IEvDbEventMeta meta)
     {
-       return state.Update(payload);
+        return state.Update(payload);
     }
 
     #endregion // Fold

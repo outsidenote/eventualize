@@ -5,6 +5,8 @@ namespace EvDb.Adapters.Store.SqlServer;
 
 internal static class QueryTemplatesFactory
 {
+    private const int DEFAULT_TEXT_LIMIT = 100;
+
     public static EvDbMigrationQueryTemplates Create(EvDbStorageContext storageContext)
     {
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
@@ -18,12 +20,12 @@ internal static class QueryTemplatesFactory
             CreateEnvironment = $"""
             -- Create the event table
             CREATE TABLE {storageContext}event (
-                {toSnakeCase(nameof(EvDbEventRecord.Domain))} NVARCHAR(40) NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.Partition))} NVARCHAR(40) NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.StreamId))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.Offset))} BIGINT NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.EventType))} NVARCHAR(40) NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.EventType))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} datetimeoffset NOT NULL,
                 stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.Payload))} NVARCHAR(MAX) NOT NULL,
@@ -66,10 +68,10 @@ internal static class QueryTemplatesFactory
 
             -- Create the snapshot table
             CREATE TABLE {storageContext}snapshot (
-                {toSnakeCase(nameof(EvDbViewAddress.Domain))} NVARCHAR(40) NOT NULL,
-                {toSnakeCase(nameof(EvDbViewAddress.Partition))} NVARCHAR(40) NOT NULL,
-                {toSnakeCase(nameof(EvDbViewAddress.StreamId))} NVARCHAR(40) NOT NULL,
-                {toSnakeCase(nameof(EvDbViewAddress.ViewName))} NVARCHAR(40) NOT NULL,
+                {toSnakeCase(nameof(EvDbViewAddress.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbViewAddress.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbViewAddress.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbViewAddress.ViewName))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} BIGINT NOT NULL,
                 {toSnakeCase(nameof(EvDbStoredSnapshot.State))} NVARCHAR(MAX) NOT NULL,
                 stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,

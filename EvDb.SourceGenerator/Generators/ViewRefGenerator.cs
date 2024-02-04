@@ -3,10 +3,7 @@
 #pragma warning disable HAA0401 // Possible allocation of reference type enumerator
 using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
-using System.Collections;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Text;
