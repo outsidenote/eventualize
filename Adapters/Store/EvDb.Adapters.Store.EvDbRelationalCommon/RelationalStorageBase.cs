@@ -9,6 +9,8 @@ public abstract class RelationalStorageBase : IDisposable, IAsyncDisposable
     protected readonly Task _init;
     protected readonly ILogger _logger;
 
+    #region Ctor
+
     public RelationalStorageBase(
         ILogger logger,
         Func<DbConnection> factory)
@@ -18,10 +20,18 @@ public abstract class RelationalStorageBase : IDisposable, IAsyncDisposable
         _logger = logger;
     }
 
+    #endregion // Ctor
+
+    #region InitAsync
+
     private async Task InitAsync()
     {
         await _connection.OpenAsync();
     }
+
+    #endregion // InitAsync
+
+    #region Dispose Pattern
 
     void IDisposable.Dispose()
     {
@@ -44,4 +54,6 @@ public abstract class RelationalStorageBase : IDisposable, IAsyncDisposable
     {
         DisposeAsync(false).Wait();
     }
+
+    #endregion // Dispose Pattern
 }

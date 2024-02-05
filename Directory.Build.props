@@ -13,14 +13,16 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Configurations>Debug;Release</Configurations>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<PackageIcon>icon-light.png</PackageIcon>
 		<IsPackable>true</IsPackable>
+		<Configurations>Debug;Release;Gen</Configurations>
 		<PackageTags>
 			event-source, event-driven, event-sourcing, producer, consumer, pub, sub,
-			pub-sub, messaging, reliable, redis, bnaya
+			pub-sub, eventualize, reliable, redis, bnaya, roma, sql, sql-server, postgress, my-sql, maria-db, dynamo-db
 		</PackageTags>
+	</PropertyGroup>
+	<PropertyGroup>
 		<PackageProjectUrl>https://eventualizedb.com/</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/outsidenote/eventualize</RepositoryUrl>
 		<RepositoryType>GitHub</RepositoryType>
@@ -45,12 +47,5 @@
 			<PackagePath></PackagePath>
 		</None>
 	</ItemGroup>
-
-	<!--<ItemGroup>
-		<None Include="..\docs\README.md">
-			<Pack>True</Pack>
-			<PackagePath>\</PackagePath>
-		</None>
-	</ItemGroup>-->
 
 </Project>

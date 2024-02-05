@@ -12,7 +12,7 @@ using static System.StringComparison;
 [JsonConverter(typeof(EnvJsonConverter))]
 [Equatable]
 [DebuggerDisplay("{_value}")]
-public sealed partial class Env
+public partial struct Env
 {
     private readonly string _value;
 
@@ -29,12 +29,12 @@ public sealed partial class Env
     {
         bool comp(string candidate) => string.Compare(e, candidate, OrdinalIgnoreCase) == 0;
 
-        if (comp("Production")) return "prod";
-        if (comp("Prod")) return "prod";
+        if (comp("Production")) return "";
+        if (comp("Prod")) return "";
         if (comp("Development")) return "dev";
         if (comp("Dev")) return "dev";
 
-        return e;
+        return e.ToLower();
     }
 
     #region Cast overloads
@@ -46,7 +46,7 @@ public sealed partial class Env
     /// <returns>
     /// The result of the conversion.
     /// </returns>
-    public static implicit operator Env(string env) => new Env(env);
+    public static implicit operator Env(string? env) => new Env(env ?? string.Empty);
 
     /// <summary>
     /// Performs an implicit conversion from <see cref="Env"/> to <see cref="string"/>.
@@ -71,7 +71,7 @@ public sealed partial class Env
     #region EnvJsonConverter
 
     /// <summary>
-    /// Env Json Converter
+    /// Env JSON Converter
     /// </summary>
     private sealed class EnvJsonConverter : JsonConverter<Env>
     {

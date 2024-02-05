@@ -2,21 +2,20 @@
 
 namespace EvDb.Core
 {
-    public class OCCException<T> : Exception where T : notnull, new()
+    public class OCCException : Exception
     {
-        [Obsolete("Shouldn't be used directly, used by the serialization", true)]
         public OCCException() { }
         [Obsolete("Shouldn't be used directly, used by the serialization", true)]
         public OCCException(string message) : base(message) { }
-        public OCCException(EvDbAggregate<T> aggregate) : this(aggregate, -1)
+        public OCCException(IEvDbStreamStore streamStore) : this(streamStore, -1)
         {
         }
-        public OCCException(EvDbAggregate<T> aggregate, long storedLastOffset) : base(PrepareMessageFromAggregate(aggregate, storedLastOffset))
+        public OCCException(IEvDbStreamStore streamStore, long storedLastOffset) : base(PrepareMessageFromAggregate(streamStore, storedLastOffset))
         {
         }
-        private static string PrepareMessageFromAggregate<K>(EvDbAggregate<K> aggregate, long lastStoredOffset) where K : notnull, new()
+        private static string PrepareMessageFromAggregate(IEvDbStreamStore streamStore, long lastStoredOffset)
         {
-            return $"AggregateType={aggregate.AggregateType}, StreamId='{aggregate.StreamId}', aggregateLastStoredOffset={aggregate.LastStoredOffset}, ActualLastStoredOffset={lastStoredOffset}";
+            return $"{streamStore.StreamAddress}, StreamLastStoredOffset={streamStore.StoreOffset}, ActualLastStoredOffset={lastStoredOffset}";
         }
     }
 }

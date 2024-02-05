@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
-using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
+using System.Runtime.CompilerServices;
+using System.Transactions;
 
 // TODO: [bnaya 2023-12-20] default timeout
 
@@ -58,92 +58,69 @@ public sealed class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     #region IEvDbStorageAdapter Members
 
-    async Task<long> IEvDbStorageAdapter.GetLastOffsetAsync<T>(EvDbAggregate<T> aggregate, CancellationToken cancellation)
-    {
-        cancellation.ThrowIfCancellationRequested();
-        DbConnection conn = await _connectionTask;
-        string query = _queries.GetLastSnapshotSnapshot;
-        long offset = await conn.ExecuteScalarAsync<long>(query, aggregate.StreamId);
-        return offset;
-    }
-
     /// <summary>
-    /// Tries the get snapshot asynchronous.
+    /// Tries to get a view's snapshot.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="snapshotId">The snapshot id.</param>
+    /// <param name="viewAddress">The view address.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    async Task<EvDbStoredSnapshot<T>?> IEvDbStorageAdapter.TryGetSnapshotAsync<T>(
-        EvDbSnapshotId snapshotId, CancellationToken cancellation)
+    /// <exception cref="System.NotImplementedException"></exception>
+    async Task<EvDbStoredSnapshot> IEvDbStorageAdapter.GetSnapshotAsync(
+        EvDbViewAddress viewAddress,
+        CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
 
-        string query = _queries.TryGetSnapshot;
+        string query = _queries.GetSnapshot;
 
-        var record = await conn.QuerySingleOrDefaultAsync<EvDbeSnapshotRelationalRecrod>(query, snapshotId) ?? throw new NoNullAllowedException("snapshot");
-        var snapshot = EvDbStoredSnapshot.Create<T>(record);
+        var snapshot = await conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshot>(query, viewAddress);
+        if (snapshot == default)
+            snapshot = EvDbStoredSnapshot.Empty;
         return snapshot;
     }
 
-    async IAsyncEnumerable<IEvDbStoredEvent> IEvDbStorageAdapter.GetAsync(EvDbStreamCursor parameter, CancellationToken cancellation)
+    async IAsyncEnumerable<EvDbEvent> IEvDbStorageAdapter.GetEventsAsync(
+                    EvDbStreamCursor streamCursor,
+                    [EnumeratorCancellation]CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = _queries.GetEvents;
 
-        DbDataReader reader = await conn.ExecuteReaderAsync(query, parameter);
-        var parser = reader.GetRowParser<EvDbStoredEventEntity>();
+        DbDataReader reader = await conn.ExecuteReaderAsync(query, streamCursor);
+        var parser = reader.GetRowParser<EvDbEventRecord>();
         while (await reader.ReadAsync())
         {
-            EvDbStoredEvent e = parser(reader);
+            EvDbEvent e = parser(reader);
             yield return e;
         }
     }
 
-    async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options, CancellationToken cancellation)
-    {
-        SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, options) : null;
-        await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
-    }
-
-    async Task IEvDbStorageAdapter.SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation)
-    {
-        SnapshotSaveParameter? snapshotSaveParameter = storeSnapshot ? SnapshotSaveParameter.Create(aggregate, jsonTypeInfo) : null;
-        await SaveAsync(aggregate, snapshotSaveParameter, cancellation);
-    }
-
-    // TODO: [bnaya 2023-12-13] avoid racing
-    private async Task SaveAsync<T>(EvDbAggregate<T> aggregate, SnapshotSaveParameter? snapshotSaveParameter, CancellationToken cancellation)
-         where T : notnull, new()
+    async Task IEvDbStorageAdapter.SaveAsync(IEvDbStreamStoreData streamData, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
-        string query = _queries.Save;
-        string snapQuery = _queries.SaveSnapshot;
+        using var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-        // TODO: [bnaya 2023-12-20] Thread safety (lock async) clear the pending on succeed?, transaction?,  
-        try
+        string saveEventsQuery = _queries.SaveEvents;
+        string saveSnapshotQuery = _queries.SaveSnapshot;
+
+        var events = streamData.Events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
+        await conn.ExecuteAsync(saveEventsQuery, events);
+
+        foreach (IEvDbViewStore view in streamData.Views)
         {
-            var parameter = new AggregateSaveParameterCollection<T>(aggregate/*, domain? */);
-
-            int affected = await conn.ExecuteAsync(query, parameter);
-            if (snapshotSaveParameter != null)
+            if (view.ShouldStoreSnapshot)
             {
-                int snapshot = await conn.ExecuteAsync(snapQuery, snapshotSaveParameter);
-                if (snapshot != 1)
-                    throw new DataException("Snapshot not saved");
+                EvDbStoredSnapshotAddress snapshot = view.GetSnapshot();
+                await conn.ExecuteAsync(saveSnapshotQuery, snapshot);
             }
-            // TODO: [bnaya 2023-12-20] do the logging right
-            _logger.LogDebug("{count} events saved", affected);
         }
-        catch (DbException e)
-            when (e.Message.Contains("Violation of PRIMARY KEY constraint"))
-        {
-            throw new OCCException<T>(aggregate);
-        }
+
+        tx.Complete();
     }
+
 
     #endregion // IEvDbStorageAdapter Members
 

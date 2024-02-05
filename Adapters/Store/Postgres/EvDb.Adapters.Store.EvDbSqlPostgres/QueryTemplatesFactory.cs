@@ -9,73 +9,74 @@ internal static class QueryTemplatesFactory
 {
     public static EvDbAdapterQueryTemplates Create(EvDbStorageContext storageContext)
     {
+        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
+
         return new EvDbAdapterQueryTemplates
         {
-            GetLastSnapshotSnapshot = $"""
-                SELECT MAX(offset)
-                    FROM {storageContext}snapshot
-                    WHERE domain = @{nameof(EvDbStreamId.Domain)}
-                        AND stream_type = @{nameof(EvDbStreamId.EntityType)}
-                        AND stream_id = @{nameof(EvDbStreamId.EntityId)}
-                """,
-            TryGetSnapshot = $"""
-                SELECT json_data as {nameof(EvDbStoredSnapshot<object>.State)}, offset as {nameof(EvDbStoredSnapshot<object>.Cursor.Offset)}
+            GetSnapshot = $"""
+                SELECT {toSnakeCase(nameof(EvDbStoredSnapshot.State))} as {nameof(EvDbStoredSnapshot.State)}, 
+                        {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} as {nameof(EvDbStoredSnapshot.Offset)}
                 FROM {storageContext}snapshot
-                WHERE domain = @{nameof(EvDbStreamId.Domain)}
-                    AND stream_type = @{nameof(EvDbStreamId.EntityType)}
-                    AND stream_id = @{nameof(EvDbStreamId.EntityId)}
+                WHERE {toSnakeCase(nameof(EvDbViewAddress.Domain))} = @{nameof(EvDbViewAddress.Domain)}
+                    AND {toSnakeCase(nameof(EvDbViewAddress.Partition))} = @{nameof(EvDbViewAddress.Partition)}
+                    AND {toSnakeCase(nameof(EvDbViewAddress.StreamId))} = @{nameof(EvDbViewAddress.StreamId)}
+                    AND {toSnakeCase(nameof(EvDbViewAddress.ViewName))} = @{nameof(EvDbViewAddress.ViewName)}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
             GetEvents = $"""
                 SELECT
-                    event_type as {nameof(EvDbStoredEvent.EventType)},
-                    captured_at as {nameof(EvDbStoredEvent.CapturedAt)},
-                    captured_by as {nameof(EvDbStoredEvent.CapturedBy)},
-                    json_data as {nameof(EvDbStoredEvent.Data)},
-                    stored_at as {nameof(EvDbStoredEvent.StoredAt)}                    
+                    {toSnakeCase(nameof(EvDbEventRecord.Domain))} as {nameof(EvDbEventRecord.Domain)},
+                    {toSnakeCase(nameof(EvDbEventRecord.Partition))} as {nameof(EvDbEventRecord.Partition)},
+                    {toSnakeCase(nameof(EvDbEventRecord.StreamId))} as {nameof(EvDbEventRecord.StreamId)},
+                    {toSnakeCase(nameof(EvDbEventRecord.Offset))} as {nameof(EvDbEventRecord.Offset)},
+                    {toSnakeCase(nameof(EvDbEventRecord.EventType))} as {nameof(EvDbEventRecord.EventType)},
+                    {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} as {nameof(EvDbEventRecord.CapturedAt)},
+                    {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} as {nameof(EvDbEventRecord.CapturedBy)},
+                    {toSnakeCase(nameof(EvDbEventRecord.Payload))} as {nameof(EvDbEventRecord.Payload)}                  
                 FROM {storageContext}event
-                WHERE domain = @{nameof(EvDbStreamCursor.Domain)}
-                    AND stream_type = @{nameof(EvDbStreamCursor.EntityType)}
-                    AND stream_id = @{nameof(EvDbStreamCursor.EntityId)}
-                    and offset >= @{nameof(EvDbStreamCursor.Offset)};
+                WHERE {toSnakeCase(nameof(EvDbStreamCursor.Domain))} = @{nameof(EvDbStreamCursor.Domain)}
+                    AND {toSnakeCase(nameof(EvDbStreamCursor.Partition))} = @{nameof(EvDbStreamCursor.Partition)}
+                    AND {toSnakeCase(nameof(EvDbStreamCursor.StreamId))} = @{nameof(EvDbStreamCursor.StreamId)}
+                    and {toSnakeCase(nameof(EvDbStreamCursor.Offset))} >= @{nameof(EvDbStreamCursor.Offset)};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
-            Save = $"""
+            SaveEvents = $"""
                     INSERT INTO {storageContext}event (
-                        stream_id,
-                        stream_type, 
-                        event_type, 
-                        offset,
-                        json_data,
-                        captured_by,
-                        captured_at, 
-                        domain) 
+                        {toSnakeCase(nameof(EvDbEventRecord.Domain))},
+                        {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
+                        {toSnakeCase(nameof(EvDbEventRecord.StreamId))},
+                        {toSnakeCase(nameof(EvDbEventRecord.Offset))},
+                        {toSnakeCase(nameof(EvDbEventRecord.EventType))}, 
+                        {toSnakeCase(nameof(EvDbEventRecord.Payload))},
+                        {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))},
+                        {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))}) 
                     VALUES (
-                        @{nameof(AggregateSaveParameter.AggregateId)}, 
-                        @{nameof(AggregateSaveParameter.AggregateType)}, 
-                        @{nameof(AggregateSaveParameter.EventType)}, 
-                        @{nameof(AggregateSaveParameter.Sequence)}, 
-                        @{nameof(AggregateSaveParameter.Payload)},
-                        @{nameof(AggregateSaveParameter.CapturedBy)},
-                        @{nameof(AggregateSaveParameter.CapturedAt)}, 
-                        @{nameof(AggregateSaveParameter.Domain)})
+                        @{nameof(EvDbEventRecord.Domain)}, 
+                        @{nameof(EvDbEventRecord.Partition)}, 
+                        @{nameof(EvDbEventRecord.StreamId)}, 
+                        @{nameof(EvDbEventRecord.Offset)}, 
+                        @{nameof(EvDbEventRecord.EventType)}, 
+                        @{nameof(EvDbEventRecord.Payload)},
+                        @{nameof(EvDbEventRecord.CapturedBy)},
+                        @{nameof(EvDbEventRecord.CapturedAt)})
                     """,
             SaveSnapshot = $"""
             INSERT INTO {storageContext}snapshot (
-                        stream_id,
-                        stream_type, 
-                        offset,
-                        json_data,
-                        domain)
+                        {toSnakeCase(nameof(SnapshotSaveParameter.Domain))},
+                        {toSnakeCase(nameof(SnapshotSaveParameter.Partition))},
+                        {toSnakeCase(nameof(SnapshotSaveParameter.StreamId))},
+                        {toSnakeCase(nameof(SnapshotSaveParameter.ViewName))},
+                        {toSnakeCase(nameof(SnapshotSaveParameter.Offset))},
+                        {toSnakeCase(nameof(SnapshotSaveParameter.State))})
             VALUES (
-                        @{nameof(SnapshotSaveParameter.EntityId)},
-                        @{nameof(SnapshotSaveParameter.EntityType)},
+                        @{nameof(SnapshotSaveParameter.Domain)},
+                        @{nameof(SnapshotSaveParameter.Partition)},
+                        @{nameof(SnapshotSaveParameter.StreamId)},
+                        @{nameof(SnapshotSaveParameter.ViewName)},
                         @{nameof(SnapshotSaveParameter.Offset)},
-                        @{nameof(SnapshotSaveParameter.Payload)},
-                        @{nameof(SnapshotSaveParameter.Domain)})
+                        @{nameof(SnapshotSaveParameter.State)})
             """
-
         };
     }
 }

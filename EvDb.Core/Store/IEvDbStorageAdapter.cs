@@ -1,17 +1,35 @@
-using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
-
 namespace EvDb.Core;
 
 public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
 {
-    Task<EvDbStoredSnapshot<T>?> TryGetSnapshotAsync<T>(EvDbSnapshotId snapshotId, CancellationToken cancellation = default) where T : notnull, new();
+    /// <summary>
+    /// Gets the latests stored view's snapshot or an empty snapshot if not exists.
+    /// </summary>
+    /// <param name="viewAddress">The view address.</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    /// <exception cref="System.NotImplementedException"></exception>
+    Task<EvDbStoredSnapshot> GetSnapshotAsync(
+                                EvDbViewAddress viewAddress,
+                                CancellationToken cancellation = default);
 
-    IAsyncEnumerable<IEvDbStoredEvent> GetAsync(EvDbStreamCursor parameter, CancellationToken cancellation = default);
+    /// <summary>
+    /// Gets stored events.
+    /// </summary>
+    /// <param name="streamCursor">The streamCursor.</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    IAsyncEnumerable<EvDbEvent> GetEventsAsync(
+                                EvDbStreamCursor streamCursor,
+                                CancellationToken cancellation = default);
 
-    Task SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonSerializerOptions? options = null, CancellationToken cancellation = default) where T : notnull, new();
-
-    Task SaveAsync<T>(EvDbAggregate<T> aggregate, bool storeSnapshot, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellation = default) where T : notnull, new();
-
-    Task<long> GetLastOffsetAsync<T>(EvDbAggregate<T> aggregate, CancellationToken cancellation = default) where T : notnull, new();
+    /// <summary>
+    /// Saves the pending events and create required snapshots.
+    /// </summary>
+    /// <param name="streamStore">The stream store.</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    Task SaveAsync(
+        IEvDbStreamStoreData streamStore,
+        CancellationToken cancellation = default);
 }
