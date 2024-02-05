@@ -19,6 +19,6 @@ public class EvDbEventComparer : IEqualityComparer<EvDbEvent>
     {
         return obj.EventType.GetHashCode() ^
                obj.CapturedBy.GetHashCode() ^
-               ((EvDbEvent)obj).Payload.GetHashCode();
+               obj.Payload.GetHashCode();
     }
 }

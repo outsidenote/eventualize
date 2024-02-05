@@ -42,6 +42,7 @@ public static class StoreAdapterHelper
         StoreType storeType,
         EvDbTestStorageContext? context = null)
     {
+        context = context ?? new EvDbTestStorageContext();
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)

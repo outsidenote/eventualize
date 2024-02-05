@@ -24,19 +24,6 @@ internal static class Steps
 
     private static EvDbEvent CreateEvent<T>(
         this T data,
-        IEvDbStreamStore stream,
-        long offset = 0,
-        string? capturedBy = null,
-        JsonSerializerOptions? options = null)
-        where T : IEvDbEventPayload
-    {
-        EvDbStreamCursor cursor = new EvDbStreamCursor(stream.StreamAddress, offset);
-        var result = CreateEvent(data, cursor, capturedBy, options);
-        return result;
-    }
-
-    private static EvDbEvent CreateEvent<T>(
-        this T data,
         EvDbStreamCursor streamCursor,
         string? capturedBy = null,
         JsonSerializerOptions? options = null)
@@ -53,10 +40,8 @@ internal static class Steps
     #region CreateFactory
 
     private static IEvDbSchoolStreamFactory CreateFactory(
-        ITestOutputHelper output,
-        IEvDbStorageAdapter? storageAdapter)
+                IEvDbStorageAdapter storageAdapter)
     {
-        storageAdapter = storageAdapter;
         ServiceCollection services = new();
         services.AddSingleton(storageAdapter);
         services.AddSingleton<IEvDbSchoolStreamFactory, SchoolStreamFactory>();
@@ -70,12 +55,11 @@ internal static class Steps
     #region GivenLocalAggerate
 
     public static IEvDbSchoolStream GivenLocalStream(
-        this IEvDbStorageAdapter? storageAdapter,
-        ITestOutputHelper output,
+        this IEvDbStorageAdapter storageAdapter,
         string? streamId = null)
     {
         streamId = streamId ?? GenerateStreamId();
-        IEvDbSchoolStreamFactory factory = CreateFactory(output, storageAdapter);
+        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter);
         var stream = factory.Create(streamId);
         return stream;
     }
@@ -92,7 +76,7 @@ internal static class Steps
         bool withEvents = true)
     {
         streamId = streamId ?? GenerateStreamId();
-        IEvDbSchoolStreamFactory factory = CreateFactory(output, storageAdapter);
+        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter);
 
         if (mockGetAsyncResult == null)
         {
@@ -256,7 +240,8 @@ internal static class Steps
             n => n switch
             {
                 StatsView.ViewName => 60,
-                StudentStatsView.ViewName => 61
+                StudentStatsView.ViewName => 61,
+                _ => throw new NotImplementedException()
             });
     }
 
@@ -440,7 +425,7 @@ internal static class Steps
         ITestOutputHelper output,
         int numOfGrades = NUM_OF_GRADES)
     {
-        return GivenLocalStream(storageAdapter, output)
+        return GivenLocalStream(storageAdapter)
                             .WhenAddingPendingEvents(numOfGrades);
     }
 

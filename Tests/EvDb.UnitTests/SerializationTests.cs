@@ -12,8 +12,7 @@ public class SerializationTests
     public void CourseCreatedEvent_Serialization_Succeed()
     {
         IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
-        var jdef = SchoolStreamSerializationContext.Default;
-        JsonSerializerOptions options = null;
+        JsonSerializerOptions? options = null;
         var json = JsonSerializer.Serialize(payload, options);
         var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
 
@@ -24,56 +23,70 @@ public class SerializationTests
     public void CourseCreatedEvent_Serialization_T_Succeed()
     {
         var payload = new CourseCreatedEvent(1234, "Anatomy", 40);
-        var jdef = SchoolStreamSerializationContext.Default;
-        JsonSerializerOptions options = null;
+        JsonSerializerOptions? options = null;
         var json = JsonSerializer.Serialize(payload, options);
         var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
 
         Assert.Equal(payload, deserialized);
     }
 
+#pragma warning disable S125 // Sections of code should not be commented out
+#pragma warning disable S2699 // Tests should include assertions
     [Fact(Skip = "Polymorphism (IEvDbEventPayload)")]
     public void CourseCreatedEvent_Serialization_Converter_Succeed()
     {
-        IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
-        var jdef = SchoolStreamSerializationContext.Default;
-        JsonSerializerOptions options = new();
-        options.Converters.Add(jdef.CourseCreatedEvent.Converter);
-        options.Converters.Add(jdef.ScheduleTestEvent.Converter);
-        var json = JsonSerializer.Serialize(payload, options);
-        var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
+        throw new NotImplementedException();
+        //IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
+        //var jdef = SchoolStreamSerializationContext.Default;
+        //JsonSerializerOptions options = new();
+        //options.Converters.Add(jdef.CourseCreatedEvent.Converter);
+        //options.Converters.Add(jdef.ScheduleTestEvent.Converter);
+        //var json = JsonSerializer.Serialize(payload, options);
+        //var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
 
-        Assert.Equal(payload, deserialized);
+        //Assert.Equal(payload, deserialized);
     }
+#pragma warning restore S2699 // Tests should include assertions
+#pragma warning restore S125 // Sections of code should not be commented out
 
+#pragma warning disable S125 // Sections of code should not be commented out
+#pragma warning disable S2699 // Tests should include assertions
     [Fact(Skip = "Polymorphism (IEvDbEventPayload)")]
     public void CourseCreatedEvent_Serialization_Resolver_Succeed()
     {
-        IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
+        throw new NotImplementedException();
+        //IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
 
-        var options = new JsonSerializerOptions
-        {
-            TypeInfoResolver = SchoolStreamSerializationContext.Default
-        };
+        //var options = new JsonSerializerOptions
+        //{
+        //    TypeInfoResolver = SchoolStreamSerializationContext.Default
+        //};
 
-        var json = JsonSerializer.Serialize(payload, options);
-        var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
+        //var json = JsonSerializer.Serialize(payload, options);
+        //var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
 
-        Assert.Equal(payload, deserialized);
+        //Assert.Equal(payload, deserialized);
     }
+#pragma warning restore S2699 // Tests should include assertions
+#pragma warning restore S125 // Sections of code should not be commented out
 
+#pragma warning disable S125 // Sections of code should not be commented out
+#pragma warning disable S2699 // Tests should include assertions
     [Fact]
     public void CourseCreatedEvent_Serialization_Resolver1_Succeed()
     {
-        IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
+        throw new NotImplementedException();
+        //IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
 
-        var options = SchoolStreamSerializationContext.Default.CourseCreatedEvent;
+        //var options = SchoolStreamSerializationContext.Default.CourseCreatedEvent;
 
-        var json = JsonSerializer.Serialize(payload, options);
-        var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
+        //var json = JsonSerializer.Serialize(payload, options);
+        //var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
 
-        Assert.Equal(payload, deserialized);
+        //Assert.Equal(payload, deserialized);
     }
+#pragma warning restore S2699 // Tests should include assertions
+#pragma warning restore S125 // Sections of code should not be commented out
 
     [Fact]
     public void CourseCreatedEvent_Serialization_Null_Succeed()

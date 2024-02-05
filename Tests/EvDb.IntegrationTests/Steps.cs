@@ -14,33 +14,12 @@ internal static class Steps
     private const int NUM_OF_GRADES = 3;
 
     public static string GenerateStreamId() => $"test-stream-{Guid.NewGuid():N}";
-    private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
-    private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
-
-    #region CreateEvent
-
-    private static EvDbEvent CreateEvent<T>(
-        this T data,
-        EvDbStreamCursor streamCursor,
-        string? capturedBy = null,
-        JsonSerializerOptions? options = null)
-        where T : IEvDbEventPayload
-    {
-        capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
-        var json = JsonSerializer.Serialize(data, options);
-        var result = new EvDbEvent(data.EventType, DateTimeOffset.UtcNow, capturedBy, streamCursor, json);
-        return result;
-    }
-
-    #endregion // CreateEvent
 
     #region CreateFactory
 
     public static IEvDbSchoolStreamFactory CreateFactory(
-        this IEvDbStorageAdapter? storageAdapter,
-        ITestOutputHelper output)
+        this IEvDbStorageAdapter storageAdapter)
     {
-        storageAdapter = storageAdapter;
         ServiceCollection services = new();
         services.AddSingleton(storageAdapter);
         services.AddSingleton<IEvDbSchoolStreamFactory, SchoolStreamFactory>();
@@ -54,12 +33,11 @@ internal static class Steps
     #region GivenLocalAggerate
 
     public static IEvDbSchoolStream GivenLocalStream(
-        this IEvDbStorageAdapter? storageAdapter,
-        ITestOutputHelper output,
+        this IEvDbStorageAdapter storageAdapter,
         string? streamId = null)
     {
         streamId = streamId ?? GenerateStreamId();
-        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter, output);
+        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter);
         var stream = factory.Create(streamId);
         return stream;
     }
@@ -77,7 +55,7 @@ internal static class Steps
         streamId = streamId ?? GenerateStreamId();
         await storageAdapter.GivenSavedEventsAsync(output, streamId, numOfGrades);
 
-        IEvDbSchoolStreamFactory factory = storageAdapter.CreateFactory(output);
+        IEvDbSchoolStreamFactory factory = storageAdapter.CreateFactory();
 
         return (factory, streamId);
     }
@@ -90,7 +68,7 @@ internal static class Steps
         int numOfGrades = NUM_OF_GRADES)
     {
         IEvDbSchoolStream stream = await storageAdapter
-                    .GivenLocalStreamWithPendingEvents(output, numOfGrades, streamId)
+                    .GivenLocalStreamWithPendingEvents(numOfGrades, streamId)
                     .WhenStreamIsSavedAsync();
         return stream;
     }
@@ -129,11 +107,11 @@ internal static class Steps
                     int numOfGrades = NUM_OF_GRADES)
     {
         var stream = await streamTask;
-        var result = await stream.GivenAddingPendingEventsAsync(numOfGrades);
+        var result = stream.GivenAddingPendingEvents(numOfGrades);
         return result;
     }
 
-    public static async Task<IEvDbSchoolStream> GivenAddingPendingEventsAsync(
+    public static IEvDbSchoolStream GivenAddingPendingEvents(
                     this IEvDbSchoolStream stream,
                     int numOfGrades = NUM_OF_GRADES)
     {
@@ -236,11 +214,10 @@ internal static class Steps
 
     public static IEvDbSchoolStream GivenLocalStreamWithPendingEvents(
         this IEvDbStorageAdapter storageAdapter,
-        ITestOutputHelper output,
         int numOfGrades = NUM_OF_GRADES,
         string? streamId = null)
     {
-        return GivenLocalStream(storageAdapter, output, streamId)
+        return GivenLocalStream(storageAdapter, streamId)
                             .WhenAddingPendingEvents(numOfGrades);
     }
 

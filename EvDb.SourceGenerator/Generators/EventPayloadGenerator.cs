@@ -62,6 +62,7 @@ public partial class EventPayloadGenerator : BaseGenerator
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     partial {{type}} {{name}}: IEvDbEventPayload
                     {
+                        [System.Text.Json.Serialization.JsonIgnore]
                         string IEvDbEventPayload.EventType { get; } = {{key}};
                     }                
                     """);

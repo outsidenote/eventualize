@@ -85,7 +85,7 @@ public abstract class EvDbView : IEvDbViewStore
 
     public long FoldOffset { get; private set; }
 
-    public long StoreOffset { get; set; } = -1;
+    public long StoreOffset { get; set; }
 
     public virtual int MinEventsBetweenSnapshots => 0;
 

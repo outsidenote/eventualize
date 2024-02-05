@@ -1,3 +1,5 @@
+// Ignore Spelling: Sql
+
 namespace EvDb.Core.Tests;
 
 using EvDb.Scenes;
@@ -15,7 +17,7 @@ public class SqlServerStreamTests : IntegrationTests
     public async Task Stream_WhenStoringWithoutSnapshotting_Succeed()
     {
         IEvDbSchoolStream stream = await _storageAdapter
-                            .GivenLocalStreamWithPendingEvents(_output)
+                            .GivenLocalStreamWithPendingEvents()
                             .WhenStreamIsSavedAsync();
 
         ThenStreamSavedWithoutSnapshot();
@@ -43,12 +45,12 @@ public class SqlServerStreamTests : IntegrationTests
     public async Task Stream_WhenStoringWithSnapshotting_Succeed()
     {
         IEvDbSchoolStream stream = await _storageAdapter
-                            .GivenLocalStreamWithPendingEvents(_output, 6)
+                            .GivenLocalStreamWithPendingEvents(6)
                             .WhenStreamIsSavedAsync();
 
-        ThenStreamSavedWithSnapshot(stream);
+        ThenStreamSavedWithSnapshot();
 
-        void ThenStreamSavedWithSnapshot(IEvDbSchoolStream aggregate)
+        void ThenStreamSavedWithSnapshot()
         {
             Assert.Equal(6, stream.StoreOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
@@ -71,14 +73,14 @@ public class SqlServerStreamTests : IntegrationTests
     public async Task Stream_WhenStoringWithSnapshottingWhenStoringTwice_Succeed()
     {
         IEvDbSchoolStream stream = await _storageAdapter
-                            .GivenLocalStreamWithPendingEvents(_output)
+                            .GivenLocalStreamWithPendingEvents()
                             .GivenStreamIsSavedAsync()
                             .GivenAddingPendingEventsAsync()
                             .WhenStreamIsSavedAsync();
 
-        ThenStreamSavedWithSnapshot(stream);
+        ThenStreamSavedWithSnapshot();
 
-        void ThenStreamSavedWithSnapshot(IEvDbSchoolStream aggregate)
+        void ThenStreamSavedWithSnapshot()
         {
             Assert.Equal(6, stream.StoreOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));

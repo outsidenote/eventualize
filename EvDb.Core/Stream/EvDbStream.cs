@@ -97,21 +97,20 @@ public class EvDbStream :
         try
         {
             await _dirtyLock.WaitAsync();// TODO: [bnaya 2024-01-09] re-consider the lock solution
-            {
-                if (!this.HasPendingEvents)
-                {
-                    await Task.FromResult(true);
-                    return;
-                }
 
-                await _storageAdapter.SaveAsync(this, cancellation);
-                EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
-                StoreOffset = ev.StreamCursor.Offset;
-                _pendingEvents = ImmutableList<EvDbEvent>.Empty;
-                foreach (var view in _views)
-                {
-                    view.OnSaved();
-                }
+            if (!this.HasPendingEvents)
+            {
+                await Task.FromResult(true);
+                return;
+            }
+
+            await _storageAdapter.SaveAsync(this, cancellation);
+            EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
+            StoreOffset = ev.StreamCursor.Offset;
+            _pendingEvents = ImmutableList<EvDbEvent>.Empty;
+            foreach (var view in _views)
+            {
+                view.OnSaved();
             }
         }
         finally
@@ -132,7 +131,7 @@ public class EvDbStream :
 
     #region LastStoredOffset
 
-    public long StoreOffset { get; protected set; } = -1;
+    public long StoreOffset { get; protected set; } 
 
     #endregion // StoreOffset
 
