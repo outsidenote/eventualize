@@ -100,13 +100,20 @@ public class SqlServerStreamTests : IntegrationTests
     }
 
 
-    [Fact(Skip = "OCC state should be generated")]
+    [Fact]
     public async Task Stream_WhenStoringStaleStream_ThrowException()
     {
-        throw new NotImplementedException();
-        //IEvDbSchoolStream stream = _storageAdapter
-        //            .GivenStreamWithStaleEvents(_output);
+        string streamId = $"occ-{Guid.NewGuid():N}";
 
-        //await Assert.ThrowsAsync<OCCException>(async () => await stream.SaveAsync(default));
+        IEvDbSchoolStream stream1 = _storageAdapter
+                    .GivenLocalStreamWithPendingEvents(streamId: streamId);
+        IEvDbSchoolStream stream2 = _storageAdapter
+                    .GivenLocalStreamWithPendingEvents(streamId: streamId);
+
+        await Assert.ThrowsAsync<OCCException>(() => 
+            Task.WhenAll(
+                    stream1.WhenStreamIsSavedAsync(),
+                    stream2.WhenStreamIsSavedAsync()
+                ));
     }
 }
