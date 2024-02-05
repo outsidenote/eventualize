@@ -209,7 +209,7 @@ public partial class FactoryGenerator : BaseGenerator
                     $$"""
                         void {{eventType}}.Add(
                                 {{ep.Type}} payload, 
-                                string? capturedBy = null)
+                                string? capturedBy)
                         {
                             AddEvent(payload, capturedBy);
                         }
