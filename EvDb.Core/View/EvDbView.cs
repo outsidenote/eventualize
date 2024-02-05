@@ -13,13 +13,10 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
         JsonSerializerOptions? options) :
             base(address, options, snapshot.Offset)
     {
-        if (snapshot == EvDbStoredSnapshot.Empty)
-            State = DefaultState;
-        if(snapshot.State == null)
+        if (snapshot == EvDbStoredSnapshot.Empty ||string.IsNullOrEmpty(snapshot.State))
             State = DefaultState;
         else
         {
-
             State = JsonSerializer.Deserialize<T>(snapshot.State, options) ?? DefaultState;
         }
     }
