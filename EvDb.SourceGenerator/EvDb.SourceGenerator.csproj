@@ -24,6 +24,7 @@
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
 		<AssemblyName>EvDb.SourceGenerator</AssemblyName>
 		<Title>EvDb.SourceGenerator</Title>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -32,9 +33,9 @@
 
 
 	<ItemGroup>
-	  <None Update="icon-light.png">
-	    <PackagePath></PackagePath>
+	  <None Update="README.md">
 	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
 	  </None>
 	</ItemGroup>
 
@@ -42,6 +43,5 @@
 	<ItemGroup>
 		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.1.1" />
 	</ItemGroup>
-
 
 </Project>
