@@ -9,7 +9,7 @@
 		<Version>1.1.85</Version>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EvDbDB.com</Company>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<!--<PackageReadmeFile>README.md</PackageReadmeFile>-->
 		<TargetFramework>net6.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<Nullable>enable</Nullable>
@@ -47,12 +47,5 @@
 			<PackagePath></PackagePath>
 		</None>
 	</ItemGroup>
-
-	<!--<ItemGroup>
-		<None Include="..\docs\README.md">
-			<Pack>True</Pack>
-			<PackagePath>\</PackagePath>
-		</None>
-	</ItemGroup>-->
 
 </Project>
