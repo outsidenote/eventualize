@@ -72,7 +72,7 @@ public class SerializationTests
 
 #pragma warning disable S125 // Sections of code should not be commented out
 #pragma warning disable S2699 // Tests should include assertions
-    [Fact]
+    [Fact(Skip = "Record source code serialization not supported yet (readonly property)")]
     public void CourseCreatedEvent_Serialization_Resolver1_Succeed()
     {
         throw new NotImplementedException();

@@ -34,8 +34,8 @@ public sealed class StreamFactoryTests : IntegrationTests
     [Fact]
     public async Task StreamFactory_WhenGettingDifferent_Succeed()
     {
-        IEvDbSchoolStreamFactory f = _storageAdapter.CreateFactory(_output);
-        var (factory, streamId) = await _storageAdapter
+        IEvDbSchoolStreamFactory f = _storageAdapter.CreateFactory();
+        var (_, streamId) = await _storageAdapter
                         .GivenFactoryForStoredStreamWithEvents(_output);
 
         string stream1Id = streamId + "-a";
