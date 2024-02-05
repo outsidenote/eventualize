@@ -24,8 +24,11 @@
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
 		<AssemblyName>EvDb.SourceGenerator</AssemblyName>
 		<Title>EvDb.SourceGenerator</Title>
-		<PackageReadmeFile>ReadMe.md</PackageReadmeFile>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Include="..\docs\README.md" Link="README.md" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
