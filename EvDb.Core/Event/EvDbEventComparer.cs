@@ -10,9 +10,6 @@ public class EvDbEventComparer : IEqualityComparer<EvDbEvent>
 
     bool IEqualityComparer<EvDbEvent>.Equals(EvDbEvent x, EvDbEvent y)
     {
-        if (x == null && y == null) return true;
-        if (x == null || y == null) return false;
-
         return x.EventType == y.EventType &&
             x.CapturedBy == y.CapturedBy &&
             x.Payload == y.Payload;

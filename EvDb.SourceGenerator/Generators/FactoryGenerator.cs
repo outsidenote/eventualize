@@ -183,7 +183,7 @@ public partial class FactoryGenerator : BaseGenerator
         #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
         var eventsPayloads = from a in eventTypeSymbol.GetAttributes()
-                             let cls = (INamedTypeSymbol)(a.AttributeClass!)
+                             let cls = a.AttributeClass!
                              where cls != null
                              let text = cls.Name
                              where text == EventAdderGenerator.EventTarget

@@ -23,6 +23,7 @@ public partial class EventPayloadGenerator : BaseGenerator
             CancellationToken cancellationToken)
     {
         StringBuilder builder = new StringBuilder();
+
         #region Exception Handling
 
         if (!syntax.IsPartial())
@@ -48,12 +49,13 @@ public partial class EventPayloadGenerator : BaseGenerator
                           from att in atts.Attributes
                           let fn = att.Name.ToFullString()
                           where fn.StartsWith("EvDbEventPayload")
-                          select att.ArgumentList.Arguments[0].ToString();
+                          select att.ArgumentList?.Arguments[0].ToString();
         var key = payloadName.FirstOrDefault();
         if (key == null)
             return;
 
         builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("#pragma warning disable SYSLIB1037 // Deserialization of init-only properties is currently not supported in source generation mode.");
         builder.AppendLine();
 
         builder.AppendLine($$"""

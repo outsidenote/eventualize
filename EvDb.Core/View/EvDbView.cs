@@ -15,8 +15,13 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
     {
         if (snapshot == EvDbStoredSnapshot.Empty)
             State = DefaultState;
+        if(snapshot.State == null)
+            State = DefaultState;
         else
-            State = JsonSerializer.Deserialize<T>(snapshot.State, options);
+        {
+
+            State = JsonSerializer.Deserialize<T>(snapshot.State, options) ?? DefaultState;
+        }
     }
 
     protected abstract T DefaultState { get; }
