@@ -1,12 +1,12 @@
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using System.Data.Common;
-using System.Data.SqlClient;
 
-namespace EvDb.Adapters.Store.SqlServer;
+namespace EvDb.Adapters.Store.Postgres;
 
-public static class SqlServerStorageAdapterFactory
+public static class EvDbPostgresStorageAdapterFactory
 {
     public static IEvDbStorageAdapter Create(
         ILogger logger,
@@ -14,9 +14,9 @@ public static class SqlServerStorageAdapterFactory
         EvDbStorageContext context)
     {
         IEvDbStorageAdapter result =
-            EvDbRelationalStorageAdapter.Create(
+            new EvDbPostgresStorageAdapter(
                     logger,
-                    QueryTemplatesFactory.Create(context),
+                    context,
                     factory);
         return result;
     }
@@ -26,31 +26,25 @@ public static class SqlServerStorageAdapterFactory
         string connectionString,
         EvDbStorageContext context)
     {
-        IEvDbConnectionFactory factory = new EvDbSqlConnectionFactory(connectionString);
-
-        IEvDbStorageAdapter result =
-            EvDbRelationalStorageAdapter.Create(
-                    logger,
-                    QueryTemplatesFactory.Create(context),
-                    factory);
+        IEvDbConnectionFactory factory = new EvDbPostgresConnectionFactory(connectionString);
+        var result = Create(logger, factory, context);
         return result;
-
     }
 
     #region class EvDbSqlConnectionFactory : EvDbConnectionFactory
 
-    private sealed class EvDbSqlConnectionFactory : EvDbConnectionFactory
+    private sealed class EvDbPostgresConnectionFactory : EvDbConnectionFactory
     {
         private readonly string _connectionString;
 
-        public EvDbSqlConnectionFactory(string connectionString)
+        public EvDbPostgresConnectionFactory(string connectionString)
         {
             _connectionString = connectionString;
         }
 
         public override DbConnection CreateConnection()
         {
-            return new SqlConnection(_connectionString);
+            return new NpgsqlConnection(_connectionString);
         }
     }
 

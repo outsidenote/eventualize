@@ -29,7 +29,7 @@ public static class StoreAdapterHelper
         IEvDbStorageAdapter result = storeType switch
         {
             StoreType.SqlServer =>
-                SqlServerStorageAdapterFactory.Create(logger, connectionString, context),
+                EvDbSqlServerStorageAdapterFactory.Create(logger, connectionString, context),
             //StoreType.Posgres => ,
             //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
             _ => throw new NotImplementedException()
