@@ -6,6 +6,8 @@
     <img src="light-theme-logo.png" width="250">
 </picture>
 
+[![Deploy](https://github.com/outsidenote/eventualize/actions/workflows/dotnet-deploy.yml/badge.svg)](https://github.com/outsidenote/eventualize/actions/workflows/dotnet-deploy.yml) [![Verify](https://github.com/outsidenote/eventualize/actions/workflows/dotnet-verify.yml/badge.svg)](https://github.com/outsidenote/eventualize/actions/workflows/dotnet-verify.yml)
+
 EvDb is an opinionated event-sourcing framework that unlocks the untapped potential of transactional data while eliminating many challenges related to management of transactional data and its schema.
 EvDb is quick & easy to integrate, and while it is working with new paradigms and patterns under the hood, it abstracts most of it away and does not distrupt development.
 
