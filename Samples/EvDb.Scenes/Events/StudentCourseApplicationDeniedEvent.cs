@@ -3,7 +3,7 @@
 namespace EvDb.Scenes;
 
 [EvDbEventPayload("student-course-application-denied")]
-public partial record StudentCourseApplicationDeniedEvent(int CourseId, int StudentId);
+public readonly partial record struct StudentCourseApplicationDeniedEvent(int CourseId, int StudentId);
 
 
 
