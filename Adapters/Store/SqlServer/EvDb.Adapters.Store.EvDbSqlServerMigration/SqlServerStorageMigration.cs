@@ -1,8 +1,6 @@
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
-using System.Data.Common;
-using System.Data.SqlClient;
 
 namespace EvDb.Adapters.Store.SqlServer;
 

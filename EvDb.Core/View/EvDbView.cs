@@ -13,7 +13,7 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
         JsonSerializerOptions? options) :
             base(address, options, snapshot.Offset)
     {
-        if (snapshot == EvDbStoredSnapshot.Empty ||string.IsNullOrEmpty(snapshot.State))
+        if (snapshot == EvDbStoredSnapshot.Empty || string.IsNullOrEmpty(snapshot.State))
             State = DefaultState;
         else
         {

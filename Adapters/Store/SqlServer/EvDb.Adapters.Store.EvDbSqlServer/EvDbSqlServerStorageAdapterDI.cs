@@ -1,11 +1,10 @@
-﻿using EvDb.Core;
+﻿using EvDb.Adapters.Store.SqlServer;
+using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Data.SqlClient;
 
-namespace EvDb.Adapters.Store.SqlServer;
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbSqlServerStorageAdapterDI
 {
