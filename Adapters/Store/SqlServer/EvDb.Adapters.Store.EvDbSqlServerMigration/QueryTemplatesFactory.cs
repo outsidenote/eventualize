@@ -98,5 +98,6 @@ internal static class QueryTemplatesFactory
                 {toSnakeCase(nameof(EvDbViewAddress.ViewName))}, stored_at);
             """
         };
+
     }
 }

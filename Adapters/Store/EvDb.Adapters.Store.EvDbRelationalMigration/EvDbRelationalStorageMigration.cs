@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Dapper;
+using Microsoft.Extensions.Logging;
 using System.Data.Common;
 
 namespace EvDb.Core.Adapters;
@@ -7,53 +8,46 @@ namespace EvDb.Core.Adapters;
 /// Store adapter for rational database
 /// </summary>
 /// <seealso cref="EvDb.Core.IEvDbStorageAdapter" />
-public sealed class EvDbRelationalStorageMigration : IEvDbStorageMigration
+public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
 {
-    private readonly Task<Commands> _commandsTask;
-
-    public static IEvDbStorageMigration Create(
-        ILogger logger,
-        EvDbMigrationQueryTemplates queryTemplates,
-        IEvDbConnectionFactory factory)
-    {
-        return new EvDbRelationalStorageMigration(logger, queryTemplates, factory);
-    }
+    private readonly Task<DbConnection> _commandsTask;
 
     #region Ctor
 
-    private EvDbRelationalStorageMigration(
+    protected EvDbRelationalStorageMigration(
         ILogger logger,
-        EvDbMigrationQueryTemplates queryTemplates,
         IEvDbConnectionFactory factory)
     {
         _commandsTask = InitAsync();
-        async Task<Commands> InitAsync()
+        async Task<DbConnection> InitAsync()
         {
             DbConnection connection = factory.CreateConnection();
-            var commands = new Commands(connection, queryTemplates);
             await connection.OpenAsync();
-            return commands;
+            return connection;
         }
     }
 
     #endregion // Ctor
 
+    protected abstract EvDbMigrationQueryTemplates Queries { get; }
+
+
     #region IEvDbStorageMigration Members
 
     async Task IEvDbStorageMigration.CreateTestEnvironmentAsync(CancellationToken cancellation)
     {
-        var commands = await _commandsTask;
-        DbCommand command = commands.CreateEnvironment;
+        var conn = await _commandsTask;
 
-        await command.ExecuteNonQueryAsync();
+        string query = Queries.CreateEnvironment;
+        await conn.ExecuteAsync(query);
     }
 
     async Task IEvDbStorageMigration.DestroyTestEnvironmentAsync(CancellationToken cancellation)
     {
-        var commands = await _commandsTask;
-        DbCommand command = commands.DestroyEnvironment;
+        var conn = await _commandsTask;
+        string query = Queries.DestroyEnvironment;
 
-        await command.ExecuteNonQueryAsync();
+        await conn.ExecuteAsync(query);
     }
 
     #endregion // IEvDbStorageMigration Members

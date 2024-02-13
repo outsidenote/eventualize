@@ -1,37 +1,20 @@
-using EvDb.Core;
+﻿using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-public static class SqlServerStorageMigration
+internal class SqlServerStorageMigration : EvDbRelationalStorageMigration
 {
-    public static IEvDbStorageMigration Create(
+    public SqlServerStorageMigration(
         ILogger logger,
-        IEvDbConnectionFactory factory,
-        EvDbStorageContext context)
+        EvDbStorageContext context,
+        IEvDbConnectionFactory factory)
+            : base(logger, factory)
     {
-        IEvDbStorageMigration result =
-            EvDbRelationalStorageMigration.Create(
-                    logger,
-                    QueryTemplatesFactory.Create(context),
-                    factory);
-        return result;
+        Queries = QueryTemplatesFactory.Create(context);
     }
 
-    public static IEvDbStorageMigration Create(
-        ILogger logger,
-        string connectionString,
-        EvDbStorageContext context)
-    {
-        IEvDbConnectionFactory factory = new EvDbSqlConnectionFactory(connectionString);
+    protected override EvDbMigrationQueryTemplates Queries { get; }
 
-        IEvDbStorageMigration result =
-            EvDbRelationalStorageMigration.Create(
-                    logger,
-                    QueryTemplatesFactory.Create(context),
-                    factory);
-        return result;
-    }
 }
-

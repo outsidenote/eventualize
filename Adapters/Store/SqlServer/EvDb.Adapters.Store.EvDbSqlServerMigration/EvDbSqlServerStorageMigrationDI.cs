@@ -21,7 +21,7 @@ public static class EvDbSqlServerStorageMigrationDI
             string connectionStringOrKey = "EvDbSqlServerConnection")
     {
         // TODO: [bnaya 2024-02-13] Keyed injection
-        services.AddSingleton<IEvDbStorageAdapter>(sp =>
+        services.AddSingleton<IEvDbStorageMigration>(sp =>
         {
             #region IEvDbConnectionFactory connectionFactory = ...
 
@@ -36,7 +36,7 @@ public static class EvDbSqlServerStorageMigrationDI
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<EvDbRelationalStorageMigration>();
-            IEvDbStorageAdapter adapter = EvDbSqlServerStorageAdapterFactory.Create(logger, connectionString, context);
+            IEvDbStorageMigration adapter = SqlServerStorageMigrationFactory.Create(logger, connectionString, context);
             return adapter;
         });
 
