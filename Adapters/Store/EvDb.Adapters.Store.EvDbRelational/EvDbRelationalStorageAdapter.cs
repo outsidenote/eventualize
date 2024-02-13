@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
-using System.Transactions;
 
 // TODO: [bnaya 2023-12-20] default timeout
 
@@ -68,7 +67,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     async IAsyncEnumerable<EvDbEvent> IEvDbStorageAdapter.GetEventsAsync(
                     EvDbStreamCursor streamCursor,
-                    [EnumeratorCancellation]CancellationToken cancellation)
+                    [EnumeratorCancellation] CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;

@@ -3,8 +3,6 @@
 using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using Scenes;
-using System.Reflection;
-using System.Text.Json;
 using Xunit.Abstractions;
 
 internal static class Steps
