@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-public class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
+internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
 {
     public EvDbSqlServerStorageAdapter(
         ILogger logger,

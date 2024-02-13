@@ -1,13 +1,13 @@
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
-using System.Data.Common;
-using System.Data.SqlClient;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
 public static class EvDbSqlServerStorageAdapterFactory
 {
+    #region Ctor
+
     public static IEvDbStorageAdapter Create(
         ILogger logger,
         IEvDbConnectionFactory factory,
@@ -30,22 +30,5 @@ public static class EvDbSqlServerStorageAdapterFactory
         return result;
     }
 
-    #region class EvDbSqlConnectionFactory : EvDbConnectionFactory
-
-    private sealed class EvDbSqlConnectionFactory : EvDbConnectionFactory
-    {
-        private readonly string _connectionString;
-
-        public EvDbSqlConnectionFactory(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
-        public override DbConnection CreateConnection()
-        {
-            return new SqlConnection(_connectionString);
-        }
-    }
-
-    #endregion // class EvDbSqlConnectionFactory : EvDbConnectionFactory
+    #endregion // Ctor
 }
