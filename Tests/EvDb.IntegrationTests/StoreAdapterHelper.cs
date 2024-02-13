@@ -18,8 +18,8 @@ public static class StoreAdapterHelper
 
         string connectionKey = storeType switch
         {
-            StoreType.SqlServer => "SqlServerConnection",
-            StoreType.Posgres => "PosgresConnection",
+            StoreType.SqlServer => "EvDbSqlServerConnection",
+            StoreType.Posgres => "EvDbPosgresConnection",
             _ => throw new NotImplementedException()
         };
 
@@ -50,8 +50,8 @@ public static class StoreAdapterHelper
 
         string connectionKey = storeType switch
         {
-            StoreType.SqlServer => "SqlServerConnection",
-            StoreType.Posgres => "PosgresConnection",
+            StoreType.SqlServer => "EvDbSqlServerConnection",
+            StoreType.Posgres => "EvDbPosgresConnection",
             _ => throw new NotImplementedException()
         };
 

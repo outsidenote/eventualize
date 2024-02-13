@@ -34,25 +34,6 @@ public static class SqlServerStorageMigration
                     QueryTemplatesFactory.Create(context),
                     factory);
         return result;
-
     }
-
-    #region class EvDbSqlConnectionFactory : EvDbConnectionFactory
-
-    private sealed class EvDbSqlConnectionFactory : EvDbConnectionFactory
-    {
-        private readonly string _connectionString;
-
-        public EvDbSqlConnectionFactory(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
-        public override DbConnection CreateConnection()
-        {
-            return new SqlConnection(_connectionString);
-        }
-    }
-
-    #endregion // class EvDbSqlConnectionFactory : EvDbConnectionFactory
 }
+
