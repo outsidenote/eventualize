@@ -61,7 +61,7 @@ public static class StoreAdapterHelper
         IEvDbStorageMigration result = storeType switch
         {
             StoreType.SqlServer =>
-                SqlServerStorageMigration.Create(logger, connectionString, context),
+                SqlServerStorageMigrationFactory.Create(logger, connectionString, context),
             //StoreType.Posgres => ,
             //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
             _ => throw new NotImplementedException()
