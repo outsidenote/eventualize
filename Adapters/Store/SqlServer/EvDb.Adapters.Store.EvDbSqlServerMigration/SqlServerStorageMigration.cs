@@ -1,7 +1,6 @@
 ﻿using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
-using System.Data.SqlClient;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
@@ -16,6 +15,6 @@ internal class SqlServerStorageMigration : EvDbRelationalStorageMigration
         Queries = QueryTemplatesFactory.Create(context);
     }
 
-    protected override EvDbMigrationQueryTemplates Queries { get; } 
+    protected override EvDbMigrationQueryTemplates Queries { get; }
 
 }
