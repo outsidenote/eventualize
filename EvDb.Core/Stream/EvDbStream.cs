@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
@@ -133,7 +132,7 @@ public class EvDbStream :
 
     #region LastStoredOffset
 
-    public long StoreOffset { get; protected set; } 
+    public long StoreOffset { get; protected set; }
 
     #endregion // StoreOffset
 

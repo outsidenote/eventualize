@@ -1,8 +1,4 @@
-﻿using EvDb.Scenes;
-using System.Text.Json.Serialization;
-
-
-namespace EvDb.UnitTests;
+﻿namespace EvDb.UnitTests;
 
 // [JsonSerializable(typeof(CourseCreatedEvent))]
 // [JsonSerializable(typeof(ScheduleTestEvent))]

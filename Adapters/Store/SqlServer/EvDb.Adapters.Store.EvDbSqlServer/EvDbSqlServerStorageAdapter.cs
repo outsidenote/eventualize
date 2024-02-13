@@ -10,17 +10,17 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
     public EvDbSqlServerStorageAdapter(
         ILogger logger,
         EvDbStorageContext context,
-        IEvDbConnectionFactory factory) 
+        IEvDbConnectionFactory factory)
             : base(logger, factory)
     {
         Queries = QueryTemplatesFactory.Create(context);
     }
 
-    protected override EvDbAdapterQueryTemplates Queries { get; } 
+    protected override EvDbAdapterQueryTemplates Queries { get; }
 
     protected override bool IsOccException(Exception exception)
     {
-        bool result = exception is SqlException && 
+        bool result = exception is SqlException &&
                       exception.Message.StartsWith("Violation of PRIMARY KEY constraint");
         return result;
     }

@@ -110,7 +110,7 @@ public class SqlServerStreamTests : IntegrationTests
         IEvDbSchoolStream stream2 = _storageAdapter
                     .GivenLocalStreamWithPendingEvents(streamId: streamId);
 
-        await Assert.ThrowsAsync<OCCException>(() => 
+        await Assert.ThrowsAsync<OCCException>(() =>
             Task.WhenAll(
                     stream1.WhenStreamIsSavedAsync(),
                     stream2.WhenStreamIsSavedAsync()

@@ -1,7 +1,5 @@
 namespace EvDb.Core.Tests;
 
-using EvDb.UnitTests;
-
 using Scenes;
 using System.Text.Json;
 
