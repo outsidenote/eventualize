@@ -67,7 +67,7 @@ public partial class ViewRefGenerator : BaseGenerator
                                       if (pName == null)
                                       {
                                           pName = viewTypeSymbol.Name;
-                                          if (pName.EndsWith("View"))
+                                          if (pName.EndsWith("View") && pName.Length != 4)
                                               pName = pName.Substring(0, pName.Length - 4);
                                       }
 
