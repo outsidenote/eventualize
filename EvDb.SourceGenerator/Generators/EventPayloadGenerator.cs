@@ -36,7 +36,7 @@ public partial class EventPayloadGenerator : BaseGenerator
             builder.AppendLine($"""
                 `interface {typeSymbol.Name}` MUST BE A partial interface!
                 """);
-            context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
+            context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }
 

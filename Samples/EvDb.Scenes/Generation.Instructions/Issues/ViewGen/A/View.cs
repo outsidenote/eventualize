@@ -1,0 +1,10 @@
+﻿using EvDb.Core;
+using EvDb.Scenes;
+
+namespace EvDb.UnitTests.Issues.Views.A;
+
+[EvDbView<State?, IEvDbSchoolStreamAdders>("a")]
+internal partial class View
+{
+    protected override State? DefaultState { get; } = null;
+}
