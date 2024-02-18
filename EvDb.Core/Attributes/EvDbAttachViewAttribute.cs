@@ -5,5 +5,9 @@ namespace EvDb.Core;
 public class EvDbAttachViewAttribute<T> : Attribute
     where T : IEvDbViewStore
 {
+    public EvDbAttachViewAttribute(string? propertyName = null)
+    {
+        PropertyName = propertyName;
+    }
     public string? PropertyName { get; set; }
 }

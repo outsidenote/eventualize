@@ -47,7 +47,7 @@ public partial class AggregateGenerator : BaseGenerator
         string type = typeSymbol.ToType(syntax, cancellationToken);
         string factoryName = typeSymbol.Name;
         string rootName = factoryName;
-        if (factoryName.EndsWith("Factory"))
+        if (factoryName.EndsWith("Factory") )
             rootName = factoryName.Substring(0, factoryName.Length - 7);
         else
             factoryName = $"{factoryName}Factory";
