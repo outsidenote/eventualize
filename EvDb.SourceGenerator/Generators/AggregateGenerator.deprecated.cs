@@ -36,7 +36,7 @@ public partial class AggregateGenerator : BaseGenerator
                 DiagnosticSeverity.Error, isEnabledByDefault: true),
                 Location.None);
             builder.AppendLine($"`interface {typeSymbol.Name}` MUST BE A partial interface!");
-            context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
+            context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }
 
@@ -77,7 +77,7 @@ public partial class AggregateGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource($"{aggregateInterfaceType}.deprecated.generated.cs", builder.ToString());
+        context.AddSource($"{aggregateInterfaceType}.deprecated".GenSuffix(), builder.ToString());
 
         #endregion // Aggregate Interface
 
@@ -94,7 +94,7 @@ public partial class AggregateGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource($"{aggregateInterfaceType}Factory.deprecated.generated.cs", builder.ToString());
+        context.AddSource($"{aggregateInterfaceType}Factory.deprecated".GenSuffix(), builder.ToString());
 
         #endregion // Aggregate Factory Interface
 
@@ -226,7 +226,7 @@ public partial class AggregateGenerator : BaseGenerator
                         #endregion // Fold
                     }
                     """);
-        context.AddSource($"{factoryName}Base.generated.cs", builder.ToString());
+        context.AddSource($"{factoryName}Base".GenSuffix(), builder.ToString());
 
         #endregion // FactoryBase
 
@@ -243,7 +243,7 @@ public partial class AggregateGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource($"{factoryName}.deprecated.generated.cs", builder.ToString());
+        context.AddSource($"{factoryName}.deprecated".GenSuffix(), builder.ToString());
 
         #endregion // Factory
 
@@ -291,7 +291,7 @@ public partial class AggregateGenerator : BaseGenerator
                         #endregion // Add
                     }
                     """);
-        context.AddSource($"{rootName}.deprecated.generated.cs", builder.ToString());
+        context.AddSource($"{rootName}.deprecated".GenSuffix(), builder.ToString());
 
         #endregion // Aggregate
     }

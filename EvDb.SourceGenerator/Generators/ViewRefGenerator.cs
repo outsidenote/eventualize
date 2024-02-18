@@ -37,7 +37,7 @@ public partial class ViewRefGenerator : BaseGenerator
                 DiagnosticSeverity.Error, isEnabledByDefault: true),
                 Location.None);
             builder.AppendLine($"`interface {typeSymbol.Name}` MUST BE A partial interface!");
-            context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
+            context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }
 
@@ -98,7 +98,7 @@ public partial class ViewRefGenerator : BaseGenerator
                             };
                     }
                     """);
-        context.AddSource($"{typeSymbol.Name}.view-ref.generated.cs", builder.ToString());
+        context.AddSource($"{typeSymbol.Name}.view-ref".GenSuffix(), builder.ToString());
 
         #endregion // Stream Factory
 
@@ -144,7 +144,7 @@ public partial class ViewRefGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource($"{rootName}Views.view-ref.generated.cs", builder.ToString());
+        context.AddSource($"{rootName}Views.view-ref".GenSuffix(), builder.ToString());
 
         #endregion // Views Encapsulation
 
@@ -161,7 +161,7 @@ public partial class ViewRefGenerator : BaseGenerator
                         {{rootName}}Views Views { get; }
                     }
                     """);
-        context.AddSource($"{interfaceType}.view-ref.generated.cs", builder.ToString());
+        context.AddSource($"{interfaceType}.view-ref".GenSuffix(), builder.ToString());
 
         #endregion // Stream Interface
     }

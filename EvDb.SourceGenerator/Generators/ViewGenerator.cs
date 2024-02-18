@@ -37,7 +37,7 @@ public partial class ViewGenerator : BaseGenerator
                 DiagnosticSeverity.Error, isEnabledByDefault: true),
                 Location.None);
             builder.AppendLine($"`interface {typeSymbol.Name}` MUST BE A partial interface!");
-            context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
+            context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }
 
@@ -165,7 +165,7 @@ public partial class ViewGenerator : BaseGenerator
                         #endregion // Fold
                     }
                     """);
-        context.AddSource($"{viewClassName}Base.generated.cs", builder.ToString());
+        context.AddSource($"{viewClassName}Base".GenSuffix(), builder.ToString());
 
         #endregion // ViewBase
 
@@ -198,7 +198,7 @@ public partial class ViewGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
+        context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
 
         #endregion // View
 
@@ -225,7 +225,7 @@ public partial class ViewGenerator : BaseGenerator
                                 new {{typeSymbol.Name}}(address, snapshot, options);
                     }
                     """);
-        context.AddSource($"{typeSymbol.Name}Factory.generated.cs", builder.ToString());
+        context.AddSource($"{typeSymbol.Name}Factory".GenSuffix(), builder.ToString());
 
         #endregion // View Factory
     }

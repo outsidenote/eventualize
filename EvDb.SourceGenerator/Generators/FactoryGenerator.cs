@@ -38,7 +38,7 @@ public partial class FactoryGenerator : BaseGenerator
                 DiagnosticSeverity.Error, isEnabledByDefault: true),
                 Location.None);
             builder.AppendLine($"`interface {typeSymbol.Name}` MUST BE A partial interface!");
-            context.AddSource($"{typeSymbol.Name}.generated.cs", builder.ToString());
+            context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }
 
@@ -89,7 +89,7 @@ public partial class FactoryGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource($"{interfaceType}.generated.cs", builder.ToString());
+        context.AddSource($"{interfaceType}".GenSuffix(), builder.ToString());
 
         #endregion // Stream Interface
 
@@ -106,7 +106,7 @@ public partial class FactoryGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource($"{factoryInterfaceType}.generated.cs", builder.ToString());
+        context.AddSource($"{factoryInterfaceType}".GenSuffix(), builder.ToString());
 
         #endregion // Factory Interface
 
@@ -157,7 +157,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                     }
                     """);
-        context.AddSource($"{factoryName}Base.generated.cs", builder.ToString());
+        context.AddSource($"{factoryName}Base".GenSuffix(), builder.ToString());
 
         #endregion // FactoryBase
 
@@ -174,7 +174,7 @@ public partial class FactoryGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource($"{typeSymbol.Name}.factory.generated.cs", builder.ToString());
+        context.AddSource($"{typeSymbol.Name}.factory".GenSuffix(), builder.ToString());
 
         #endregion // Factory
 
@@ -244,7 +244,7 @@ public partial class FactoryGenerator : BaseGenerator
                         #endregion // Add
                     }
                     """);
-        context.AddSource($"{rootName}.generated.cs", builder.ToString());
+        context.AddSource($"{rootName}".GenSuffix(), builder.ToString());
 
         #endregion // Stream
     }
