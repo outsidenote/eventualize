@@ -36,7 +36,7 @@ public partial class EventPayloadGenerator : BaseGenerator
             builder.AppendLine($"""
                 `interface {typeSymbol.Name}` MUST BE A partial interface!
                 """);
-            context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
+            context.AddSource(typeSymbol.GenFileName("payload-not-partial"), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }
 
@@ -67,7 +67,7 @@ public partial class EventPayloadGenerator : BaseGenerator
                     }                
                     """);
 
-        context.AddSource($"{typeSymbol.Name}.generated.payload.cs", builder.ToString());
+        context.AddSource(typeSymbol.GenFileName("payload"), builder.ToString());
     }
 
     #endregion // OnGenerate

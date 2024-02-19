@@ -4,7 +4,7 @@
 namespace EvDb.UnitTests;
 
 [EvDbAttachView<StudentStatsView>]
-[EvDbAttachView<StatsView>(PropertyName = "ALL")]
+[EvDbAttachView<StatsView>( "ALL")]
 [EvDbStreamFactory<IEvDbSchoolStreamAdders>]
 public partial class SchoolStreamFactory
 {

@@ -13,7 +13,7 @@ namespace EvDb.SourceGenerator;
 [Generator]
 public partial class ViewGenerator : BaseGenerator
 {
-    internal const string EVENT_TARGET = "EvDbViewAttribute";
+    internal const string EVENT_TARGET = "EvDbViewTypeAttribute";
     protected override string EventTargetAttribute { get; } = EVENT_TARGET;
 
     #region OnGenerate
@@ -37,7 +37,7 @@ public partial class ViewGenerator : BaseGenerator
                 DiagnosticSeverity.Error, isEnabledByDefault: true),
                 Location.None);
             builder.AppendLine($"`interface {typeSymbol.Name}` MUST BE A partial interface!");
-            context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
+            context.AddSource(typeSymbol.GenFileName("partial-needed"), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }
 
@@ -165,7 +165,7 @@ public partial class ViewGenerator : BaseGenerator
                         #endregion // Fold
                     }
                     """);
-        context.AddSource($"{viewClassName}Base".GenSuffix(), builder.ToString());
+                    context.AddSource(typeSymbol.GenFileName("view", "Base", "EvDb"), builder.ToString());
 
         #endregion // ViewBase
 
@@ -198,7 +198,7 @@ public partial class ViewGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
+        context.AddSource(typeSymbol.GenFileName("view"), builder.ToString());
 
         #endregion // View
 
@@ -225,7 +225,7 @@ public partial class ViewGenerator : BaseGenerator
                                 new {{typeSymbol.Name}}(address, snapshot, options);
                     }
                     """);
-        context.AddSource($"{typeSymbol.Name}Factory".GenSuffix(), builder.ToString());
+        context.AddSource(typeSymbol.GenFileName("view", "Factory"), builder.ToString());
 
         #endregion // View Factory
     }

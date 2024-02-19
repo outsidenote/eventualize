@@ -9,5 +9,5 @@ public class EvDbAttachViewAttribute<T> : Attribute
     {
         PropertyName = propertyName;
     }
-    public string? PropertyName { get; set; }
+    public string? PropertyName { get; }
 }
