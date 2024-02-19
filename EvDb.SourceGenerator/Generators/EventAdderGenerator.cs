@@ -36,7 +36,7 @@ public partial class EventAdderGenerator : BaseGenerator
             builder.AppendLine($"""
                 `interface {typeSymbol.Name}` MUST BE A partial interface!
                 """);
-            context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
+            context.AddSource(typeSymbol.GenFileName("adder-not-partial"), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }
 
@@ -69,7 +69,7 @@ public partial class EventAdderGenerator : BaseGenerator
         }
         builder.AppendLine("}");
         //if(!syntax.part)
-        context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
+        context.AddSource(typeSymbol.GenFileName("adder"), builder.ToString());
     }
 
     #endregion // OnGenerate

@@ -17,3 +17,4 @@ namespace EvDb.UnitTests;
 public partial interface IEvDbSchoolStreamAdders
 {
 }
+

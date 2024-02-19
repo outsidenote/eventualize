@@ -38,7 +38,7 @@ public partial class FactoryGenerator : BaseGenerator
                 DiagnosticSeverity.Error, isEnabledByDefault: true),
                 Location.None);
             builder.AppendLine($"`interface {typeSymbol.Name}` MUST BE A partial interface!");
-            context.AddSource($"{typeSymbol.Name}".GenSuffix(), builder.ToString());
+            context.AddSource(typeSymbol.GenFileName("partial-is-missing"), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }
 
@@ -89,7 +89,7 @@ public partial class FactoryGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource($"{interfaceType}".GenSuffix(), builder.ToString());
+        context.AddSource(typeSymbol.GenFileNameSuffix(interfaceType, "factory"), builder.ToString());
 
         #endregion // Stream Interface
 
@@ -106,7 +106,7 @@ public partial class FactoryGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource($"{factoryInterfaceType}".GenSuffix(), builder.ToString());
+        context.AddSource(typeSymbol.GenFileNameSuffix(factoryInterfaceType, "factory"), builder.ToString());
 
         #endregion // Factory Interface
 
@@ -157,7 +157,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                     }
                     """);
-        context.AddSource($"{factoryName}Base".GenSuffix(), builder.ToString());
+        context.AddSource(typeSymbol.GenFileNameSuffix($"{factoryName}Base", "factory"), builder.ToString());
 
         #endregion // FactoryBase
 
@@ -174,7 +174,7 @@ public partial class FactoryGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource($"{typeSymbol.Name}.factory".GenSuffix(), builder.ToString());
+        context.AddSource(typeSymbol.GenFileName("factory"), builder.ToString());
 
         #endregion // Factory
 
@@ -244,7 +244,7 @@ public partial class FactoryGenerator : BaseGenerator
                         #endregion // Add
                     }
                     """);
-        context.AddSource($"{rootName}".GenSuffix(), builder.ToString());
+        context.AddSource(typeSymbol.GenFileNameSuffix(rootName, "factory"), builder.ToString());
 
         #endregion // Stream
     }

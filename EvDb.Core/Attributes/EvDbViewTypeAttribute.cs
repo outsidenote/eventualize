@@ -2,11 +2,11 @@
 namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class EvDbViewAttribute
+public class EvDbViewTypeAttribute
     <TState, TEventAdder> : Attribute
     where TEventAdder : IEvDbEventAdder
 {
-    public EvDbViewAttribute(string name)
+    public EvDbViewTypeAttribute(string name)
     {
         Name = name;
     }
