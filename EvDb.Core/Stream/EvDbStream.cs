@@ -68,7 +68,7 @@ public class EvDbStream :
 
     #region AddEvent
 
-    protected void AddEvent<T>(T payload, string? capturedBy = null)
+    protected IEvDbEventMeta AddEvent<T>(T payload, string? capturedBy = null)
         where T : IEvDbEventPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
@@ -82,6 +82,8 @@ public class EvDbStream :
 
             foreach (IEvDbViewStore folding in _views)
                 folding.FoldEvent(e);
+
+            return e;
         }
         finally
         {

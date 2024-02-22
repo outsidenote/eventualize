@@ -207,11 +207,12 @@ public partial class FactoryGenerator : BaseGenerator
 
         var adds = eventsPayloads.Select(ep =>
                     $$"""
-                        void {{eventType}}.Add(
+                        IEvDbEventMeta {{eventType}}.Add(
                                 {{ep.Type}} payload, 
                                 string? capturedBy)
                         {
-                            AddEvent(payload, capturedBy);
+                            IEvDbEventMeta meta = AddEvent(payload, capturedBy);
+                            return meta;
                         }
 
                     """);
