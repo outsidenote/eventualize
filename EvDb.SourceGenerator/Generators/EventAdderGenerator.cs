@@ -57,7 +57,7 @@ public partial class EventAdderGenerator : BaseGenerator
                          let genLen = fullName.Length - genStart - 1
                          let generic = fullName.Substring(genStart, genLen)
                          select generic;
-        var adds = attributes.Select(m => $"void Add({m} payload, string? capturedBy = null);");
+        var adds = attributes.Select(m => $"IEvDbEventMeta Add({m} payload, string? capturedBy = null);");
 
         builder.AppendLine($$"""
                     partial interface {{typeSymbol.Name}}: IEvDbEventAdder
