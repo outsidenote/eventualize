@@ -12,7 +12,7 @@ public static class EvDbSqlServerStorageAdapterDI
             this IServiceCollection services,
             string connectionStringOrKey)
     {
-        return services.AddEvDbSqlServerStore(connectionStringOrKey: connectionStringOrKey);
+        return services.AddEvDbSqlServerStore(null, connectionStringOrKey: connectionStringOrKey);
     }
 
     public static IServiceCollection AddEvDbSqlServerStore(
@@ -32,7 +32,7 @@ public static class EvDbSqlServerStorageAdapterDI
 
             #endregion // IEvDbConnectionFactory connectionFactory = ...
 
-            EvDbStorageContext context = EvDbStorageContext.CreateWithEnvironment("scheduling");
+            context = context ?? EvDbStorageContext.CreateWithEnvironment("scheduling");
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();
