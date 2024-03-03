@@ -22,6 +22,11 @@ public class EvDbStorageContext
         return new EvDbStorageContext(prefix, env);
     }
 
+    public static EvDbStorageContext Create(string prefix)
+    {
+        return new EvDbStorageContext(prefix, string.Empty);
+    }
+
     /// <summary>
     /// Gets the context identifier.
     /// </summary>

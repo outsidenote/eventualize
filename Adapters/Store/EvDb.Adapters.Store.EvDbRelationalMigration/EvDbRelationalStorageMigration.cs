@@ -34,7 +34,7 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
 
     #region IEvDbStorageMigration Members
 
-    async Task IEvDbStorageMigration.CreateTestEnvironmentAsync(CancellationToken cancellation)
+    async Task IEvDbStorageMigration.CreateEnvironmentAsync(CancellationToken cancellation)
     {
         var conn = await _commandsTask;
 
@@ -42,7 +42,7 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
         await conn.ExecuteAsync(query);
     }
 
-    async Task IEvDbStorageMigration.DestroyTestEnvironmentAsync(CancellationToken cancellation)
+    async Task IEvDbStorageMigration.DestroyEnvironmentAsync(CancellationToken cancellation)
     {
         var conn = await _commandsTask;
         string query = Queries.DestroyEnvironment;

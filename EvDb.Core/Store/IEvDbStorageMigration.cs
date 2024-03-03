@@ -2,6 +2,6 @@ namespace EvDb.Core;
 
 public interface IEvDbStorageMigration : IDisposable, IAsyncDisposable
 {
-    Task CreateTestEnvironmentAsync(CancellationToken cancellation = default);
-    Task DestroyTestEnvironmentAsync(CancellationToken cancellation = default);
+    Task CreateEnvironmentAsync(CancellationToken cancellation = default);
+    Task DestroyEnvironmentAsync(CancellationToken cancellation = default);
 }

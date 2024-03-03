@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EvDb.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "-env dev es-sample"
+    }
+  }
+}
