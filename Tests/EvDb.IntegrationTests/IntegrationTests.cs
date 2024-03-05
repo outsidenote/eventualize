@@ -19,7 +19,7 @@ public class IntegrationTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _storageMigration.CreateTestEnvironmentAsync();
+        await _storageMigration.CreateEnvironmentAsync();
     }
 
     public async Task DisposeAsync()

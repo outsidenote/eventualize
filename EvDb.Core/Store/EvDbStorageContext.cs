@@ -14,10 +14,16 @@ public class EvDbStorageContext
             _ => $"{prefix}_{environment}_"
         };
     }
-
-    public static EvDbStorageContext CreateWithEnvironment(string prefix = "", string environmentKey = "ASPNETCORE_ENVIRONMENT")
+    /// <summary>
+    /// The environment variable key represent the environment.
+    /// If the key is not found, the value is used as the environment.
+    /// </summary>
+    /// <param name="prefix"></param>
+    /// <param name="environmentOrKey"></param>
+    /// <returns></returns>
+    public static EvDbStorageContext CreateWithEnvironment(string prefix = "", string environmentOrKey = "ASPNETCORE_ENVIRONMENT")
     {
-        Env env = Environment.GetEnvironmentVariable(environmentKey);
+        Env env = Environment.GetEnvironmentVariable(environmentOrKey) ?? environmentOrKey;
 
         return new EvDbStorageContext(prefix, env);
     }

@@ -27,8 +27,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Adapters\Store\Postgres\EvDb.Adapters.Store.EvDbSqlPostgresMigration\EvDb.Adapters.Store.EvDbPostgresMigration.csproj" />
 		<ProjectReference Include="..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerMigration\EvDb.Adapters.Store.EvDbSqlServerMigration.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="icon-light.png">
+	    <PackagePath></PackagePath>
+	    <Pack>True</Pack>
+	  </None>
 	</ItemGroup>
 
 </Project>
