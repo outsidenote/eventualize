@@ -5,7 +5,7 @@ public record StorageContext
     public static StorageContext Default { get; } = new StorageContext();
     public static StorageContext CreateWithEnvironment(string prefix = "_eventualize_")
     {
-        Env env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT ");
+        Env env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         string id = string.IsNullOrEmpty(env)
                             ? prefix
                             : $"_{prefix}_{env}_";
@@ -17,7 +17,7 @@ public record StorageContext
     public static StorageContext CreateUnique(bool withEnvironment = true, string prefix = "_eventualize_")
     {
         Env env = withEnvironment
-            ? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT ") ?? string.Empty
+            ? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? string.Empty
             : string.Empty;
         Guid guid = Guid.NewGuid();
         string unique = string.IsNullOrEmpty(env)
