@@ -1,0 +1,259 @@
+<mxfile host="65bd71144e">
+    <diagram id="cKvhgTrxyVhHLqhWx0I1" name="Page-1">
+        <mxGraphModel dx="1268" dy="1152" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="5" value="&lt;b&gt;&amp;lt;any event&amp;gt;&lt;br&gt;&lt;/b&gt;{&lt;br&gt;&amp;nbsp;offset: 0&lt;br&gt;&amp;nbsp;globalOffset: 50&lt;br&gt;&amp;nbsp;domain: Registration&lt;br&gt;&amp;nbsp;Partition: Account&lt;br&gt;&amp;nbsp;streamId: &quot;some_uuid&quot;&lt;br&gt;&amp;nbsp;created_at: &quot;2024-03-04 21:06:00&quot;&lt;br&gt;}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0a30a;fontColor=#000000;strokeColor=#BD7000;align=left;verticalAlign=top;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="100" width="250" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="Domains" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+                    <mxGeometry x="30" y="310" width="170" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="&lt;b&gt;[]&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;align=left;verticalAlign=top;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="270" width="160" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="&lt;b&gt;{&lt;br&gt;&amp;nbsp;streams: [&lt;br&gt;&amp;nbsp; {&lt;br&gt;&lt;/b&gt;&lt;b&gt;&amp;nbsp; &amp;nbsp;id: &quot;some_uuid&quot;,&lt;br&gt;&lt;/b&gt;&lt;b&gt;&amp;nbsp; &amp;nbsp;created_at: &quot;2024-03-04 21:06:00&quot;,&lt;br&gt;&lt;/b&gt;&lt;b&gt;&amp;nbsp; }&lt;br&gt;&amp;nbsp;],&lt;br&gt;&amp;nbsp;lastGlobalOffset: 50&lt;br&gt;}&lt;br&gt;&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;align=left;verticalAlign=top;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="690" width="250" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="&lt;b&gt;&amp;lt;any event&amp;gt;&lt;br&gt;&lt;/b&gt;{&lt;br&gt;&amp;nbsp;offset: 0&lt;br&gt;&amp;nbsp;globalOffset: 55&lt;br&gt;&amp;nbsp;domain: Registration&lt;br&gt;&amp;nbsp;Partition: Account&lt;br&gt;&amp;nbsp;streamId: &quot;some_other_uuid&quot;&lt;br&gt;&amp;nbsp;created_at: &quot;2024-03-04 21:07:00&quot;&lt;br&gt;}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0a30a;fontColor=#000000;strokeColor=#BD7000;align=left;verticalAlign=top;" vertex="1" parent="1">
+                    <mxGeometry x="690" y="100" width="390" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="&lt;b&gt;{&lt;br&gt;&amp;nbsp;domains: [&lt;br&gt;&amp;nbsp; {&lt;br&gt;&amp;nbsp; &amp;nbsp; name: Registration,&lt;br&gt;&amp;nbsp; &amp;nbsp; num_partitions: 1,&lt;br&gt;&lt;/b&gt;&lt;b&gt;&amp;nbsp; &amp;nbsp; created_at: &quot;2024-03-04 21:06:00&quot;,&lt;/b&gt;&lt;b&gt;&lt;br&gt;&amp;nbsp; }&lt;br&gt;&amp;nbsp;],&lt;br&gt;&amp;nbsp;lastGlobalOffset:50&lt;br&gt;}&lt;br&gt;&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;align=left;verticalAlign=top;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="270" width="250" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="&quot;Registration&quot; Partitions" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+                    <mxGeometry x="10" y="530" width="190" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="&lt;b&gt;{&lt;br&gt;&amp;nbsp;partitions: [&lt;br&gt;&amp;nbsp; {&lt;br&gt;&lt;/b&gt;&lt;b&gt;&amp;nbsp; &amp;nbsp; name: Account,&lt;br&gt;&lt;/b&gt;&lt;b&gt;&amp;nbsp; &amp;nbsp; created_at: &quot;2024-03-04 21:06:00&quot;&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;b&gt;&amp;nbsp; }&lt;br&gt;&amp;nbsp;],&lt;br&gt;&amp;nbsp;lastGlobalOffset: 50&lt;br&gt;}&lt;br&gt;&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;align=left;verticalAlign=top;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="490" width="250" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="&lt;b&gt;[]&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;align=left;verticalAlign=top;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="490" width="160" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="&quot;Registration/Account&quot; Streams" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+                    <mxGeometry x="10" y="730" width="190" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="&lt;b&gt;[]&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;align=left;verticalAlign=top;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="690" width="160" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="&lt;b&gt;{&lt;br&gt;&amp;nbsp;streams: [&lt;br&gt;&amp;nbsp; {&amp;nbsp;&lt;/b&gt;&lt;b&gt;id: &quot;some_uuid&quot;,&amp;nbsp;&lt;/b&gt;&lt;b&gt;created_at: &quot;2024-03-04 21:06:00&quot;&amp;nbsp;&lt;/b&gt;&lt;b&gt;},&lt;br&gt;&lt;/b&gt;&lt;b&gt;&amp;nbsp; {&amp;nbsp;&lt;/b&gt;&lt;b&gt;id: &quot;some_other_uuid&quot;,&amp;nbsp;&lt;/b&gt;&lt;b&gt;created_at: &quot;2024-03-04 21:07:00&quot;&amp;nbsp;&lt;/b&gt;&lt;b&gt;}&lt;/b&gt;&lt;b&gt;&lt;br&gt;&amp;nbsp;],&lt;br&gt;&amp;nbsp;lastGlobalOffset: 55&lt;br&gt;}&lt;br&gt;&amp;nbsp;&lt;br&gt;&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;align=left;verticalAlign=top;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="690" y="690" width="380" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="" style="endArrow=none;html=1;fontSize=16;fontColor=#000000;fontStyle=0" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="200" y="1320" as="sourcePoint"/>
+                        <mxPoint x="1560" y="1320" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="24" value="" style="endArrow=none;html=1;fontSize=16;fontColor=#000000;fontStyle=0" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="200" y="1400" as="sourcePoint"/>
+                        <mxPoint x="1560" y="1400" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="25" value="" style="endArrow=none;html=1;fontSize=16;fontColor=#000000;fontStyle=0" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="200" y="1480" as="sourcePoint"/>
+                        <mxPoint x="1560" y="1480" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="26" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="1160" width="140" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" style="edgeStyle=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=16;fontColor=#000000;fontStyle=0" edge="1" parent="1" source="27" target="26">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="Domains" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontColor=#ffffff;fillColor=#60a917;strokeColor=#2D7600;" vertex="1" parent="1">
+                    <mxGeometry x="210" y="1330" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="&lt;font color=&quot;#ffffff&quot; style=&quot;font-size: 10px;&quot;&gt;Domains:&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="210" y="1170" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="1210" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="1220" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="1230" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="&lt;font color=&quot;#ffffff&quot; style=&quot;font-size: 6px;&quot;&gt;Name&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;Create At&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="1190" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;Registration&amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-04 21:06:00&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="1208" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;Payments&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; 2024-03-05 11:00:00&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="1218" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;Eligibility&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; 2024-03-05 11:05:00&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="1228" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="380" y="1160" width="140" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="&lt;font color=&quot;#ffffff&quot; style=&quot;font-size: 7px;&quot;&gt;Domain: Registration &amp;gt; Partitions&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="390" y="1170" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="1210" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="1220" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="1230" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="&lt;font color=&quot;#ffffff&quot; style=&quot;font-size: 6px;&quot;&gt;Name&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;Create At&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="1190" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;Account&amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-04 21:06:00&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="1208" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" style="edgeStyle=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=7;fontColor=#FFFFFF;fontStyle=0" edge="1" parent="1" source="49" target="40">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="&quot;Registration&quot; Partitions" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontColor=#ffffff;fillColor=#60a917;strokeColor=#2D7600;" vertex="1" parent="1">
+                    <mxGeometry x="390" y="1330" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="560" y="1140" width="150" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="&lt;font color=&quot;#ffffff&quot; style=&quot;font-size: 7px;&quot;&gt;Domain: Registration &amp;gt;&lt;br&gt;&amp;nbsp;Partition: Account &amp;gt; Streams&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="570" y="1157" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="1227" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="1237" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="1247" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="&lt;font color=&quot;#ffffff&quot; style=&quot;font-size: 6px;&quot;&gt;ID&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;Create At&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="1207" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;uuid1&amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-04 21:06:00&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="1225" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;uuid2&amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-05 10:00:00&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="1235" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" style="edgeStyle=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=7;fontColor=#FFFFFF;fontStyle=0" edge="1" parent="1" source="59" target="51">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="&quot;Registration Account&quot; Streams" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontColor=#ffffff;fillColor=#60a917;strokeColor=#2D7600;" vertex="1" parent="1">
+                    <mxGeometry x="575" y="1330" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="730" y="1100" width="350" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="62" value="&lt;font color=&quot;#ffffff&quot; style=&quot;font-size: 7px;&quot;&gt;Domain: Registration &amp;gt;&amp;nbsp;Partition: Account &amp;gt; Stream: uuid1&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="740" y="1105" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1145" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1155" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1165" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="&lt;font color=&quot;#ffffff&quot; style=&quot;font-size: 6px;&quot;&gt;offset&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; captured_at&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;event_type&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; payload&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;captured_by&amp;nbsp;&amp;nbsp;&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1125" width="310" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;0&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-04 21:06:00&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; registration_requested&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;{ account_id: uuid1, ...}&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; registration_API&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1143" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="69" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;1&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-04 21:06:55&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; email_provided&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; { email: user@...}&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;registration_API&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1153" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;2&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-04 21:06:56&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; email_verified&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; { email: user@...}&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;email_verifier&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1163" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="72" style="edgeStyle=orthogonalEdgeStyle;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=9;fontColor=#FFFFFF;curved=1;fontStyle=0" edge="1" parent="1" source="71" target="61">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="Stream UUID1 Events" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontColor=#ffffff;fillColor=#60a917;strokeColor=#2D7600;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1330" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="1187" width="100" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="75" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;Search Stream...&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="1185" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="76" value="" style="endArrow=none;html=1;fontSize=9;fontColor=#FFFFFF;exitX=0.881;exitY=1.029;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.882;entryY=0.2;entryDx=0;entryDy=0;entryPerimeter=0;jumpSize=6;endSize=6;fontStyle=0" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="666.1" y="1201.4060000000002" as="sourcePoint"/>
+                        <mxPoint x="666.2" y="1187" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="80" value="" style="triangle;whiteSpace=wrap;html=1;fontSize=9;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="670.5" y="1189" width="7.5" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;&lt;b&gt;1&lt;/b&gt; 2 3 Next&amp;gt;&lt;/font&gt;" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="1257" width="100" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="82" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;&lt;b&gt;1&lt;/b&gt; 2 3 Next&amp;gt;&lt;/font&gt;" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1175" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="84" style="edgeStyle=orthogonalEdgeStyle;jumpSize=6;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=15;fontColor=#FFFFFF;endSize=6;curved=1;fontStyle=0" edge="1" parent="1" source="83" target="61">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="83" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;Stream UUID1 Views Snapshots&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontColor=#ffffff;fillColor=#60a917;strokeColor=#2D7600;" vertex="1" parent="1">
+                    <mxGeometry x="950" y="1330" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="90" value="" style="group;fontSize=10;" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="750" y="1200" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="85" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;View1&lt;/font&gt;" style="html=1;shadow=0;dashed=0;shape=mxgraph.bootstrap.tabTop;strokeColor=#DFDFDF;fillColor=#ffffff;rSize=5;perimeter=none;whiteSpace=wrap;resizeWidth=1;align=center;spacing=20;fontSize=9;fontColor=#4B5259;" vertex="1" parent="90">
+                    <mxGeometry y="-1" width="31.794871794871792" height="8.88888888888889" as="geometry"/>
+                </mxCell>
+                <mxCell id="86" value="View2" style="strokeColor=none;fillColor=none;rSize=5;perimeter=none;whiteSpace=wrap;resizeWidth=1;align=center;spacing=20;fontSize=10;fontColor=#0085FC;" vertex="1" parent="90">
+                    <mxGeometry x="50.00205128205128" y="-1.1099999999999999" width="19.87179487179487" height="8.88888888888889" as="geometry"/>
+                </mxCell>
+                <mxCell id="89" value="" style="shape=line;strokeColor=#dddddd;fontSize=15;fontColor=#FFFFFF;" vertex="1" parent="90">
+                    <mxGeometry x="31.794871794871792" y="7.777777777777778" width="278.20512820512823" height="2.2222222222222223" as="geometry"/>
+                </mxCell>
+                <mxCell id="87" value="View3" style="strokeColor=none;fillColor=none;rSize=5;perimeter=none;whiteSpace=wrap;resizeWidth=1;align=center;spacing=20;fontSize=10;fontColor=#0085FC;" vertex="1" parent="90">
+                    <mxGeometry x="89.99820512820509" y="-1.1099999999999" width="19.87179487179487" height="8.88888888888889" as="geometry"/>
+                </mxCell>
+                <mxCell id="92" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1209" width="310" height="71" as="geometry"/>
+                </mxCell>
+                <mxCell id="100" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1240" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="101" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1250" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="102" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1260" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="103" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;100&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-04 21:06:00&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; { account_id: uuid1, ...}&amp;nbsp;&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1238" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="104" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;90&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-04 21:03:55&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; { email: user@...}&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1248" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="105" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;80&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;2024-03-04 21:01:23&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; { email: user@...}&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1258" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="106" value="&lt;font style=&quot;font-size: 6px;&quot;&gt;&lt;b&gt;1&lt;/b&gt; 2 3 Next&amp;gt;&lt;/font&gt;" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1268" width="310" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="108" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;Read Models&lt;/font&gt;" style="shape=umlFrame;whiteSpace=wrap;html=1;fontSize=9;fontColor=#FFFFFF;fillStyle=auto;width=140;height=50;" vertex="1" parent="1">
+                    <mxGeometry y="40" width="1120" height="850" as="geometry"/>
+                </mxCell>
+                <mxCell id="107" value="&lt;font color=&quot;#ffffff&quot; style=&quot;font-size: 6px;&quot;&gt;offset&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; captured_at&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;state&lt;/font&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="1218" width="310" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
