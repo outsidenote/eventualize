@@ -14,10 +14,11 @@ public record StorageContext
             Id = id,
         };
     }
+
     public static StorageContext CreateUnique(bool withEnvironment = true, string prefix = "_eventualize_")
     {
         Env env = withEnvironment
-            ? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? string.Empty
+            ? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENTscheduling") ?? string.Empty
             : string.Empty;
         Guid guid = Guid.NewGuid();
         string unique = string.IsNullOrEmpty(env)
@@ -42,8 +43,6 @@ public record StorageContext
     public override string ToString() => Id;
 
     #region Cast overloads
-
-    //public static implicit operator StorageContext(string id) => new StorageContext { Id = id };
 
     public static implicit operator string(StorageContext context) => context.ToString();
 

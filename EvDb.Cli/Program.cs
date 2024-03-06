@@ -1,5 +1,4 @@
 ﻿using EvDb.Adapters.Store.SqlServer;
-//using EvDb.Adapters.Store.Posgres;
 using EvDb.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -11,7 +10,7 @@ var logger = new LoggerFactory()
 int storeIndex = Array.FindIndex(args, m => m == "--store");
 int indexSonnectionString = Array.FindIndex(args, m => m == "--connection-string");
 int indexnv = Array.FindIndex(args, m => m == "--environment" || m == "-e");
-string? env = indexnv == -1
+Env? env = indexnv == -1
     ? null
     : args[indexnv + 1];
 string? connectionString = indexSonnectionString == -1
