@@ -123,21 +123,25 @@ public partial class ViewGenerator : BaseGenerator
                         #region Ctor
 
                         protected {{viewClassName}}Base(
-                            EvDbStreamAddress address, 
+                            EvDbStreamAddress address,
+                            IEvDbStorageAdapter storageAdapter, 
                             JsonSerializerOptions? options):
                                 base(new EvDbViewAddress(address, ViewName), 
                                 EvDbStoredSnapshot.Empty,
+                                storageAdapter, 
                                 options)
                         {
                         }
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
+                            IEvDbStorageAdapter storageAdapter,
                             EvDbStoredSnapshot snapshot, 
                             JsonSerializerOptions? options):
                                 base(
                                     new EvDbViewAddress(address, ViewName), 
                                     snapshot,
+                                    storageAdapter,
                                     options)
                         {
                         }
@@ -180,18 +184,21 @@ public partial class ViewGenerator : BaseGenerator
                     partial {{type}} {{typeSymbol.Name}}: {{viewClassName}}Base
                     { 
                         internal {{typeSymbol.Name}}(
-                            EvDbStreamAddress address, 
+                            EvDbStreamAddress address,
+                            IEvDbStorageAdapter storageAdapter, 
                             JsonSerializerOptions? options):
-                                    base (address,options)
+                                    base (address, storageAdapter, options)
                         {
                         }
 
                         internal {{typeSymbol.Name}}(
                             EvDbStreamAddress address,
+                            IEvDbStorageAdapter storageAdapter,
                             EvDbStoredSnapshot snapshot, 
                             JsonSerializerOptions? options):
                                 base (
                                     address,
+                                    storageAdapter,
                                     snapshot,
                                     options)
                         {
@@ -211,18 +218,22 @@ public partial class ViewGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     internal class {{typeSymbol.Name}}Factory: IEvDbViewFactory
-                    { 
-                        public static readonly IEvDbViewFactory Default = new {{typeSymbol.Name}}Factory();
+                    {
+                          private readonly IEvDbStorageAdapter _storageAdapter;
+                          public {{typeSymbol.Name}}Factory(IEvDbStorageAdapter storageAdapter)
+                          {
+                            _storageAdapter = storageAdapter;
+                          } 
 
                         string IEvDbViewFactory.ViewName { get; } = "{{name}}";
 
                         IEvDbViewStore IEvDbViewFactory.CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options) => 
-                                new {{typeSymbol.Name}}(address, options);
+                                new {{typeSymbol.Name}}(address, _storageAdapter, options);
 
                         IEvDbViewStore IEvDbViewFactory.CreateFromSnapshot(EvDbStreamAddress address,
                             EvDbStoredSnapshot snapshot,
                             JsonSerializerOptions? options) => 
-                                new {{typeSymbol.Name}}(address, snapshot, options);
+                                new {{typeSymbol.Name}}(address, _storageAdapter, snapshot, options);
                     }
                     """);
         context.AddSource(typeSymbol.GenFileName("view", "Factory"), builder.ToString());

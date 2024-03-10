@@ -80,7 +80,7 @@ public partial class ViewRefGenerator : BaseGenerator
         var propsCreates = propsNames.Select(p =>
                                                 $$"""
 
-                                                        {{p.Type}}Factory.Default
+                                                        new {{p.Type}}Factory(_storageAdapter)
                                                 """);
 
         #endregion // propsNames = .., props = .., propsCreates = ..
