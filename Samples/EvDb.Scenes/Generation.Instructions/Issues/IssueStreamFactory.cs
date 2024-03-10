@@ -8,14 +8,6 @@ namespace EvDb.UnitTests;
 [EvDbStreamFactory<IEvDbSchoolStreamAdders>]
 public partial class IssueStreamFactory
 {
-    #region Ctor
-
-    public IssueStreamFactory(IEvDbStorageAdapter storageAdapter) : base(storageAdapter)
-    {
-    }
-
-    #endregion // Ctor
-
     #region Partition
 
     public override EvDbPartitionAddress PartitionAddress { get; } = new EvDbPartitionAddress("issues", "view-naming");
