@@ -24,12 +24,22 @@ public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
                                 CancellationToken cancellation = default);
 
     /// <summary>
-    /// Saves the pending events and create required snapshots.
+    /// Saves the pending events to the stream
     /// </summary>
     /// <param name="streamStore">The stream store.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    Task SaveAsync(
+    Task SaveStreamAsync(
         IEvDbStreamStoreData streamStore,
+        CancellationToken cancellation = default);
+    
+    /// <summary>
+    /// Store the view's state as a snapshot
+    /// </summary>
+    /// <param name="viewStore">The view store.</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    Task SaveViewAsync(
+        IEvDbViewStore viewStore,
         CancellationToken cancellation = default);
 }

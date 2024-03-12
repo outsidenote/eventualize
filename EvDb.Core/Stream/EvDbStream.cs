@@ -8,17 +8,19 @@ using System.Text.Json;
 
 namespace EvDb.Core;
 
-
 [DebuggerDisplay("{StreamAddress}, Stored Offset:{StoreOffset} ,Count:{CountOfPendingEvents}")]
 public class EvDbStream :
-        IEvDbStreamStore,
-        IEvDbStreamStoreData
+    IEvDbStreamStore,
+    IEvDbStreamStoreData
 {
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<EvDbEvent> _pendingEvents = ImmutableList<EvDbEvent>.Empty;
 
     protected static readonly SemaphoreSlim _dirtyLock = new SemaphoreSlim(1);
-    private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ?? throw new NotSupportedException("GetExecutingAssembly");
+
+    private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ??
+                                                         throw new NotSupportedException("GetExecutingAssembly");
+
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
 
     #region Ctor
@@ -36,7 +38,6 @@ public class EvDbStream :
         StoreOffset = lastStoredOffset;
         Options = factory.Options;
     }
-
 
     #endregion // Ctor
 
@@ -58,6 +59,7 @@ public class EvDbStream :
             var empty = new EvDbStreamCursor(StreamAddress, StoreOffset + 1);
             return empty;
         }
+
         EvDbEvent e = _pendingEvents[CountOfPendingEvents - 1];
         long offset = e.StreamCursor.Offset;
         var result = new EvDbStreamCursor(StreamAddress, offset + 1);
@@ -99,7 +101,7 @@ public class EvDbStream :
     {
         try
         {
-            await _dirtyLock.WaitAsync();// TODO: [bnaya 2024-01-09] re-consider the lock solution
+            await _dirtyLock.WaitAsync(); // TODO: [bnaya 2024-01-09] re-consider the lock solution
 
             if (!this.HasPendingEvents)
             {
@@ -107,7 +109,10 @@ public class EvDbStream :
                 return;
             }
 
-            await _storageAdapter.SaveAsync(this, cancellation);
+            await _storageAdapter.SaveStreamAsync(this, cancellation);
+            foreach (var view in this._views)
+                await view.SaveAsync(cancellation);
+
             EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
             StoreOffset = ev.StreamCursor.Offset;
             _pendingEvents = ImmutableList<EvDbEvent>.Empty;
@@ -148,4 +153,3 @@ public class EvDbStream :
 
     IEnumerable<EvDbEvent> IEvDbStreamStoreData.Events => _pendingEvents;
 }
-

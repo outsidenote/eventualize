@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 
 namespace EvDb.Core.Adapters;
 
-
 // TODO: [bnaya 2023-12-19] all parameters and field should be driven from nameof or const
 // TODO: [bnaya 2023-12-20] how do we get the domain?, shouldn't it be a parameter in each and every query?
 
@@ -39,6 +38,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     }
 
     #endregion // Ctor
+
     protected abstract EvDbAdapterQueryTemplates Queries { get; }
 
     #region IEvDbStorageAdapter Members
@@ -66,8 +66,8 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     }
 
     async IAsyncEnumerable<EvDbEvent> IEvDbStorageAdapter.GetEventsAsync(
-                    EvDbStreamCursor streamCursor,
-                    [EnumeratorCancellation] CancellationToken cancellation)
+        EvDbStreamCursor streamCursor,
+        [EnumeratorCancellation] CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
@@ -82,27 +82,16 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
     }
 
-    async Task IEvDbStorageAdapter.SaveAsync(IEvDbStreamStoreData streamData, CancellationToken cancellation)
+    async Task IEvDbStorageAdapter.SaveStreamAsync(IEvDbStreamStoreData streamData, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
-
         string saveEventsQuery = Queries.SaveEvents;
-        string saveSnapshotQuery = Queries.SaveSnapshot;
 
         var events = streamData.Events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
         try
         {
             await conn.ExecuteAsync(saveEventsQuery, events);
-
-            foreach (IEvDbViewStore view in streamData.Views)
-            {
-                if (view.ShouldStoreSnapshot)
-                {
-                    EvDbStoredSnapshotAddress snapshot = view.GetSnapshot();
-                    await conn.ExecuteAsync(saveSnapshotQuery, snapshot);
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -113,6 +102,22 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
     }
 
+
+    async Task IEvDbStorageAdapter.SaveViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)
+    {
+        if (!viewStore.ShouldStoreSnapshot)
+        {
+            await Task.FromResult(true);
+            return;
+        }
+        
+        cancellation.ThrowIfCancellationRequested();
+        DbConnection conn = await _connectionTask;
+        string saveSnapshotQuery = Queries.SaveSnapshot;
+
+        EvDbStoredSnapshotAddress snapshot = viewStore.GetSnapshot();
+        await conn.ExecuteAsync(saveSnapshotQuery, snapshot);
+    }
 
     #endregion // IEvDbStorageAdapter Members
 

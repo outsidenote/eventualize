@@ -8,14 +8,6 @@ namespace EvDb.UnitTests;
 [EvDbStreamFactory<IEvDbSchoolStreamAdders>]
 public partial class SchoolStreamFactory
 {
-    #region Ctor
-
-    public SchoolStreamFactory(IEvDbStorageAdapter storageAdapter) : base(storageAdapter)
-    {
-    }
-
-    #endregion // Ctor
-
     #region JsonSerializerOptions
 
     //public override JsonSerializerOptions? Options { get; } = SchoolStreamSerializationContext.Default.Options;

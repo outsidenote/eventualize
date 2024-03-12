@@ -10,8 +10,9 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
     protected EvDbView(
         EvDbViewAddress address,
         EvDbStoredSnapshot snapshot,
+        IEvDbStorageAdapter storageAdapter,
         JsonSerializerOptions? options) :
-            base(address, options, snapshot.Offset)
+        base(address, storageAdapter, options, snapshot.Offset)
     {
         if (snapshot == EvDbStoredSnapshot.Empty || string.IsNullOrEmpty(snapshot.State))
             State = DefaultState;
@@ -36,15 +37,18 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
 [DebuggerDisplay("Offset:[Stored: {StoreOffset}, Folded:{FoldOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
 public abstract class EvDbView : IEvDbViewStore
 {
+    private readonly IEvDbStorageAdapter _storageAdapter;
     protected readonly JsonSerializerOptions? _options;
 
     #region Ctor
 
     protected EvDbView(
         EvDbViewAddress address,
+        IEvDbStorageAdapter storageAdapter,
         JsonSerializerOptions? options,
         long storedOffset = -1)
     {
+        _storageAdapter = storageAdapter;
         _options = options;
         StoreOffset = storedOffset;
         FoldOffset = storedOffset;
@@ -81,6 +85,18 @@ public abstract class EvDbView : IEvDbViewStore
 
     public abstract EvDbStoredSnapshotAddress GetSnapshot();
 
+    public async Task SaveAsync(CancellationToken cancellation = default)
+    {
+        if (!this.ShouldStoreSnapshot)
+        {
+            await Task.FromResult(true);
+            return;
+        }
+
+        await this._storageAdapter.SaveViewAsync(this, cancellation);
+        return;
+    }
+
     public EvDbViewAddress Address { get; }
 
     public long FoldOffset { get; private set; }
@@ -104,4 +120,3 @@ public abstract class EvDbView : IEvDbViewStore
 
     protected abstract void OnFoldEvent(EvDbEvent e);
 }
-
