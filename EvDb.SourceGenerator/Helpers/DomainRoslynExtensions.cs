@@ -10,7 +10,8 @@ internal static class DomainRoslynExtensions
 
     public static void AppendHeader(this StringBuilder builder,
                                     TypeDeclarationSyntax syntax,
-                                    INamedTypeSymbol typeSymbol)
+                                    INamedTypeSymbol typeSymbol,
+                                    string? @namespace = null)
     {
         builder.AppendLine("#nullable enable");
 
@@ -27,7 +28,7 @@ internal static class DomainRoslynExtensions
             builder.AppendLine(line.Trim());
         }
 
-        var ns = typeSymbol.ContainingNamespace.ToDisplayString();
+        var ns = @namespace ?? typeSymbol.ContainingNamespace.ToDisplayString();
         if (ns != null)
             builder.AppendLine($"namespace {ns};");
 

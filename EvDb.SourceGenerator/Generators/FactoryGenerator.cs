@@ -248,6 +248,29 @@ public partial class FactoryGenerator : BaseGenerator
         context.AddSource(typeSymbol.GenFileNameSuffix(rootName, "factory"), builder.ToString());
 
         #endregion // Stream
+
+        builder.Clear();
+
+        #region DI
+
+        builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    using {{typeSymbol.ContainingNamespace.ToDisplayString()}};
+
+                    public static class {{factoryName}}DependencyInjectionModule
+                    {
+                        public static IServiceCollection Add{{factoryName}}(this IServiceCollection services)
+                        {
+                            services.AddSingleton<{{factoryInterfaceType}},{{typeSymbol.Name}}>();
+                            return services;
+                        }
+                    }
+                    """);
+        context.AddSource(typeSymbol.GenFileName("di"), builder.ToString());
+
+        #endregion // DI
     }
 
     #endregion // OnGenerate
