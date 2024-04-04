@@ -8,10 +8,11 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 	</PropertyGroup>
-
+	
 	<PropertyGroup>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IncludeSource>False</IncludeSource>
