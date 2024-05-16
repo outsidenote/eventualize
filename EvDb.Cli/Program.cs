@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 
+// TODO: use Cocona: https://www.youtube.com/watch?v=pDCMXoisvX4
+
 var logger = new LoggerFactory()
     .CreateLogger<Program>();
 
