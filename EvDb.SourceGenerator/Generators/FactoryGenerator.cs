@@ -129,7 +129,10 @@ public partial class FactoryGenerator : BaseGenerator
                     {                
                         #region Ctor
 
-                        public {{factoryName}}Base(IEvDbStorageAdapter storageAdapter): base(storageAdapter)
+                        public {{factoryName}}Base(
+                                    IEvDbStorageAdapter storageAdapter,
+                                    TimeProvider timeProvider):
+                                        base(storageAdapter, timeProvider)
                         {
                         }
 
@@ -225,12 +228,12 @@ public partial class FactoryGenerator : BaseGenerator
                         #region Ctor
 
                         public {{rootName}}(
-                            IEvDbStreamConfig factory,
+                            IEvDbStreamConfig stramConfiguration,
                             IImmutableList<IEvDbViewStore> views,
                             IEvDbStorageAdapter storageAdapter,
                             string streamId,
                             long lastStoredOffset) : 
-                                base(factory, views, storageAdapter, streamId, lastStoredOffset)
+                                base(stramConfiguration, views, storageAdapter, streamId, lastStoredOffset)
                         {
                             Views = new {{rootName}}Views(views);
                         }

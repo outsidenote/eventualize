@@ -23,10 +23,12 @@ public class EvDbStream :
 
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
 
+    private readonly IEvDbStorageAdapter _storageAdapter;
+
     #region Ctor
 
     public EvDbStream(
-        IEvDbStreamConfig factory,
+        IEvDbStreamConfig streamConfiguration,
         IImmutableList<IEvDbViewStore> views,
         IEvDbStorageAdapter storageAdapter,
         string streamId,
@@ -34,9 +36,10 @@ public class EvDbStream :
     {
         _views = views;
         _storageAdapter = storageAdapter;
-        StreamAddress = new EvDbStreamAddress(factory.PartitionAddress, streamId);
+        StreamAddress = new EvDbStreamAddress(streamConfiguration.PartitionAddress, streamId);
         StoreOffset = lastStoredOffset;
-        Options = factory.Options;
+        Options = streamConfiguration.Options;
+        TimeProvider = streamConfiguration.TimeProvider;
     }
 
     #endregion // Ctor
@@ -45,8 +48,6 @@ public class EvDbStream :
 
     protected readonly IImmutableList<IEvDbViewStore> _views;
     IEnumerable<IEvDbView> IEvDbStreamStoreData.Views => _views.Cast<IEvDbView>();
-
-    private readonly IEvDbStorageAdapter _storageAdapter;
 
     #endregion // Views
 
@@ -78,7 +79,7 @@ public class EvDbStream :
         try
         {
             EvDbStreamCursor cursor = GetNextCursor();
-            EvDbEvent e = new EvDbEvent(payload.EventType, DateTimeOffset.UtcNow, capturedBy, cursor, json);
+            EvDbEvent e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
             _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
             _pendingEvents = _pendingEvents.Add(e);
 
@@ -149,7 +150,30 @@ public class EvDbStream :
 
     #endregion // HasPendingEvents
 
+    #region Options
+
+    /// <summary>
+    /// Serialization options
+    /// </summary>
     public JsonSerializerOptions? Options { get; }
 
+    #endregion // Options
+
+    #region TimeProvider
+
+    /// <summary>
+    /// Time abstraction
+    /// </summary>
+    public TimeProvider TimeProvider { get; }
+
+    #endregion // TimeProvider
+
+    #region IEvDbStreamStoreData.Events
+
+    /// <summary>
+    /// Unspecialized events
+    /// </summary>
     IEnumerable<EvDbEvent> IEvDbStreamStoreData.Events => _pendingEvents;
+
+    #endregion // IEvDbStreamStoreData.Events
 }

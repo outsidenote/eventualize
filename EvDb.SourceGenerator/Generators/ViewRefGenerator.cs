@@ -95,7 +95,9 @@ public partial class ViewRefGenerator : BaseGenerator
                     {
                         #region Ctor
                         
-                        public {{typeSymbol.Name}}(IEvDbStorageAdapter storageAdapter) : base(storageAdapter)
+                        public {{typeSymbol.Name}}(
+                                IEvDbStorageAdapter storageAdapter,
+                                TimeProvider? timeProvider = null) : base(storageAdapter, timeProvider)
                         {
                             ViewFactories = new []
                             {{{string.Join(",", propsCreates)}}

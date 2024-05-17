@@ -9,7 +9,7 @@
 
 	<ItemGroup>
 		<Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
-		<PackageReference Include="FakeItEasy" Version="8.1.0" />
+		<PackageReference Include="FakeItEasy" Version="8.2.0" />
 		<PackageReference Include="FakeItEasy.Analyzer.CSharp" Version="6.1.1">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -17,13 +17,13 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
 		<PackageReference Include="&#xD;&#xA;						  " Version="8.0.0" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0-release-23619-01" />
-		<PackageReference Include="xunit" Version="2.6.6" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.6">
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+		<PackageReference Include="xunit" Version="2.8.0" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.0">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="coverlet.collector" Version="6.0.0">
+		<PackageReference Include="coverlet.collector" Version="6.0.2">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>

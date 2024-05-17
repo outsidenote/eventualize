@@ -10,4 +10,6 @@ public interface IEvDbStreamConfig
     int MinEventsBetweenSnapshots { get; }
 
     JsonSerializerOptions? Options { get; }
+
+    TimeProvider TimeProvider { get; }
 }
