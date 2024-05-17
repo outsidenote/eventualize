@@ -36,8 +36,8 @@ public partial class FactoryGenerator : BaseGenerator
                 new DiagnosticDescriptor("EvDb: 013", "class must be partial",
                 $"{typeSymbol.Name}, Must be partial", "EvDb",
                 DiagnosticSeverity.Error, isEnabledByDefault: true),
-                Location.None);
-            builder.AppendLine($"`interface {typeSymbol.Name}` MUST BE A partial interface!");
+                Location.Create(syntax.SyntaxTree, syntax.Span));
+            builder.AppendLine($"`Factory {typeSymbol.Name}` MUST BE A partial interface!");
             context.AddSource(typeSymbol.GenFileName("partial-is-missing"), builder.ToString());
             context.ReportDiagnostic(diagnostic);
         }

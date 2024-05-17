@@ -1,13 +1,5 @@
 ﻿namespace EvDb.Core;
 
-[Obsolete("Deprecated")]
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class EvDbAggregateFactoryAttribute<TState, TEventType> : Attribute
-    where TEventType : IEvDbEventAdder
-{
-}
-
-
 /// <summary>
 /// Generate a EventualizeDB client factory
 /// </summary>
