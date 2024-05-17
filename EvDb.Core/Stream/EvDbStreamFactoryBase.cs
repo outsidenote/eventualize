@@ -12,8 +12,11 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     #region Ctor
 
-    public EvDbStreamFactoryBase(IEvDbStorageAdapter storageAdapter)
+    public EvDbStreamFactoryBase(
+        IEvDbStorageAdapter storageAdapter,
+        TimeProvider? timeProvider = null)
     {
+        TimeProvider = timeProvider ?? TimeProvider.System;
         _storageAdapter = storageAdapter;
     }
 
@@ -24,6 +27,12 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     public virtual int MinEventsBetweenSnapshots { get; }
 
     public virtual JsonSerializerOptions? Options { get; }
+
+    #region TimeProvider
+
+    public TimeProvider TimeProvider { get; }
+
+    #endregion // TimeProvider
 
     #region Create
 
