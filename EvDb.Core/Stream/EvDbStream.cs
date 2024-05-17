@@ -111,8 +111,7 @@ public class EvDbStream :
             }
 
             await _storageAdapter.SaveStreamAsync(this, cancellation);
-            foreach (var view in this._views)
-                await view.SaveAsync(cancellation);
+            await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
 
             EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
             StoreOffset = ev.StreamCursor.Offset;
