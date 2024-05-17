@@ -40,11 +40,13 @@ internal static class Steps
     #region CreateFactory
 
     private static IEvDbSchoolStreamFactory CreateFactory(
-                IEvDbStorageAdapter storageAdapter)
+                IEvDbStorageAdapter storageAdapter,
+                TimeProvider? timeProvider)
     {
         ServiceCollection services = new();
         services.AddSingleton(storageAdapter);
         services.AddSingleton<IEvDbSchoolStreamFactory, SchoolStreamFactory>();
+        services.AddSingleton<TimeProvider>(timeProvider ?? TimeProvider.System);
         var sp = services.BuildServiceProvider();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
         return factory;
@@ -56,10 +58,11 @@ internal static class Steps
 
     public static IEvDbSchoolStream GivenLocalStream(
         this IEvDbStorageAdapter storageAdapter,
-        string? streamId = null)
+        string? streamId = null,
+        TimeProvider? timeProvider = null)
     {
         streamId = streamId ?? GenerateStreamId();
-        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter);
+        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter, timeProvider);
         var stream = factory.Create(streamId);
         return stream;
     }
@@ -73,10 +76,11 @@ internal static class Steps
         IEvDbStorageAdapter storageAdapter,
         string? streamId = null,
         Action<IEvDbStorageAdapter, string>? mockGetAsyncResult = null,
-        bool withEvents = true)
+        bool withEvents = true,
+        TimeProvider? timeProvider = null)
     {
         streamId = streamId ?? GenerateStreamId();
-        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter);
+        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter, timeProvider);
 
         if (mockGetAsyncResult == null)
         {
@@ -423,9 +427,10 @@ internal static class Steps
     public static IEvDbSchoolStream GivenLocalStreamWithPendingEvents(
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output,
-        int numOfGrades = NUM_OF_GRADES)
+        int numOfGrades = NUM_OF_GRADES,
+        TimeProvider? timeProvider = null)
     {
-        return GivenLocalStream(storageAdapter)
+        return GivenLocalStream(storageAdapter, timeProvider: timeProvider)
                             .WhenAddingPendingEvents(numOfGrades);
     }
 

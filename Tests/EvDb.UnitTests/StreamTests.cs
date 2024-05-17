@@ -16,6 +16,38 @@ public class StreamTests
     }
 
     [Fact]
+    public void Stream_WhenAddingPendingEvent_HonorTimeProvider()
+    {
+        #region TimeProvider timeProvider = A.Fake<TimeProvider>()
+
+        TimeProvider timeProvider = A.Fake<TimeProvider>();
+        DateTimeOffset seed = DateTimeOffset.UtcNow;
+        int i = 0;
+        A.CallTo(() => timeProvider.GetUtcNow())
+            .ReturnsLazily(() =>
+            {
+                return seed.AddSeconds(i++);
+            });
+
+        #endregion // TimeProvider timeProvider = A.Fake<TimeProvider>()
+
+        IEvDbSchoolStream stream = _storageAdapter
+                                .GivenLocalStreamWithPendingEvents(_output, timeProvider: timeProvider);
+
+        ThenPendingEventsAddedSuccessfully();
+
+        void ThenPendingEventsAddedSuccessfully()
+        {
+            var events = (stream as IEvDbStreamStoreData)!.Events.ToArray();
+            Assert.Equal(4, events.Length);
+            for (int j = 0; j < 4; j++)
+            {
+                Assert.Equal(seed.AddSeconds(j), events[j].CapturedAt);
+            }
+        }
+    }
+
+    [Fact]
     public void Stream_WhenAddingPendingEvent_Succeed()
     {
         IEvDbSchoolStream stream = _storageAdapter
@@ -137,6 +169,4 @@ public class StreamTests
 
         await Assert.ThrowsAsync<OCCException>(async () => await stream.SaveAsync(default));
     }
-
-
 }
