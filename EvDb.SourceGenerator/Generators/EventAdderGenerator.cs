@@ -32,7 +32,7 @@ public partial class EventAdderGenerator : BaseGenerator
                 new DiagnosticDescriptor("EvDb: 003", "interface must be partial",
                 $"{typeSymbol.Name}, Must be partial", "EvDb",
                 DiagnosticSeverity.Error, isEnabledByDefault: true),
-                Location.None);
+                Location.Create(syntax.SyntaxTree, syntax.Span));
             builder.AppendLine($"""
                 `interface {typeSymbol.Name}` MUST BE A partial interface!
                 """);
