@@ -9,6 +9,7 @@ public partial class MinEventIntervalSecondsView
     private DateTimeOffset? _lastEventTime;
 
     protected override double DefaultState => -1;
+    public override int MinEventsBetweenSnapshots => 5;
 
     #region override ...
 
