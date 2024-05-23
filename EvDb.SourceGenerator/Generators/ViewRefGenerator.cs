@@ -80,7 +80,7 @@ public partial class ViewRefGenerator : BaseGenerator
         var propsCreates = propsNames.Select(p =>
                                                 $$"""
 
-                                                            (IEvDbViewFactory)(new {{p.Type}}Factory(_storageAdapter))
+                                                            (IEvDbViewFactory)(new {{p.Type}}Factory(_storageAdapter, timeProvider))
                                                 """);
 
         #endregion // propsNames = .., props = .., propsCreates = ..
@@ -109,7 +109,7 @@ public partial class ViewRefGenerator : BaseGenerator
                         protected override IEvDbViewFactory[] ViewFactories { get; }
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileName( "view-ref"), builder.ToString());
+        context.AddSource(typeSymbol.GenFileName("view-ref"), builder.ToString());
 
         #endregion // Stream Factory
 

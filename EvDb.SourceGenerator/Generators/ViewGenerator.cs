@@ -43,7 +43,7 @@ public partial class ViewGenerator : BaseGenerator
 
         #endregion // Exception Handling
 
-        #region string rootName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
+        #region string rootName = .., stateType = .., eventType = ..
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
         string viewClassName = $"EvDb{typeSymbol.Name}";
@@ -59,7 +59,7 @@ public partial class ViewGenerator : BaseGenerator
         ITypeSymbol eventTypeSymbol = args[1];
         string eventType = eventTypeSymbol.ToDisplayString();
 
-        #endregion // string baseName = .., aggregateInterfaceType = .., stateType = .., eventType = ..
+        #endregion // string baseName = .., stateType = .., eventType = ..
 
         TypedConstant nameConst = att.ConstructorArguments.First();
         string? name = nameConst.Value?.ToString();
@@ -125,10 +125,12 @@ public partial class ViewGenerator : BaseGenerator
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
                             IEvDbStorageAdapter storageAdapter, 
+                            TimeProvider timeProvider,
                             JsonSerializerOptions? options):
                                 base(new EvDbViewAddress(address, ViewName), 
                                 EvDbStoredSnapshot.Empty,
                                 storageAdapter, 
+                                timeProvider,
                                 options)
                         {
                         }
@@ -136,12 +138,14 @@ public partial class ViewGenerator : BaseGenerator
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
                             IEvDbStorageAdapter storageAdapter,
+                            TimeProvider timeProvider,
                             EvDbStoredSnapshot snapshot, 
                             JsonSerializerOptions? options):
                                 base(
                                     new EvDbViewAddress(address, ViewName), 
                                     snapshot,
                                     storageAdapter,
+                                    timeProvider,
                                     options)
                         {
                         }
@@ -169,7 +173,7 @@ public partial class ViewGenerator : BaseGenerator
                         #endregion // Fold
                     }
                     """);
-                    context.AddSource(typeSymbol.GenFileName("view", "Base", "EvDb"), builder.ToString());
+        context.AddSource(typeSymbol.GenFileName("view", "Base", "EvDb"), builder.ToString());
 
         #endregion // ViewBase
 
@@ -186,19 +190,26 @@ public partial class ViewGenerator : BaseGenerator
                         internal {{typeSymbol.Name}}(
                             EvDbStreamAddress address,
                             IEvDbStorageAdapter storageAdapter, 
+                            TimeProvider timeProvider,
                             JsonSerializerOptions? options):
-                                    base (address, storageAdapter, options)
+                                    base (
+                                        address, 
+                                        storageAdapter, 
+                                        timeProvider, 
+                                        options)
                         {
                         }
 
                         internal {{typeSymbol.Name}}(
                             EvDbStreamAddress address,
                             IEvDbStorageAdapter storageAdapter,
+                            TimeProvider timeProvider,
                             EvDbStoredSnapshot snapshot, 
                             JsonSerializerOptions? options):
                                 base (
                                     address,
                                     storageAdapter,
+                                    timeProvider,
                                     snapshot,
                                     options)
                         {
@@ -220,20 +231,23 @@ public partial class ViewGenerator : BaseGenerator
                     internal class {{typeSymbol.Name}}Factory: IEvDbViewFactory
                     {
                           private readonly IEvDbStorageAdapter _storageAdapter;
-                          public {{typeSymbol.Name}}Factory(IEvDbStorageAdapter storageAdapter)
+                          private readonly TimeProvider _timeProvider;
+
+                          public {{typeSymbol.Name}}Factory(IEvDbStorageAdapter storageAdapter, TimeProvider timeProvider)
                           {
                             _storageAdapter = storageAdapter;
+                            _timeProvider = timeProvider;
                           } 
 
                         string IEvDbViewFactory.ViewName { get; } = "{{name}}";
 
                         IEvDbViewStore IEvDbViewFactory.CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options) => 
-                                new {{typeSymbol.Name}}(address, _storageAdapter, options);
+                                new {{typeSymbol.Name}}(address, _storageAdapter, _timeProvider, options);
 
                         IEvDbViewStore IEvDbViewFactory.CreateFromSnapshot(EvDbStreamAddress address,
                             EvDbStoredSnapshot snapshot,
                             JsonSerializerOptions? options) => 
-                                new {{typeSymbol.Name}}(address, _storageAdapter, snapshot, options);
+                                new {{typeSymbol.Name}}(address, _storageAdapter, _timeProvider, snapshot, options);
                     }
                     """);
         context.AddSource(typeSymbol.GenFileName("view", "Factory"), builder.ToString());

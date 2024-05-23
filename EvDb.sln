@@ -55,6 +55,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.Adapters.Store.EvDbPos
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.Adapters.Store.EvDbPostgresMigration", "Adapters\Store\Postgres\EvDb.Adapters.Store.EvDbPostgresMigration\EvDb.Adapters.Store.EvDbPostgresMigration.csproj", "{A8F18BE8-E86E-4CF4-922B-911D04D98FC2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.MinimalStructure", "Samples\EvDb.MinimalStructure\EvDb.MinimalStructure.csproj", "{78291F2D-D5A4-40FE-9212-D23594D23FA8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -338,6 +340,24 @@ Global
 		{A8F18BE8-E86E-4CF4-922B-911D04D98FC2}.Release|x64.Build.0 = Release|Any CPU
 		{A8F18BE8-E86E-4CF4-922B-911D04D98FC2}.Release|x86.ActiveCfg = Release|Any CPU
 		{A8F18BE8-E86E-4CF4-922B-911D04D98FC2}.Release|x86.Build.0 = Release|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Debug|x64.Build.0 = Debug|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Debug|x86.Build.0 = Debug|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Gen|Any CPU.ActiveCfg = Gen|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Gen|Any CPU.Build.0 = Gen|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Gen|x64.ActiveCfg = Gen|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Gen|x64.Build.0 = Gen|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Gen|x86.ActiveCfg = Gen|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Gen|x86.Build.0 = Gen|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Release|x64.ActiveCfg = Release|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Release|x64.Build.0 = Release|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Release|x86.ActiveCfg = Release|Any CPU
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -358,6 +378,7 @@ Global
 		{7668D896-E9AC-4FB4-AFA7-17D0CF610F92} = {CB1F59CB-F586-48BF-9A51-F57F0C843331}
 		{AFC31723-FFEC-4C4F-AB65-21A2AF57BAC6} = {7668D896-E9AC-4FB4-AFA7-17D0CF610F92}
 		{A8F18BE8-E86E-4CF4-922B-911D04D98FC2} = {7668D896-E9AC-4FB4-AFA7-17D0CF610F92}
+		{78291F2D-D5A4-40FE-9212-D23594D23FA8} = {2A577C3E-B32E-427B-9475-7F09E61B1644}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CF849979-7A01-419B-A9C7-8EA947DCD0C2}

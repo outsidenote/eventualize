@@ -3,8 +3,9 @@
 
 namespace EvDb.UnitTests;
 
+[EvDbAttachView<MinEventIntervalSecondsView>("MinInterval")]
 [EvDbAttachView<StudentStatsView>]
-[EvDbAttachView<StatsView>( "ALL")]
+[EvDbAttachView<StatsView>("ALL")]
 [EvDbStreamFactory<IEvDbSchoolStreamAdders>]
 public partial class SchoolStreamFactory
 {

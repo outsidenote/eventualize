@@ -110,7 +110,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
             await Task.FromResult(true);
             return;
         }
-        
+
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string saveSnapshotQuery = Queries.SaveSnapshot;
