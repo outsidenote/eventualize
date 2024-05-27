@@ -28,6 +28,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />
+		<ProjectReference Include="..\..\Samples\EvDb.MinimalStructure\EvDb.MinimalStructure.csproj" />
 		<ProjectReference Include="..\..\Samples\EvDb.Scenes\EvDb.Scenes.csproj" />
 		<ProjectReference Include="..\EvDb.TestsHelper\EvDb.TestsHelper.csproj" />
 	</ItemGroup>

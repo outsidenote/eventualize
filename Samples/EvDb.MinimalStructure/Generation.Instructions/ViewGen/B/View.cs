@@ -2,7 +2,7 @@
 
 namespace EvDb.MinimalStructure.Views.B;
 
-[EvDbViewType<State?, IEvents>("a")]
+[EvDbViewType<State?, IEvents>("b")]
 internal partial class View
 {
     protected override State? DefaultState { get; } = null;

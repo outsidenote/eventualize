@@ -5,6 +5,7 @@ namespace EvDb.MinimalStructure;
 
 [EvDbAttachView<Views.A.View>]
 [EvDbAttachView<Views.B.View>("MyB")]
+[EvDbAttachView<Views.MinInterval.View>("Interval")]
 [EvDbStreamFactory<IEvents>]
 public partial class DemoStreamFactory
 {

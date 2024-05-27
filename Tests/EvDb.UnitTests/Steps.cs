@@ -276,6 +276,15 @@ internal static class Steps
                     return snapshot;
                 });
 
+        A.CallTo(() => storageAdapter.GetSnapshotAsync(
+                    A<EvDbViewAddress>.That.Matches(a => a.ViewName == MinEventIntervalSecondsView.ViewName), A<CancellationToken>.Ignored))
+            .ReturnsLazily<EvDbStoredSnapshot>(() =>
+                {
+                    long offset = getSnapshotOffset(MinEventIntervalSecondsView.ViewName);
+                    var snapshot = CreateStatsSnapshot(offset, input.Factory.Options);
+                    return snapshot;
+                });
+
         return input;
     }
 
