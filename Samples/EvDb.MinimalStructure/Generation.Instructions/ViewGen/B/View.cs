@@ -1,9 +1,10 @@
 ﻿using EvDb.Core;
 
-namespace EvDb.UnitTests.Issues.Views.A;
+namespace EvDb.MinimalStructure.Views.B;
 
-[EvDbViewType<State?, IEvDbSchoolStreamAdders>("a")]
+[EvDbViewType<State?, IEvents>("b")]
 internal partial class View
 {
     protected override State? DefaultState { get; } = null;
+
 }

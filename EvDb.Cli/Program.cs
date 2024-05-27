@@ -1,6 +1,5 @@
 ﻿using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 
@@ -17,7 +16,7 @@ string? connectionString = indexSonnectionString == -1
     ? Environment.GetEnvironmentVariable("EVDB_CONNECTION")
     : Environment.GetEnvironmentVariable(args[indexSonnectionString + 1]) ?? args[indexSonnectionString + 1];
 
-if(string.IsNullOrEmpty(connectionString))
+if (string.IsNullOrEmpty(connectionString))
     Console.WriteLine("Connection string is missing!");
 
 if (string.IsNullOrEmpty(connectionString) || storeIndex == -1 || args.Length % 2 == 0 || args.Length < storeIndex + 2)
@@ -43,7 +42,7 @@ if (string.IsNullOrEmpty(connectionString) || storeIndex == -1 || args.Length % 
 
 
 
-var context = env ==null 
+var context = env == null
     ? EvDbStorageContext.CreateWithEnvironment(args[^1])
     : EvDbStorageContext.CreateWithEnvironment(args[^1], env);
 

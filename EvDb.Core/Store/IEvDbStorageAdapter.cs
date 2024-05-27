@@ -32,7 +32,7 @@ public interface IEvDbStorageAdapter : IDisposable, IAsyncDisposable
     Task SaveStreamAsync(
         IEvDbStreamStoreData streamStore,
         CancellationToken cancellation = default);
-    
+
     /// <summary>
     /// Store the view's state as a snapshot
     /// </summary>

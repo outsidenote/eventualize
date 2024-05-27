@@ -1,5 +1,4 @@
 ﻿using EvDb.Core;
-using EvDb.Scenes;
 
 namespace EvDb.UnitTests.Issues.Views.B;
 

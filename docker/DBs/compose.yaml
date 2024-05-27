@@ -17,7 +17,23 @@ volumes:
 
 services:
 
+  sqlserver:
+    container_name: sqlserver-event-source
+    image: "mcr.microsoft.com/mssql/server:2017-latest-ubuntu"
+    volumes:
+      - mssql:/var/opt/mssql/data
+      - ./dev/docker_sqlserver:/docker_init\
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSSQL_PID: "Express"
+      SA_PASSWORD: "MasadNetunim12!@"
+    ports:
+      - 1433:1433
+    command: sh -c ' chmod +x /docker_init/entrypoint.sh; /docker_init/entrypoint.sh & /opt/mssql/bin/sqlservr;'
+    restart: unless-stopped
+    
   psql:
+    container_name: psql-event-source
     image: postgres:latest
     environment:
       POSTGRES_USER: postgres
@@ -28,6 +44,8 @@ services:
       - ./dev/docker_psql_init:/docker-entrypoint-initdb.d
     ports:
       - 5434:5432
+    restart: unless-stopped
+    
   # psql13:
   #   image: postgres:13
   #   environment:
@@ -39,6 +57,7 @@ services:
   #     - ./dev/docker_psql_init:/docker-entrypoint-initdb.d
   #   ports:
   #     - 5434:5432
+  #   restart: unless-stopped
   # psql96:
   #   image: postgres:9.6
   #   environment:
@@ -50,6 +69,7 @@ services:
   #     - ./dev/docker_psql_init:/docker-entrypoint-initdb.d
   #   ports:
   #     - 5433:5432
+  #   restart: unless-stopped
   # mariadb:
   #   image: mariadb
   #   restart: always
@@ -61,18 +81,21 @@ services:
   #   volumes:
   #     - mariadb:/var/lib/mysql
   #     - ./dev/docker_mysql_init:/docker-entrypoint-initdb.d
-  mysql:
-    image: mysql:latest
-    command: --default-authentication-plugin=mysql_native_password
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: MasadNetunim12!@
-      MYSQL_DATABASE: test_db
-    ports:
-      - 3308:3306
-    volumes:
-      - mysql:/var/lib/mysql
-      - ./dev/docker_mysql_init:/docker-entrypoint-initdb.d
+  #   restart: unless-stopped
+  
+  # mysql:
+  #   container_name: mysql-event-source
+  #   image: mysql:latest
+  #   command: --default-authentication-plugin=mysql_native_password\
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: MasadNetunim12!@
+  #     MYSQL_DATABASE: test_db
+  #   ports:
+  #     - 3308:3306
+  #   volumes:
+  #     - mysql:/var/lib/mysql
+  #     - ./dev/docker_mysql_init:/docker-entrypoint-initdb.d
+  #   restart: unless-stopped
   # mysql8:
   #   image: mysql:8.0.21
   #   command: --default-authentication-plugin=mysql_native_password
@@ -85,6 +108,7 @@ services:
   #   volumes:
   #     - mysql8:/var/lib/mysql
   #     - ./dev/docker_mysql_init:/docker-entrypoint-initdb.d
+  #   restart: unless-stopped
   # mysql5:
   #   image: mysql:5.7.22
   #   command: --default-authentication-plugin=mysql_native_password
@@ -97,19 +121,8 @@ services:
   #   volumes:
   #     - mysql5:/var/lib/mysql
   #     - ./dev/docker_mysql_init:/docker-entrypoint-initdb.d
-  sqlserver:
-    image: "mcr.microsoft.com/mssql/server:2017-latest-ubuntu"
-    volumes:
-      - mssql:/var/opt/mssql/data
-      - ./dev/docker_sqlserver:/docker_init
-    restart: always
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSSQL_PID: "Express"
-      SA_PASSWORD: "MasadNetunim12!@"
-    ports:
-      - 1433:1433
-    command: sh -c ' chmod +x /docker_init/entrypoint.sh; /docker_init/entrypoint.sh & /opt/mssql/bin/sqlservr;'
+  #   restart: unless-stopped
+    
   # sqlserverlatin:
   #   image: 'mcr.microsoft.com/mssql/server:2017-latest-ubuntu'
   #   volumes:
@@ -123,6 +136,7 @@ services:
   #   ports:
   #     - 1434:1433
   #   command: sh -c ' chmod +x /docker_init/entrypoint.sh; /docker_init/entrypoint.sh & /opt/mssql/bin/sqlservr;'
+  #   restart: unless-stopped
   # cockroachdb:
   #   image: cockroachdb/cockroach:v22.1.1
   #   volumes:
@@ -130,6 +144,7 @@ services:
   #   ports:
   #     - 26257:26257
   #   command: start-single-node --insecure
+  #   restart: unless-stopped
   # bigquery:
   #   image: ghcr.io/goccy/bigquery-emulator:latest
   #   volumes:
@@ -139,4 +154,5 @@ services:
   #     - 9050:9050
   #     - 9060:9060
   #   entrypoint: sh -c 'chmod +x /docker_init/data.sh; /docker_init/data.sh'
+  #   restart: unless-stopped
     

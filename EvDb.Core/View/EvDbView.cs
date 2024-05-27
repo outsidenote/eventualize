@@ -11,8 +11,9 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
         EvDbViewAddress address,
         EvDbStoredSnapshot snapshot,
         IEvDbStorageAdapter storageAdapter,
+        TimeProvider timeProvider,
         JsonSerializerOptions? options) :
-        base(address, storageAdapter, options, snapshot.Offset)
+        base(address, storageAdapter, timeProvider, options, snapshot.Offset)
     {
         if (snapshot == EvDbStoredSnapshot.Empty || string.IsNullOrEmpty(snapshot.State))
             State = DefaultState;
@@ -45,10 +46,12 @@ public abstract class EvDbView : IEvDbViewStore
     protected EvDbView(
         EvDbViewAddress address,
         IEvDbStorageAdapter storageAdapter,
+        TimeProvider timeProvider,
         JsonSerializerOptions? options,
         long storedOffset = -1)
     {
         _storageAdapter = storageAdapter;
+        TimeProvider = timeProvider;
         _options = options;
         StoreOffset = storedOffset;
         FoldOffset = storedOffset;
@@ -98,6 +101,8 @@ public abstract class EvDbView : IEvDbViewStore
     }
 
     public EvDbViewAddress Address { get; }
+
+    public TimeProvider TimeProvider { get; }
 
     public long FoldOffset { get; private set; }
 
