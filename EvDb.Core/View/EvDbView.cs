@@ -96,8 +96,8 @@ public abstract class EvDbView : IEvDbViewStore
     public async Task SaveAsync(CancellationToken cancellation = default)
     {
         using var activity = _trace.StartActivity("EvDb.View.SaveAsync")
-                                           ?.AddTag("dvdb.domain", Address.Domain)
-                                           ?.AddTag("dvdb.partition", Address.Partition);
+                                           ?.AddTag("evdb.domain", Address.Domain)
+                                           ?.AddTag("evdb.partition", Address.Partition);
 
         if (!this.ShouldStoreSnapshot)
         {
@@ -107,8 +107,8 @@ public abstract class EvDbView : IEvDbViewStore
 
         await this._storageAdapter.SaveViewAsync(this, cancellation);
         _snapshotStored.Add(1,
-                          t => t.Add("dvdb.domain", Address.Domain)
-                                        .Add("dvdb.partition", Address.Partition));
+                          t => t.Add("evdb.domain", Address.Domain)
+                                        .Add("evdb.partition", Address.Partition));
         return;
     }
 

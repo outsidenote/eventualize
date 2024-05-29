@@ -109,8 +109,8 @@ public abstract class EvDbStream :
     async Task IEvDbStreamStore.SaveAsync(CancellationToken cancellation)
     {
         using var activity = _trace.StartActivity("EvDb.SaveAsync")
-                                            ?.AddTag("dvdb.domain", StreamAddress.Domain)
-                                            ?.AddTag("dvdb.partition", StreamAddress.Partition);
+                                            ?.AddTag("evdb.domain", StreamAddress.Domain)
+                                            ?.AddTag("evdb.partition", StreamAddress.Partition);
         if (!this.HasPendingEvents)
         {
             await Task.FromResult(true);
@@ -121,8 +121,8 @@ public abstract class EvDbStream :
         await _storageAdapter.SaveStreamAsync(events, this, cancellation);
         await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
         _eventsStored.Add(events.Count,
-                            t => t.Add("dvdb.domain", StreamAddress.Domain)
-                                          .Add("dvdb.partition", StreamAddress.Partition));
+                            t => t.Add("evdb.domain", StreamAddress.Domain)
+                                          .Add("evdb.partition", StreamAddress.Partition));
 
         EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
         StoreOffset = ev.StreamCursor.Offset;
@@ -191,7 +191,7 @@ public abstract class EvDbStream :
     /// <summary>
     /// Unspecialized events
     /// </summary>
-    IEnumerable<EvDbEvent> IEvDbStreamStoreData.Events => _pendingEvents;
+    public IEnumerable<EvDbEvent> Events => _pendingEvents;
 
     #endregion // IEvDbStreamStoreData.Events
 }

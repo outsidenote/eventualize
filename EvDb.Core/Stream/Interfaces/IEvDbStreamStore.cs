@@ -27,5 +27,5 @@ public interface IEvDbStreamStore
     /// </summary>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    Task SaveAsync(CancellationToken cancellation = default);
+    Task SaveAsync(CancellationToken cancellation = default);   
 }
