@@ -15,6 +15,8 @@ public partial record struct EvDbEvent(string EventType,
                                             IEvDbEventConverter,
                                             IEvDbEventMeta
 {
+    public static readonly EvDbEvent Empty = new EvDbEvent();
+
     T IEvDbEventConverter.GetData<T>(JsonSerializerOptions? options)
     {
         var json = JsonSerializer.Deserialize<T>(Payload, options) ?? throw new InvalidCastException(typeof(T).Name);

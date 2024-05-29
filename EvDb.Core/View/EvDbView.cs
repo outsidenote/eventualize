@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Text.Json;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
@@ -38,6 +40,9 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
 [DebuggerDisplay("Offset:[Stored: {StoreOffset}, Folded:{FoldOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
 public abstract class EvDbView : IEvDbViewStore
 {
+    private readonly static ActivitySource _trace = Telemetry.Trace;
+    private readonly static Counter<int> _snapshotStored = Telemetry.SysMeters.SnapshotStored;
+
     private readonly IEvDbStorageAdapter _storageAdapter;
     protected readonly JsonSerializerOptions? _options;
 
@@ -90,6 +95,10 @@ public abstract class EvDbView : IEvDbViewStore
 
     public async Task SaveAsync(CancellationToken cancellation = default)
     {
+        using var activity = _trace.StartActivity("EvDb.View.SaveAsync")
+                                           ?.AddTag("evdb.domain", Address.Domain)
+                                           ?.AddTag("evdb.partition", Address.Partition);
+
         if (!this.ShouldStoreSnapshot)
         {
             await Task.FromResult(true);
@@ -97,6 +106,9 @@ public abstract class EvDbView : IEvDbViewStore
         }
 
         await this._storageAdapter.SaveViewAsync(this, cancellation);
+        _snapshotStored.Add(1,
+                          t => t.Add("evdb.domain", Address.Domain)
+                                        .Add("evdb.partition", Address.Partition));
         return;
     }
 

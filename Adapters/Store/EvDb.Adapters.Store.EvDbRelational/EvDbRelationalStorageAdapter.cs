@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
@@ -50,7 +51,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     /// <exception cref="System.NotImplementedException"></exception>
-    async Task<EvDbStoredSnapshot> IEvDbStorageAdapter.GetSnapshotAsync(
+    async Task<EvDbStoredSnapshot> IEvDbStorageViewAdapter.GetSnapshotAsync(
         EvDbViewAddress viewAddress,
         CancellationToken cancellation)
     {
@@ -65,7 +66,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         return snapshot;
     }
 
-    async IAsyncEnumerable<EvDbEvent> IEvDbStorageAdapter.GetEventsAsync(
+    async IAsyncEnumerable<EvDbEvent> IEvDbStorageStreamAdapter.GetEventsAsync(
         EvDbStreamCursor streamCursor,
         [EnumeratorCancellation] CancellationToken cancellation)
     {
@@ -82,16 +83,19 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
     }
 
-    async Task IEvDbStorageAdapter.SaveStreamAsync(IEvDbStreamStoreData streamData, CancellationToken cancellation)
+    async Task IEvDbStorageStreamAdapter.SaveStreamAsync(
+        IImmutableList<EvDbEvent> events, 
+        IEvDbStreamStoreData streamData,
+        CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string saveEventsQuery = Queries.SaveEvents;
 
-        var events = streamData.Events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
+        var eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
         try
         {
-            await conn.ExecuteAsync(saveEventsQuery, events);
+            await conn.ExecuteAsync(saveEventsQuery, eventsRecords);
         }
         catch (Exception ex)
         {
@@ -103,7 +107,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     }
 
 
-    async Task IEvDbStorageAdapter.SaveViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)
+    async Task IEvDbStorageViewAdapter.SaveViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)
     {
         if (!viewStore.ShouldStoreSnapshot)
         {

@@ -1,22 +1,26 @@
 ﻿using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Text.Json;
+using static EvDb.Core.Telemetry;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
 namespace EvDb.Core;
 
 [DebuggerDisplay("{StreamAddress}, Stored Offset:{StoreOffset} ,Count:{CountOfPendingEvents}")]
-public class EvDbStream :
+public abstract class EvDbStream :
     IEvDbStreamStore,
     IEvDbStreamStoreData
 {
+    private readonly static ActivitySource _trace = Telemetry.Trace;
+    private readonly static Counter<int> _eventsStored = Telemetry.SysMeters.EventsStored;
+    private const int ADDS_TRY_LIMIT = 10_000;
+
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<EvDbEvent> _pendingEvents = ImmutableList<EvDbEvent>.Empty;
-
-    protected static readonly SemaphoreSlim _dirtyLock = new SemaphoreSlim(1);
 
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ??
                                                          throw new NotSupportedException("GetExecutingAssembly");
@@ -51,24 +55,6 @@ public class EvDbStream :
 
     #endregion // Views
 
-    #region GetNextCursor
-
-    private EvDbStreamCursor GetNextCursor()
-    {
-        if (CountOfPendingEvents == 0)
-        {
-            var empty = new EvDbStreamCursor(StreamAddress, StoreOffset + 1);
-            return empty;
-        }
-
-        EvDbEvent e = _pendingEvents[CountOfPendingEvents - 1];
-        long offset = e.StreamCursor.Offset;
-        var result = new EvDbStreamCursor(StreamAddress, offset + 1);
-        return result;
-    }
-
-    #endregion // GetNextCursor
-
     #region AddEvent
 
     protected IEvDbEventMeta AddEvent<T>(T payload, string? capturedBy = null)
@@ -76,21 +62,43 @@ public class EvDbStream :
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
         var json = JsonSerializer.Serialize(payload, Options);
-        try
+
+        #region _pendingEvents = _pendingEvents.Add(e)
+
+        int i;
+        EvDbEvent e = EvDbEvent.Empty;
+
+        for (i = 0; i < ADDS_TRY_LIMIT; i++)
         {
-            EvDbStreamCursor cursor = GetNextCursor();
-            EvDbEvent e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
-            _dirtyLock.Wait(); // TODO: [bnaya 2024-01-09] re-consider the lock solution (ToImmutable?, custom object with length and state [hopefully immutable] that implement IEnumerable)
-            _pendingEvents = _pendingEvents.Add(e);
-
-            foreach (IEvDbViewStore folding in _views)
-                folding.FoldEvent(e);
-
-            return e;
+            var compare = _pendingEvents;
+            EvDbStreamCursor cursor = GetNextCursor(compare);
+            e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
+            var newEvents = compare.Add(e);
+            if (Interlocked.CompareExchange(ref _pendingEvents, newEvents, compare) == compare)
+                break;
         }
-        finally
+        if (i >= ADDS_TRY_LIMIT)
+            throw new OperationCanceledException("Fail to add event to the stream");
+
+        #endregion // _pendingEvents
+
+        foreach (IEvDbViewStore folding in _views)
+            folding.FoldEvent(e);
+
+        return e;
+
+        EvDbStreamCursor GetNextCursor(IImmutableList<EvDbEvent> events)
         {
-            _dirtyLock.Release();
+            if (events == ImmutableList<EvDbEvent>.Empty)
+            {
+                var empty = new EvDbStreamCursor(StreamAddress, StoreOffset + 1);
+                return empty;
+            }
+
+            EvDbEvent e = events[^1];
+            long offset = e.StreamCursor.Offset;
+            var result = new EvDbStreamCursor(StreamAddress, offset + 1);
+            return result;
         }
     }
 
@@ -100,30 +108,41 @@ public class EvDbStream :
 
     async Task IEvDbStreamStore.SaveAsync(CancellationToken cancellation)
     {
-        try
+        using var activity = _trace.StartActivity("EvDb.SaveAsync")
+                                            ?.AddTag("evdb.domain", StreamAddress.Domain)
+                                            ?.AddTag("evdb.partition", StreamAddress.Partition);
+        if (!this.HasPendingEvents)
         {
-            await _dirtyLock.WaitAsync(); // TODO: [bnaya 2024-01-09] re-consider the lock solution
-
-            if (!this.HasPendingEvents)
-            {
-                await Task.FromResult(true);
-                return;
-            }
-
-            await _storageAdapter.SaveStreamAsync(this, cancellation);
-            await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
-
-            EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
-            StoreOffset = ev.StreamCursor.Offset;
-            _pendingEvents = ImmutableList<EvDbEvent>.Empty;
-            foreach (var view in _views)
-            {
-                view.OnSaved();
-            }
+            await Task.FromResult(true);
+            return;
         }
-        finally
+
+        var events = _pendingEvents;
+        await _storageAdapter.SaveStreamAsync(events, this, cancellation);
+        await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
+        _eventsStored.Add(events.Count,
+                            t => t.Add("evdb.domain", StreamAddress.Domain)
+                                          .Add("evdb.partition", StreamAddress.Partition));
+
+        EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
+        StoreOffset = ev.StreamCursor.Offset;
+        var empty = ImmutableList<EvDbEvent>.Empty;
+        if (Interlocked.CompareExchange(ref _pendingEvents, empty, events) != events)
         {
-            _dirtyLock.Release();
+            int i;
+            for (i = 0; i < 1000; i++)
+            {
+                var compare = _pendingEvents;
+                var newEvents = _pendingEvents.RemoveRange(events);
+                if (Interlocked.CompareExchange(ref _pendingEvents, newEvents, compare) == compare)
+                    break;
+            }
+            if (i >= 1000)
+                throw new OperationCanceledException("Fail to update the stream events");
+        }
+        foreach (var view in _views)
+        {
+            view.OnSaved();
         }
     }
 
@@ -172,7 +191,7 @@ public class EvDbStream :
     /// <summary>
     /// Unspecialized events
     /// </summary>
-    IEnumerable<EvDbEvent> IEvDbStreamStoreData.Events => _pendingEvents;
+    public IEnumerable<EvDbEvent> Events => _pendingEvents;
 
     #endregion // IEvDbStreamStoreData.Events
 }

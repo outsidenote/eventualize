@@ -4,7 +4,8 @@
 namespace EvDb.UnitTests;
 
 [EvDbAttachView<Issues.Views.A.View>]
-[EvDbAttachView<Issues.Views.B.View>("MyB")]
+[EvDbAttachView<Issues.Views.Count.View>("Count")]
+[EvDbAttachView<Issues.Views.CourceCreated.View>("Courses")]
 [EvDbStreamFactory<IEvDbSchoolStreamAdders>]
 public partial class IssueStreamFactory
 {

@@ -3,6 +3,7 @@
 		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+		<PackageReference Include="OpenTelemetry.Api" Version="1.8.0" />
 		<ProjectReference Include="..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
 
