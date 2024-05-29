@@ -4,6 +4,7 @@ using EvDb.UnitTests;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
 using Scenes;
+using System.Collections.Immutable;
 using System.Reflection;
 using System.Text.Json;
 using Xunit.Abstractions;
@@ -166,7 +167,7 @@ internal static class Steps
         ITestOutputHelper output)
     {
 
-        A.CallTo(() => storageAdapter.SaveStreamAsync(A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
+        A.CallTo(() => storageAdapter.SaveStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
                 .Throws<OCCException>();
         var stream = storageAdapter.GivenLocalStreamWithPendingEvents(output, 6);
         return stream;

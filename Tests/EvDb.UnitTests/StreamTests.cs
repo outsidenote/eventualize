@@ -3,6 +3,7 @@ namespace EvDb.Core.Tests;
 using EvDb.Scenes;
 using EvDb.UnitTests;
 using FakeItEasy;
+using System.Threading.Tasks.Dataflow;
 using Xunit.Abstractions;
 
 public class StreamTests
@@ -136,5 +137,33 @@ public class StreamTests
                     .GivenStreamWithStaleEvents(_output);
 
         await Assert.ThrowsAsync<OCCException>(async () => await stream.SaveAsync(default));
+    }
+
+    [Fact]
+    public async Task Stream_ConcorrentAdds_Succeed()
+    {
+        int expected = 1_000_000;
+        IEvDbSchoolStream stream = _storageAdapter
+                            .GivenLocalStream("id123");
+        var sync = new ManualResetEventSlim(false);
+        var ab = new ActionBlock<CourseCreatedEvent>(e =>
+                                        {
+                                            sync.Wait();
+                                            stream.Add(e);
+                                        },
+                                        new ExecutionDataflowBlockOptions
+                                        {
+                                            MaxDegreeOfParallelism = 1000,
+                                            SingleProducerConstrained = true
+                                        });
+        for (int i = 0; i < expected; i++)
+        {
+            var e = new CourseCreatedEvent(i, $"name {i}", 1 % 50 * 10 + 4);
+            ab.Post(e);
+        }
+        ab.Complete();
+        sync.Set();
+        await ab.Completion;
+        Assert.Equal(expected, stream.CountOfPendingEvents);
     }
 }
