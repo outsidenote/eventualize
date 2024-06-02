@@ -69,11 +69,16 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.GetAsync");
         using var duration = _sysMeters.MeasureFactoryGetDuration(tags);
 
+        using var snapsActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshots");
+
         long minSnapshotOffset = -1;
         List<IEvDbViewStore> views = new(ViewFactories.Length);
         foreach (IEvDbViewFactory viewFactory in ViewFactories)
         {
             EvDbViewAddress viewAddress = new(address, viewFactory.ViewName);
+
+            using var snapActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshot")
+                                           ?.AddTag("evdb.view.name", viewAddress.ViewName);
             EvDbStoredSnapshot snapshot = await _storageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
             minSnapshotOffset = minSnapshotOffset == -1
                                     ? snapshot.Offset

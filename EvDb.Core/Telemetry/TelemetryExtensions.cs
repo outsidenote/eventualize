@@ -22,9 +22,14 @@ public static class TelemetryExtensions
         builder.AddSource(Telemetry.TraceName);
         return builder;
     }
-    public static MeterProviderBuilder AddEvDbInstrumentation(this MeterProviderBuilder builder)
+
+    public static MeterProviderBuilder AddEvDbInstrumentation(this MeterProviderBuilder builder,
+                                                              EvDbMeters include = EvDbMeters.All)
     {
-        builder.AddMeter(EvDbSysMeters.MetricCounterName);
+        if ((include & EvDbMeters.SystemCounters) != EvDbMeters.None)
+            builder.AddMeter(EvDbSysMeters.MetricCounterName);
+        if ((include & EvDbMeters.SystemDuration) != EvDbMeters.None)
+            builder.AddMeter(EvDbSysMeters.MetricDurationName);
         return builder;
     }
 
@@ -103,7 +108,7 @@ public static class TelemetryExtensions
     /// <param name="kind"></param>
     /// <returns></returns>
     public static Activity? StartActivity(this ActivitySource activitySource, OtelTags tags, [CallerMemberName] string name = "", ActivityKind kind = ActivityKind.Internal)
-    { 
+    {
         var activity = activitySource.StartActivity(name, kind);
         if (activity != null)
         {

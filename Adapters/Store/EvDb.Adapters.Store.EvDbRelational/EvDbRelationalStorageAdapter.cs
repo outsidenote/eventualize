@@ -20,7 +20,6 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 {
     private readonly Task<DbConnection> _connectionTask;
     protected readonly ILogger _logger;
-    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
 
     #region Ctor
 
@@ -60,6 +59,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         DbConnection conn = await _connectionTask;
 
         string query = Queries.GetSnapshot;
+        _logger.LogQuery(query);
 
         var snapshot = await conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshot>(query, viewAddress);
         if (snapshot == default)
@@ -74,6 +74,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string query = Queries.GetEvents;
+        _logger.LogQuery(query);
 
         DbDataReader reader = await conn.ExecuteReaderAsync(query, streamCursor);
         var parser = reader.GetRowParser<EvDbEventRecord>();
@@ -92,6 +93,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string saveEventsQuery = Queries.SaveEvents;
+        _logger.LogQuery(saveEventsQuery);
 
         var eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
         try
@@ -121,6 +123,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         cancellation.ThrowIfCancellationRequested();
         DbConnection conn = await _connectionTask;
         string saveSnapshotQuery = Queries.SaveSnapshot;
+        _logger.LogQuery(saveSnapshotQuery);
 
         EvDbStoredSnapshotAddress snapshot = viewStore.GetSnapshot();
         await conn.ExecuteAsync(saveSnapshotQuery, snapshot);
