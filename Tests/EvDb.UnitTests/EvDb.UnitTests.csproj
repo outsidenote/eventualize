@@ -8,6 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Cocona" Version="2.2.0" />
 		<PackageReference Include="FakeItEasy" Version="8.2.0" />
 		<PackageReference Include="FakeItEasy.Analyzer.CSharp" Version="6.1.1">
 			<PrivateAssets>all</PrivateAssets>

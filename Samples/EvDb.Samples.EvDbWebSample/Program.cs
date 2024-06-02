@@ -6,6 +6,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using System.Diagnostics;
+using EvDb.Samples.EvDbWebSample;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,9 +79,13 @@ services.AddOpenTelemetry()
         tracing
                 .AddEvDbInstrumentation()
                 .AddRedisInstrumentation(connectionMultiplexer)
-                .AddSqlClientInstrumentation()
-                .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation()
+                .AddSqlClientInstrumentation(o => 
+                {
+                    o.SetDbStatementForText = true;
+                    o.SetDbStatementForStoredProcedure = true;
+                })
+                .AddAspNetCoreInstrumentation(o => o.AddDefaultNetCoreTraceFilters())
+                .AddHttpClientInstrumentation(o => o.AddDefaultHttpClientTraceFilters())
                 .SetSampler<AlwaysOnSampler>()
                 //.SetSampler(new AlwaysOnSampler())
                 .AddOtlpExporter()

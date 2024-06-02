@@ -1,4 +1,6 @@
-﻿namespace EvDb.Core;
+﻿using System.Diagnostics;
+
+namespace EvDb.Core;
 
 public interface IEvDbStorageViewAdapter : IDisposable, IAsyncDisposable
 {

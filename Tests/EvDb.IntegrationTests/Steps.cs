@@ -4,6 +4,7 @@ using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using Scenes;
 using Xunit.Abstractions;
+using Cocona;
 
 internal static class Steps
 {
@@ -18,7 +19,8 @@ internal static class Steps
     public static IEvDbSchoolStreamFactory CreateFactory(
         this IEvDbStorageAdapter storageAdapter)
     {
-        ServiceCollection services = new();
+        var builder = CoconaApp.CreateBuilder();
+        var services = builder.Services;
         services.AddSingleton(storageAdapter);
         services.AddSingleton<IEvDbSchoolStreamFactory, SchoolStreamFactory>();
         var sp = services.BuildServiceProvider();

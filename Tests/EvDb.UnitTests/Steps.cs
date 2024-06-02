@@ -1,5 +1,6 @@
 ﻿namespace EvDb.Core.Tests;
 
+using Cocona;
 using EvDb.UnitTests;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,9 +45,11 @@ internal static class Steps
                 IEvDbStorageAdapter storageAdapter,
                 TimeProvider? timeProvider)
     {
-        ServiceCollection services = new();
+        var builder = CoconaApp.CreateBuilder();
+        var services = builder.Services;
         services.AddSingleton(storageAdapter);
-        services.AddSingleton<IEvDbSchoolStreamFactory, SchoolStreamFactory>();
+        services.AddEvDbDemoStreamFactory();
+        services.AddEvDbSchoolStreamFactory();
         services.AddSingleton<TimeProvider>(timeProvider ?? TimeProvider.System);
         var sp = services.BuildServiceProvider();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();

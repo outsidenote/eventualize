@@ -111,6 +111,7 @@ public partial class ViewGenerator : BaseGenerator
                 """);
 
         builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
@@ -126,11 +127,13 @@ public partial class ViewGenerator : BaseGenerator
                             EvDbStreamAddress address,
                             IEvDbStorageAdapter storageAdapter, 
                             TimeProvider timeProvider,
+                            ILogger logger,
                             JsonSerializerOptions? options):
                                 base(new EvDbViewAddress(address, ViewName), 
                                 EvDbStoredSnapshot.Empty,
                                 storageAdapter, 
                                 timeProvider,
+                                logger,
                                 options)
                         {
                         }
@@ -139,6 +142,7 @@ public partial class ViewGenerator : BaseGenerator
                             EvDbStreamAddress address,
                             IEvDbStorageAdapter storageAdapter,
                             TimeProvider timeProvider,
+                            ILogger logger,
                             EvDbStoredSnapshot snapshot, 
                             JsonSerializerOptions? options):
                                 base(
@@ -146,6 +150,7 @@ public partial class ViewGenerator : BaseGenerator
                                     snapshot,
                                     storageAdapter,
                                     timeProvider,
+                                    logger,
                                     options)
                         {
                         }
@@ -182,6 +187,7 @@ public partial class ViewGenerator : BaseGenerator
         #region View
 
         builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
@@ -191,11 +197,13 @@ public partial class ViewGenerator : BaseGenerator
                             EvDbStreamAddress address,
                             IEvDbStorageAdapter storageAdapter, 
                             TimeProvider timeProvider,
+                            ILogger logger,
                             JsonSerializerOptions? options):
                                     base (
                                         address, 
                                         storageAdapter, 
                                         timeProvider, 
+                                        logger,
                                         options)
                         {
                         }
@@ -204,12 +212,14 @@ public partial class ViewGenerator : BaseGenerator
                             EvDbStreamAddress address,
                             IEvDbStorageAdapter storageAdapter,
                             TimeProvider timeProvider,
+                            ILogger logger,
                             EvDbStoredSnapshot snapshot, 
                             JsonSerializerOptions? options):
                                 base (
                                     address,
                                     storageAdapter,
                                     timeProvider,
+                                    logger,
                                     snapshot,
                                     options)
                         {
@@ -225,6 +235,7 @@ public partial class ViewGenerator : BaseGenerator
         #region View Factory
 
         builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
@@ -232,22 +243,27 @@ public partial class ViewGenerator : BaseGenerator
                     {
                           private readonly IEvDbStorageAdapter _storageAdapter;
                           private readonly TimeProvider _timeProvider;
+                          private readonly ILogger _logger;
 
-                          public {{typeSymbol.Name}}Factory(IEvDbStorageAdapter storageAdapter, TimeProvider timeProvider)
+                          public {{typeSymbol.Name}}Factory(
+                                        IEvDbStorageAdapter storageAdapter, 
+                                        TimeProvider timeProvider,
+                                        ILogger logger)
                           {
                             _storageAdapter = storageAdapter;
                             _timeProvider = timeProvider;
+                            _logger = logger;
                           } 
 
                         string IEvDbViewFactory.ViewName { get; } = "{{name}}";
 
                         IEvDbViewStore IEvDbViewFactory.CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options) => 
-                                new {{typeSymbol.Name}}(address, _storageAdapter, _timeProvider, options);
+                                new {{typeSymbol.Name}}(address, _storageAdapter, _timeProvider, _logger, options);
 
                         IEvDbViewStore IEvDbViewFactory.CreateFromSnapshot(EvDbStreamAddress address,
                             EvDbStoredSnapshot snapshot,
                             JsonSerializerOptions? options) => 
-                                new {{typeSymbol.Name}}(address, _storageAdapter, _timeProvider, snapshot, options);
+                                new {{typeSymbol.Name}}(address, _storageAdapter, _timeProvider, _logger, snapshot, options);
                     }
                     """);
         context.AddSource(typeSymbol.GenFileName("view", "Factory"), builder.ToString());

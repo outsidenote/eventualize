@@ -14,8 +14,9 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
         EvDbStoredSnapshot snapshot,
         IEvDbStorageAdapter storageAdapter,
         TimeProvider timeProvider,
+        ILogger logger,
         JsonSerializerOptions? options) :
-        base(address, storageAdapter, timeProvider, options, snapshot.Offset)
+        base(address, storageAdapter, timeProvider, logger, options, snapshot.Offset)
     {
         if (snapshot == EvDbStoredSnapshot.Empty || string.IsNullOrEmpty(snapshot.State))
             State = DefaultState;
@@ -41,10 +42,11 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
 public abstract class EvDbView : IEvDbViewStore
 {
     private readonly static ActivitySource _trace = Telemetry.Trace;
-    private readonly static Counter<int> _snapshotStored = Telemetry.SysMeters.SnapshotStored;
+    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
 
     private readonly IEvDbStorageAdapter _storageAdapter;
     protected readonly JsonSerializerOptions? _options;
+    protected readonly ILogger _logger;
 
     #region Ctor
 
@@ -52,11 +54,13 @@ public abstract class EvDbView : IEvDbViewStore
         EvDbViewAddress address,
         IEvDbStorageAdapter storageAdapter,
         TimeProvider timeProvider,
+        ILogger logger,
         JsonSerializerOptions? options,
         long storedOffset = -1)
     {
         _storageAdapter = storageAdapter;
         TimeProvider = timeProvider;
+        _logger = logger;
         _options = options;
         StoreOffset = storedOffset;
         FoldOffset = storedOffset;
@@ -95,20 +99,20 @@ public abstract class EvDbView : IEvDbViewStore
 
     public async Task SaveAsync(CancellationToken cancellation = default)
     {
-        using var activity = _trace.StartActivity("EvDb.View.SaveAsync")
-                                           ?.AddTag("evdb.domain", Address.Domain)
-                                           ?.AddTag("evdb.partition", Address.Partition);
+        OtelTags tags = OtelTags.Empty
+                                .Add("evdb.domain", Address.Domain)
+                                .Add("evdb.partition", Address.Partition)
+                                .Add("evdb.view.name", Address.ViewName);
+        using var activity = _trace.StartActivity(tags, "EvDb.View.SaveAsync");
 
         if (!this.ShouldStoreSnapshot)
         {
             await Task.FromResult(true);
             return;
         }
-
+        using var duration = _sysMeters.MeasureStoreSnapshotsDuration(tags);
         await this._storageAdapter.SaveViewAsync(this, cancellation);
-        _snapshotStored.Add(1,
-                          t => t.Add("evdb.domain", Address.Domain)
-                                        .Add("evdb.partition", Address.Partition));
+        _sysMeters.SnapshotStored.Add(1, tags);
         return;
     }
 

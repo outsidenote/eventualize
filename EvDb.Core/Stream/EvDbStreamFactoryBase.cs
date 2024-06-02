@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using OpenTelemetry.Trace;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -9,6 +10,8 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     where T : IEvDbStreamStore, IEvDbEventAdder
 {
     protected readonly IEvDbStorageAdapter _storageAdapter;
+    private readonly static ActivitySource _trace = Telemetry.Trace;
+    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
 
     #region Ctor
 
@@ -41,6 +44,11 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         var address = new EvDbStreamAddress(PartitionAddress, streamId);
         var views = CreateEmptyViews(address);
 
+        OtelTags tags = OtelTags.Empty
+                    .Add("evdb.domain", address.Domain)
+                    .Add("evdb.partition", address.Partition);
+        using var activity = _trace.StartActivity(tags, "EvDb.Factory.CreateAsync");
+
         var result = OnCreate(streamId, views, -1);
         return result;
     }
@@ -54,11 +62,23 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         CancellationToken cancellationToken)
     {
         var address = new EvDbStreamAddress(PartitionAddress, streamId);
+
+        OtelTags tags = OtelTags.Empty
+                    .Add("evdb.domain", address.Domain)
+                    .Add("evdb.partition", address.Partition);
+        using var activity = _trace.StartActivity(tags, "EvDb.Factory.GetAsync");
+        using var duration = _sysMeters.MeasureFactoryGetDuration(tags);
+
+        using var snapsActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshots");
+
         long minSnapshotOffset = -1;
         List<IEvDbViewStore> views = new(ViewFactories.Length);
         foreach (IEvDbViewFactory viewFactory in ViewFactories)
         {
             EvDbViewAddress viewAddress = new(address, viewFactory.ViewName);
+
+            using var snapActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshot")
+                                           ?.AddTag("evdb.view.name", viewAddress.ViewName);
             EvDbStoredSnapshot snapshot = await _storageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
             minSnapshotOffset = minSnapshotOffset == -1
                                     ? snapshot.Offset
