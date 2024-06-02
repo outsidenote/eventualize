@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">	
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
 		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
@@ -15,6 +15,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Generator.Equals" Version="3.1.1" />
+		<InternalsVisibleTo Include="EvDb.Adapters.Store.EvDbRelational" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Generator.Equals" Version="3.1.1" />
 	</ItemGroup>
 </Project>
+

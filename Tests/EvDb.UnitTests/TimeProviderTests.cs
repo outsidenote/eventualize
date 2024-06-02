@@ -1,5 +1,6 @@
 namespace EvDb.Core.Tests;
 
+using Cocona;
 using EvDb.MinimalStructure;
 using EvDb.Scenes;
 using EvDb.UnitTests;
@@ -20,7 +21,8 @@ public class TimeProviderTests
     public TimeProviderTests(ITestOutputHelper output)
     {
         _output = output;
-        ServiceCollection services = new();
+        var builder = CoconaApp.CreateBuilder();
+        var services = builder.Services;
         services.AddSingleton(_storageAdapter);
         services.AddSingleton<IEvDbDemoStreamFactory, DemoStreamFactory>();
         services.AddSingleton<TimeProvider>(_timeProvider);

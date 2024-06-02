@@ -16,7 +16,7 @@ public abstract class EvDbStream :
     IEvDbStreamStoreData
 {
     private readonly static ActivitySource _trace = Telemetry.Trace;
-    private readonly static Counter<int> _eventsStored = Telemetry.SysMeters.EventsStored;
+    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
     private const int ADDS_TRY_LIMIT = 10_000;
 
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
@@ -108,22 +108,23 @@ public abstract class EvDbStream :
 
     async Task IEvDbStreamStore.SaveAsync(CancellationToken cancellation)
     {
-        using var activity = _trace.StartActivity("EvDb.SaveAsync")
-                                            ?.AddTag("evdb.domain", StreamAddress.Domain)
-                                            ?.AddTag("evdb.partition", StreamAddress.Partition);
+        OtelTags tags = OtelTags.Empty
+                            .Add("evdb.domain", StreamAddress.Domain)
+                            .Add("evdb.partition", StreamAddress.Partition);
+        using var activity = _trace.StartActivity(tags, "EvDb.SaveAsync");
         if (!this.HasPendingEvents)
         {
             await Task.FromResult(true);
             return;
         }
 
+        using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
         var events = _pendingEvents;
         await _storageAdapter.SaveStreamAsync(events, this, cancellation);
         await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
-        _eventsStored.Add(events.Count,
-                            t => t.Add("evdb.domain", StreamAddress.Domain)
-                                          .Add("evdb.partition", StreamAddress.Partition));
+        _sysMeters.EventsStored.Add(events.Count, tags);
 
+        using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
         EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
         StoreOffset = ev.StreamCursor.Offset;
         var empty = ImmutableList<EvDbEvent>.Empty;

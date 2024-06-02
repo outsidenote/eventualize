@@ -2,6 +2,9 @@
 
 namespace EvDb.Core
 {
+    /// <summary>
+    /// Optimistic Concurrency Collisions
+    /// </summary>
     public class OCCException : Exception
     {
         public OCCException() { }

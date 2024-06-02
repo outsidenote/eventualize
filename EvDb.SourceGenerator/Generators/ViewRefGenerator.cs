@@ -77,17 +77,18 @@ public partial class ViewRefGenerator : BaseGenerator
 
                                       return (Name: pName, Type: viewTypeName, StateType: stateType);
                                   }).ToArray();
-        var propsCreates = propsNames.Select(p =>
+        var viewFactories = propsNames.Select(p =>
                                                 $$"""
 
-                                                            (IEvDbViewFactory)(new {{p.Type}}Factory(_storageAdapter, timeProvider))
+                                                            (IEvDbViewFactory)(new {{p.Type}}Factory(_storageAdapter, timeProvider, logger))
                                                 """);
 
-        #endregion // propsNames = .., props = .., propsCreates = ..
+        #endregion // propsNames = .., props = .., viewFactories = ..
 
         #region Stream Factory
 
         builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
@@ -96,11 +97,12 @@ public partial class ViewRefGenerator : BaseGenerator
                         #region Ctor
                         
                         public {{typeSymbol.Name}}(
-                                IEvDbStorageAdapter storageAdapter,
+                                IEvDbStorageAdapter storageAdapter,                    
+                                ILogger<{{typeSymbol.Name}}> logger,
                                 TimeProvider? timeProvider = null) : base(storageAdapter, timeProvider)
                         {
                             ViewFactories = new []
-                            {{{string.Join(",", propsCreates)}}
+                            {{{string.Join(",", viewFactories)}}
                             };
                         }
                         

@@ -20,6 +20,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 {
     private readonly Task<DbConnection> _connectionTask;
     protected readonly ILogger _logger;
+    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
 
     #region Ctor
 
@@ -101,7 +102,9 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         {
             bool isOcc = IsOccException(ex);
             if (isOcc)
+            {
                 throw new OCCException(streamData.Events.FirstOrDefault());
+            }
             throw;
         }
     }
