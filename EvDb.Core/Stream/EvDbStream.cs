@@ -5,10 +5,13 @@ using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Text.Json;
 using static EvDb.Core.Telemetry;
+using System.Diagnostics;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
+// TODO:bnaya 2024-06-03 Add / View state should support fully immutable pattern for saving without locking
 namespace EvDb.Core;
+
 
 [DebuggerDisplay("{StreamAddress}, Stored Offset:{StoreOffset} ,Count:{CountOfPendingEvents}")]
 public abstract class EvDbStream :
@@ -18,6 +21,7 @@ public abstract class EvDbStream :
     private readonly static ActivitySource _trace = Telemetry.Trace;
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
     private const int ADDS_TRY_LIMIT = 10_000;
+    private readonly AsyncLock _sync = new AsyncLock();
 
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<EvDbEvent> _pendingEvents = ImmutableList<EvDbEvent>.Empty;
@@ -43,7 +47,7 @@ public abstract class EvDbStream :
         StreamAddress = new EvDbStreamAddress(streamConfiguration.PartitionAddress, streamId);
         StoreOffset = lastStoredOffset;
         Options = streamConfiguration.Options;
-        TimeProvider = streamConfiguration.TimeProvider;
+        TimeProvider = streamConfiguration.TimeProvider ?? TimeProvider.System;
     }
 
     #endregion // Ctor
@@ -119,14 +123,16 @@ public abstract class EvDbStream :
         }
 
         using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
+
+        // TODO: lock Adds reader writer lock
         var events = _pendingEvents;
         await _storageAdapter.SaveStreamAsync(events, this, cancellation);
+        EvDbEvent ev = events[^1];
+        StoreOffset = ev.StreamCursor.Offset;
         await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
         _sysMeters.EventsStored.Add(events.Count, tags);
 
         using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
-        EvDbEvent ev = _pendingEvents[_pendingEvents.Count - 1];
-        StoreOffset = ev.StreamCursor.Offset;
         var empty = ImmutableList<EvDbEvent>.Empty;
         if (Interlocked.CompareExchange(ref _pendingEvents, empty, events) != events)
         {
