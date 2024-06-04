@@ -90,26 +90,30 @@ public sealed class StressTests : IntegrationTests
     #endregion // Otel
 
     [Theory]
-    //[InlineData(10, 1, 1, 2)]
-    [InlineData(10, 1, 3, 2)]
-    //[InlineData(100, 10, 10, 5)]
+    [InlineData(10, 1, 1, 2)]
+    [InlineData(10, 1, 2, 2)]
+    [InlineData(100, 10, 10, 5)]
     public async Task StreamFactory_Stress_Succeed(
-        int eventsCountPerStream,
+        int writeCycleCount,
         int streamsCount,
         int degreeOfParallelismPerStream,
         int batchSize)
     {
+        int counter = 0;
+        int retryCounter = 0;
         var tasks = Enumerable.Range(0, streamsCount)
             .Select(async i =>
             {
                 var streamId = $"stream-{i}";
-                var stream = await _factory.GetAsync(streamId);
 
                 var ab = new ActionBlock<int>(async j =>
                 {
+                    Interlocked.Increment(ref counter);
                     bool success = false;
                     do
                     {
+                        var stream = await _factory.GetAsync(streamId);
+                        Interlocked.Increment(ref retryCounter);
                         for (int k = 0; k < batchSize; k++)
                         {
                             var e = new Event1(1, $"Person [{i}]: {j} in <{k}>", i * j * k);
@@ -122,7 +126,6 @@ public sealed class StressTests : IntegrationTests
                         }
                         catch (OCCException)
                         {
-                            stream = await _factory.GetAsync(streamId);
                         }
                     } while (!success);
                 }, new ExecutionDataflowBlockOptions
@@ -130,7 +133,7 @@ public sealed class StressTests : IntegrationTests
                     MaxDegreeOfParallelism = degreeOfParallelismPerStream,
                 });
 
-                for (int j = 0; j < eventsCountPerStream; j++)
+                for (int j = 0; j < writeCycleCount; j++)
                 {
                     ab.Post(j);
                 }
@@ -140,11 +143,14 @@ public sealed class StressTests : IntegrationTests
             });
         await Task.WhenAll(tasks);
 
+        int expectedEventsCount = writeCycleCount * batchSize;
+        Assert.Equal(writeCycleCount * streamsCount, counter);
+        _output.WriteLine($"Retry count: {retryCounter}");
         for (int i = 0; i < streamsCount; i++)
         {
             var streamId = $"stream-{i}";
             var stream = await _factory.GetAsync(streamId);
-            int expectedEventsCount = eventsCountPerStream * batchSize;
+
             Assert.Equal(expectedEventsCount, stream.Views.Count);
             Assert.Equal(expectedEventsCount - 1, stream.StoreOffset);
         }
