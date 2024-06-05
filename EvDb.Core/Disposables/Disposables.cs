@@ -82,7 +82,7 @@ public static partial class Disposable
     /// </returns>
     /// <exception cref="System.ArgumentNullException">dispose</exception>
     /// <exception cref="ArgumentNullException"><paramref name="dispose" /> is <c>null</c>.</exception>
-    public static CancelableBase<TState> Create<TState>(TState state, Action<TState>? dispose = null, bool useFinalizerTrigger = false)
+    public static ICancelable<TState> Create<TState>(TState state, Action<TState>? dispose = null, bool useFinalizerTrigger = false)
     {
         Action<TState> cleanup = dispose ?? ((_) => { });
 

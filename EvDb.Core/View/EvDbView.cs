@@ -69,6 +69,16 @@ public abstract class EvDbView : IEvDbViewStore
 
     #endregion // Ctor
 
+    public EvDbViewAddress Address { get; }
+
+    public TimeProvider TimeProvider { get; }
+
+    public long FoldOffset { get; private set; }
+
+    public long StoreOffset { get; set; }
+
+    public virtual int MinEventsBetweenSnapshots => 0;
+
     #region OnSaved
 
     public void OnSaved()
@@ -97,6 +107,8 @@ public abstract class EvDbView : IEvDbViewStore
 
     public abstract EvDbStoredSnapshotAddress GetSnapshot();
 
+    #region SaveAsync
+
     public async Task SaveAsync(CancellationToken cancellation = default)
     {
         OtelTags tags = OtelTags.Empty
@@ -116,15 +128,7 @@ public abstract class EvDbView : IEvDbViewStore
         return;
     }
 
-    public EvDbViewAddress Address { get; }
-
-    public TimeProvider TimeProvider { get; }
-
-    public long FoldOffset { get; private set; }
-
-    public long StoreOffset { get; set; }
-
-    public virtual int MinEventsBetweenSnapshots => 0;
+    #endregion //  SaveAsync
 
     #region FoldEvent
 

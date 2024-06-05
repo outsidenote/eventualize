@@ -16,3 +16,7 @@ public interface ICancelable : IDisposable
     /// </summary>
     bool IsDisposed { get; }
 }
+public interface ICancelable<T> : ICancelable
+{
+    T State { get; }
+}

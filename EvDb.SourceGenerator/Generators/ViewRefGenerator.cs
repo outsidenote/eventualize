@@ -80,7 +80,7 @@ public partial class ViewRefGenerator : BaseGenerator
         var viewFactories = propsNames.Select(p =>
                                                 $$"""
 
-                                                            (IEvDbViewFactory)(new {{p.Type}}Factory(_storageAdapter, timeProvider, logger))
+                                                            (IEvDbViewFactory)(new {{p.Type}}Factory(_storageAdapter, timeProvider ?? TimeProvider.System, logger))
                                                 """);
 
         #endregion // propsNames = .., props = .., viewFactories = ..
@@ -99,7 +99,7 @@ public partial class ViewRefGenerator : BaseGenerator
                         public {{typeSymbol.Name}}(
                                 IEvDbStorageAdapter storageAdapter,                    
                                 ILogger<{{typeSymbol.Name}}> logger,
-                                TimeProvider? timeProvider = null) : base(storageAdapter, timeProvider)
+                                TimeProvider? timeProvider = null) : base(storageAdapter, timeProvider ?? TimeProvider.System)
                         {
                             ViewFactories = new []
                             {{{string.Join(",", viewFactories)}}

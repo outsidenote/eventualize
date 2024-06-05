@@ -12,7 +12,7 @@ namespace EvDb.Core;
 /// <summary>
 /// Disposable resource with disposal state tracking.
 /// </summary>
-public abstract class CancelableBase<TState> : ICancelable
+internal abstract class CancelableBase<TState> : ICancelable<TState>
 {
     #region TState State  { get; set; }
 
