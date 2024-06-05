@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbStreamStore
+public interface IEvDbStreamStore: IDisposable
 {
     /// <summary>
     /// The offset of the last event that was stored.

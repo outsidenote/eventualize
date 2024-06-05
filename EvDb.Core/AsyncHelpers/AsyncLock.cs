@@ -37,7 +37,7 @@ public sealed class AsyncLock
             await _gate.WaitAsync(cancellation);
             return Disposable.Create(() => _gate.Release());
         }
-        catch (Exception)
+        catch (OperationCanceledException)
         {
             try
             {

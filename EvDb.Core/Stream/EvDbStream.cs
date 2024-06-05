@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.Json;
 using static EvDb.Core.Telemetry;
 using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
@@ -69,22 +70,28 @@ public abstract class EvDbStream :
 
         #region _pendingEvents = _pendingEvents.Add(e)
 
-        int i;
-        EvDbEvent e = EvDbEvent.Empty;
+        using var @lock = await _sync.AcquireAsync();
+        var pending = _pendingEvents;
+        EvDbStreamCursor cursor = GetNextCursor(pending);
+        EvDbEvent e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
+        _pendingEvents = pending.Add(e);
 
-        for (i = 0; i < ADDS_TRY_LIMIT; i++)
-        {
-            var compare = _pendingEvents;
-            EvDbStreamCursor cursor = GetNextCursor(compare);
-            e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
-            var newEvents = compare.Add(e);
-            if (Interlocked.CompareExchange(ref _pendingEvents, newEvents, compare) == compare)
-                break;
-            if(i > 10 && i % 5 == 0)
-                await Task.Yield();
-        }
-        if (i >= ADDS_TRY_LIMIT)
-            throw new OperationCanceledException("Fail to add event to the stream");
+        //int i;
+        //EvDbEvent e = EvDbEvent.Empty;
+
+        //for (i = 0; i < ADDS_TRY_LIMIT; i++)
+        //{
+        //    var compare = _pendingEvents;
+        //    EvDbStreamCursor cursor = GetNextCursor(compare);
+        //    e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
+        //    var newEvents = compare.Add(e);
+        //    if (Interlocked.CompareExchange(ref _pendingEvents, newEvents, compare) == compare)
+        //        break;
+        //    //if (i > 10 && i % 50 == 0)
+        //    //    await Task.Yield();
+        //}
+        //if (i >= ADDS_TRY_LIMIT)
+        //    throw new OperationCanceledException("Fail to add event to the stream");
 
         #endregion // _pendingEvents
 
@@ -126,7 +133,7 @@ public abstract class EvDbStream :
 
         using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
 
-        // TODO: lock Adds reader writer lock
+        using var @lock = await _sync.AcquireAsync();
         var events = _pendingEvents;
         await _storageAdapter.SaveStreamAsync(events, this, cancellation);
         EvDbEvent ev = events[^1];
@@ -203,4 +210,33 @@ public abstract class EvDbStream :
     public IEnumerable<EvDbEvent> Events => _pendingEvents;
 
     #endregion // IEvDbStreamStoreData.Events
+
+
+    #region Dispose Pattern
+
+    /// <summary>
+    /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose()
+    {
+        _sync.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    public virtual void Dispose(bool disposed) 
+    {
+    }
+
+
+    /// <summary>
+    /// Finalizes an instance of the <see cref="AsyncLock"/> class.
+    /// </summary>
+    ~EvDbStream()
+    {
+        Dispose(false);
+    }
+
+    #endregion // Dispose Pattern
+
 }
