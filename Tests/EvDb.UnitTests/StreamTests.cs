@@ -146,10 +146,10 @@ public class StreamTests
         IEvDbSchoolStream stream = _storageAdapter
                             .GivenLocalStream("id123");
         var sync = new ManualResetEventSlim(false);
-        var ab = new ActionBlock<CourseCreatedEvent>(e =>
+        var ab = new ActionBlock<CourseCreatedEvent>(async e =>
                                         {
                                             sync.Wait();
-                                            stream.Add(e);
+                                            await stream.AddAsync(e);
                                         },
                                         new ExecutionDataflowBlockOptions
                                         {

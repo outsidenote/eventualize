@@ -114,11 +114,13 @@ public sealed class StressTests : IntegrationTests
                     {
                         var stream = await _factory.GetAsync(streamId);
                         Interlocked.Increment(ref retryCounter);
-                        for (int k = 0; k < batchSize; k++)
-                        {
-                            var e = new Event1(1, $"Person [{i}]: {j} in <{k}>", i * j * k);
-                            stream.Add(e);
-                        }
+                        var tasks = Enumerable.Range(0, batchSize)
+                                              .Select(async k =>
+                                        {
+                                            var e = new Event1(1, $"Person [{i}]: {j} in <{k}>", i * j * k);
+                                            await stream.AddAsync(e);
+                                        });
+                        await Task.WhenAll(tasks);
                         try
                         {
                             await stream.SaveAsync();

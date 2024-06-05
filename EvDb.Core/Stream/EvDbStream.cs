@@ -59,9 +59,9 @@ public abstract class EvDbStream :
 
     #endregion // Views
 
-    #region AddEvent
+    #region AddEventAsync
 
-    protected IEvDbEventMeta AddEvent<T>(T payload, string? capturedBy = null)
+    protected async ValueTask<IEvDbEventMeta> AddEventAsync<T>(T payload, string? capturedBy = null)
         where T : IEvDbEventPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
@@ -80,6 +80,8 @@ public abstract class EvDbStream :
             var newEvents = compare.Add(e);
             if (Interlocked.CompareExchange(ref _pendingEvents, newEvents, compare) == compare)
                 break;
+            if(i > 10 && i % 5 == 0)
+                await Task.Yield();
         }
         if (i >= ADDS_TRY_LIMIT)
             throw new OperationCanceledException("Fail to add event to the stream");
@@ -106,7 +108,7 @@ public abstract class EvDbStream :
         }
     }
 
-    #endregion // AddEvent
+    #endregion // AddEventAsync
 
     #region SaveAsync
 

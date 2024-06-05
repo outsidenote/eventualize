@@ -105,9 +105,9 @@ public class SqlServerStreamTests : IntegrationTests
     {
         string streamId = $"occ-{Guid.NewGuid():N}";
 
-        IEvDbSchoolStream stream1 = _storageAdapter
+        IEvDbSchoolStream stream1 = await _storageAdapter
                     .GivenLocalStreamWithPendingEvents(streamId: streamId);
-        IEvDbSchoolStream stream2 = _storageAdapter
+        IEvDbSchoolStream stream2 = await _storageAdapter
                     .GivenLocalStreamWithPendingEvents(streamId: streamId);
 
         await Assert.ThrowsAsync<OCCException>(() =>

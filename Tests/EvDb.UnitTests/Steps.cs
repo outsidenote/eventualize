@@ -351,12 +351,12 @@ internal static class Steps
 
     #region EnlistStudent
 
-    public static IEvDbSchoolStream EnlistStudent(this IEvDbSchoolStream stream,
+    public static async Task<IEvDbSchoolStream> EnlistStudent(this IEvDbSchoolStream stream,
         int studentId = 2202,
         string studentName = "Lora")
     {
         var studentEnlisted = CreateStudentEnlistedEvent();
-        stream.Add(studentEnlisted);
+        await stream.AddAsync(studentEnlisted);
         return stream;
     }
 
@@ -371,18 +371,18 @@ internal static class Steps
         Func<int, double>? gradeStrategy = null)
     {
         var stream = await streamAsync;
-        var result = stream.GivenAddGrades(testId, studentId, numOfGrades, gradeStrategy);
+        var result = await stream.GivenAddGrades(testId, studentId, numOfGrades, gradeStrategy);
         return result;
     }
 
-    public static IEvDbSchoolStream GivenAddGrades(this IEvDbSchoolStream stream,
+    public static async Task<IEvDbSchoolStream> GivenAddGrades(this IEvDbSchoolStream stream,
         int testId = TEST_ID,
         int studentId = STUDENT_ID,
         int numOfGrades = NUM_OF_GRADES,
         Func<int, double>? gradeStrategy = null) =>
-            stream.WhenAddGrades(testId, studentId, numOfGrades, gradeStrategy);
+           await stream.WhenAddGrades(testId, studentId, numOfGrades, gradeStrategy);
 
-    public static IEvDbSchoolStream WhenAddGrades(this IEvDbSchoolStream stream,
+    public static async Task<IEvDbSchoolStream> WhenAddGrades(this IEvDbSchoolStream stream,
         int testId = TEST_ID,
         int studentId = STUDENT_ID,
         int numOfGrades = NUM_OF_GRADES,
@@ -392,7 +392,7 @@ internal static class Steps
         for (int i = 1; i <= numOfGrades; i++)
         {
             var grade = new StudentReceivedGradeEvent(testId, studentId, gradeStrategy(i));
-            stream.Add(grade);
+            await stream.AddAsync(grade);
         }
 
         return stream;
