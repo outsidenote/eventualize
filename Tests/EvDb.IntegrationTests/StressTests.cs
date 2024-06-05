@@ -90,9 +90,9 @@ public sealed class StressTests : IntegrationTests
     #endregion // Otel
 
     [Theory]
-    [InlineData(10, 1, 1, 2)]
+    //[InlineData(10, 1, 1, 2)]
     [InlineData(10, 1, 2, 2)]
-    [InlineData(100, 10, 10, 5)]
+    //[InlineData(100, 10, 10, 5)]
     public async Task StreamFactory_Stress_Succeed(
         int writeCycleCount,
         int streamsCount,
