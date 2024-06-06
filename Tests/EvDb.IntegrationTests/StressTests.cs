@@ -90,6 +90,7 @@ public sealed class StressTests : IntegrationTests
     #endregion // Otel
 
     [Theory]
+    [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
     [InlineData(10, 1, 2, 2)]
     //[InlineData(100, 10, 10, 5)]
@@ -160,6 +161,7 @@ public sealed class StressTests : IntegrationTests
     }
 
     [Theory(Skip = "bad practice")]
+    [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
     [InlineData(10, 1, 2, 2)]
     //[InlineData(100, 10, 10, 5)]
