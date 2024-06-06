@@ -13,11 +13,6 @@ public interface IEvDbStreamStore: IDisposable
     EvDbStreamAddress StreamAddress { get; }
 
     /// <summary>
-    /// Indicating whether this instance has events that were not stored yet.
-    /// </summary>
-    bool HasPendingEvents { get; }
-
-    /// <summary>
     /// number of events that were not stored yet.
     /// </summary>
     int CountOfPendingEvents { get; }

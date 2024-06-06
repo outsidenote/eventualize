@@ -160,11 +160,12 @@ public sealed class StressTests : IntegrationTests
         }
     }
 
-    [Theory(Skip = "bad practice")]
+    [Theory]
     [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
-    [InlineData(10, 1, 2, 2)]
-    //[InlineData(100, 10, 10, 5)]
+    //[InlineData(10, 1, 2, 2)]
+    //[InlineData(50, 1, 10, 2)]
+    [InlineData(100, 10, 10, 5)]
     public async Task StreamFactory_Stress_Bad_Practice_Succeed(
         int writeCycleCount,
         int streamsCount,
@@ -178,10 +179,11 @@ public sealed class StressTests : IntegrationTests
             .Select(async i =>
             {
                 var streamId = $"stream-{i}";
+                var rootStream = await _factory.GetAsync(streamId);
 
                 var ab = new ActionBlock<int>(async j =>
                 {
-                    var stream = await _factory.GetAsync(streamId);
+                    var stream = rootStream;
                     Interlocked.Increment(ref counter);
                     bool success = false;
                     do
@@ -201,7 +203,8 @@ public sealed class StressTests : IntegrationTests
                         }
                         catch (OCCException)
                         {
-                            stream = await _factory.GetAsync(streamId);
+                            //await Task.Yield();
+                            rootStream = await _factory.GetAsync(streamId);
                         }
                     } while (!success);
                 }, new ExecutionDataflowBlockOptions

@@ -125,16 +125,16 @@ public abstract class EvDbStream :
                             .Add("evdb.domain", StreamAddress.Domain)
                             .Add("evdb.partition", StreamAddress.Partition);
         using var activity = _trace.StartActivity(tags, "EvDb.SaveAsync");
-        if (!this.HasPendingEvents)
-        {
-            await Task.FromResult(true);
-            return;
-        }
 
         using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
 
         using var @lock = await _sync.AcquireAsync();
         var events = _pendingEvents;
+        if (events.Count == 0)
+        {
+            await Task.FromResult(true);
+            return;
+        }
         await _storageAdapter.SaveStreamAsync(events, this, cancellation);
         EvDbEvent ev = events[^1];
         StoreOffset = ev.StreamCursor.Offset;
@@ -170,19 +170,20 @@ public abstract class EvDbStream :
 
     #endregion // StreamAddress
 
+    #region CountOfPendingEvents
+
+    /// <summary>
+    /// number of events that were not stored yet.
+    /// </summary>
     public int CountOfPendingEvents => _pendingEvents.Count;
+
+    #endregion //  CountOfPendingEvents
 
     #region LastStoredOffset
 
     public long StoreOffset { get; protected set; }
 
     #endregion // StoreOffset
-
-    #region IsEmpty
-
-    public bool HasPendingEvents => _pendingEvents.Count > 0;
-
-    #endregion // HasPendingEvents
 
     #region Options
 
