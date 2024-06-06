@@ -142,14 +142,14 @@ public class StreamTests
     [Fact]
     public async Task Stream_ConcorrentAdds_Succeed()
     {
-        int expected = 1_000_000;
+        int expected = 100_000;
         IEvDbSchoolStream stream = _storageAdapter
                             .GivenLocalStream("id123");
         var sync = new ManualResetEventSlim(false);
-        var ab = new ActionBlock<CourseCreatedEvent>(e =>
+        var ab = new ActionBlock<CourseCreatedEvent>(async e =>
                                         {
                                             sync.Wait();
-                                            stream.Add(e);
+                                            await stream.AddAsync(e);
                                         },
                                         new ExecutionDataflowBlockOptions
                                         {

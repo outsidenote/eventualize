@@ -90,6 +90,7 @@ public sealed class StressTests : IntegrationTests
     #endregion // Otel
 
     [Theory]
+    [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
     [InlineData(10, 1, 2, 2)]
     //[InlineData(100, 10, 10, 5)]
@@ -98,6 +99,7 @@ public sealed class StressTests : IntegrationTests
         int streamsCount,
         int degreeOfParallelismPerStream,
         int batchSize)
+
     {
         int counter = 0;
         int retryCounter = 0;
@@ -114,11 +116,13 @@ public sealed class StressTests : IntegrationTests
                     {
                         var stream = await _factory.GetAsync(streamId);
                         Interlocked.Increment(ref retryCounter);
-                        for (int k = 0; k < batchSize; k++)
-                        {
-                            var e = new Event1(1, $"Person [{i}]: {j} in <{k}>", i * j * k);
-                            stream.Add(e);
-                        }
+                        var tasks = Enumerable.Range(0, batchSize)
+                                              .Select(async k =>
+                                        {
+                                            var e = new Event1(1, $"Person [{i}]: {j} in <{k}>", i * j * k);
+                                            await stream.AddAsync(e);
+                                        });
+                        await Task.WhenAll(tasks);
                         try
                         {
                             await stream.SaveAsync();
@@ -126,6 +130,81 @@ public sealed class StressTests : IntegrationTests
                         }
                         catch (OCCException)
                         {
+                        }
+                    } while (!success);
+                }, new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = degreeOfParallelismPerStream,
+                });
+
+                for (int j = 0; j < writeCycleCount; j++)
+                {
+                    ab.Post(j);
+                }
+
+                ab.Complete();
+                await ab.Completion;
+            });
+        await Task.WhenAll(tasks);
+
+        int expectedEventsCount = writeCycleCount * batchSize;
+        Assert.Equal(writeCycleCount * streamsCount, counter);
+        _output.WriteLine($"Retry count: {retryCounter}");
+        for (int i = 0; i < streamsCount; i++)
+        {
+            var streamId = $"stream-{i}";
+            var stream = await _factory.GetAsync(streamId);
+
+            Assert.Equal(expectedEventsCount, stream.Views.Count);
+            Assert.Equal(expectedEventsCount - 1, stream.StoreOffset);
+        }
+    }
+
+    [Theory]
+    [Trait("Category", "Stress")]
+    //[InlineData(10, 1, 1, 2)]
+    //[InlineData(10, 1, 2, 2)]
+    //[InlineData(50, 1, 10, 2)]
+    [InlineData(100, 10, 10, 5)]
+    public async Task StreamFactory_Stress_Bad_Practice_Succeed(
+        int writeCycleCount,
+        int streamsCount,
+        int degreeOfParallelismPerStream,
+        int batchSize)
+
+    {
+        int counter = 0;
+        int retryCounter = 0;
+        var tasks = Enumerable.Range(0, streamsCount)
+            .Select(async i =>
+            {
+                var streamId = $"stream-{i}";
+                var rootStream = await _factory.GetAsync(streamId);
+
+                var ab = new ActionBlock<int>(async j =>
+                {
+                    var stream = rootStream;
+                    Interlocked.Increment(ref counter);
+                    bool success = false;
+                    do
+                    {
+                        Interlocked.Increment(ref retryCounter);
+                        var tasks = Enumerable.Range(0, batchSize)
+                                              .Select(async k =>
+                                        {
+                                            var e = new Event1(1, $"Person [{i}]: {j} in <{k}>", i * j * k);
+                                            await stream.AddAsync(e);
+                                        });
+                        await Task.WhenAll(tasks);
+                        try
+                        {
+                            await stream.SaveAsync();
+                            success = true;
+                        }
+                        catch (OCCException)
+                        {
+                            //await Task.Yield();
+                            rootStream = await _factory.GetAsync(streamId);
                         }
                     } while (!success);
                 }, new ExecutionDataflowBlockOptions

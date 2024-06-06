@@ -30,9 +30,9 @@ public class SampleController : ControllerBase
     {
         IEvDbIssueStream stream = await _factory.GetAsync("demo");
         var e1 = new CourseCreatedEvent(i, $"name {i}", i + 10);
-        stream.Add(e1);
+        await stream.AddAsync(e1);
         var e2 = new ScheduleTestEvent(i * 100, new TestEntity(i*30 + 4, "bla bla", DateTimeOffset.Now.AddDays(i)));
-        stream.Add(e2);
+        await stream.AddAsync(e2);
         await stream.SaveAsync();
     }
 }

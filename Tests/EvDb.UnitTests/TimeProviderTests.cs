@@ -31,7 +31,7 @@ public class TimeProviderTests
     }
 
     [Fact]
-    public void Stream_WhenAddingPendingEvent_HonorTimeProvider()
+    public async Task Stream_WhenAddingPendingEvent_HonorTimeProvider()
     {
         #region TimeProvider timeProvider = A.Fake<TimeProvider>()
 
@@ -54,7 +54,7 @@ public class TimeProviderTests
         var stream = _factory.Create(streamId);
         for (int k = 0; k < 4; k++)
         {
-            stream.Add(new Event1(1, $"Person {k}", k));
+            await stream.AddAsync(new Event1(1, $"Person {k}", k));
 
         }
 

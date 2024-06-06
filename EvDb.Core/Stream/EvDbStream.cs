@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.Json;
 using static EvDb.Core.Telemetry;
 using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
@@ -59,9 +60,9 @@ public abstract class EvDbStream :
 
     #endregion // Views
 
-    #region AddEvent
+    #region AddEventAsync
 
-    protected IEvDbEventMeta AddEvent<T>(T payload, string? capturedBy = null)
+    protected async ValueTask<IEvDbEventMeta> AddEventAsync<T>(T payload, string? capturedBy = null)
         where T : IEvDbEventPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
@@ -69,20 +70,28 @@ public abstract class EvDbStream :
 
         #region _pendingEvents = _pendingEvents.Add(e)
 
-        int i;
-        EvDbEvent e = EvDbEvent.Empty;
+        using var @lock = await _sync.AcquireAsync();
+        var pending = _pendingEvents;
+        EvDbStreamCursor cursor = GetNextCursor(pending);
+        EvDbEvent e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
+        _pendingEvents = pending.Add(e);
 
-        for (i = 0; i < ADDS_TRY_LIMIT; i++)
-        {
-            var compare = _pendingEvents;
-            EvDbStreamCursor cursor = GetNextCursor(compare);
-            e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
-            var newEvents = compare.Add(e);
-            if (Interlocked.CompareExchange(ref _pendingEvents, newEvents, compare) == compare)
-                break;
-        }
-        if (i >= ADDS_TRY_LIMIT)
-            throw new OperationCanceledException("Fail to add event to the stream");
+        //int i;
+        //EvDbEvent e = EvDbEvent.Empty;
+
+        //for (i = 0; i < ADDS_TRY_LIMIT; i++)
+        //{
+        //    var compare = _pendingEvents;
+        //    EvDbStreamCursor cursor = GetNextCursor(compare);
+        //    e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
+        //    var newEvents = compare.Add(e);
+        //    if (Interlocked.CompareExchange(ref _pendingEvents, newEvents, compare) == compare)
+        //        break;
+        //    //if (i > 10 && i % 50 == 0)
+        //    //    await Task.Yield();
+        //}
+        //if (i >= ADDS_TRY_LIMIT)
+        //    throw new OperationCanceledException("Fail to add event to the stream");
 
         #endregion // _pendingEvents
 
@@ -106,7 +115,7 @@ public abstract class EvDbStream :
         }
     }
 
-    #endregion // AddEvent
+    #endregion // AddEventAsync
 
     #region SaveAsync
 
@@ -116,16 +125,16 @@ public abstract class EvDbStream :
                             .Add("evdb.domain", StreamAddress.Domain)
                             .Add("evdb.partition", StreamAddress.Partition);
         using var activity = _trace.StartActivity(tags, "EvDb.SaveAsync");
-        if (!this.HasPendingEvents)
+
+        using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
+
+        using var @lock = await _sync.AcquireAsync();
+        var events = _pendingEvents;
+        if (events.Count == 0)
         {
             await Task.FromResult(true);
             return;
         }
-
-        using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
-
-        // TODO: lock Adds reader writer lock
-        var events = _pendingEvents;
         await _storageAdapter.SaveStreamAsync(events, this, cancellation);
         EvDbEvent ev = events[^1];
         StoreOffset = ev.StreamCursor.Offset;
@@ -161,19 +170,20 @@ public abstract class EvDbStream :
 
     #endregion // StreamAddress
 
+    #region CountOfPendingEvents
+
+    /// <summary>
+    /// number of events that were not stored yet.
+    /// </summary>
     public int CountOfPendingEvents => _pendingEvents.Count;
+
+    #endregion //  CountOfPendingEvents
 
     #region LastStoredOffset
 
     public long StoreOffset { get; protected set; }
 
     #endregion // StoreOffset
-
-    #region IsEmpty
-
-    public bool HasPendingEvents => _pendingEvents.Count > 0;
-
-    #endregion // HasPendingEvents
 
     #region Options
 
@@ -201,4 +211,33 @@ public abstract class EvDbStream :
     public IEnumerable<EvDbEvent> Events => _pendingEvents;
 
     #endregion // IEvDbStreamStoreData.Events
+
+
+    #region Dispose Pattern
+
+    /// <summary>
+    /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose()
+    {
+        _sync.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    public virtual void Dispose(bool disposed) 
+    {
+    }
+
+
+    /// <summary>
+    /// Finalizes an instance of the <see cref="AsyncLock"/> class.
+    /// </summary>
+    ~EvDbStream()
+    {
+        Dispose(false);
+    }
+
+    #endregion // Dispose Pattern
+
 }

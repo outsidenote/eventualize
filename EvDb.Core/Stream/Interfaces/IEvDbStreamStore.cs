@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbStreamStore
+public interface IEvDbStreamStore: IDisposable
 {
     /// <summary>
     /// The offset of the last event that was stored.
@@ -11,11 +11,6 @@ public interface IEvDbStreamStore
     /// The stream's Uri
     /// </summary>
     EvDbStreamAddress StreamAddress { get; }
-
-    /// <summary>
-    /// Indicating whether this instance has events that were not stored yet.
-    /// </summary>
-    bool HasPendingEvents { get; }
 
     /// <summary>
     /// number of events that were not stored yet.

@@ -210,11 +210,11 @@ public partial class FactoryGenerator : BaseGenerator
 
         var adds = eventsPayloads.Select(ep =>
                     $$"""
-                        IEvDbEventMeta {{eventType}}.Add(
+                        async ValueTask<IEvDbEventMeta> {{eventType}}.AddAsync(
                                 {{ep.Type}} payload, 
                                 string? capturedBy)
                         {
-                            IEvDbEventMeta meta = AddEvent(payload, capturedBy);
+                            IEvDbEventMeta meta = await AddEventAsync(payload, capturedBy);
                             return meta;
                         }
 

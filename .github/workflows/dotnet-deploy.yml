@@ -68,10 +68,8 @@ jobs:
         shell: bash
 
       - name: .NET Build 
-        run: dotnet build  --configuration Release --no-restore 
+        run: dotnet build  --configuration Release --no-restore
         shell: bash
-
-      # TBD: tests
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3     
