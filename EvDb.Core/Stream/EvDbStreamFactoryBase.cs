@@ -1,5 +1,4 @@
-﻿using OpenTelemetry.Trace;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -93,7 +92,12 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
             _storageAdapter.GetEventsAsync(cursor, cancellationToken);
 
         long streamOffset = minSnapshotOffset;
+        var list = new List<EvDbEvent>();
         await foreach (EvDbEvent e in events)
+        {
+            list.Add(e);
+        }
+        foreach (var e in list)
         {
             foreach (IEvDbViewStore view in views)
             {

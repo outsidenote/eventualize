@@ -20,6 +20,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 {
     private readonly Task<DbConnection> _connectionTask;
     protected readonly ILogger _logger;
+    private readonly IEvDbConnectionFactory _factory;
 
     #region Ctor
 
@@ -28,14 +29,15 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         IEvDbConnectionFactory factory)
     {
         _logger = logger;
+        _factory = factory;
         _connectionTask = InitAsync();
+    }
 
-        async Task<DbConnection> InitAsync()
-        {
-            DbConnection connection = factory.CreateConnection();
-            await connection.OpenAsync();
-            return connection;
-        }
+    async Task<DbConnection> InitAsync()
+    {
+        DbConnection connection = _factory.CreateConnection();
+        await connection.OpenAsync();
+        return connection;
     }
 
     #endregion // Ctor
@@ -85,34 +87,42 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
     }
 
-    async Task IEvDbStorageStreamAdapter.SaveStreamAsync(
-        IImmutableList<EvDbEvent> events, 
+    async Task<int> IEvDbStorageStreamAdapter.StoreStreamAsync(
+        IImmutableList<EvDbEvent> events,
         IEvDbStreamStoreData streamData,
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        DbConnection conn = await _connectionTask;
+        using DbConnection conn = await InitAsync();
         string saveEventsQuery = Queries.SaveEvents;
         _logger.LogQuery(saveEventsQuery);
 
         var eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
-        try
+
+        using (var transaction = conn.BeginTransaction())
         {
-            await conn.ExecuteAsync(saveEventsQuery, eventsRecords);
-        }
-        catch (Exception ex)
-        {
-            bool isOcc = IsOccException(ex);
-            if (isOcc)
+            try
             {
+                int affcted = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
+                transaction.Commit();
+                return affcted;
+                // TODO: Bnaya 2024-06-10 add metrics affcted
+            }
+            catch (Exception ex) when (IsOccException(ex))
+            {
+                transaction.Rollback();
                 throw new OCCException(streamData.Events.FirstOrDefault());
             }
-            throw;
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 
 
-    async Task IEvDbStorageViewAdapter.SaveViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)
+    async Task IEvDbStorageViewAdapter.StoreViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)
     {
         if (!viewStore.ShouldStoreSnapshot)
         {

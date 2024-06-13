@@ -124,7 +124,7 @@ internal static class Steps
                     this IEvDbSchoolStream stream,
                     int numOfGrades = NUM_OF_GRADES)
     {
-        if (stream.StoreOffset == -1)
+        if (stream.StoredOffset == -1)
             stream.EnlistStudent();
         stream.WhenAddGrades(numOfGrades: numOfGrades);
         return stream;
@@ -170,7 +170,7 @@ internal static class Steps
         ITestOutputHelper output)
     {
 
-        A.CallTo(() => storageAdapter.SaveStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
+        A.CallTo(() => storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
                 .Throws<OCCException>();
         var stream = storageAdapter.GivenLocalStreamWithPendingEvents(output, 6);
         return stream;
@@ -457,7 +457,7 @@ internal static class Steps
     public async static Task<IEvDbSchoolStream> WhenStreamIsSavedAsync(
         this IEvDbSchoolStream stream)
     {
-        await stream.SaveAsync();
+        await stream.StoreAsync();
         return stream;
     }
 
@@ -465,7 +465,7 @@ internal static class Steps
         this Task<IEvDbSchoolStream> streamAsync)
     {
         var stream = await streamAsync;
-        await stream.SaveAsync();
+        await stream.StoreAsync();
         return stream;
     }
 

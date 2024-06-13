@@ -1,10 +1,10 @@
 ﻿namespace EvDb.Core.Tests;
 
+using Cocona;
 using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using Scenes;
 using Xunit.Abstractions;
-using Cocona;
 
 internal static class Steps
 {
@@ -122,7 +122,7 @@ internal static class Steps
                     this IEvDbSchoolStream stream,
                     int numOfGrades = NUM_OF_GRADES)
     {
-        if (stream.StoreOffset == -1)
+        if (stream.StoredOffset == -1)
             await stream.EnlistStudent();
         stream.WhenAddGrades(numOfGrades: numOfGrades);
         return stream;
@@ -235,7 +235,7 @@ internal static class Steps
     public async static Task<IEvDbSchoolStream> WhenStreamIsSavedAsync(
         this IEvDbSchoolStream stream)
     {
-        await stream.SaveAsync();
+        await stream.StoreAsync();
         return stream;
     }
 
@@ -243,7 +243,7 @@ internal static class Steps
         this Task<IEvDbSchoolStream> streamAsync)
     {
         var stream = await streamAsync;
-        await stream.SaveAsync();
+        await stream.StoreAsync();
         return stream;
     }
 

@@ -1,12 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Text.Json;
-using static EvDb.Core.Telemetry;
-using System.Diagnostics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
@@ -14,7 +10,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace EvDb.Core;
 
 
-[DebuggerDisplay("{StreamAddress}, Stored Offset:{StoreOffset} ,Count:{CountOfPendingEvents}")]
+[DebuggerDisplay("{StreamAddress}, Stored Offset:{StoredOffset} ,Count:{CountOfPendingEvents}")]
 public abstract class EvDbStream :
     IEvDbStreamStore,
     IEvDbStreamStoreData
@@ -23,6 +19,7 @@ public abstract class EvDbStream :
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
     private const int ADDS_TRY_LIMIT = 10_000;
     private readonly AsyncLock _sync = new AsyncLock();
+
 
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<EvDbEvent> _pendingEvents = ImmutableList<EvDbEvent>.Empty;
@@ -46,7 +43,7 @@ public abstract class EvDbStream :
         _views = views;
         _storageAdapter = storageAdapter;
         StreamAddress = new EvDbStreamAddress(streamConfiguration.PartitionAddress, streamId);
-        StoreOffset = lastStoredOffset;
+        StoredOffset = lastStoredOffset;
         Options = streamConfiguration.Options;
         TimeProvider = streamConfiguration.TimeProvider ?? TimeProvider.System;
     }
@@ -76,23 +73,6 @@ public abstract class EvDbStream :
         EvDbEvent e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
         _pendingEvents = pending.Add(e);
 
-        //int i;
-        //EvDbEvent e = EvDbEvent.Empty;
-
-        //for (i = 0; i < ADDS_TRY_LIMIT; i++)
-        //{
-        //    var compare = _pendingEvents;
-        //    EvDbStreamCursor cursor = GetNextCursor(compare);
-        //    e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
-        //    var newEvents = compare.Add(e);
-        //    if (Interlocked.CompareExchange(ref _pendingEvents, newEvents, compare) == compare)
-        //        break;
-        //    //if (i > 10 && i % 50 == 0)
-        //    //    await Task.Yield();
-        //}
-        //if (i >= ADDS_TRY_LIMIT)
-        //    throw new OperationCanceledException("Fail to add event to the stream");
-
         #endregion // _pendingEvents
 
         foreach (IEvDbViewStore folding in _views)
@@ -104,7 +84,7 @@ public abstract class EvDbStream :
         {
             if (events == ImmutableList<EvDbEvent>.Empty)
             {
-                var empty = new EvDbStreamCursor(StreamAddress, StoreOffset + 1);
+                var empty = new EvDbStreamCursor(StreamAddress, StoredOffset + 1);
                 return empty;
             }
 
@@ -117,52 +97,47 @@ public abstract class EvDbStream :
 
     #endregion // AddEventAsync
 
-    #region SaveAsync
+    #region StoreAsync
 
-    async Task IEvDbStreamStore.SaveAsync(CancellationToken cancellation)
+    async Task<int> IEvDbStreamStore.StoreAsync(CancellationToken cancellation)
     {
+        #region Telemetry
+
         OtelTags tags = OtelTags.Empty
                             .Add("evdb.domain", StreamAddress.Domain)
                             .Add("evdb.partition", StreamAddress.Partition);
-        using var activity = _trace.StartActivity(tags, "EvDb.SaveAsync");
+        using var activity = _trace.StartActivity(tags, "EvDb.StoreAsync");
 
         using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
+
+        #endregion //  Telemetry
 
         using var @lock = await _sync.AcquireAsync();
         var events = _pendingEvents;
         if (events.Count == 0)
         {
             await Task.FromResult(true);
-            return;
+            return 0;
         }
-        await _storageAdapter.SaveStreamAsync(events, this, cancellation);
+        int affected = await _storageAdapter.StoreStreamAsync(events, this, cancellation);
+
         EvDbEvent ev = events[^1];
-        StoreOffset = ev.StreamCursor.Offset;
+        StoredOffset = ev.StreamCursor.Offset;
         await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
         _sysMeters.EventsStored.Add(events.Count, tags);
 
         using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
         var empty = ImmutableList<EvDbEvent>.Empty;
-        if (Interlocked.CompareExchange(ref _pendingEvents, empty, events) != events)
-        {
-            int i;
-            for (i = 0; i < 1000; i++)
-            {
-                var compare = _pendingEvents;
-                var newEvents = _pendingEvents.RemoveRange(events);
-                if (Interlocked.CompareExchange(ref _pendingEvents, newEvents, compare) == compare)
-                    break;
-            }
-            if (i >= 1000)
-                throw new OperationCanceledException("Fail to update the stream events");
-        }
+        _pendingEvents = events;
         foreach (var view in _views)
         {
             view.OnSaved();
         }
+
+        return affected;
     }
 
-    #endregion // SaveAsync
+    #endregion // StoreAsync
 
     #region StreamId
 
@@ -181,9 +156,9 @@ public abstract class EvDbStream :
 
     #region LastStoredOffset
 
-    public long StoreOffset { get; protected set; }
+    public long StoredOffset { get; protected set; }
 
-    #endregion // StoreOffset
+    #endregion // StoredOffset
 
     #region Options
 
@@ -225,7 +200,7 @@ public abstract class EvDbStream :
         GC.SuppressFinalize(this);
     }
 
-    public virtual void Dispose(bool disposed) 
+    public virtual void Dispose(bool disposed)
     {
     }
 

@@ -1,6 +1,6 @@
 version: '3.7'
 
-name: databases
+name: evdb-databases
 
 volumes:
   mssql:
@@ -17,6 +17,15 @@ volumes:
 
 services:
 
+  adminer:
+    # Adminer is a full-featured database management tool written in PHP
+    container_name: adminer
+    image: adminer
+    depends_on:
+      - sqlserver
+    ports:
+      - "8080:8080"
+      
   sqlserver:
     container_name: sqlserver-event-source
     image: "mcr.microsoft.com/mssql/server:2017-latest-ubuntu"
@@ -31,6 +40,22 @@ services:
       - 1433:1433
     command: sh -c ' chmod +x /docker_init/entrypoint.sh; /docker_init/entrypoint.sh & /opt/mssql/bin/sqlservr;'
     restart: unless-stopped
+
+  mssql-tools:
+    # This service uses the official Microsoft SQL Server tools image
+    # its allows you to use tools like sqlcmd, bcp, and other command-line utilities
+    # You can interact with the mssql-tools container by executing
+    # `docker exec -it mssql-tools bash`
+    # From there, you can use sqlcmd, bcp, and other tools as needed.
+    container_name: mssql-tools
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "MasadNetunim12!@"
+    stdin_open: true
+    tty: true
     
   psql:
     container_name: psql-event-source

@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
 namespace EvDb.Core;
@@ -10,11 +8,11 @@ internal class EvDbSysMeters : IEvDbSysMeters
     public const string MetricCounterName = "EvDb.Counters";
     public const string MetricDurationName = "EvDb.Durations";
 
-    public EvDbSysMeters(): this(
+    public EvDbSysMeters() : this(
         new Meter(MetricCounterName),
         new Meter(MetricDurationName)
         )
-    { 
+    {
     }
 
     //public EvDbSysMeters(
@@ -29,11 +27,11 @@ internal class EvDbSysMeters : IEvDbSysMeters
         OCC = counterMeter.CreateCounter<int>("evdb-occ",
             "{collision}",
             "Optimistic Concurrency Collisions");
-        EventsStored = counterMeter.CreateCounter<int>("evdb-events-stored", 
-            "{event}", 
+        EventsStored = counterMeter.CreateCounter<int>("evdb-events-stored",
+            "{event}",
             "Events stored into the storage database");
         SnapshotStored = counterMeter.CreateCounter<int>(
-            "evdb-snapshot-stored", 
+            "evdb-snapshot-stored",
             "{snapshot}", "Snapshot stored into the storage database");
 
         _factoryGetDuration = durationMeter.CreateHistogram<double>(
@@ -118,7 +116,7 @@ internal class EvDbSysMeters : IEvDbSysMeters
     /// </summary>
     /// <param name="action">Attach tags</param>
     /// <returns></returns>
-    public IDisposable MeasureStoreEventsDuration (Func<OtelTags, OtelTags>? action = null)
+    public IDisposable MeasureStoreEventsDuration(Func<OtelTags, OtelTags>? action = null)
     {
         if (!_eventsStoredDuration.Enabled)
             return Disposable.Empty;
@@ -152,15 +150,15 @@ internal class EvDbSysMeters : IEvDbSysMeters
     /// </summary>
     /// <param name="action">Attach tags</param>
     /// <returns></returns>
-    public IDisposable MeasureStoreSnapshotsDuration (Func<OtelTags, OtelTags>? action = null)
+    public IDisposable MeasureStoreSnapshotsDuration(Func<OtelTags, OtelTags>? action = null)
     {
-        if(!_snapshotStoredDuration.Enabled)
+        if (!_snapshotStoredDuration.Enabled)
             return Disposable.Empty;
 
         OtelTags tags = OtelTags.Empty;
         tags = action?.Invoke(tags) ?? tags;
 
-       return MeasureStoreSnapshotsDuration(tags);
+        return MeasureStoreSnapshotsDuration(tags);
     }
 
     /// <summary>
@@ -169,12 +167,12 @@ internal class EvDbSysMeters : IEvDbSysMeters
     /// <param name="tags"></param>
     /// <returns></returns>
     public IDisposable MeasureStoreSnapshotsDuration(OtelTags tags)
-    { 
-        if(!_snapshotStoredDuration.Enabled)
+    {
+        if (!_snapshotStoredDuration.Enabled)
             return Disposable.Empty;
 
         var sw = Stopwatch.StartNew();
-        return Disposable.Create(() => 
+        return Disposable.Create(() =>
         {
             sw.Stop();
             _snapshotStoredDuration.Record(sw.ElapsedMilliseconds, tags);

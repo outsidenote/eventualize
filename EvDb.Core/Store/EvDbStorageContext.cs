@@ -14,6 +14,7 @@ public class EvDbStorageContext
             _ => $"{prefix}_{environment}_"
         };
     }
+
     /// <summary>
     /// The environment variable key represent the environment.
     /// If the key is not found, the value is used as the environment.
@@ -39,6 +40,7 @@ public class EvDbStorageContext
 
     public static implicit operator string(EvDbStorageContext context) => context.ToString();
 
-    #endregion // Cast overloads 
+    public static implicit operator EvDbStorageContext(string prefix) => EvDbStorageContext.CreateWithEnvironment(prefix);
 
+    #endregion // Cast overloads 
 }

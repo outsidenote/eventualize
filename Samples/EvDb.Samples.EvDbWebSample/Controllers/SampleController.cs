@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using EvDb.UnitTests;
 using EvDb.Scenes;
+using EvDb.UnitTests;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EvDb.Samples.EvDbWebSample.Controllers;
 [ApiController]
@@ -26,13 +26,13 @@ public class SampleController : ControllerBase
     }
 
     [HttpPost]
-    public async Task PostAsync([FromBody]int i)
+    public async Task PostAsync([FromBody] int i)
     {
         IEvDbIssueStream stream = await _factory.GetAsync("demo");
         var e1 = new CourseCreatedEvent(i, $"name {i}", i + 10);
         await stream.AddAsync(e1);
-        var e2 = new ScheduleTestEvent(i * 100, new TestEntity(i*30 + 4, "bla bla", DateTimeOffset.Now.AddDays(i)));
+        var e2 = new ScheduleTestEvent(i * 100, new TestEntity(i * 30 + 4, "bla bla", DateTimeOffset.Now.AddDays(i)));
         await stream.AddAsync(e2);
-        await stream.SaveAsync();
+        await stream.StoreAsync();
     }
 }

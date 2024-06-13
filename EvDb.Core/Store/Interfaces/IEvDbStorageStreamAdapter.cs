@@ -20,8 +20,8 @@ public interface IEvDbStorageStreamAdapter : IDisposable, IAsyncDisposable
     /// <param name="events">The events to save</param>
     /// <param name="streamStore">The stream store.</param>
     /// <param name="cancellation">The cancellation.</param>
-    /// <returns></returns>
-    Task SaveStreamAsync(
+    /// <returns>Count of added events</returns>
+    Task<int> StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
         IEvDbStreamStoreData streamStore,
         CancellationToken cancellation = default);

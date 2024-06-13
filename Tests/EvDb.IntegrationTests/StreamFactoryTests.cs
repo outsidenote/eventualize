@@ -80,7 +80,7 @@ public sealed class StreamFactoryTests : IntegrationTests
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            Assert.Equal(6, stream.StoreOffset);
+            Assert.Equal(6, stream.StoredOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
 
@@ -106,7 +106,7 @@ public sealed class StreamFactoryTests : IntegrationTests
         void ThenStoredEventsAddedSuccessfully()
         {
             var meta = stream.Views.ToMetadata();
-            Assert.Equal(4, stream.StoreOffset);
+            Assert.Equal(4, stream.StoredOffset);
             Assert.Equal(-1, meta.First().StoreOffset);
             Assert.Equal(4, meta.Last().StoreOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(4, v.FoldOffset));

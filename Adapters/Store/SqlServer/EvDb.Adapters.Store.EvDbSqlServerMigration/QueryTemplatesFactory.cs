@@ -7,7 +7,7 @@ internal static class QueryTemplatesFactory
 {
     private const int DEFAULT_TEXT_LIMIT = 100;
 
-    public static EvDbMigrationQueryTemplates Create(EvDbStorageContext storageContext)
+    public static EvDbMigrationQueryTemplates Create(EvDbStorageContext storageContext, string dbName = "master")
     {
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
@@ -96,6 +96,8 @@ internal static class QueryTemplatesFactory
                 {toSnakeCase(nameof(EvDbViewAddress.Partition))}, 
                 {toSnakeCase(nameof(EvDbViewAddress.StreamId))},
                 {toSnakeCase(nameof(EvDbViewAddress.ViewName))}, stored_at);
+
+            ALTER DATABASE {dbName} SET ALLOW_SNAPSHOT_ISOLATION ON;
             """
         };
 
