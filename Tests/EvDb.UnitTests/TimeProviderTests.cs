@@ -2,12 +2,9 @@ namespace EvDb.Core.Tests;
 
 using Cocona;
 using EvDb.MinimalStructure;
-using EvDb.Scenes;
-using EvDb.UnitTests;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.IO;
 using Xunit.Abstractions;
 
 public class TimeProviderTests
@@ -43,7 +40,7 @@ public class TimeProviderTests
                 int local = i / 2; // both stream and view call it
                 i++;
                 int sec = local * 10;
-                if(local == 3)
+                if (local == 3)
                     sec = 25;
                 return seed.AddSeconds(sec);
             });

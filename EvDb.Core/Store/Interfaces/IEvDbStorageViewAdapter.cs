@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace EvDb.Core;
+﻿namespace EvDb.Core;
 
 public interface IEvDbStorageViewAdapter : IDisposable, IAsyncDisposable
 {
@@ -21,7 +19,7 @@ public interface IEvDbStorageViewAdapter : IDisposable, IAsyncDisposable
     /// <param name="viewStore">The view store.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    Task SaveViewAsync(
+    Task StoreViewAsync(
         IEvDbViewStore viewStore,
         CancellationToken cancellation = default);
 }

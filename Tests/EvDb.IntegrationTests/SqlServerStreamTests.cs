@@ -24,7 +24,7 @@ public class SqlServerStreamTests : IntegrationTests
 
         void ThenStreamSavedWithoutSnapshot()
         {
-            Assert.Equal(3, stream.StoreOffset);
+            Assert.Equal(3, stream.StoredOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(-1, v.StoreOffset));
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(3, v.FoldOffset));
 
@@ -52,7 +52,7 @@ public class SqlServerStreamTests : IntegrationTests
 
         void ThenStreamSavedWithSnapshot()
         {
-            Assert.Equal(6, stream.StoreOffset);
+            Assert.Equal(6, stream.StoredOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
 
@@ -82,7 +82,7 @@ public class SqlServerStreamTests : IntegrationTests
 
         void ThenStreamSavedWithSnapshot()
         {
-            Assert.Equal(6, stream.StoreOffset);
+            Assert.Equal(6, stream.StoredOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
 

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Text.Json;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
@@ -28,7 +27,7 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
 
     protected abstract T DefaultState { get; }
 
-    public virtual T State { get; protected set; }
+    public T State { get; protected set; }
 
     public override EvDbStoredSnapshotAddress GetSnapshot()
     {
@@ -38,7 +37,7 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
     }
 }
 
-[DebuggerDisplay("Offset:[Stored: {StoreOffset}, Folded:{FoldOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
+[DebuggerDisplay("Offset:[Stored: {StoredOffset}, Folded:{FoldOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
 public abstract class EvDbView : IEvDbViewStore
 {
     private readonly static ActivitySource _trace = Telemetry.Trace;
@@ -115,7 +114,7 @@ public abstract class EvDbView : IEvDbViewStore
                                 .Add("evdb.domain", Address.Domain)
                                 .Add("evdb.partition", Address.Partition)
                                 .Add("evdb.view.name", Address.ViewName);
-        using var activity = _trace.StartActivity(tags, "EvDb.View.SaveAsync");
+        using var activity = _trace.StartActivity(tags, "EvDb.View.StoreAsync");
 
         if (!this.ShouldStoreSnapshot)
         {
@@ -123,12 +122,12 @@ public abstract class EvDbView : IEvDbViewStore
             return;
         }
         using var duration = _sysMeters.MeasureStoreSnapshotsDuration(tags);
-        await this._storageAdapter.SaveViewAsync(this, cancellation);
+        await this._storageAdapter.StoreViewAsync(this, cancellation);
         _sysMeters.SnapshotStored.Add(1, tags);
         return;
     }
 
-    #endregion //  SaveAsync
+    #endregion //  StoreAsync
 
     #region FoldEvent
 

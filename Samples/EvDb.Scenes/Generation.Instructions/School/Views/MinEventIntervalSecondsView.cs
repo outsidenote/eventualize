@@ -62,7 +62,7 @@ public partial class MinEventIntervalSecondsView
 
     private double CalcInterval(ref double state, IEvDbEventMeta meta)
     {
-            var now = TimeProvider.GetUtcNow();
+        var now = TimeProvider.GetUtcNow();
         if (_lastEventTime != null)
         {
             state = (now - _lastEventTime).Value.TotalSeconds;

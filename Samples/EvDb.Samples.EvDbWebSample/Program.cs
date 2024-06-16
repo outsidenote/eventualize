@@ -1,12 +1,10 @@
 using EvDb.Core;
-using Microsoft.AspNetCore.Mvc;
+using EvDb.Samples.EvDbWebSample;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
-using System.Diagnostics;
-using EvDb.Samples.EvDbWebSample;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-var services = builder.Services;    
+var services = builder.Services;
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 services.AddEvDbIssueStreamFactory();
@@ -79,7 +77,7 @@ services.AddOpenTelemetry()
         tracing
                 .AddEvDbInstrumentation()
                 .AddRedisInstrumentation(connectionMultiplexer)
-                .AddSqlClientInstrumentation(o => 
+                .AddSqlClientInstrumentation(o =>
                 {
                     o.SetDbStatementForText = true;
                     o.SetDbStatementForStoredProcedure = true;

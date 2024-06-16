@@ -35,7 +35,7 @@ public sealed class AsyncLock
         try
         {
             await _gate.WaitAsync(cancellation);
-            return Disposable.Create(() => _gate.Release());
+            return new Locker(this);
         }
         catch (OperationCanceledException)
         {
@@ -48,8 +48,30 @@ public sealed class AsyncLock
         }
     }
 
-
     #endregion // AcquireAsync
+
+    #region struct Locker : IDisposable
+
+    /// <summary>
+    /// Disposable implementation
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
+    private struct Locker : IDisposable
+    {
+        private readonly AsyncLock _lock;
+
+        public Locker(AsyncLock @lock)
+        {
+            _lock = @lock;
+        }
+
+        public void Dispose()
+        {
+            _lock._gate.Release();
+        }
+    }
+
+    #endregion //  struct Locker : IDisposable
 
     #region Dispose Pattern
 
@@ -58,7 +80,7 @@ public sealed class AsyncLock
     /// </summary>
     public void Dispose()
     {
-        _gate?.Dispose();
+        _gate.Dispose();
         GC.SuppressFinalize(this);
     }
 

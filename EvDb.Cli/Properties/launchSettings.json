@@ -6,6 +6,13 @@
       "environmentVariables": {
         "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;"
       }
+    },
+    "EvDb.Cli.AuctionHouse": {
+      "commandName": "Project",
+      "commandLineArgs": "--store sql-server -e Development auction_house",
+      "environmentVariables": {
+        "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;"
+      }
     }
   }
 }
