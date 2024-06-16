@@ -128,7 +128,7 @@ public abstract class EvDbStream :
 
         using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
         var empty = ImmutableList<EvDbEvent>.Empty;
-        _pendingEvents = events;
+        _pendingEvents = empty;
         foreach (var view in _views)
         {
             view.OnSaved();
