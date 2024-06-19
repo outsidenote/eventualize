@@ -105,7 +105,8 @@ public abstract class EvDbStream :
 
         OtelTags tags = OtelTags.Empty
                             .Add("evdb.domain", StreamAddress.Domain)
-                            .Add("evdb.partition", StreamAddress.Partition);
+                            .Add("evdb.partition", StreamAddress.Partition)
+                            .Add("evdb.stream-id", StreamAddress.StreamId);
         using var activity = _trace.StartActivity(tags, "EvDb.StoreAsync");
 
         using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
@@ -124,7 +125,7 @@ public abstract class EvDbStream :
         EvDbEvent ev = events[^1];
         StoredOffset = ev.StreamCursor.Offset;
         await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
-        _sysMeters.EventsStored.Add(events.Count, tags);
+        _sysMeters.EventsStored.Add(affected, tags);
 
         using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
         var empty = ImmutableList<EvDbEvent>.Empty;
