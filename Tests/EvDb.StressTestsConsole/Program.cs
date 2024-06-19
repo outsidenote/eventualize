@@ -30,7 +30,7 @@ await app.RunAsync(async (
         ILogger<Program> logger,
         IEvDbDemoStreamFactory factory,
         IEvDbStorageMigration storageMigration,
-        [Option('w', Description = "Number of saving on the same stream (each save is saving a batch of events)")] int writeCycleCount = 100,
+        [Option('w', Description = "Number of saving on the same stream (each save is saving a batch of events)")] int writeCycleCount = 3000,
         [Option('s', Description = "Number of independent streams, different streams doesn't collide with each other")] int streamsCount = 1,
         [Option('p', Description = "The degree of parallelism, this is what's cause the collision")] int degreeOfParallelismPerStream = 10,
         [Option('b', Description = "Number of events to add in each batch")] int batchSize = 5) =>
@@ -71,6 +71,8 @@ await app.RunAsync(async (
                         Interlocked.Increment(ref occCounter);
                     }
                 } while (!success);
+                if(counter % 200 == 0) 
+                    logger.LogInformation($"{counter}...");
             }, new ExecutionDataflowBlockOptions
             {
                 MaxDegreeOfParallelism = degreeOfParallelismPerStream,

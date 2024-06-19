@@ -1,5 +1,4 @@
-﻿using Cocona.Builder;
-using EvDb.Core;
+﻿using EvDb.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
@@ -12,7 +11,7 @@ namespace EvDb.StressTests;
 internal static class OtelExtensions
 {
     private const string APP_NAME = "evdb:stress";
-    public static CoconaAppBuilder AddOtel(this CoconaAppBuilder builder)
+    public static WebApplicationBuilder AddOtel(this WebApplicationBuilder builder)
     {
         #region Logging
 

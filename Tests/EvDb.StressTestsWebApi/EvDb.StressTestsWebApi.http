@@ -1,0 +1,6 @@
+@EvDb.StressTestsWebApi_HostAddress = http://localhost:5294
+
+GET {{EvDb.StressTestsWebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
