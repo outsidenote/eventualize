@@ -31,7 +31,6 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
 
     protected abstract EvDbMigrationQueryTemplates Queries { get; }
 
-
     #region IEvDbStorageMigration Members
 
     async Task IEvDbStorageMigration.CreateEnvironmentAsync(CancellationToken cancellation)

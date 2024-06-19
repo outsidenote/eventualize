@@ -8,11 +8,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbSqlServerStorageMigrationDI
 {
-    public static IServiceCollection AddEvDbSqlServerStoreMigration(
+    public static IServiceCollection AddEvDbSqlServerStoreMigrationFromStringOrEnvironmentKey(
             this IServiceCollection services,
             string connectionStringOrKey)
     {
-        return services.AddEvDbSqlServerStoreMigration(connectionStringOrKey: connectionStringOrKey);
+        return services.AddEvDbSqlServerStoreMigrationFromStringOrEnvironmentKey(connectionStringOrKey: connectionStringOrKey);
     }
 
     public static IServiceCollection AddEvDbSqlServerStoreMigration(
@@ -20,6 +20,8 @@ public static class EvDbSqlServerStorageMigrationDI
             EvDbStorageContext? context = null,
             string connectionStringOrKey = "EvDbSqlServerConnection")
     {
+        context = context ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
         // TODO: [bnaya 2024-02-13] Keyed injection
         services.AddSingleton<IEvDbStorageMigration>(sp =>
         {
@@ -32,7 +34,6 @@ public static class EvDbSqlServerStorageMigrationDI
 
             #endregion // IEvDbConnectionFactory connectionFactory = ...
 
-            EvDbStorageContext context = EvDbStorageContext.CreateWithEnvironment("scheduling");
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<EvDbRelationalStorageMigration>();

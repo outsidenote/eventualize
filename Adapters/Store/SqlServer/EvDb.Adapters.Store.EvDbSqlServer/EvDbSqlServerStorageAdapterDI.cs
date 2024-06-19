@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbSqlServerStorageAdapterDI
 {
-    public static IServiceCollection AddEvDbSqlServerStore(
+    public static IServiceCollection AddEvDbSqlServerStoreFromStringOrEnvironmentKey(
             this IServiceCollection services,
             string connectionStringOrKey)
     {
@@ -20,6 +20,7 @@ public static class EvDbSqlServerStorageAdapterDI
             EvDbStorageContext? context = null,
             string connectionStringOrKey = "EvDbSqlServerConnection")
     {
+        context = context ?? EvDbStorageContext.CreateWithEnvironment("evdb");
         // TODO: [bnaya 2024-02-13] Keyed injection
         services.AddSingleton<IEvDbStorageAdapter>(sp =>
         {
@@ -32,7 +33,6 @@ public static class EvDbSqlServerStorageAdapterDI
 
             #endregion // IEvDbConnectionFactory connectionFactory = ...
 
-            context = context ?? EvDbStorageContext.CreateWithEnvironment("scheduling");
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();

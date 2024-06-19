@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("{Kind}...")]
+[DebuggerDisplay("{PartitionAddress.Domain}:{PartitionAddress.Partition}")]
 public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     where T : IEvDbStreamStore, IEvDbEventAdder
 {

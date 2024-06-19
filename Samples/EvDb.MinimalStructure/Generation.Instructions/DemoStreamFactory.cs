@@ -11,7 +11,8 @@ public partial class DemoStreamFactory
 {
     #region Partition
 
-    public override EvDbPartitionAddress PartitionAddress { get; } = new EvDbPartitionAddress("issues", "view-naming");
+    public override EvDbPartitionAddress PartitionAddress { get; } = 
+        new EvDbPartitionAddress("issues", "view-naming");
 
     #endregion // PartitionAddress
 }
