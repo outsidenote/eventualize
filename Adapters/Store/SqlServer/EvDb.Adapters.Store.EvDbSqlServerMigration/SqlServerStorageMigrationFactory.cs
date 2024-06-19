@@ -1,3 +1,5 @@
+// Ignore Spelling: Sql
+
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;

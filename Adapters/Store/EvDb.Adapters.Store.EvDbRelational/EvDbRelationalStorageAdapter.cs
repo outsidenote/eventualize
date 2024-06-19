@@ -1,4 +1,6 @@
-﻿using Dapper;
+﻿// Ignore Spelling: Occ
+
+using Dapper;
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Data;

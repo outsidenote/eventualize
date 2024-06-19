@@ -1,4 +1,6 @@
-﻿using EvDb.Adapters.Store.SqlServer;
+﻿// Ignore Spelling: Sql
+
+using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Configuration;

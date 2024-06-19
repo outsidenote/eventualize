@@ -1,19 +1,14 @@
 ﻿using Cocona.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using OpenTelemetry.Resources;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EvDb.Core;
-using OpenTelemetry.Trace;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace EvDb.StressTests;
 
 internal static class OtelExtensions
-{   
+{
     public static CoconaAppBuilder AddOtel(this CoconaAppBuilder builder)
     {
         #region // Logging
@@ -71,7 +66,7 @@ internal static class OtelExtensions
                                 //.AddOtlpExporter()
                                 //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
                                 .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889")));
-    
+
         return builder;
     }
 

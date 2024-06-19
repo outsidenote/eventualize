@@ -1,13 +1,12 @@
-﻿using Cocona.Builder;
-using Cocona;
-using EvDb.MinimalStructure;
+﻿using Cocona;
+using Cocona.Builder;
 using EvDb.Core;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using FakeItEasy;
+using EvDb.MinimalStructure;
 using EvDb.StressTests;
-using System.Threading.Tasks.Dataflow;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks.Dataflow;
 
 var context = new EvDbTestStorageContext();
 
@@ -34,10 +33,10 @@ await app.RunAsync(async (
         [Option('w', Description = "Number of saving on the same stream (each save is saving a batch of events)")] int writeCycleCount = 100,
         [Option('s', Description = "Number of independent streams, different streams doesn't collide with each other")] int streamsCount = 1,
         [Option('p', Description = "The degree of parallelism, this is what's cause the collision")] int degreeOfParallelismPerStream = 10,
-        [Option('b', Description = "Number of events to add in each batch")]int batchSize =  5) =>
+        [Option('b', Description = "Number of events to add in each batch")] int batchSize = 5) =>
 {
     await storageMigration.CreateEnvironmentAsync();
-    
+
     int counter = 0;
     int occCounter = 0;
     var tasks = Enumerable.Range(0, streamsCount)
@@ -88,7 +87,7 @@ await app.RunAsync(async (
     await Task.WhenAll(tasks);
 
     logger.LogInformation("=================== COMPLETE ==================");
-    
+
     int expectedEventsCount = writeCycleCount * batchSize;
     logger.LogInformation($"count: {counter}");
     logger.LogInformation($"OCC count: {occCounter}");
