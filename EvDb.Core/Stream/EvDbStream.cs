@@ -120,22 +120,30 @@ public abstract class EvDbStream :
             await Task.FromResult(true);
             return 0;
         }
-        int affected = await _storageAdapter.StoreStreamAsync(events, this, cancellation);
-
-        EvDbEvent ev = events[^1];
-        StoredOffset = ev.StreamCursor.Offset;
-        await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
-        _sysMeters.EventsStored.Add(affected, tags);
-
-        using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
-        var empty = ImmutableList<EvDbEvent>.Empty;
-        _pendingEvents = empty;
-        foreach (var view in _views)
+        try
         {
-            view.OnSaved();
-        }
+            int affected = await _storageAdapter.StoreStreamAsync(events, this, cancellation);
+            _sysMeters.EventsStored.Add(affected, tags);
 
-        return affected;
+            EvDbEvent ev = events[^1];
+            StoredOffset = ev.StreamCursor.Offset;
+            await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
+
+            using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
+            var empty = ImmutableList<EvDbEvent>.Empty;
+            _pendingEvents = empty;
+            foreach (var view in _views)
+            {
+                view.OnSaved();
+            }
+
+            return affected;
+        }
+        catch (OCCException)
+        {
+            _sysMeters.OCC.Add(1);
+            throw;
+        }
     }
 
     #endregion // StoreAsync

@@ -2,7 +2,7 @@ apiVersion: 1
 
 # https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
 providers:
-  - name: "Event Sourcing"
+  - name: "General"
     orgId: 1
     type: file
     disableDeletion: false
@@ -10,5 +10,15 @@ providers:
     allowUiUpdates: false
     isDefault: true
     options:
-      path: /var/lib/grafana/dashboards/Event-Sourcing
+      path: /var/lib/grafana/dashboards/General
+      foldersFromFilesStructure: true
+  - name: "Custom"
+    orgId: 1
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: false
+    isDefault: true
+    options:
+      path: /var/lib/grafana/dashboards/Custom
       foldersFromFilesStructure: true

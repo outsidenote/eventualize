@@ -33,9 +33,7 @@ internal static class OtelExtensions
         {
             x.ActivityTrackingOptions = ActivityTrackingOptions.SpanId
               | ActivityTrackingOptions.TraceId
-              | ActivityTrackingOptions.ParentId
               | ActivityTrackingOptions.Tags;
-            // | ActivityTrackingOptions.TraceState;
         });
 
         #endregion // Logging}
@@ -56,8 +54,8 @@ internal static class OtelExtensions
                             o.SetDbStatementForStoredProcedure = true;
                         })
                         .SetSampler<AlwaysOnSampler>()
-                        //.AddOtlpExporter()
-                        .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
+                        .AddOtlpExporter()
+                        //.AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
                         //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
                         .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"));
             })
@@ -67,7 +65,7 @@ internal static class OtelExtensions
                                 .AddHttpClientInstrumentation()
                                 .AddAspNetCoreInstrumentation()
                                 .AddPrometheusExporter()
-                                //.AddOtlpExporter()
+                                .AddOtlpExporter()
                                 //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
                                 .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889")));
 

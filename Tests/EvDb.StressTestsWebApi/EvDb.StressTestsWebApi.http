@@ -1,6 +1,15 @@
 @EvDb.StressTestsWebApi_HostAddress = http://localhost:5294
 
-GET {{EvDb.StressTestsWebApi_HostAddress}}/weatherforecast/
-Accept: application/json
+###
 
+POST {{EvDb.StressTestsWebApi_HostAddress}}/stress/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "writeCycleCount": 30000,
+  "streamsCount": 1,
+  "degreeOfParallelismPerStream": 20,
+  "batchSize": 10
+}
 ###

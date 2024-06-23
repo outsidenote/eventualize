@@ -1,34 +1,135 @@
+# my global config
 global:
-  scrape_interval: 5s
-  scrape_timeout: 5s
-  evaluation_interval: 5s
-#  scrape_interval: 15s
-#  scrape_timeout: 10s
-#  evaluation_interval: 15s
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'evdb'
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  - 'alert.rules'
+  # - "first.rules"
+  # - "second.rules"
+
+# alert
 alerting:
   alertmanagers:
-  - static_configs:
-    - targets: []
-    scheme: http
-    timeout: 10s
-    api_version: v1
+  - scheme: http
+    static_configs:
+    - targets:
+      - "alertmanager:9093"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
 scrape_configs:
-- job_name: bang
-  honor_timestamps: true
-  # scrape_interval: 15s
-  # scrape_timeout: 15s
-  metrics_path: /metrics
-  scheme: http
-  static_configs:
-  - targets:
-    - host.docker.internal:5028 # when prometheus is hosting within a docker container
-    - localhost:5028            # when prometheus is hosting on localhost
-# - job_name: the-job-name
-#   honor_timestamps: true
-#   scrape_interval: 15s
-#   scrape_timeout: 10s
-#   metrics_path: /metrics
-#   scheme: http
-#   static_configs:
-#   - targets:
-#     - localhost:9090
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+
+  # - job_name: 'prometheus'
+  #   # Override the global default and scrape targets from this job every 5 seconds.
+  #   scrape_interval: 15s
+  #   static_configs:
+  #        - targets: ['localhost:9090']
+  
+  - job_name: otel-demo-pricing
+    honor_timestamps: true
+    # scrape_interval: 15s
+    # scrape_timeout: 15s
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+    - targets:
+      - host.docker.internal:5206 
+      # - localhost:5206       
+      
+  - job_name: otel-demo-pricing-ssl
+    honor_timestamps: true
+    # scrape_interval: 15s
+    # scrape_timeout: 15s
+    metrics_path: /metrics
+    scheme: https
+    static_configs:
+    - targets:
+      - host.docker.internal:7151 
+      # - localhost:7151   
+      
+  - job_name: otel-demo-shipping
+    honor_timestamps: true
+    # scrape_interval: 15s
+    # scrape_timeout: 15s
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+    - targets:
+      - host.docker.internal:5041 
+      # - localhost:5041    
+      
+  - job_name: otel-demo-shipping-ssl
+    honor_timestamps: true
+    # scrape_interval: 15s
+    # scrape_timeout: 15s
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+    - targets:
+      - host.docker.internal:7152 
+      # - localhost:7152    
+   
+    
+  - job_name: otel-demo-store
+    honor_timestamps: true
+    # scrape_interval: 15s
+    # scrape_timeout: 15s
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+    - targets:
+      - host.docker.internal:5032 
+      # - localhost:5032          
+      
+  - job_name: otel-demo-store-ssl
+    honor_timestamps: true
+    # scrape_interval: 15s
+    # scrape_timeout: 15s
+    metrics_path: /metrics
+    scheme: https
+    static_configs:
+    - targets:
+      - host.docker.internal:7049 
+      # - localhost:7049            
+  - job_name: evdb
+    honor_timestamps: true
+    # scrape_interval: 15s
+    # scrape_timeout: 15s
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+    - targets:
+      - host.docker.internal:5294 
+      #- localhost:5294            
+  - job_name: evdb-ssl
+    honor_timestamps: true
+    # scrape_interval: 15s
+    # scrape_timeout: 15s
+    metrics_path: /metrics
+    scheme: https
+    static_configs:
+    - targets:
+      - host.docker.internal:7255 
+      #- localhost:7255    
+  
+  # - job_name: the-job-name
+  #   honor_timestamps: true
+  #   scrape_interval: 15s
+  #   scrape_timeout: 10s
+  #   metrics_path: /metrics
+  #   scheme: http
+  #   static_configs:
+  #   - targets:
+  #     - localhost:2222
+        
