@@ -133,11 +133,13 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
 
         cancellation.ThrowIfCancellationRequested();
-        DbConnection conn = await _connectionTask;
         string saveSnapshotQuery = Queries.SaveSnapshot;
         _logger.LogQuery(saveSnapshotQuery);
 
         EvDbStoredSnapshotAddress snapshot = viewStore.GetSnapshot();
+
+        // TODO: Bnaya 2024-06-24 add resiliency: "System.InvalidOperationException: 'Invalid operation. The connection is closed.'"
+        DbConnection conn = await _connectionTask;
         await conn.ExecuteAsync(saveSnapshotQuery, snapshot);
     }
 
