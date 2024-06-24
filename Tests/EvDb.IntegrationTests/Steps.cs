@@ -124,7 +124,7 @@ internal static class Steps
     {
         if (stream.StoredOffset == -1)
             await stream.EnlistStudent();
-        stream.WhenAddGrades(numOfGrades: numOfGrades);
+        await stream.WhenAddGrades(numOfGrades: numOfGrades);
         return stream;
 
     }

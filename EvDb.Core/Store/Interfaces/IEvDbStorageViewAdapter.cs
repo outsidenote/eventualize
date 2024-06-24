@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbStorageViewAdapter : IDisposable, IAsyncDisposable
+public interface IEvDbStorageViewAdapter
 {
     /// <summary>
     /// Gets the latests stored view's snapshot or an empty snapshot if not exists.

@@ -29,7 +29,7 @@ internal partial class View
         if (!_once.TryAdd(offset, null))
             throw new InvalidOperationException("Duplicate offset");
         else if (_lastOffset + 1 != offset)
-            throw new ExecutionEngineException("offset is out of sync");
+            throw new Exception("offset is out of sync");
         _lastOffset = offset;
     }
 }

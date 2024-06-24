@@ -1,4 +1,6 @@
-﻿using EvDb.Adapters.Store.SqlServer;
+﻿// Ignore Spelling: Sql
+
+using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Configuration;
@@ -8,11 +10,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbSqlServerStorageAdapterDI
 {
-    public static IServiceCollection AddEvDbSqlServerStore(
+    public static IServiceCollection AddEvDbSqlServerStoreFromStringOrEnvironmentKey(
             this IServiceCollection services,
             string connectionStringOrKey)
     {
-        return services.AddEvDbSqlServerStore(null, connectionStringOrKey: connectionStringOrKey);
+        return services.AddEvDbSqlServerStore(connectionStringOrKey: connectionStringOrKey);
     }
 
     public static IServiceCollection AddEvDbSqlServerStore(
@@ -21,8 +23,12 @@ public static class EvDbSqlServerStorageAdapterDI
             string connectionStringOrKey = "EvDbSqlServerConnection")
     {
         // TODO: [bnaya 2024-02-13] Keyed injection
-        services.AddSingleton<IEvDbStorageAdapter>(sp =>
+        services.AddScoped(sp =>
         {
+            context = context
+                ?? sp.GetService<EvDbStorageContext>()
+                ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
             #region IEvDbConnectionFactory connectionFactory = ...
 
             string connectionString;
@@ -32,7 +38,6 @@ public static class EvDbSqlServerStorageAdapterDI
 
             #endregion // IEvDbConnectionFactory connectionFactory = ...
 
-            context = context ?? EvDbStorageContext.CreateWithEnvironment("scheduling");
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();

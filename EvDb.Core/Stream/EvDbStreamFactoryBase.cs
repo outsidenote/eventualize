@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("{Kind}...")]
+[DebuggerDisplay("{PartitionAddress.Domain}:{PartitionAddress.Partition}")]
 public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     where T : IEvDbStreamStore, IEvDbEventAdder
 {
@@ -45,7 +45,8 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
         OtelTags tags = OtelTags.Empty
                     .Add("evdb.domain", address.Domain)
-                    .Add("evdb.partition", address.Partition);
+                    .Add("evdb.partition", address.Partition)
+                    .Add("evdb.stream-id", streamId);
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.CreateAsync");
 
         var result = OnCreate(streamId, views, -1);
@@ -64,7 +65,8 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
         OtelTags tags = OtelTags.Empty
                     .Add("evdb.domain", address.Domain)
-                    .Add("evdb.partition", address.Partition);
+                    .Add("evdb.partition", address.Partition)
+                    .Add("evdb.stream-id", streamId);
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.GetAsync");
         using var duration = _sysMeters.MeasureFactoryGetDuration(tags);
 

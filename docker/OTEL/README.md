@@ -1,4 +1,4 @@
-## Event Sourcing Backbone + Redis, Jaeger, Prometheus & Grafana
+## Jaeger, Prometheus & Grafana
 
 Project structure:
 
@@ -74,11 +74,12 @@ dbdec637814f        prom/prometheus                           "/bin/prometheus -
 79f667cb7dc2        grafana/grafana                           "/run.sh"                8 minutes ago       Up 8 minutes        0.0.0.0:3000->3000/tcp   grafana
 ```
 
-Navigate to `http://localhost:3000` in your web browser and use the login credentials specified in the compose file to access Grafana. It is already configured with prometheus as the default datasource.
+Navigate to [`http://localhost:3000`](http://localhost:3000) in your web browser and use the login credentials specified in the compose file to access Grafana. It is already configured with prometheus as the default datasource.
 
-![page](output.jpg)
 
-Navigate to `http://localhost:9090` in your web browser to access directly the web interface of prometheus.
+
+Navigate to [`http://localhost:9090`](http://localhost:9090) in your web browser to access directly the web interface of prometheus.
+- Check prometheus targets [`http://localhost:9090/targets`](http://localhost:9090/targets)
 
 Stop and remove the containers. Use `-v` to remove the volumes if looking to erase all data.
 
