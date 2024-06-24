@@ -14,7 +14,7 @@ public static class EvDbSqlServerStorageAdapterDI
             this IServiceCollection services,
             string connectionStringOrKey)
     {
-        return services.AddEvDbSqlServerStore(null, connectionStringOrKey: connectionStringOrKey);
+        return services.AddEvDbSqlServerStore(connectionStringOrKey: connectionStringOrKey);
     }
 
     public static IServiceCollection AddEvDbSqlServerStore(
@@ -22,10 +22,13 @@ public static class EvDbSqlServerStorageAdapterDI
             EvDbStorageContext? context = null,
             string connectionStringOrKey = "EvDbSqlServerConnection")
     {
-        context = context ?? EvDbStorageContext.CreateWithEnvironment("evdb");
         // TODO: [bnaya 2024-02-13] Keyed injection
-        services.AddSingleton<IEvDbStorageAdapter>(sp =>
+        services.AddScoped(sp =>
         {
+            context = context
+                ?? sp.GetService<EvDbStorageContext>()
+                ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
             #region IEvDbConnectionFactory connectionFactory = ...
 
             string connectionString;

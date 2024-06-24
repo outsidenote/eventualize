@@ -22,27 +22,35 @@ public static class EvDbSqlServerStorageMigrationDI
             EvDbStorageContext? context = null,
             string connectionStringOrKey = "EvDbSqlServerConnection")
     {
-        context = context ?? EvDbStorageContext.CreateWithEnvironment("evdb");
-
-        // TODO: [bnaya 2024-02-13] Keyed injection
-        services.AddSingleton<IEvDbStorageMigration>(sp =>
+        services.AddScoped(sp =>
         {
-            #region IEvDbConnectionFactory connectionFactory = ...
-
-            string connectionString;
-            IConfiguration? configuration = sp.GetService<IConfiguration>();
-            connectionString = configuration?.GetConnectionString(connectionStringOrKey) ?? connectionStringOrKey;
-            IEvDbConnectionFactory connectionFactory = new EvDbSqlConnectionFactory(connectionString);
-
-            #endregion // IEvDbConnectionFactory connectionFactory = ...
-
-
-            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<EvDbRelationalStorageMigration>();
-            IEvDbStorageMigration adapter = SqlServerStorageMigrationFactory.Create(logger, connectionString, context);
-            return adapter;
+            return CreateStorageProvider(connectionStringOrKey, sp, context);
         });
 
         return services;
+    }
+
+    private static IEvDbStorageMigration CreateStorageProvider(
+        string connectionStringOrKey, 
+        IServiceProvider sp, 
+        EvDbStorageContext? context)
+    {
+        context = context 
+            ?? sp.GetService<EvDbStorageContext>()
+            ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
+        #region IEvDbConnectionFactory connectionFactory = ...
+
+        string connectionString;
+        IConfiguration? configuration = sp.GetService<IConfiguration>();
+        connectionString = configuration?.GetConnectionString(connectionStringOrKey) ?? connectionStringOrKey;
+        IEvDbConnectionFactory connectionFactory = new EvDbSqlConnectionFactory(connectionString);
+
+        #endregion // IEvDbConnectionFactory connectionFactory = ...
+
+        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger<EvDbRelationalStorageMigration>();
+        IEvDbStorageMigration adapter = SqlServerStorageMigrationFactory.Create(logger, connectionString, context);
+        return adapter;
     }
 }

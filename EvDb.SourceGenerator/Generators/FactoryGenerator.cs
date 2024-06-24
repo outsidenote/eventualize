@@ -266,7 +266,7 @@ public partial class FactoryGenerator : BaseGenerator
                     {
                         public static IServiceCollection Add{{factoryName}}(this IServiceCollection services)
                         {
-                            services.AddSingleton<{{factoryInterfaceType}},{{typeSymbol.Name}}>();
+                            services.AddScoped<{{factoryInterfaceType}},{{typeSymbol.Name}}>();
                             return services;
                         }
                     }

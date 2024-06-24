@@ -1,15 +1,19 @@
+using EvDb.Core;
 using EvDb.StressTests;
 using EvDb.StressTestsWebApi;
-
-var context = new EvDbTestStorageContext();
+using EvDb.StressTestsWebApi.Controllers;
+using System.Threading.Channels;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
+services.AddScoped<EvDbStorageContext>(_ => new EvDbTestStorageContext());
+services.AddEvDbSqlServerStoreMigration();
+services.AddEvDbSqlServerStore();
 services.AddEvDbDemoStreamFactory();
-services.AddEvDbSqlServerStoreMigration(context);
-services.AddEvDbSqlServerStore(context);
 builder.AddOtel();
+services.AddSingleton(Channel.CreateUnbounded<StressOptions>());
+services.AddHostedService<StressJob>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
