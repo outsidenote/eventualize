@@ -20,9 +20,10 @@ namespace EvDb.Core.Adapters;
 /// <seealso cref="EvDb.Core.IEvDbStorageAdapter" />
 public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 {
-    private readonly Task<DbConnection> _connectionTask;
     protected readonly ILogger _logger;
     private readonly IEvDbConnectionFactory _factory;
+    private const int RETRY_COUNT = 4;
+    private const int RETRY_COUNT_DELAY_MILLI = 2;
 
     #region Ctor
 
@@ -32,7 +33,6 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     {
         _logger = logger;
         _factory = factory;
-        _connectionTask = InitAsync();
     }
 
     async Task<DbConnection> InitAsync()
@@ -41,6 +41,41 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         await connection.OpenAsync();
         return connection;
     }
+
+    #region ExecuteSafe
+
+    private async Task<T> ExecuteSafe<T>(Func<DbConnection, Task<T>> handler)
+    {
+        int delay = RETRY_COUNT_DELAY_MILLI;
+        Exception? exception = null;
+        for (int i = 0; i < RETRY_COUNT; i++)
+        {
+            DbConnection? conn = null;
+            try
+            {
+                conn = await InitAsync();
+                var result = await handler(conn!);
+                return result;
+            }
+            #region Exception Handling
+
+            catch (InvalidOperationException ex) when (ex.Message == "Invalid operation. The connection is closed.")
+            {
+                exception = ex;
+                await Task.Delay(delay);
+                delay *= 2;
+            }
+
+            #endregion //  Exception Handling
+            finally
+            {
+                conn?.Dispose();
+            }
+        }
+        throw new DataException("Failed to execute", exception);
+    }
+
+    #endregion //  ExecuteSafe
 
     #endregion // Ctor
 
@@ -60,12 +95,12 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        DbConnection conn = await _connectionTask;
 
         string query = Queries.GetSnapshot;
         _logger.LogQuery(query);
 
-        var snapshot = await conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshot>(query, viewAddress);
+        var snapshot = await ExecuteSafe(conn =>
+                                conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshot>(query, viewAddress));
         if (snapshot == default)
             snapshot = EvDbStoredSnapshot.Empty;
         return snapshot;
@@ -76,10 +111,10 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         [EnumeratorCancellation] CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        DbConnection conn = await _connectionTask;
         string query = Queries.GetEvents;
         _logger.LogQuery(query);
 
+        using DbConnection conn = await InitAsync();
         DbDataReader reader = await conn.ExecuteReaderAsync(query, streamCursor);
         var parser = reader.GetRowParser<EvDbEventRecord>();
         while (await reader.ReadAsync())
@@ -123,7 +158,6 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
     }
 
-
     async Task IEvDbStorageViewAdapter.StoreViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)
     {
         if (!viewStore.ShouldStoreSnapshot)
@@ -138,35 +172,11 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
         EvDbStoredSnapshotAddress snapshot = viewStore.GetSnapshot();
 
-        // TODO: Bnaya 2024-06-24 add resiliency: "System.InvalidOperationException: 'Invalid operation. The connection is closed.'"
-        DbConnection conn = await _connectionTask;
-        await conn.ExecuteAsync(saveSnapshotQuery, snapshot);
+        // TODO: Bnaya 2024-06-24 add resiliency: "System.InvalidOperationException: ''"
+        await ExecuteSafe(conn => conn.ExecuteAsync(saveSnapshotQuery, snapshot));
     }
 
     #endregion // IEvDbStorageAdapter Members
 
     protected abstract bool IsOccException(Exception exception);
-
-    #region Dispose Pattern
-
-    void IDisposable.Dispose()
-    {
-        IDisposable commands = _connectionTask.Result;
-        commands.Dispose();
-        GC.SuppressFinalize(this);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        GC.SuppressFinalize(this);
-        var commands = await _connectionTask;
-        await commands.DisposeAsync();
-    }
-
-    ~EvDbRelationalStorageAdapter()
-    {
-        ((IDisposable)this).Dispose();
-    }
-
-    #endregion // Dispose Pattern
 }
