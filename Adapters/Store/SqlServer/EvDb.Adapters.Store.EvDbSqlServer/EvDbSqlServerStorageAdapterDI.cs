@@ -25,7 +25,7 @@ public static class EvDbSqlServerStorageAdapterDI
         // TODO: [bnaya 2024-02-13] Keyed injection
         services.AddScoped(sp =>
         {
-            context = context
+            var ctx = context
                 ?? sp.GetService<EvDbStorageContext>()
                 ?? EvDbStorageContext.CreateWithEnvironment("evdb");
 
@@ -41,7 +41,7 @@ public static class EvDbSqlServerStorageAdapterDI
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();
-            IEvDbStorageAdapter adapter = EvDbSqlServerStorageAdapterFactory.Create(logger, connectionString, context);
+            IEvDbStorageAdapter adapter = EvDbSqlServerStorageAdapterFactory.Create(logger, connectionString, ctx);
             return adapter;
         });
 
