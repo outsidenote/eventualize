@@ -4,4 +4,5 @@ public readonly record struct StressOptions(
         int WriteCycleCount,
         int StreamsCount,
         int DegreeOfParallelismPerStream,
-        int BatchSize);
+        int BatchSize,
+        string StreamPrefix = "stream");

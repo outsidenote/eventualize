@@ -6,7 +6,7 @@ public interface IEvDbViewStore : IEvDbView
 
     void OnSaved();
 
-    EvDbStoredSnapshotAddress GetSnapshot();
+    EvDbStoredSnapshotData GetSnapshotData();
 
     Task SaveAsync(CancellationToken cancellation = default);
 }

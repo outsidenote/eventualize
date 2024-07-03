@@ -12,7 +12,7 @@ providers:
     options:
       path: /var/lib/grafana/dashboards/General
       foldersFromFilesStructure: true
-  - name: "Custom"
+  - name: "EvDb"
     orgId: 1
     type: file
     disableDeletion: false
@@ -20,5 +20,5 @@ providers:
     allowUiUpdates: false
     isDefault: true
     options:
-      path: /var/lib/grafana/dashboards/Custom
+      path: /var/lib/grafana/dashboards/EvDb
       foldersFromFilesStructure: true

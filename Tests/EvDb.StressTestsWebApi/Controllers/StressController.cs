@@ -1,9 +1,4 @@
-using EvDb.Core;
 using Microsoft.AspNetCore.Mvc;
-using EvDb.MinimalStructure;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks.Dataflow;
-using System.Diagnostics;
 using System.Threading.Channels;
 
 namespace EvDb.StressTestsWebApi.Controllers;

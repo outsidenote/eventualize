@@ -103,13 +103,10 @@ public abstract class EvDbStream :
     {
         #region Telemetry
 
-        OtelTags tags = OtelTags.Empty
-                            .Add("evdb.domain", StreamAddress.Domain)
-                            .Add("evdb.partition", StreamAddress.Partition)
-                            .Add("evdb.stream-id", StreamAddress.StreamId);
-        using var activity = _trace.StartActivity(tags, "EvDb.StoreAsync");
+        OtelTags tags = StreamAddress.ToOtelTagsToOtelTags();
 
         using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
+        using var activity = _trace.StartActivity(tags, "EvDb.StoreAsync");
 
         #endregion //  Telemetry
 
@@ -127,15 +124,14 @@ public abstract class EvDbStream :
 
             EvDbEvent ev = events[^1];
             StoredOffset = ev.StreamCursor.Offset;
-            await Task.WhenAll(_views.Select(v => v.SaveAsync(cancellation)));
+            var viewSaveTasks = _views.Select(v => v.SaveAsync(cancellation));
+            await Task.WhenAll(viewSaveTasks);
 
             using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
             var empty = ImmutableList<EvDbEvent>.Empty;
             _pendingEvents = empty;
-            foreach (var view in _views)
-            {
+            foreach (IEvDbViewStore view in _views)
                 view.OnSaved();
-            }
 
             return affected;
         }

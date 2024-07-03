@@ -1,6 +1,4 @@
 ﻿using EvDb.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -41,7 +39,7 @@ internal static class OtelExtensions
         var services = builder.Services;
         services.AddOpenTelemetry()
                     .ConfigureResource(resource =>
-                                   resource.AddService(APP_NAME, 
+                                   resource.AddService(APP_NAME,
                                                     serviceInstanceId: "console-app",
                                                     autoGenerateServiceInstanceId: false)) // builder.Environment.ApplicationName
             .WithTracing(tracing =>
@@ -55,18 +53,20 @@ internal static class OtelExtensions
                         })
                         .SetSampler<AlwaysOnSampler>()
                         .AddOtlpExporter()
+                        .AddOtlpExporter("grafana", o => o.Endpoint = new Uri("http://localhost:4337"))
                         //.AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
                         //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
                         .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"));
             })
             .WithMetrics(meterBuilder =>
                     meterBuilder.AddEvDbInstrumentation()
-                                .AddProcessInstrumentation()
                                 .AddHttpClientInstrumentation()
+                                .AddProcessInstrumentation()
                                 .AddAspNetCoreInstrumentation()
                                 .AddPrometheusExporter()
                                 .AddOtlpExporter()
                                 //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
+                                .AddOtlpExporter("grafana", o => o.Endpoint = new Uri("http://localhost:4337"))
                                 .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889")));
 
         return builder;

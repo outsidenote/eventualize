@@ -44,7 +44,7 @@ internal static class OtelExtensions
         var services = builder.Services;
         services.AddOpenTelemetry()
                     .ConfigureResource(resource =>
-                                   resource.AddService(APP_NAME, 
+                                   resource.AddService(APP_NAME,
                                                     serviceInstanceId: "console-app",
                                                     autoGenerateServiceInstanceId: false)) // builder.Environment.ApplicationName
             .WithTracing(tracing =>

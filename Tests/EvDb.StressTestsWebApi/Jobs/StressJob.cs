@@ -1,10 +1,8 @@
 using EvDb.Core;
-using Microsoft.AspNetCore.Mvc;
-using EvDb.MinimalStructure;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks.Dataflow;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Channels;
+using System.Threading.Tasks.Dataflow;
 
 namespace EvDb.StressTestsWebApi.Controllers;
 
@@ -13,7 +11,7 @@ public class StressJob : BackgroundService
     private readonly ILogger<StressJob> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly Channel<StressOptions> _channel;
-    private const int REPORT_INTERVAL = 200;
+    private const int REPORT_INTERVAL = 300;
 
     public StressJob(
         ILogger<StressJob> logger,
@@ -84,21 +82,38 @@ public class StressJob : BackgroundService
         (int writeCycleCount,
         int streamsCount,
         int degreeOfParallelismPerStream,
-        int batchSize) = options;
+        int batchSize,
+        string streamPrefix) = options;
 
-        int counter = 0;
+        int counter = 0, lastCount = 0;
         int occCounter = 0;
+        var queue = new ConcurrentQueue<string>();
+        using var timer = new Timer((_) =>
+        {
+            var perSec = counter - lastCount;
+            lastCount = counter;
+            _logger.LogInformation("------------- 5s ------------------");
+            int x = 0;
+            while (queue.TryDequeue(out string? message) && x++ < 4)
+            {
+                _logger.LogInformation(message);
+            }
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            _logger.LogInformation($"Event per second: {perSec / 5:N0}, Count = {lastCount:N0}");
+            Console.ResetColor();
+        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+
         var tasks = Enumerable.Range(0, streamsCount)
             .Select(async stream_i =>
             {
-                var streamId = $"stream-{stream_i}";
+                var streamId = $"{streamPrefix}-{stream_i}";
                 var sw = Stopwatch.StartNew();
 
                 var ab = new ActionBlock<int>(async j =>
                 {
                     Interlocked.Increment(ref counter);
                     bool success = false;
-                    IEnumerable<Event1> events = CreateEvents(streamId, batchSize, j * batchSize);
+                    IEnumerable<FaultOccurred> events = CreateEvents(streamId, batchSize, j * batchSize);
                     do
                     {
                         IEvDbDemoStream stream = await factory.GetAsync(streamId, stoppingToken);
@@ -124,7 +139,12 @@ public class StressJob : BackgroundService
                     if (counter % REPORT_INTERVAL == 0)
                     {
                         sw.Stop();
-                        _logger.LogInformation($"Count: {counter}: Avg Duration (sec): {sw.ElapsedMilliseconds / REPORT_INTERVAL / 1000.0:N3}");
+                        int count = counter;
+                        double reportPerSecond = REPORT_INTERVAL / sw.Elapsed.TotalSeconds;
+                        queue.Enqueue($"""
+                                Count:              {counter:N0}
+                                Avg Duration (sec): {sw.ElapsedMilliseconds / REPORT_INTERVAL / 1000.0:N3}
+                                """);
                         sw = Stopwatch.StartNew();
                     }
                 }, new ExecutionDataflowBlockOptions
@@ -149,7 +169,7 @@ public class StressJob : BackgroundService
         _logger.LogInformation($"OCC count: {occCounter}");
         for (int i = 0; i < streamsCount; i++)
         {
-            var streamId = $"stream-{i}";
+            var streamId = $"{streamPrefix}-{i}";
             var stream = await factory.GetAsync(streamId);
 
             if (expectedEventsCount - 1 != stream.StoredOffset)
@@ -161,13 +181,13 @@ public class StressJob : BackgroundService
 
     #region CreateEvents
 
-    static IEnumerable<Event1> CreateEvents(string streamId, int batchSize, int baseId)
+    static IEnumerable<FaultOccurred> CreateEvents(string streamId, int batchSize, int baseId)
     {
         return Enumerable.Range(0, batchSize)
                          .Select(k =>
                          {
                              int id = baseId + k;
-                             var e = new Event1(id, $"Person {id}", baseId / batchSize);
+                             var e = new FaultOccurred(id, $"Person {id}", baseId / batchSize);
                              return e;
                          });
     }
