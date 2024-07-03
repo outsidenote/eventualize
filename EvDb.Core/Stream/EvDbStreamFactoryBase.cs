@@ -43,10 +43,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         var address = new EvDbStreamAddress(PartitionAddress, streamId);
         var views = CreateEmptyViews(address);
 
-        OtelTags tags = OtelTags.Empty
-                    .Add("evdb.domain", address.Domain)
-                    .Add("evdb.partition", address.Partition)
-                    .Add("evdb.stream-id", streamId);
+        OtelTags tags = address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.CreateAsync");
 
         var result = OnCreate(streamId, views, -1);
@@ -63,18 +60,19 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     {
         var address = new EvDbStreamAddress(PartitionAddress, streamId);
 
-        OtelTags tags = OtelTags.Empty
-                    .Add("evdb.domain", address.Domain)
-                    .Add("evdb.partition", address.Partition)
-                    .Add("evdb.stream-id", streamId);
+        OtelTags tags = address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.GetAsync");
         using var duration = _sysMeters.MeasureFactoryGetDuration(tags);
 
         using var snapsActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshots");
 
         long minSnapshotOffset = -1;
-        List<IEvDbViewStore> views = new(ViewFactories.Length);
-        foreach (IEvDbViewFactory viewFactory in ViewFactories)
+        //List<IEvDbViewStore> views = new(ViewFactories.Length);
+        var tasks = ViewFactories.Select(viewFactory => GetViewAsync(viewFactory));
+
+        #region Task<IEvDbViewStore> GetViewAsync(IEvDbViewFactory viewFactory)
+
+        async Task<IEvDbViewStore> GetViewAsync(IEvDbViewFactory viewFactory)
         {
             EvDbViewAddress viewAddress = new(address, viewFactory.ViewName);
 
@@ -85,8 +83,13 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
                                     ? snapshot.Offset
                                     : Math.Min(minSnapshotOffset, snapshot.Offset);
             IEvDbViewStore view = viewFactory.CreateFromSnapshot(address, snapshot, Options);
-            views.Add(view);
+            //views.Add(view);
+            return view;
         }
+
+        #endregion //  Task<IEvDbViewStore> GetViewAsync(IEvDbViewFactory viewFactory)
+
+        IEvDbViewStore[] views = await Task.WhenAll(tasks);
         var immutableViews = views.ToImmutableList();
 
         var cursor = new EvDbStreamCursor(PartitionAddress, streamId, minSnapshotOffset + 1);

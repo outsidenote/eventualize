@@ -5,7 +5,7 @@ namespace EvDb.Core;
 
 [Equatable]
 [DebuggerDisplay("{State}, Offset:{Offset}")]
-public readonly partial record struct EvDbStoredSnapshotAddress(
+public readonly partial record struct EvDbStoredSnapshotData(
             string Domain,
             string Partition,
             string StreamId,
@@ -13,7 +13,7 @@ public readonly partial record struct EvDbStoredSnapshotAddress(
             long Offset,
             string State)
 {
-    public EvDbStoredSnapshotAddress(
+    public EvDbStoredSnapshotData(
             EvDbViewAddress address,
             long offset,
             string state)
@@ -75,42 +75,42 @@ public readonly partial record struct EvDbStoredSnapshotAddress(
         return true;
     }
 
-    public static bool operator ==(EvDbStoredSnapshotAddress left, EvDbStoredSnapshot right)
+    public static bool operator ==(EvDbStoredSnapshotData left, EvDbStoredSnapshot right)
     {
         return left.IsEquals(right);
     }
 
-    public static bool operator !=(EvDbStoredSnapshotAddress left, EvDbStoredSnapshot right)
+    public static bool operator !=(EvDbStoredSnapshotData left, EvDbStoredSnapshot right)
     {
         return !left.IsEquals(right);
     }
 
-    public static bool operator ==(EvDbStoredSnapshotAddress left, EvDbSnapshotCursor right)
+    public static bool operator ==(EvDbStoredSnapshotData left, EvDbSnapshotCursor right)
     {
         return left.IsEquals(right);
     }
 
-    public static bool operator !=(EvDbStoredSnapshotAddress left, EvDbSnapshotCursor right)
+    public static bool operator !=(EvDbStoredSnapshotData left, EvDbSnapshotCursor right)
     {
         return !left.IsEquals(right);
     }
 
-    public static bool operator ==(EvDbStoredSnapshotAddress left, EvDbStreamAddress viewAddress)
+    public static bool operator ==(EvDbStoredSnapshotData left, EvDbStreamAddress viewAddress)
     {
         return left.IsEquals(viewAddress);
     }
 
-    public static bool operator !=(EvDbStoredSnapshotAddress left, EvDbStreamAddress viewAddress)
+    public static bool operator !=(EvDbStoredSnapshotData left, EvDbStreamAddress viewAddress)
     {
         return !left.IsEquals(viewAddress);
     }
 
-    public static bool operator ==(EvDbStoredSnapshotAddress left, EvDbViewAddress viewAddress)
+    public static bool operator ==(EvDbStoredSnapshotData left, EvDbViewAddress viewAddress)
     {
         return left.IsEquals(viewAddress);
     }
 
-    public static bool operator !=(EvDbStoredSnapshotAddress left, EvDbViewAddress viewAddress)
+    public static bool operator !=(EvDbStoredSnapshotData left, EvDbViewAddress viewAddress)
     {
         return !left.IsEquals(viewAddress);
     }
@@ -119,22 +119,22 @@ public readonly partial record struct EvDbStoredSnapshotAddress(
 
     #region Casting Overloads
 
-    public static implicit operator EvDbStreamAddress(EvDbStoredSnapshotAddress instance)
+    public static implicit operator EvDbStreamAddress(EvDbStoredSnapshotData instance)
     {
         return new EvDbStreamAddress(instance.Domain, instance.Partition, instance.StreamId);
     }
 
-    public static implicit operator EvDbViewAddress(EvDbStoredSnapshotAddress instance)
+    public static implicit operator EvDbViewAddress(EvDbStoredSnapshotData instance)
     {
         return new EvDbViewAddress(instance.Domain, instance.Partition, instance.StreamId, instance.ViewName);
     }
 
-    public static implicit operator EvDbStoredSnapshot(EvDbStoredSnapshotAddress instance)
+    public static implicit operator EvDbStoredSnapshot(EvDbStoredSnapshotData instance)
     {
         return new EvDbStoredSnapshot(instance.Offset, instance.State);
     }
 
-    public static implicit operator EvDbSnapshotCursor(EvDbStoredSnapshotAddress instance)
+    public static implicit operator EvDbSnapshotCursor(EvDbStoredSnapshotData instance)
     {
         return new EvDbSnapshotCursor(instance.Domain, instance.Partition, instance.StreamId, instance.ViewName, instance.Offset);
     }

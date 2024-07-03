@@ -1,4 +1,7 @@
 ﻿using Generator.Equals;
+using System.Net;
+
+using static EvDb.Core.OtelConstants;
 
 namespace EvDb.Core;
 
@@ -69,6 +72,24 @@ public readonly partial record struct EvDbViewAddress(string Domain, string Part
 
 
     #endregion // Casting Overloads
+
+    #region ToOtelTagsToOtelTags
+
+    /// <summary>
+    /// Converts to open telemetry tags.
+    /// </summary>
+    /// <returns></returns>
+    public OtelTags ToOtelTagsToOtelTags()
+    {
+        OtelTags tags = OtelTags.Empty
+                            .Add(TAG_DOMAIN, Domain)
+                            .Add(TAG_PARTITION, Partition)
+                            .Add(TAG_STREAM_ID, StreamId)
+                            .Add(TAG_VIEW_NAME, ViewName);
+        return tags;
+    }
+
+    #endregion //  ToOtelTagsToOtelTags
 
     #region ToString
 

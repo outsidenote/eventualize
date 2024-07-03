@@ -26,27 +26,27 @@ internal class EvDbSysMeters : IEvDbSysMeters
 
     private EvDbSysMeters(Meter counterMeter, Meter durationMeter)
     {
-        OCC = counterMeter.CreateCounter<int>("evdb-occ",
+        OCC = counterMeter.CreateCounter<int>("evdb_occ",
             "{collision}",
             "Optimistic Concurrency Collisions");
-        EventsStored = counterMeter.CreateCounter<int>("evdb-events-stored",
+        EventsStored = counterMeter.CreateCounter<int>("evdb_events_stored",
             "{event}",
             "Events stored into the storage database");
         SnapshotStored = counterMeter.CreateCounter<int>(
-            "evdb-snapshot-stored",
+            "evdb_snapshot_stored",
             "{snapshot}", "Snapshot stored into the storage database");
 
         _factoryGetDuration = durationMeter.CreateHistogram<double>(
-            "evdb-factory-get-duration",
+            "evdb_factory_get-duration",
             "ms",
             "Durations of factory get");
 
         _eventsStoredDuration = durationMeter.CreateHistogram<double>(
-            "evdb-events-stored-duration",
+            "evdb_events_stored_duration",
             "ms",
             "Durations of events stored into the storage database");
         _snapshotStoredDuration = durationMeter.CreateHistogram<double>(
-            "evdb-snapshot-stored-duration",
+            "evdb_snapshot_stored_duration",
             "ms",
             "Durations of snapshot stored into the storage database");
     }

@@ -13,6 +13,21 @@ Content-Type: application/json
   "batchSize": 10,
   "streamPrefix": "no-conflicts"
 }
+
+###
+
+# NO OCC Multi Streams
+POST {{StressTestsWebApi_HostAddress}}/Stress/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "writeCycleCount": 30000,
+  "streamsCount": 30,
+  "degreeOfParallelismPerStream": 1,
+  "batchSize": 10,
+  "streamPrefix": "no-conflicts"
+}
 ###
 
 # OCC

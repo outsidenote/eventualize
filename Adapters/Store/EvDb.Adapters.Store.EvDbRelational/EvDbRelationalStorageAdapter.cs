@@ -170,7 +170,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         string saveSnapshotQuery = Queries.SaveSnapshot;
         _logger.LogQuery(saveSnapshotQuery);
 
-        EvDbStoredSnapshotAddress snapshot = viewStore.GetSnapshot();
+        EvDbStoredSnapshotData snapshot = viewStore.GetSnapshotData();
 
         // TODO: Bnaya 2024-06-24 add resiliency: "System.InvalidOperationException: ''"
         await ExecuteSafe(conn => conn.ExecuteAsync(saveSnapshotQuery, snapshot));

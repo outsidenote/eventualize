@@ -29,10 +29,14 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
 
     public T State { get; protected set; }
 
-    public override EvDbStoredSnapshotAddress GetSnapshot()
+    /// <summary>
+    /// Prepare the snapshot serialized data.
+    /// </summary>
+    /// <returns></returns>
+    public override EvDbStoredSnapshotData GetSnapshotData()
     {
         string state = JsonSerializer.Serialize<T>(State, _options);
-        var snapshot = new EvDbStoredSnapshotAddress(Address, FoldOffset, state);
+        var snapshot = new EvDbStoredSnapshotData(Address, FoldOffset, state);
         return snapshot;
     }
 }
@@ -104,23 +108,20 @@ public abstract class EvDbView : IEvDbViewStore
 
     #endregion // ShouldStoreSnapshot
 
-    public abstract EvDbStoredSnapshotAddress GetSnapshot();
+    public abstract EvDbStoredSnapshotData GetSnapshotData();
 
     #region SaveAsync
 
     public async Task SaveAsync(CancellationToken cancellation = default)
     {
-        OtelTags tags = OtelTags.Empty
-                                .Add("evdb.domain", Address.Domain)
-                                .Add("evdb.partition", Address.Partition)
-                                .Add("evdb.view.name", Address.ViewName);
-        using var activity = _trace.StartActivity(tags, "EvDb.View.StoreAsync");
-
         if (!this.ShouldStoreSnapshot)
         {
             await Task.FromResult(true);
             return;
         }
+
+        OtelTags tags = Address.ToOtelTagsToOtelTags();
+        using var activity = _trace.StartActivity(tags, "EvDb.View.StoreAsync");
         using var duration = _sysMeters.MeasureStoreSnapshotsDuration(tags);
         await this._storageAdapter.StoreViewAsync(this, cancellation);
         _sysMeters.SnapshotStored.Add(1, tags);

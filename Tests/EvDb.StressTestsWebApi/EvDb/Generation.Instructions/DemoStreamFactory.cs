@@ -12,7 +12,7 @@ public partial class DemoStreamFactory
     #region Partition
 
     public override EvDbPartitionAddress PartitionAddress { get; } =
-        new EvDbPartitionAddress("issues", "view-naming");
+        new EvDbPartitionAddress("stress", "main");
 
     #endregion // PartitionAddress
 }
