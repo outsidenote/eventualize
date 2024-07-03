@@ -3,6 +3,8 @@ using System.Diagnostics.Metrics;
 
 namespace EvDb.Core;
 
+// https://www.mytechramblings.com/posts/getting-started-with-opentelemetry-metrics-and-dotnet-part-1/
+
 internal class EvDbSysMeters : IEvDbSysMeters
 {
     public const string MetricCounterName = "EvDb.Counters";
@@ -36,16 +38,16 @@ internal class EvDbSysMeters : IEvDbSysMeters
 
         _factoryGetDuration = durationMeter.CreateHistogram<double>(
             "evdb-factory-get-duration",
-            "milliseconds",
+            "ms",
             "Durations of factory get");
 
         _eventsStoredDuration = durationMeter.CreateHistogram<double>(
             "evdb-events-stored-duration",
-            "milliseconds",
+            "ms",
             "Durations of events stored into the storage database");
         _snapshotStoredDuration = durationMeter.CreateHistogram<double>(
             "evdb-snapshot-stored-duration",
-            "milliseconds",
+            "ms",
             "Durations of snapshot stored into the storage database");
     }
 

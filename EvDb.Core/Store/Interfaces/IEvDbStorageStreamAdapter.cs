@@ -2,7 +2,7 @@
 
 namespace EvDb.Core;
 
-public interface IEvDbStorageStreamAdapter 
+public interface IEvDbStorageStreamAdapter
 {
     /// <summary>
     /// Gets stored events.

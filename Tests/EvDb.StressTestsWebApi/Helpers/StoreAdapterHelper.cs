@@ -1,7 +1,5 @@
 ﻿using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace EvDb.StressTestsWebApi;
 

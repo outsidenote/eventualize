@@ -1,10 +1,7 @@
 using EvDb.Core;
-using Microsoft.AspNetCore.Mvc;
-using EvDb.MinimalStructure;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks.Dataflow;
 using System.Diagnostics;
 using System.Threading.Channels;
+using System.Threading.Tasks.Dataflow;
 
 namespace EvDb.StressTestsWebApi.Controllers;
 
@@ -84,14 +81,15 @@ public class StressJob : BackgroundService
         (int writeCycleCount,
         int streamsCount,
         int degreeOfParallelismPerStream,
-        int batchSize) = options;
+        int batchSize,
+        string streamPrefix) = options;
 
         int counter = 0;
         int occCounter = 0;
         var tasks = Enumerable.Range(0, streamsCount)
             .Select(async stream_i =>
             {
-                var streamId = $"stream-{stream_i}";
+                var streamId = $"{streamPrefix}-{stream_i}";
                 var sw = Stopwatch.StartNew();
 
                 var ab = new ActionBlock<int>(async j =>

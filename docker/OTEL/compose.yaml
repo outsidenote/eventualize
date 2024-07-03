@@ -54,3 +54,21 @@ services:
       - DASHBOARD__TELEMETRYLIMITS__MAXMETRICCOUNT=1000
       - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
     restart: unless-stopped
+    
+  grafana-lgtm-alt:
+    container_name: otel-lgtm-alt
+    image: grafana/otel-lgtm:latest
+    ports:
+       - 4338:4318  
+       - 4337:4317  
+       - 3001:3000  
+    environment:
+      # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#periodic-exporting-metricreader
+      OTEL_METRIC_EXPORT_INTERVAL: 500
+      OTEL_SERVICE_NAME: otel-demo
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: grafana
+    volumes:
+      - ./grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/main.yaml
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    restart: unless-stopped

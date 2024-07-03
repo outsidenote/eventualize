@@ -1,8 +1,22 @@
-@EvDb.StressTestsWebApi_HostAddress = http://localhost:5294
+@StressTestsWebApi_HostAddress = http://localhost:5294
 
+
+# NO OCC
+POST {{StressTestsWebApi_HostAddress}}/Stress/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "writeCycleCount": 30000,
+  "streamsCount": 1,
+  "degreeOfParallelismPerStream": 1,
+  "batchSize": 10,
+  "streamPrefix": "no-conflicts"
+}
 ###
 
-POST {{EvDb.StressTestsWebApi_HostAddress}}/stress/
+# OCC
+POST {{StressTestsWebApi_HostAddress}}/Stress/
 Accept: application/json
 Content-Type: application/json
 
@@ -10,6 +24,7 @@ Content-Type: application/json
   "writeCycleCount": 30000,
   "streamsCount": 1,
   "degreeOfParallelismPerStream": 20,
-  "batchSize": 10
+  "batchSize": 10,
+  "streamPrefix": "with-conflicts"
 }
 ###

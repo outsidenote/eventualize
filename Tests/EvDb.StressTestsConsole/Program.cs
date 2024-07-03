@@ -71,7 +71,7 @@ await app.RunAsync(async (
                         Interlocked.Increment(ref occCounter);
                     }
                 } while (!success);
-                if(counter % 200 == 0) 
+                if (counter % 200 == 0)
                     logger.LogInformation($"{counter}...");
             }, new ExecutionDataflowBlockOptions
             {
