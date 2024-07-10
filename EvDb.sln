@@ -59,7 +59,34 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.MinimalStructure", "Sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StressTestsConsole", "Tests\EvDb.StressTestsConsole\EvDb.StressTestsConsole.csproj", "{1DBA4032-0E71-469C-87ED-79F6E8C2E857}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.StressTestsWebApi", "Tests\EvDb.StressTestsWebApi\EvDb.StressTestsWebApi.csproj", "{DA0D9F51-C4D8-42FA-943D-F2AECD9EF6C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StressTestsWebApi", "Tests\EvDb.StressTestsWebApi\EvDb.StressTestsWebApi.csproj", "{DA0D9F51-C4D8-42FA-943D-F2AECD9EF6C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compose", "Compose", "{470EB5B5-2EA7-402F-BD7F-A9A49911C29E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DBs", "DBs", "{2892D150-8922-4CDE-AD60-0B3C99654CC7}"
+	ProjectSection(SolutionItems) = preProject
+		docker\DBs\compose.yaml = docker\DBs\compose.yaml
+		docker\DBs\ReadMe.md = docker\DBs\ReadMe.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OTEL", "OTEL", "{7E9C34E5-99E4-48AC-A194-3529C4CC5DEA}"
+	ProjectSection(SolutionItems) = preProject
+		docker\OTEL\compose.yaml = docker\OTEL\compose.yaml
+		docker\OTEL\README.md = docker\OTEL\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "grafana", "grafana", "{EC2EBB46-2708-405E-918D-2A3085927FB2}"
+	ProjectSection(SolutionItems) = preProject
+		docker\OTEL\grafana\dashboard.yaml = docker\OTEL\grafana\dashboard.yaml
+		docker\OTEL\grafana\datasource.yml = docker\OTEL\grafana\datasource.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dashboards", "dashboards", "{56669579-6070-4C54-8BA8-C238B67131C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EvDb", "EvDb", "{F898B3E3-4382-4BBE-9FAA-2A9B5B9ECFEB}"
+	ProjectSection(SolutionItems) = preProject
+		docker\OTEL\grafana\dashboards\EvDb\EvDb-dashboard.json = docker\OTEL\grafana\dashboards\EvDb\EvDb-dashboard.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -421,6 +448,11 @@ Global
 		{78291F2D-D5A4-40FE-9212-D23594D23FA8} = {2A577C3E-B32E-427B-9475-7F09E61B1644}
 		{1DBA4032-0E71-469C-87ED-79F6E8C2E857} = {BF7A8F35-38ED-48E8-8368-200E13753216}
 		{DA0D9F51-C4D8-42FA-943D-F2AECD9EF6C9} = {BF7A8F35-38ED-48E8-8368-200E13753216}
+		{2892D150-8922-4CDE-AD60-0B3C99654CC7} = {470EB5B5-2EA7-402F-BD7F-A9A49911C29E}
+		{7E9C34E5-99E4-48AC-A194-3529C4CC5DEA} = {470EB5B5-2EA7-402F-BD7F-A9A49911C29E}
+		{EC2EBB46-2708-405E-918D-2A3085927FB2} = {7E9C34E5-99E4-48AC-A194-3529C4CC5DEA}
+		{56669579-6070-4C54-8BA8-C238B67131C7} = {EC2EBB46-2708-405E-918D-2A3085927FB2}
+		{F898B3E3-4382-4BBE-9FAA-2A9B5B9ECFEB} = {56669579-6070-4C54-8BA8-C238B67131C7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CF849979-7A01-419B-A9C7-8EA947DCD0C2}

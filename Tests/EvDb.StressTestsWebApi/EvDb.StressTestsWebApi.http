@@ -38,7 +38,7 @@ Content-Type: application/json
 
 {
   "writeCycleCount": 300000,
-  "streamsCount": 30,
+  "streamsCount": 50,
   "degreeOfParallelismPerStream": 1,
   "batchSize": 10,
   "streamPrefix": "no-conflicts"
