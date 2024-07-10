@@ -1,7 +1,7 @@
 ﻿using EvDb.Core;
 using System.Collections.Concurrent;
 
-namespace EvDb.StressTestsWebApi.Views.B;
+namespace EvDb.StressTestsWebApi.Views.Count;
 
 [EvDbViewType<int, IEvents>("count")]
 internal partial class View
