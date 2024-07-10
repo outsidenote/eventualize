@@ -62,7 +62,9 @@ internal static class OtelExtensions
                     meterBuilder.AddEvDbInstrumentation()
                                 .AddHttpClientInstrumentation()
                                 .AddProcessInstrumentation()
+                                .AddRuntimeInstrumentation()
                                 .AddAspNetCoreInstrumentation()
+                                
                                 .AddPrometheusExporter()
                                 .AddOtlpExporter()
                                 //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
