@@ -2,7 +2,7 @@
 
 namespace EvDb.StressTestsWebApi.Views.MinInterval;
 
-[EvDbViewType<double, IEvents>("b")]
+[EvDbViewType<double, IEvents>("minimal-interval")]
 internal partial class View
 {
     private DateTimeOffset? _lastEventTime;
