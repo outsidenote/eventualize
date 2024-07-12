@@ -28,7 +28,7 @@ public class TimeProviderTests
     }
 
     [Fact]
-    public async Task Stream_WhenAddingPendingEvent_HonorTimeProvider()
+    public async Task Stream_WhenAddingPendingEvent_HonorTimeProvider_Test()
     {
         #region TimeProvider timeProvider = A.Fake<TimeProvider>()
 
