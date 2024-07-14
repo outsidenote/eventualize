@@ -18,10 +18,10 @@ public class ApiDesignTests
         _output = output;
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
-        EvDbStorageContext.CreateWithEnvironment()
-                          .AddSqlServerStreamStore()
-        services.AddEvDbStore()
-                .AddSqlServerStreamStore();
+        //EvDbStorageContext.CreateWithEnvironment()
+        //                  .AddSqlServerStreamStore()
+        //services.AddEvDbStore()
+        //        .AddSqlServerStreamStore();
         services.AddEvDbDemoStreamFactory();
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
