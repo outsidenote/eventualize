@@ -18,11 +18,34 @@ public class ApiDesignTests
         _output = output;
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
-        //EvDbStorageContext.CreateWithEnvironment()
-        //                  .AddSqlServerStreamStore()
+        /*      EvDbStorageContext.CreateWithEnvironment()
+                                  .AddStream
+                                .AddSqlServerStreamStore()*/
         //services.AddEvDbStore()
         //        .AddSqlServerStreamStore();
-        services.AddEvDbDemoStreamFactory();
+        //services.AddEvDbDemoStreamFactory();
+        services.AddEvDbDemoStreamFactory(
+                        EvDbStorageContext.CreateWithEnvironment(), // + friendly overloads
+                        // keyed injection under the stream address
+                        connectionStringOrCongigKey: "sql-server",
+                        // mode: EvDbModes.ReadOnly, // optional TBD
+                        viewStorageBuilder => // flow the context
+                        {
+                            // keyed injection under the view address
+                            viewStorageBuilder
+                                .UseDefault() // expose IEvDbViewStorageBuilder
+                                    .WithSqlServer(connectionStringOrCongigKey: "sql-server")
+                                .ForInterval // expose IEvDbViewStorageBuilder
+                                    .UseMongoDb(connectionStringOrCongigKey: "mongo") // provider layer extenssion
+                                .ForCount
+                                    .UsePostgres(connectionStringOrCongigKey: "postres", 
+                                                  options => options.Interval = TimeSpan.FromSeconds(5))
+                                //.ForViewZ // TBD
+                                //    .UseKafka(connectionStringOrCongigKey: "kafka-evdb-sync", 
+                                //                  options => options.Throttle = TimeSpan.FromSeconds(5))
+                                .ForViewX 
+                                    //.WithTiggerDb(connectionStringOrCongigKey: "tigger");
+                        });
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
     }

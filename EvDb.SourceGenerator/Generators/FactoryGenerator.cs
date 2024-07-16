@@ -85,6 +85,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     public partial interface {{interfaceType}}: IEvDbStreamStore, {{eventType}}
                     { 
                     }
@@ -102,6 +103,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     public interface {{factoryInterfaceType}}: IEvDbStreamFactory<{{interfaceType}}>
                     { 
                     }
@@ -124,6 +126,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     public abstract class {{factoryName}}Base:
                         EvDbStreamFactoryBase<{{interfaceType}}>
                     {                

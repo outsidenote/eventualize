@@ -81,6 +81,8 @@ services.AddOpenTelemetry()
                 {
                     o.SetDbStatementForText = true;
                     o.SetDbStatementForStoredProcedure = true;
+                    o.EnableConnectionLevelAttributes = true;
+                    o.RecordException = true;
                 })
                 .AddAspNetCoreInstrumentation(o => o.AddDefaultNetCoreTraceFilters())
                 .AddHttpClientInstrumentation(o => o.AddDefaultHttpClientTraceFilters())

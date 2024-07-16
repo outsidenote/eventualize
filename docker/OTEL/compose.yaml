@@ -5,11 +5,11 @@ services:
     image: redislabs/rejson
     ports:
       - 6379:6379
-    container_name: redis
+    container_name: evdb-redis
     restart: unless-stopped
   jaeger:
     image: jaegertracing/opentelemetry-all-in-one
-    container_name: jaeger
+    container_name: evdb-jaeger
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
   prometheus:
     image: prom/prometheus:latest
-    container_name: prometheus
+    container_name: evdb-prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
@@ -29,7 +29,7 @@ services:
     restart: unless-stopped
   grafana:
     image: grafana/grafana
-    container_name: grafana
+    container_name: evdb-grafana
     ports:
       - 3000:3000
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
   aspire-dashboard:
     # https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/dashboard/configuration
     image: mcr.microsoft.com/dotnet/nightly/aspire-dashboard:latest
-    container_name: aspire-dashboard
+    container_name: evdb-aspire-dashboard
     ports:
       - 18888:18888
       - 18889:18889
@@ -56,7 +56,7 @@ services:
     restart: unless-stopped
     
   grafana-lgtm-alt:
-    container_name: otel-lgtm-alt
+    container_name: evdb-otel-lgtm-alt
     image: grafana/otel-lgtm:latest
     ports:
        - 4338:4318  

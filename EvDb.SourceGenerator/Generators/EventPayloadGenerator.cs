@@ -60,6 +60,7 @@ public partial class EventPayloadGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     partial {{type}} {{name}}: IEvDbEventPayload
                     {
                         [System.Text.Json.Serialization.JsonIgnore]
