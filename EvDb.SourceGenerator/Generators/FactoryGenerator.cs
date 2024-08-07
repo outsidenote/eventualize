@@ -262,19 +262,22 @@ public partial class FactoryGenerator : BaseGenerator
         builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
         builder.AppendLine();
 
-        builder.AppendLine($$"""
-                    using {{typeSymbol.ContainingNamespace.ToDisplayString()}};
+        //builder.AppendLine($$"""
+        //            using {{typeSymbol.ContainingNamespace.ToDisplayString()}};
 
-                    public static class {{factoryName}}DependencyInjectionModule
-                    {
-                        public static IServiceCollection Add{{factoryName}}(this IServiceCollection services)
-                        {
-                            services.AddScoped<{{factoryInterfaceType}},{{typeSymbol.Name}}>();
-                            return services;
-                        }
-                    }
-                    """);
-        context.AddSource(typeSymbol.GenFileName("di"), builder.ToString());
+        //            public static class {{factoryName}}DependencyInjectionModule
+        //            {
+        //                public static IEvDbStoreBuilder Add{{factoryName}}(
+        //                                            this IServiceCollection services,
+        //                                            EvDbStorageContext context,
+        //                                            Func<IEvDbStreamStoreBuilder, IEvDbStorageStreamAdapter> factory)
+        //                {
+        //                    services.AddScoped<{{factoryInterfaceType}},{{typeSymbol.Name}}>();
+        //                    // return services;
+        //                }
+        //            }
+        //            """);
+        //context.AddSource(typeSymbol.GenFileName("di"), builder.ToString());
 
         #endregion // DI
     }

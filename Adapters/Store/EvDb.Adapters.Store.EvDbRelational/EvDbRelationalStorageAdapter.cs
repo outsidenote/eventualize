@@ -90,7 +90,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     /// <exception cref="System.NotImplementedException"></exception>
-    async Task<EvDbStoredSnapshot> IEvDbStorageViewAdapter.GetSnapshotAsync(
+    async Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(
         EvDbViewAddress viewAddress,
         CancellationToken cancellation)
     {
@@ -158,7 +158,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
     }
 
-    async Task IEvDbStorageViewAdapter.StoreViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)
+    async Task IEvDbStorageSnapshotAdapter.StoreViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)
     {
         if (!viewStore.ShouldStoreSnapshot)
         {

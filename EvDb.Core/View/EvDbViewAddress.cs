@@ -70,6 +70,10 @@ public readonly partial record struct EvDbViewAddress(string Domain, string Part
         return new EvDbPartitionAddress(instance.Domain, instance.Partition);
     }
 
+    public static implicit operator EvDbViewBasicAddress(EvDbViewAddress instance)
+    {
+        return new EvDbViewBasicAddress(instance.Domain, instance.Partition, instance.ViewName);
+    }
 
     #endregion // Casting Overloads
 

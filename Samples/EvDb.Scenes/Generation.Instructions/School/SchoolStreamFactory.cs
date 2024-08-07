@@ -18,7 +18,8 @@ public partial class SchoolStreamFactory
 
     #region Partition
 
-    public override EvDbPartitionAddress PartitionAddress { get; } = new EvDbPartitionAddress("school-records", "students");
+    public override EvDbPartitionAddress PartitionAddress { get; } = 
+        new EvDbPartitionAddress("school-records", "students");
 
     #endregion // PartitionAddress
 }

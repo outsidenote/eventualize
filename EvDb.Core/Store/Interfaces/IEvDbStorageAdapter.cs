@@ -1,5 +1,5 @@
 namespace EvDb.Core;
 
-public interface IEvDbStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorageViewAdapter
+public interface IEvDbStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorageSnapshotAdapter
 {
 }

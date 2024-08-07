@@ -119,10 +119,6 @@ public class StressJob : BackgroundService
                         IEvDbDemoStream stream = await factory.GetAsync(streamId, stoppingToken);
                         var tasks = events.Select(async e => await stream.AddAsync(e));
                         IEvDbEventMeta[] es = await Task.WhenAll(tasks);
-                        for (int q = 0; q < es.Length; q++)
-                        {
-                            var e = es[q];
-                        }
 
                         try
                         {

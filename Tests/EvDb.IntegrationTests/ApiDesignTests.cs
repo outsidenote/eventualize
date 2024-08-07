@@ -18,34 +18,15 @@ public class ApiDesignTests
         _output = output;
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
-        /*      EvDbStorageContext.CreateWithEnvironment()
-                                  .AddStream
-                                .AddSqlServerStreamStore()*/
-        //services.AddEvDbStore()
-        //        .AddSqlServerStreamStore();
-        //services.AddEvDbDemoStreamFactory();
-        services.AddEvDbDemoStreamFactory(
-                        EvDbStorageContext.CreateWithEnvironment(), // + friendly overloads
-                        // keyed injection under the stream address
-                        connectionStringOrCongigKey: "sql-server",
-                        // mode: EvDbModes.ReadOnly, // optional TBD
-                        viewStorageBuilder => // flow the context
-                        {
-                            // keyed injection under the view address
-                            viewStorageBuilder
-                                .UseDefault() // expose IEvDbViewStorageBuilder
-                                    .WithSqlServer(connectionStringOrCongigKey: "sql-server")
-                                .ForInterval // expose IEvDbViewStorageBuilder
-                                    .UseMongoDb(connectionStringOrCongigKey: "mongo") // provider layer extenssion
-                                .ForCount
-                                    .UsePostgres(connectionStringOrCongigKey: "postres", 
-                                                  options => options.Interval = TimeSpan.FromSeconds(5))
-                                //.ForViewZ // TBD
-                                //    .UseKafka(connectionStringOrCongigKey: "kafka-evdb-sync", 
-                                //                  options => options.Throttle = TimeSpan.FromSeconds(5))
-                                .ForViewX 
-                                    //.WithTiggerDb(connectionStringOrCongigKey: "tigger");
-                        });
+        services.AddEvDb() // return IEvDbBuilder that will be used as the hook for the generated extensions method
+                           // return IEvDbSchoolBuilder that will be used as the hook for the generated extensions method
+                        .AddSchool(
+                                c => c.UseSqlServerStoreForEvDbStream(),
+                                EvDbStorageContext.CreateWithEnvironment())
+                            .DefaultSnapshot(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
+                            // keyed injection under the specific view address
+                            .ForALL(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection-server1"))
+                            .ForStudentStatsView(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection2"));
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
     }
