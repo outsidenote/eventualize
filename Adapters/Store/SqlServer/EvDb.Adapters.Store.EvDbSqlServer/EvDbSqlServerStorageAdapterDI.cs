@@ -4,8 +4,8 @@ using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using EvDb.Core.Store;
+using EvDb.Core.Store.Internals;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection.Internals;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;

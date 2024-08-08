@@ -273,7 +273,7 @@ public partial class FactoryGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileName("di"), builder.ToString());
+        context.AddSource(typeSymbol.GenFileName("DI"), builder.ToString());
 
         #endregion // DI
     }

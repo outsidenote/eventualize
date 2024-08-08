@@ -1,5 +1,6 @@
 ﻿using EvDb.Core;
 using EvDb.Core.Store;
+using EvDb.Core.Store.Internals;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvDb.UnitTests.Generated;
@@ -17,6 +18,11 @@ public record EvDbSchoolSnapshotRegistration(
     {
     }
 
+    /// <summary>
+    /// Register the defaults snapshot store provider for the snapshot snapshot.
+    /// </summary>
+    /// <param name="registrationAction">The registration action.</param>
+    /// <returns></returns>
     public EvDbSchoolSnapshotSpecificRegistration DefaultSnapshot(
         Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
     {
@@ -31,6 +37,11 @@ public record EvDbSchoolSnapshotRegistration(
         return new EvDbSchoolSnapshotSpecificRegistration(Context, adress, Services);
     }
 
+    /// <summary>
+    /// Register a snapshot store provider for `ALL` view
+    /// </summary>
+    /// <param name="registrationAction">The registration action.</param>
+    /// <returns></returns>
     public EvDbSchoolSnapshotSpecificRegistration ForALL(
         Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
     {
@@ -45,6 +56,11 @@ public record EvDbSchoolSnapshotRegistration(
         return new EvDbSchoolSnapshotSpecificRegistration(Context, adress, Services);
     }
 
+    /// <summary>
+    /// Register a snapshot store provider for `StudentStatsView` view
+    /// </summary>
+    /// <param name="registrationAction">The registration action.</param>
+    /// <returns></returns>
     public EvDbSchoolSnapshotSpecificRegistration ForStudentStatsView(
         Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
     {

@@ -1,10 +1,14 @@
 ﻿using EvDb.Core;
+using EvDb.Core.Internals;
 using EvDb.Core.Store;
+using EvDb.UnitTests;
 using EvDb.UnitTests.Generated;
-using Microsoft.Extensions.DependencyInjection.Internals;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Specialize registration for the School event stream
+/// </summary>
 public static class EvDbSchoolDependencyInjectionModule
 {
     /// <summary>
@@ -20,14 +24,16 @@ public static class EvDbSchoolDependencyInjectionModule
         Action<EvDbStreamStoreRegistrationContext> registrationAction,
         EvDbStorageContext? context = null)
     {
+        var services = instance.Services;
+        services.AddScoped <IEvDbSchoolStreamFactory, SchoolStreamFactory> ();
         var storageContext = new EvDbStreamStoreRegistrationContext(context,
             new EvDbPartitionAddress("school-records", "students"),
-            instance.Services);
+            services);
         registrationAction(storageContext);
         var viewContext = new EvDbSchoolSnapshotRegistration(
                                 storageContext.Context, 
                                 storageContext.Address,
-                                storageContext.Services);
+                                services);
         return viewContext;
     }
 }

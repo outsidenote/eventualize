@@ -1,5 +1,5 @@
 ﻿using EvDb.Core;
-using Microsoft.Extensions.DependencyInjection.Internals;
+using EvDb.Core.Internals;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,7 +1,9 @@
-﻿namespace Microsoft.Extensions.DependencyInjection.Internals;
+﻿using Microsoft.Extensions.DependencyInjection;
+
+namespace EvDb.Core.Internals;
 
 /// <summary>
-/// Serve as an anchor for extension method of the storage registration 
+/// The an anchor object for extension method of the storage registration 
 /// </summary>
 public readonly record struct EvDbRegistrationEntry (IServiceCollection Services);
 
