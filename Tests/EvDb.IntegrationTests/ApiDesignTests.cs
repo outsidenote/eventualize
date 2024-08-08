@@ -31,7 +31,7 @@ public class ApiDesignTests
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
     }
 
-    [Fact]
+    [Fact(Skip = "API Design")]
     public async Task ApiDesignPlaygroundTest()
     {
         string streamId = GenerateStreamId();

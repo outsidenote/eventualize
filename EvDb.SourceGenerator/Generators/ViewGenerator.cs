@@ -116,7 +116,7 @@ public partial class ViewGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")] 
-                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
+                    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     public abstract class {{viewClassName}}Base: 
                         EvDbView<{{stateType}}>
                     {                                

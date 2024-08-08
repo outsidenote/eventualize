@@ -85,7 +85,6 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     public partial interface {{interfaceType}}: IEvDbStreamStore, {{eventType}}
                     { 
                     }
@@ -103,7 +102,6 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     public interface {{factoryInterfaceType}}: IEvDbStreamFactory<{{interfaceType}}>
                     { 
                     }
@@ -126,12 +124,12 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
+                    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     public abstract class {{factoryName}}Base:
                         EvDbStreamFactoryBase<{{interfaceType}}>
                     {                
                         #region Ctor
-
+                            
                         public {{factoryName}}Base(
                                     IEvDbStorageAdapter storageAdapter,
                                     TimeProvider timeProvider):
@@ -262,22 +260,20 @@ public partial class FactoryGenerator : BaseGenerator
         builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
         builder.AppendLine();
 
-        //builder.AppendLine($$"""
-        //            using {{typeSymbol.ContainingNamespace.ToDisplayString()}};
-
-        //            public static class {{factoryName}}DependencyInjectionModule
-        //            {
-        //                public static IEvDbStoreBuilder Add{{factoryName}}(
-        //                                            this IServiceCollection services,
-        //                                            EvDbStorageContext context,
-        //                                            Func<IEvDbStreamStoreBuilder, IEvDbStorageStreamAdapter> factory)
-        //                {
-        //                    services.AddScoped<{{factoryInterfaceType}},{{typeSymbol.Name}}>();
-        //                    // return services;
-        //                }
-        //            }
-        //            """);
-        //context.AddSource(typeSymbol.GenFileName("di"), builder.ToString());
+        builder.AppendLine($$"""
+                    using {{typeSymbol.ContainingNamespace.ToDisplayString()}};
+                    
+                    [Obsolete("Deprecated")]
+                    public static class {{factoryName}}DependencyInjectionModule
+                    {
+                        public static IServiceCollection Add{{factoryName}}(this IServiceCollection services)
+                        {
+                            services.AddScoped<{{factoryInterfaceType}},{{typeSymbol.Name}}>();
+                            return services;
+                        }
+                    }
+                    """);
+        context.AddSource(typeSymbol.GenFileName("di"), builder.ToString());
 
         #endregion // DI
     }
