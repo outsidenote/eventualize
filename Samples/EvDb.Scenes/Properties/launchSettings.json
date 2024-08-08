@@ -1,1 +1,7 @@
-{}
+{
+  "profiles": {
+    "EvDb.Scenes": {
+      "commandName": "Project"
+    }
+  }
+}

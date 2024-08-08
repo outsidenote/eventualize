@@ -126,7 +126,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageAdapter storageAdapter, 
+                            IEvDbStorageAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -141,7 +141,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageAdapter storageAdapter,
+                            IEvDbStorageAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot snapshot, 
@@ -196,7 +196,7 @@ public partial class ViewGenerator : BaseGenerator
                     { 
                         internal {{typeSymbol.Name}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageAdapter storageAdapter, 
+                            IEvDbStorageAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -211,7 +211,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         internal {{typeSymbol.Name}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageAdapter storageAdapter,
+                            IEvDbStorageAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot snapshot, 
@@ -247,7 +247,7 @@ public partial class ViewGenerator : BaseGenerator
                           private readonly ILogger _logger;
 
                           public {{typeSymbol.Name}}Factory(
-                                        IEvDbStorageAdapter storageAdapter, 
+                                        IEvDbStorageAdapter storageAdapter, // TODO: * [Keyed] of IEvDbStorageSnapshotAdapter 
                                         TimeProvider timeProvider,
                                         ILogger logger)
                           {

@@ -131,7 +131,7 @@ public partial class FactoryGenerator : BaseGenerator
                         #region Ctor
                             
                         public {{factoryName}}Base(
-                                    IEvDbStorageAdapter storageAdapter,
+                                    IEvDbStorageAdapter storageAdapter, // TODO: * [Keyed]IEvDbStorageStreamAdapter
                                     TimeProvider timeProvider):
                                         base(storageAdapter, timeProvider)
                         {
