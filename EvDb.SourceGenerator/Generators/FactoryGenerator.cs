@@ -55,6 +55,22 @@ public partial class FactoryGenerator : BaseGenerator
 
         string factoryName = $"EvDb{typeSymbol.Name}";
 
+        #region string domain = ..., string partition = ...
+
+        if (!att.TryGetValue("domain", out string domain))
+        {
+            // TODO: Bnaya 2024-08-12 report an error
+            throw new ArgumentException("domain");
+        }
+
+        if (!att.TryGetValue("partition", out string partition))
+        {
+            // TODO: Bnaya 2024-08-12 report an error
+            throw new ArgumentException("partition");
+        }
+
+        #endregion //  string domain = ..., string partition = ...
+
         #endregion // eventType = .., factoryName = ..
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
@@ -131,7 +147,7 @@ public partial class FactoryGenerator : BaseGenerator
                         #region Ctor
                             
                         public {{factoryName}}Base(
-                                    IEvDbStorageAdapter storageAdapter, // TODO: * [Keyed]IEvDbStorageStreamAdapter
+                                    IEvDbStorageStreamAdapter storageAdapter, 
                                     TimeProvider timeProvider):
                                         base(storageAdapter, timeProvider)
                         {
@@ -176,6 +192,12 @@ public partial class FactoryGenerator : BaseGenerator
                     partial {{type}} {{typeSymbol.Name}}: {{factoryName}}Base,
                             {{factoryInterfaceType}}
                     { 
+                        #region Partition
+
+                        public override EvDbPartitionAddress PartitionAddress { get; } = 
+                            new EvDbPartitionAddress("{{domain}}", "{{partition}}");
+
+                        #endregion // PartitionAddress
                     }
                     """);
         context.AddSource(typeSymbol.GenFileName("factory"), builder.ToString());
@@ -231,7 +253,7 @@ public partial class FactoryGenerator : BaseGenerator
                         public {{rootName}}(
                             IEvDbStreamConfig stramConfiguration,
                             IImmutableList<IEvDbViewStore> views,
-                            IEvDbStorageAdapter storageAdapter,
+                            IEvDbStorageStreamAdapter storageAdapter,
                             string streamId,
                             long lastStoredOffset) : 
                                 base(stramConfiguration, views, storageAdapter, streamId, lastStoredOffset)

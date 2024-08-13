@@ -5,6 +5,10 @@
 		<IsTestProject>true</IsTestProject>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
 		<PackageReference Include="Cocona" Version="2.2.0" />

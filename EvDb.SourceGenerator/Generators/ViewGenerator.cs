@@ -4,6 +4,7 @@
 using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Text;
@@ -61,8 +62,11 @@ public partial class ViewGenerator : BaseGenerator
 
         #endregion // string baseName = .., stateType = .., eventType = ..
 
-        TypedConstant nameConst = att.ConstructorArguments.First();
-        string? name = nameConst.Value?.ToString();
+        if (!att.TryGetValue("name", out string name))
+        {
+            // TODO: Bnaya 2024-08-12 report an error
+            throw new ArgumentException("name");
+        }
 
         #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
@@ -126,7 +130,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -141,7 +145,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot snapshot, 
@@ -196,7 +200,7 @@ public partial class ViewGenerator : BaseGenerator
                     { 
                         internal {{typeSymbol.Name}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -211,7 +215,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         internal {{typeSymbol.Name}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot snapshot, 
@@ -235,19 +239,21 @@ public partial class ViewGenerator : BaseGenerator
 
         #region View Factory
 
+
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.Logging;");
+        builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    internal class {{typeSymbol.Name}}Factory: IEvDbViewFactory
+                    internal partial class {{typeSymbol.Name}}Factory: IEvDbViewFactory
                     {
-                          private readonly IEvDbStorageAdapter _storageAdapter;
+                          private readonly IEvDbStorageSnapshotAdapter _storageAdapter;
                           private readonly TimeProvider _timeProvider;
                           private readonly ILogger _logger;
 
                           public {{typeSymbol.Name}}Factory(
-                                        IEvDbStorageAdapter storageAdapter, // TODO: * [Keyed] of IEvDbStorageSnapshotAdapter 
+                                        [FromKeyedServices($"{DOMAIN}:{PARTITION}:{{name}}")]IEvDbStorageSnapshotAdapter storageAdapter,  
                                         TimeProvider timeProvider,
                                         ILogger logger)
                           {
@@ -265,6 +271,8 @@ public partial class ViewGenerator : BaseGenerator
                             EvDbStoredSnapshot snapshot,
                             JsonSerializerOptions? options) => 
                                 new {{typeSymbol.Name}}(address, _storageAdapter, _timeProvider, _logger, snapshot, options);
+
+                        IEvDbStorageSnapshotAdapter IEvDbViewFactory.StoreAdapter => _storageAdapter;
                     }
                     """);
         context.AddSource(typeSymbol.GenFileName("view", "Factory"), builder.ToString());

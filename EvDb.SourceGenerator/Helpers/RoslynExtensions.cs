@@ -171,17 +171,20 @@ internal static class RoslynExtensions
                         ?.Parameters
                         .Select(p => p.Name)
                         .ToArray() ?? Array.Empty<string>();
-        int i = 0;
-        foreach (var prm in attributeData.ConstructorArguments)
+
+        var prms = attributeData.ConstructorArguments;
+        for (int i = 0; i < prms.Length; i++)
         {
             if (string.Compare(names[i], name, true) != 0)
             {
                 continue;
             }
 
+            var prm = prms[i];
             value = (T)prm.Value;
             return true;
         }
+
         var prop = attributeData.NamedArguments
                                 .FirstOrDefault(m => m.Key == name);
         var val = prop.Value;

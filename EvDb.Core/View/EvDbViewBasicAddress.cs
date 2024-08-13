@@ -37,7 +37,7 @@ public readonly partial record struct EvDbViewBasicAddress(string Domain, string
 
     public override string ToString()
     {
-        return $"{Domain}/{Partition}/{ViewName}";
+        return $"{Domain}:{Partition}:{ViewName}";
     }
 
     #endregion // ToString

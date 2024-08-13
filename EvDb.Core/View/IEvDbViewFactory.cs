@@ -12,4 +12,6 @@ public interface IEvDbViewFactory
     IEvDbViewStore CreateFromSnapshot(EvDbStreamAddress address,
         EvDbStoredSnapshot snapshot,
         JsonSerializerOptions? options);
+
+    IEvDbStorageSnapshotAdapter StoreAdapter { get; }
 }

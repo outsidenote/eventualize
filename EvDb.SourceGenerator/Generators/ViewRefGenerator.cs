@@ -47,6 +47,25 @@ public partial class ViewRefGenerator : BaseGenerator
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
 
+        AttributeData attOfFactory = typeSymbol.GetAttributes()
+                          .First(att => att.AttributeClass?.Name == FactoryGenerator.EVENT_TARGET_ATTRIBUTE);
+
+        #region string domain = ..., string partition = ...
+
+        if (!attOfFactory.TryGetValue("domain", out string domain))
+        {
+            // TODO: Bnaya 2024-08-12 report an error
+            throw new ArgumentException("domain");
+        }
+
+        if (!attOfFactory.TryGetValue("partition", out string partition))
+        {
+            // TODO: Bnaya 2024-08-12 report an error
+            throw new ArgumentException("domain");
+        }
+
+        #endregion //  string domain = ..., string partition = ...
+
         #region propsNames = .., props = .., propsCreates = ..
 
         var propsNames = typeSymbol.GetAttributes()
@@ -61,6 +80,7 @@ public partial class ViewRefGenerator : BaseGenerator
                                       ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
                                       ITypeSymbol viewTypeSymbol = args[0];
                                       string viewTypeName = viewTypeSymbol.ToDisplayString();
+                                      string typeName = viewTypeSymbol.Name;
 
                                       TypedConstant propName = att.ConstructorArguments.FirstOrDefault();
                                       string? pName = propName.Value?.ToString();
@@ -74,8 +94,9 @@ public partial class ViewRefGenerator : BaseGenerator
                                       var viewAtt = viewTypeSymbol.GetAttributes().First(vatt => vatt.AttributeClass?.Name == ViewGenerator.EVENT_TARGET);
                                       ImmutableArray<ITypeSymbol> argsState = viewAtt.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
                                       string stateType = argsState[0].ToDisplayString();
+                                      string ns = viewTypeSymbol.ContainingNamespace.ToDisplayString();
 
-                                      return (Name: pName, Type: viewTypeName, StateType: stateType);
+                                      return (Name: pName, Type: viewTypeName, TypeName: typeName, StateType: stateType, Namespace: ns);
                                   }).ToArray();
         var viewFactories = propsNames.Select(p =>
                                                 $$"""
@@ -88,6 +109,7 @@ public partial class ViewRefGenerator : BaseGenerator
         #region Stream Factory
 
         builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
@@ -97,7 +119,7 @@ public partial class ViewRefGenerator : BaseGenerator
                         #region Ctor
                         
                         public {{typeSymbol.Name}}(
-                                IEvDbStorageAdapter storageAdapter,                    
+                                [FromKeyedServices("{{domain}}:{{partition}}")]IEvDbStorageStreamAdapter storageAdapter,                    
                                 ILogger<{{typeSymbol.Name}}> logger,
                                 TimeProvider? timeProvider = null) : base(storageAdapter, timeProvider ?? TimeProvider.System)
                         {
@@ -177,6 +199,28 @@ public partial class ViewRefGenerator : BaseGenerator
         context.AddSource(typeSymbol.GenFileNameSuffix(interfaceType, "view-ref"), builder.ToString());
 
         #endregion // Stream Interface
+
+
+        #region Views Factory Encapsulation
+
+        foreach (var viewRef in propsNames)
+        {
+            builder.Clear();
+            builder.AppendHeader(syntax, typeSymbol, viewRef.Namespace);
+            builder.AppendLine();
+
+            builder.AppendLine($$"""
+                    partial class {{viewRef.TypeName}}Factory
+                    { 
+                        private const string DOMAIN = "{{domain}}";
+                        private const string PARTITION = "{{partition}}";
+                    }
+                    """);
+            var folder = viewRef.Namespace;
+            context.AddSource(typeSymbol.GenFileNameSuffix($"{viewRef.Name}-factory", "view-ref", overrideNamespace: folder), builder.ToString());
+        }
+
+        #endregion // Views Factory Encapsulation
     }
 
     #endregion // OnGenerate

@@ -11,7 +11,7 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
     protected EvDbView(
         EvDbViewAddress address,
         EvDbStoredSnapshot snapshot,
-        IEvDbStorageAdapter storageAdapter,
+        IEvDbStorageSnapshotAdapter storageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options) :
@@ -47,7 +47,7 @@ public abstract class EvDbView : IEvDbViewStore
     private readonly static ActivitySource _trace = Telemetry.Trace;
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
 
-    private readonly IEvDbStorageAdapter _storageAdapter;
+    private readonly IEvDbStorageSnapshotAdapter _storageAdapter;
     protected readonly JsonSerializerOptions? _options;
     protected readonly ILogger _logger;
 
@@ -55,7 +55,7 @@ public abstract class EvDbView : IEvDbViewStore
 
     protected EvDbView(
         EvDbViewAddress address,
-        IEvDbStorageAdapter storageAdapter,
+        IEvDbStorageSnapshotAdapter storageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options,

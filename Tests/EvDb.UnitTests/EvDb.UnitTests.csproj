@@ -7,6 +7,10 @@
 		<LangVersion>12.0</LangVersion>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Cocona" Version="2.2.0" />
 		<PackageReference Include="FakeItEasy" Version="8.3.0" />

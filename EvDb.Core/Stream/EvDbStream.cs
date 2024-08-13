@@ -29,14 +29,14 @@ public abstract class EvDbStream :
 
     private static readonly string DEFAULT_CAPTURE_BY = $"{ASSEMBLY_NAME.Name}-{ASSEMBLY_NAME.Version}";
 
-    private readonly IEvDbStorageAdapter _storageAdapter;
+    private readonly IEvDbStorageStreamAdapter _storageAdapter;
 
     #region Ctor
 
     public EvDbStream(
         IEvDbStreamConfig streamConfiguration,
         IImmutableList<IEvDbViewStore> views,
-        IEvDbStorageAdapter storageAdapter,
+        IEvDbStorageStreamAdapter storageAdapter,
         string streamId,
         long lastStoredOffset)
     {

@@ -9,4 +9,12 @@
 public class EvDbStreamFactoryAttribute<TEventType> : Attribute
     where TEventType : IEvDbEventAdder
 {
+    public EvDbStreamFactoryAttribute(string domain, string partition)
+    {
+        Domain = domain;
+        Partition = partition;
+    }
+
+    public string Domain { get; }
+    public string Partition { get; }
 }

@@ -8,11 +8,12 @@ internal static class GeneralExtensions
         string name,
         string generator,
         string suffix = "",
-        string prefix = "")
+        string prefix = "",
+        string? overrideNamespace = null)
     {
-        string namespaceName = typeSymbol.ContainingNamespace.ToDisplayString();
+        string namespaceName = overrideNamespace ?? typeSymbol.ContainingNamespace.ToDisplayString();
 
-        var result = $"{name}{suffix}.{namespaceName}.{generator}.generated.cs";
+        var result = $"{namespaceName}\\{name}{suffix}.{generator}.generated.cs";
         return result;
     }
 
@@ -20,11 +21,12 @@ internal static class GeneralExtensions
         this INamedTypeSymbol typeSymbol,
         string generator,
         string suffix = "",
-        string prefix = "")
+        string prefix = "",
+        string? overrideNamespace = null)
     {
         string namespaceName = typeSymbol.ContainingNamespace.ToDisplayString();
 
-        var result = $"{prefix}{typeSymbol.Name}{suffix}.{namespaceName}.{generator}.generated.cs";
+        var result = $"{namespaceName}\\{prefix}{typeSymbol.Name}{suffix}.{generator}.generated.cs";
         return result;
     }
 }

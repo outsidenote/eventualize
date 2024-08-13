@@ -5,6 +5,10 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Compile Remove="Aggregates\**" />
 		<Content Remove="Aggregates\**" />

@@ -8,14 +8,14 @@ namespace EvDb.Core;
 public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     where T : IEvDbStreamStore, IEvDbEventAdder
 {
-    protected readonly IEvDbStorageAdapter _storageAdapter;
+    protected readonly IEvDbStorageStreamAdapter _storageAdapter;
     private readonly static ActivitySource _trace = Telemetry.Trace;
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
 
     #region Ctor
 
     public EvDbStreamFactoryBase(
-        IEvDbStorageAdapter storageAdapter,
+        IEvDbStorageStreamAdapter storageAdapter,
         TimeProvider? timeProvider = null)
     {
         TimeProvider = timeProvider ?? TimeProvider.System;
@@ -78,7 +78,8 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
             using var snapActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshot")
                                            ?.AddTag("evdb.view.name", viewAddress.ViewName);
-            EvDbStoredSnapshot snapshot = await _storageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
+            IEvDbStorageSnapshotAdapter snapshotAdapter = viewFactory.StoreAdapter;
+            EvDbStoredSnapshot snapshot = await snapshotAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
             minSnapshotOffset = minSnapshotOffset == -1
                                     ? snapshot.Offset
                                     : Math.Min(minSnapshotOffset, snapshot.Offset);
