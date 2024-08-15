@@ -23,24 +23,9 @@ public partial class EventAdderGenerator : BaseGenerator
             TypeDeclarationSyntax syntax,
             CancellationToken cancellationToken)
     {
+        context.ThrowIfNotPartial(typeSymbol, syntax);
+
         StringBuilder builder = new StringBuilder();
-        #region Exception Handling
-
-        if (!syntax.IsPartial())
-        {
-            var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor("EvDb: 003", "interface must be partial",
-                $"{typeSymbol.Name}, Must be partial", "EvDb",
-                DiagnosticSeverity.Error, isEnabledByDefault: true),
-                Location.Create(syntax.SyntaxTree, syntax.Span));
-            builder.AppendLine($"""
-                `interface {typeSymbol.Name}` MUST BE A partial interface!
-                """);
-            context.AddSource(typeSymbol.GenFileName("adder-not-partial"), builder.ToString());
-            context.ReportDiagnostic(diagnostic);
-        }
-
-        #endregion // Exception Handling
 
         builder.AppendHeader(syntax, typeSymbol);
 
@@ -59,7 +44,7 @@ public partial class EventAdderGenerator : BaseGenerator
                          select generic;
         var adds = attributes.Select(m => $"ValueTask<IEvDbEventMeta> AddAsync({m} payload, string? capturedBy = null);");
 
-        builder.AppendLine($$"""
+        builder.AppendLine($$"""       
                     partial interface {{typeSymbol.Name}}: IEvDbEventAdder
                     {
                     """);
@@ -68,8 +53,7 @@ public partial class EventAdderGenerator : BaseGenerator
             builder.AppendLine($"\t{add}");
         }
         builder.AppendLine("}");
-        //if(!syntax.part)
-        context.AddSource(typeSymbol.GenFileName("adder"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(), builder.ToString());
     }
 
     #endregion // OnGenerate

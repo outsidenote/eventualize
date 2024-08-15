@@ -39,6 +39,8 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerMigration\EvDb.Adapters.Store.EvDbSqlServerMigration.csproj" />
+	  <ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServer\EvDb.Adapters.Store.EvDbSqlServer.csproj" />
 	  <ProjectReference Include="..\..\Samples\EvDb.MinimalStructure\EvDb.MinimalStructure.csproj" />
 	</ItemGroup>
 

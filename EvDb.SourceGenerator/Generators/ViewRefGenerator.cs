@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Text;
+using System.Xml.Linq;
 
 namespace EvDb.SourceGenerator;
 
@@ -25,23 +26,9 @@ public partial class ViewRefGenerator : BaseGenerator
             TypeDeclarationSyntax syntax,
             CancellationToken cancellationToken)
     {
+        context.ThrowIfNotPartial(typeSymbol, syntax);
+
         StringBuilder builder = new StringBuilder();
-
-        #region Exception Handling
-
-        if (!syntax.IsPartial())
-        {
-            var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor("EvDb: 013", "class must be partial",
-                $"{typeSymbol.Name}, Must be partial", "EvDb",
-                DiagnosticSeverity.Error, isEnabledByDefault: true),
-                Location.Create(syntax.SyntaxTree, syntax.Span));
-            builder.AppendLine($"`{typeSymbol.Name}` MUST BE A partial interface!");
-            context.AddSource(typeSymbol.GenFileName("partial-is-missing"), builder.ToString());
-            context.ReportDiagnostic(diagnostic);
-        }
-
-        #endregion // Exception Handling
 
         AssemblyName asm = GetType().Assembly.GetName();
 
@@ -54,14 +41,14 @@ public partial class ViewRefGenerator : BaseGenerator
 
         if (!attOfFactory.TryGetValue("domain", out string domain))
         {
-            // TODO: Bnaya 2024-08-12 report an error
-            throw new ArgumentException("domain");
+            var diagnostic = syntax.CreateDiagnostic(14, "domain is missng", typeSymbol.Name);
+            context.ReportDiagnostic(diagnostic);
         }
 
         if (!attOfFactory.TryGetValue("partition", out string partition))
         {
-            // TODO: Bnaya 2024-08-12 report an error
-            throw new ArgumentException("domain");
+            var diagnostic = syntax.CreateDiagnostic(14, "partition is missng", typeSymbol.Name);
+            context.ReportDiagnostic(diagnostic);
         }
 
         #endregion //  string domain = ..., string partition = ...
@@ -96,17 +83,30 @@ public partial class ViewRefGenerator : BaseGenerator
                                       string stateType = argsState[0].ToDisplayString();
                                       string ns = viewTypeSymbol.ContainingNamespace.ToDisplayString();
 
-                                      return (Name: pName, Type: viewTypeName, TypeName: typeName, StateType: stateType, Namespace: ns);
+                                      if (!viewAtt.TryGetValue("name", out string storageName))
+                                      {
+                                          var diagnostic = syntax.CreateDiagnostic(14, "view-name on store is missng", typeSymbol.Name);
+                                          context.ReportDiagnostic(diagnostic);
+                                      }
+
+                                      return (Name: pName, Type: viewTypeName, TypeName: typeName, StateType: stateType, Namespace: ns, StorageName: storageName);
                                   }).ToArray();
-        var viewFactories = propsNames.Select(p =>
-                                                $$"""
-
-                                                            (IEvDbViewFactory)(new {{p.Type}}Factory(_storageAdapter, timeProvider ?? TimeProvider.System, logger))
-                                                """);
-
-        #endregion // propsNames = .., props = .., viewFactories = ..
+        #endregion // propsNames = .., props = .., viewFactoriesYield = ..
 
         #region Stream Factory
+
+        var viewFactoriesCtorInjection =
+            propsNames.Select((viewRef,i) =>
+            $$"""
+                        [FromKeyedServices("{{domain}}:{{partition}}:{{viewRef.Name}}")]IEvDbViewFactory factoryOf{{viewRef.TypeName}}{{i}},
+
+            """);
+
+        var viewFactoriesYield = propsNames.Select((viewRef,i) =>
+            $$"""
+
+                        factoryOf{{viewRef.TypeName}}{{i}}
+            """);
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
@@ -120,11 +120,12 @@ public partial class ViewRefGenerator : BaseGenerator
                         
                         public {{typeSymbol.Name}}(
                                 [FromKeyedServices("{{domain}}:{{partition}}")]IEvDbStorageStreamAdapter storageAdapter,                    
+                    {{string.Join("", viewFactoriesCtorInjection)}}       
                                 ILogger<{{typeSymbol.Name}}> logger,
                                 TimeProvider? timeProvider = null) : base(storageAdapter, timeProvider ?? TimeProvider.System)
                         {
-                            ViewFactories = new []
-                            {{{string.Join(",", viewFactories)}}
+                            ViewFactories = new IEvDbViewFactory[] 
+                            {{{string.Join(",", viewFactoriesYield)}}       
                             };
                         }
                         
@@ -133,7 +134,7 @@ public partial class ViewRefGenerator : BaseGenerator
                         protected override IEvDbViewFactory[] ViewFactories { get; }
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileName("view-ref"), builder.ToString());
+        context.AddSource(typeSymbol.StandardDefaultAndPath("partial-view-ref"), builder.ToString());
 
         #endregion // Stream Factory
 
@@ -147,7 +148,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         var propsColInterface = propsNames.Select((p, i) =>
                                         $$"""
-                                                    public {{p.StateType}} {{p.Name}} => ((IEvDbViewStore<{{p.StateType}}>)_views[{{i}}]).State;
+                                                    public {{p.StateType}} {{p.Name}} => _view{{p.Name}}.State;
 
                                                 """);
 
@@ -156,30 +157,44 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #region Views Encapsulation
 
+        var viewsCtor2Props = propsNames.Select((p, i) =>
+                                        $$"""
+                                                _view{{p.Name}} = ((IEvDbViewStore<{{p.StateType}}>)_views[{{i}}]);
+                                        
+                                        """);
+        var viewsFields = propsNames.Select((p, i) =>
+                                        $$"""
+                                            private readonly IEvDbViewStore<{{p.StateType}}> _view{{p.Name}};
+                                        
+                                        """);
+        var viewsYield = propsNames.Select((p, i) =>
+                                        $$"""
+                                                yield return _view{{p.Name}};
+                                        
+                                        """);
+
         builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
                     public class {{rootName}}Views
                     { 
                         private readonly IImmutableList<IEvDbViewStore> _views;
-                    
+                    {{string.Join("", viewsFields)}}
                         public {{rootName}}Views(IImmutableList<IEvDbViewStore> views)
                         {
                             _views = views;
+                    {{string.Join("", viewsCtor2Props)}}
                         }
-                    {{string.Join("", propsColInterface)}}
-                    
+                    {{string.Join("", propsColInterface)}}                    
                         public IEnumerable<IEvDbView> ToMetadata()
                         {
-                            foreach (var view in _views)
-                            {
-                                yield return view;
-                            }
+                    {{string.Join("", viewsYield)}}
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileNameSuffix($"{rootName}Views", "view-ref"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath($"{rootName}Views"), builder.ToString());
 
         #endregion // Views Encapsulation
 
@@ -196,31 +211,98 @@ public partial class ViewRefGenerator : BaseGenerator
                         {{rootName}}Views Views { get; }
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileNameSuffix(interfaceType, "view-ref"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(interfaceType), builder.ToString());
 
         #endregion // Stream Interface
 
-
-        #region Views Factory Encapsulation
+        #region Views Factory
 
         foreach (var viewRef in propsNames)
         {
             builder.Clear();
             builder.AppendHeader(syntax, typeSymbol, viewRef.Namespace);
+            builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+            builder.AppendLine("using Microsoft.Extensions.Logging;");
             builder.AppendLine();
 
             builder.AppendLine($$"""
-                    partial class {{viewRef.TypeName}}Factory
+                    internal partial class {{viewRef.TypeName}}Factory: IEvDbViewFactory
                     { 
-                        private const string DOMAIN = "{{domain}}";
-                        private const string PARTITION = "{{partition}}";
+                        private readonly IEvDbStorageSnapshotAdapter _storageAdapter;                        
+                        private readonly ILogger _logger;
+                    
+                        public {{viewRef.TypeName}}Factory(
+                                        [FromKeyedServices("{{domain}}:{{partition}}:{{viewRef.Name}}")]IEvDbStorageSnapshotAdapter storageAdapter,  
+                                        ILogger<{{viewRef.TypeName}}> logger)
+                        {
+                            _storageAdapter = storageAdapter;
+                            _logger = logger;
+                        } 
+
+                        string IEvDbViewFactory.ViewName { get; } = "{{viewRef.StorageName}}";
+                    
+                        IEvDbViewStore IEvDbViewFactory.CreateEmpty(
+                                                EvDbStreamAddress address, 
+                                                JsonSerializerOptions? options, 
+                                                TimeProvider? timeProvider) 
+                        {
+                            return new {{viewRef.TypeName}}(
+                                                    address, 
+                                                    _storageAdapter, 
+                                                    timeProvider ?? TimeProvider.System, 
+                                                    _logger, 
+                                                    options);
+                        }
+                    
+                        IEvDbViewStore IEvDbViewFactory.CreateFromSnapshot(EvDbStreamAddress address,
+                            EvDbStoredSnapshot snapshot,
+                            JsonSerializerOptions? options, 
+                                                TimeProvider? timeProvider)
+                        {
+                            return new {{viewRef.TypeName}}(
+                                                address,
+                                                _storageAdapter, 
+                                                timeProvider ?? TimeProvider.System, 
+                                                _logger, 
+                                                snapshot,
+                                                options);
+                        }
+                    
+                        IEvDbStorageSnapshotAdapter IEvDbViewFactory.StoreAdapter => _storageAdapter;                    
                     }
                     """);
             var folder = viewRef.Namespace;
-            context.AddSource(typeSymbol.GenFileNameSuffix($"{viewRef.Name}-factory", "view-ref", overrideNamespace: folder), builder.ToString());
+            context.AddSource(typeSymbol.StandardNsAndPath(folder, $"{viewRef.TypeName}Factory"), builder.ToString());
         }
 
-        #endregion // Views Factory Encapsulation
+        #endregion // Views Factory
+
+        #region Views Factory DI
+
+        var dis = propsNames.Select(viewRef =>
+                        $$"""
+                            services.AddKeyedScoped<IEvDbViewFactory, {{viewRef.Type}}Factory>("{{domain}}:{{partition}}:{{viewRef.Name}}");
+
+                        """);
+            builder.Clear();
+            builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
+            builder.AppendLine($"using {typeSymbol.ContainingNamespace.ToDisplayString()};");
+            builder.AppendLine();
+
+            builder.AppendLine($$"""
+                    public static class {{factoryName}}ViewsRegistration
+                    { 
+                        public static IServiceCollection Add{{rootName}}ViewsFactories(
+                                                                this IServiceCollection services)
+                        {
+                        {{string.Join("\t", dis)}}
+                            return services;
+                        }
+                    }
+                    """);
+            context.AddSource(typeSymbol.StandardPath("DI", $"{factoryName}ViewsRegistration"), builder.ToString());
+
+        #endregion // Views Factory DI
     }
 
     #endregion // OnGenerate

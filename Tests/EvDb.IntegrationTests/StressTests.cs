@@ -83,9 +83,6 @@ public sealed class StressTests : IntegrationTests
             .WithMetrics(meterBuilder =>
                     meterBuilder.AddEvDbInstrumentation()
                                 .AddProcessInstrumentation()
-                                .AddHttpClientInstrumentation()
-                                .AddAspNetCoreInstrumentation()
-                                .AddPrometheusExporter()
                                 //.AddOtlpExporter()
                                 //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
                                 .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889")));

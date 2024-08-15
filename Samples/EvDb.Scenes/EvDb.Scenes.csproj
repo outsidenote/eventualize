@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="_gen\" />
+	  <Folder Include="_gen-temp\" />
 	</ItemGroup>
 
 

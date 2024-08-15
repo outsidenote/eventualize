@@ -7,11 +7,14 @@ public interface IEvDbViewFactory
 {
     string ViewName { get; }
 
-    IEvDbViewStore CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options);
+    IEvDbViewStore CreateEmpty(EvDbStreamAddress address,
+        JsonSerializerOptions? options,
+        TimeProvider? timeProvider = null);
 
     IEvDbViewStore CreateFromSnapshot(EvDbStreamAddress address,
         EvDbStoredSnapshot snapshot,
-        JsonSerializerOptions? options);
+        JsonSerializerOptions? options,
+        TimeProvider? timeProvider = null);
 
     IEvDbStorageSnapshotAdapter StoreAdapter { get; }
 }

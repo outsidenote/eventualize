@@ -26,23 +26,9 @@ public partial class FactoryGenerator : BaseGenerator
             TypeDeclarationSyntax syntax,
             CancellationToken cancellationToken)
     {
+        context.ThrowIfNotPartial(typeSymbol, syntax);
+
         StringBuilder builder = new StringBuilder();
-
-        #region Exception Handling
-
-        if (!syntax.IsPartial())
-        {
-            var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor("EvDb: 013", "class must be partial",
-                $"{typeSymbol.Name}, Must be partial", "EvDb",
-                DiagnosticSeverity.Error, isEnabledByDefault: true),
-                Location.Create(syntax.SyntaxTree, syntax.Span));
-            builder.AppendLine($"`Factory {typeSymbol.Name}` MUST BE A partial interface!");
-            context.AddSource(typeSymbol.GenFileName("partial-is-missing"), builder.ToString());
-            context.ReportDiagnostic(diagnostic);
-        }
-
-        #endregion // Exception Handling
 
         #region eventType = .., factoryName = ..
 
@@ -105,7 +91,7 @@ public partial class FactoryGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileNameSuffix(interfaceType, "factory"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(interfaceType), builder.ToString());
 
         #endregion // Stream Interface
 
@@ -122,7 +108,7 @@ public partial class FactoryGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileNameSuffix(factoryInterfaceType, "factory"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(factoryInterfaceType), builder.ToString());
 
         #endregion // Factory Interface
 
@@ -177,7 +163,7 @@ public partial class FactoryGenerator : BaseGenerator
 
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileNameSuffix($"{factoryName}Base", "factory"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath($"{factoryName}Base"), builder.ToString());
 
         #endregion // FactoryBase
 
@@ -200,7 +186,7 @@ public partial class FactoryGenerator : BaseGenerator
                         #endregion // PartitionAddress
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileName("factory"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(), builder.ToString());
 
         #endregion // Factory
 
@@ -271,7 +257,7 @@ public partial class FactoryGenerator : BaseGenerator
                         #endregion // Add
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileNameSuffix(rootName, "factory"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(rootName), builder.ToString());
 
         #endregion // Stream
 
@@ -286,7 +272,7 @@ public partial class FactoryGenerator : BaseGenerator
                     using {{typeSymbol.ContainingNamespace.ToDisplayString()}};
                     
                     [Obsolete("Deprecated")]
-                    public static class {{factoryName}}DependencyInjectionModule
+                    public static class {{factoryName}}Registration
                     {
                         public static IServiceCollection Add{{factoryName}}(this IServiceCollection services)
                         {
@@ -295,7 +281,7 @@ public partial class FactoryGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileName("DI"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath("DI", $"{factoryName}Registration"), builder.ToString());
 
         #endregion // DI
     }

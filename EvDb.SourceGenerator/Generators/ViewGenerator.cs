@@ -26,25 +26,11 @@ public partial class ViewGenerator : BaseGenerator
             TypeDeclarationSyntax syntax,
             CancellationToken cancellationToken)
     {
+        context.ThrowIfNotPartial(typeSymbol, syntax);
+
         StringBuilder builder = new StringBuilder();
 
-        #region Exception Handling
-
-        if (!syntax.IsPartial())
-        {
-            var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor("EvDb: 013", "class must be partial",
-                $"{typeSymbol.Name}, Must be partial", "EvDb",
-                DiagnosticSeverity.Error, isEnabledByDefault: true),
-                Location.Create(syntax.SyntaxTree, syntax.Span));
-            builder.AppendLine($"`view {typeSymbol.Name}` MUST BE A partial interface!");
-            context.AddSource(typeSymbol.GenFileName("partial-needed"), builder.ToString());
-            context.ReportDiagnostic(diagnostic);
-        }
-
-        #endregion // Exception Handling
-
-        #region string rootName = .., stateType = .., eventType = ..
+        #region string rootName = .., stateType = .., eventType = .., fullName = ..
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
         string viewClassName = $"EvDb{typeSymbol.Name}";
@@ -60,7 +46,7 @@ public partial class ViewGenerator : BaseGenerator
         ITypeSymbol eventTypeSymbol = args[1];
         string eventType = eventTypeSymbol.ToDisplayString();
 
-        #endregion // string baseName = .., stateType = .., eventType = ..
+        #endregion // string baseName = .., stateType = .., eventType = .., fullName = ..
 
         if (!att.TryGetValue("name", out string name))
         {
@@ -183,7 +169,7 @@ public partial class ViewGenerator : BaseGenerator
                         #endregion // Fold
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileName("view", "Base", "EvDb"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath($"{viewClassName}Base"), builder.ToString());
 
         #endregion // ViewBase
 
@@ -231,53 +217,9 @@ public partial class ViewGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.GenFileName("view"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(), builder.ToString());
 
         #endregion // View
-
-        builder.Clear();
-
-        #region View Factory
-
-
-        builder.AppendHeader(syntax, typeSymbol);
-        builder.AppendLine("using Microsoft.Extensions.Logging;");
-        builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
-        builder.AppendLine();
-
-        builder.AppendLine($$"""
-                    internal partial class {{typeSymbol.Name}}Factory: IEvDbViewFactory
-                    {
-                          private readonly IEvDbStorageSnapshotAdapter _storageAdapter;
-                          private readonly TimeProvider _timeProvider;
-                          private readonly ILogger _logger;
-
-                          public {{typeSymbol.Name}}Factory(
-                                        [FromKeyedServices($"{DOMAIN}:{PARTITION}:{{name}}")]IEvDbStorageSnapshotAdapter storageAdapter,  
-                                        TimeProvider timeProvider,
-                                        ILogger logger)
-                          {
-                            _storageAdapter = storageAdapter;
-                            _timeProvider = timeProvider;
-                            _logger = logger;
-                          } 
-
-                        string IEvDbViewFactory.ViewName { get; } = "{{name}}";
-
-                        IEvDbViewStore IEvDbViewFactory.CreateEmpty(EvDbStreamAddress address, JsonSerializerOptions? options) => 
-                                new {{typeSymbol.Name}}(address, _storageAdapter, _timeProvider, _logger, options);
-
-                        IEvDbViewStore IEvDbViewFactory.CreateFromSnapshot(EvDbStreamAddress address,
-                            EvDbStoredSnapshot snapshot,
-                            JsonSerializerOptions? options) => 
-                                new {{typeSymbol.Name}}(address, _storageAdapter, _timeProvider, _logger, snapshot, options);
-
-                        IEvDbStorageSnapshotAdapter IEvDbViewFactory.StoreAdapter => _storageAdapter;
-                    }
-                    """);
-        context.AddSource(typeSymbol.GenFileName("view", "Factory"), builder.ToString());
-
-        #endregion // View Factory
     }
 
     #endregion // OnGenerate
