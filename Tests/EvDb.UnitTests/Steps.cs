@@ -49,7 +49,7 @@ internal static class Steps
         var services = builder.Services;
         services.AddSingleton(storageAdapter);
         services.AddEvDb()
-              .AddDemoStreamFactory(c =>
+              .AddSchoolStreamFactory(c =>
               {
                     c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
                     c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
