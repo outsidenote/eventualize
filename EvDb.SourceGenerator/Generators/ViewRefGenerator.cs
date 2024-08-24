@@ -14,11 +14,20 @@ namespace EvDb.SourceGenerator;
 [Generator]
 public partial class ViewRefGenerator : BaseGenerator
 {
-    private const string _eventTarget = "EvDbAttachView";
-    protected override string EventTargetAttribute { get; } = $"{_eventTarget}Attribute";
+    private const string EVENT_TARGET = "EvDbAttachView";
+    protected override string EventTargetAttribute { get; } = $"{EVENT_TARGET}Attribute";
 
     #region OnGenerate
 
+    /// <summary>
+    /// Called when [generate].
+    /// </summary>
+    /// <param name="context">The context.</param>
+    /// <param name="compilation">The compilation.</param>
+    /// <param name="typeSymbol">The type symbol.</param>
+    /// <param name="syntax">The syntax.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     protected override void OnGenerate(
             SourceProductionContext context,
             Compilation compilation,
@@ -59,7 +68,7 @@ public partial class ViewRefGenerator : BaseGenerator
                                   .Where(att =>
                                   {
                                       string? name = att.AttributeClass?.Name;
-                                      bool match = _eventTarget == name || EventTargetAttribute == name;
+                                      bool match = EVENT_TARGET == name || EventTargetAttribute == name;
                                       return match;
                                   })
                                   .Select(att =>
@@ -215,6 +224,46 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #endregion // Stream Interface
 
+        #region IEvDb{}ViewRegistrationEntry Interface
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    public interface IEvDb{{typeSymbol.Name}}ViewRegistrationEntry
+                    {
+                        EvDbPartitionAddress Address { get; }
+                        EvDbStorageContext? Context { get; }
+                        IServiceCollection Services { get; }
+                    }
+                    """);
+        context.AddSource(typeSymbol.StandardPath($"IEvDb{typeSymbol.Name}ViewRegistrationEntry"),
+                    builder.ToString());
+
+        #endregion // IEvDb{}ViewRegistrationEntry Interface
+
+        #region IEvDb{}ViewRegistrationEntry Interface
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    public readonly record struct EvDb{{typeSymbol.Name}}RegistrationEntry(
+                        EvDbStorageContext? Context,
+                        EvDbPartitionAddress Address,
+                        IServiceCollection Services) : IEvDbSchoolViewRegistrationEntry
+                    {
+                        public EvDbSchoolRegistrationEntry(EvDbStreamStoreRegistrationContext context)
+                            : this(context.Context, context.Address, context.Services)
+                        {
+                        }
+                    }
+                    """);
+        context.AddSource(typeSymbol.StandardPath($"EvDb{typeSymbol.Name}RegistrationEntry"),
+                    builder.ToString());
+
+        #endregion // IEvDb{}ViewRegistrationEntry Interface
+
         #region Views Factory
 
         foreach (var viewRef in propsNames)
@@ -230,11 +279,19 @@ public partial class ViewRefGenerator : BaseGenerator
                     { 
                         private readonly IEvDbStorageSnapshotAdapter _storageAdapter;                        
                         private readonly ILogger _logger;
-                    
+                             
+                        
+                        /// <summary>
+                        /// Using `IServiceProvider` in order to have either a specific store provider or the default one.
+                        /// </summary>
                         public {{viewRef.TypeName}}Factory(
-                                        [FromKeyedServices("{{domain}}:{{partition}}:{{viewRef.Name}}")]IEvDbStorageSnapshotAdapter storageAdapter,  
+                                        IServiceProvider serviceProvider,
                                         ILogger<{{viewRef.TypeName}}> logger)
                         {
+                            IEvDbStorageSnapshotAdapter storageAdapter = 
+                                serviceProvider.GetKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}:{{viewRef.Name}}") ??
+                                serviceProvider.GetRequiredKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}");
+
                             _storageAdapter = storageAdapter;
                             _logger = logger;
                         } 
@@ -277,32 +334,132 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #endregion // Views Factory
 
-        #region Views Factory DI
 
-        var dis = propsNames.Select(viewRef =>
+        #region DI
+
+        var addViewsFactories = propsNames.Select(viewRef =>
                         $$"""
                             services.AddKeyedScoped<IEvDbViewFactory, {{viewRef.Type}}Factory>("{{domain}}:{{partition}}:{{viewRef.Name}}");
 
                         """);
-            builder.Clear();
-            builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
-            builder.AppendLine($"using {typeSymbol.ContainingNamespace.ToDisplayString()};");
-            builder.AppendLine();
 
-            builder.AppendLine($$"""
-                    public static class {{factoryName}}ViewsRegistration
+        var forViews = propsNames.Select(viewRef =>
+                        $$"""
+                                /// <summary>
+                                /// Register a snapshot store provider for `{{viewRef.Name}}` view
+                                /// </summary>
+                                /// <param name="entry"></param>
+                                /// <param name="registrationAction">The registration action.</param>
+                                /// <returns></returns>
+                                public static IEvDb{{typeSymbol.Name}}ViewRegistrationEntry For{{viewRef.Name}}(
+                                    this EvDb{{typeSymbol.Name}}RegistrationEntry entry,
+                                    Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
+                                {
+                                    IEvDb{{typeSymbol.Name}}ViewRegistrationEntry e = entry;
+                                    return e.For{{viewRef.Name}}(registrationAction);
+                                }
+
+
+                                /// <summary>
+                                /// Register a snapshot store provider for `{{viewRef.Name}}` view
+                                /// </summary>
+                                /// <param name="entry"></param>
+                                /// <param name="registrationAction">The registration action.</param>
+                                /// <returns></returns>
+                                public static IEvDb{{typeSymbol.Name}}ViewRegistrationEntry For{{viewRef.Name}}(
+                                    this IEvDb{{typeSymbol.Name}}ViewRegistrationEntry entry,
+                                    Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
+                                {
+                                    var viewAdress = new EvDbViewBasicAddress(entry.Address, "{{viewRef.Name}}");
+                                    var ctx = new EvDbSnapshotStoreRegistrationContext(
+                                        entry.Context,
+                                        viewAdress,
+                                        entry.Services);
+
+                                    registrationAction(ctx);
+
+                                    return entry;
+                                }
+                        """);
+
+        var addViewFactories = propsNames.Select(viewRef =>
+                                            $$"""
+                                                    services.AddKeyedScoped<IEvDbViewFactory,{{viewRef.Type}}Factory>("{{domain}}:{{partition}}:{{viewRef.Name}}");
+
+                                            """);
+
+        builder.Clear();
+
+        builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
+        builder.AppendLine($"using {typeSymbol.ContainingNamespace.ToDisplayString()};");
+        builder.AppendLine($"using {typeSymbol.ContainingNamespace.ToDisplayString()}.Generated;");
+        builder.AppendLine("using EvDb.Core.Internals;");
+        builder.AppendLine();
+        builder.AppendLine($$"""
+                    public static class {{factoryName}}Registration 
                     { 
+                        public static EvDb{{typeSymbol.Name}}SnapshotRegistration Add{{typeSymbol.Name}}(
+                            this EvDbRegistrationEntry instance,
+                            Action<EvDbStreamStoreRegistrationContext> registrationAction,
+                            EvDbStorageContext? context = null)
+                        { 
+                            IServiceCollection services = instance.Services;
+                            services.Add{{rootName}}ViewsFactories();
+
+                    {{string.Join("", addViewFactories)}}
+
+                            services.AddScoped<I{{factoryName}},{{typeSymbol.Name}}>();     
+                        
+                            var storageContext = new EvDbStreamStoreRegistrationContext(context,
+                                new EvDbPartitionAddress("{{domain}}","{{partition}}"),
+                                services);
+
+                            registrationAction(storageContext);
+                            var viewContext = new EvDb{{typeSymbol.Name}}SnapshotRegistration(
+                                                    storageContext.Context, 
+                                                    storageContext.Address,
+                                                    services);
+                            return viewContext;
+                        }
+
                         public static IServiceCollection Add{{rootName}}ViewsFactories(
                                                                 this IServiceCollection services)
                         {
-                        {{string.Join("\t", dis)}}
+                        {{string.Join("\t", addViewsFactories)}}
                             return services;
                         }
+                                        
+
+                        /// <summary>
+                        /// Register the defaults snapshot store provider for the snapshot snapshot.
+                        /// </summary>
+                        /// <param name="registrationAction">The registration action.</param>
+                        /// <returns></returns>
+                        public static IEvDb{{typeSymbol.Name}}ViewRegistrationEntry DefaultSnapshotConfiguration(
+                            this EvDb{{typeSymbol.Name}}RegistrationEntry entry,
+                            Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
+                        {
+                            var viewAdress = new EvDbViewBasicAddress(entry.Address, string.Empty);
+                            var ctx = new EvDbSnapshotStoreRegistrationContext(
+                                entry.Context,
+                                viewAdress,
+                                entry.Services);
+
+                            registrationAction(ctx);
+
+                            return entry;
+                        }
+
+                    {{string.Join("", forViews)}}
                     }
                     """);
-            context.AddSource(typeSymbol.StandardPath("DI", $"{factoryName}ViewsRegistration"), builder.ToString());
 
-        #endregion // Views Factory DI
+
+        context.AddSource(typeSymbol.StandardPath("DI", $"Add{factoryName}"), builder.ToString());
+
+        #endregion //  DI
+
+
     }
 
     #endregion // OnGenerate

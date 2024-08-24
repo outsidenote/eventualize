@@ -6,6 +6,7 @@ using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using Xunit.Abstractions;
+using EvDb.Core.Store;
 
 public class ApiDesignTests
 {
@@ -18,12 +19,15 @@ public class ApiDesignTests
         _output = output;
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
+        //services.AddEvDb().AddSchoolStreamFactory(c => { });
+
         services.AddEvDb() // return IEvDbBuilder that will be used as the hook for the generated extensions method
                            // return IEvDbSchoolBuilder that will be used as the hook for the generated extensions method
-                        .AddSchool(
+                        .AddSchoolStreamFactory(
                                 c => c.UseSqlServerStoreForEvDbStream(),
                                 EvDbStorageContext.CreateWithEnvironment())
-                            .DefaultSnapshot(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
+                            // TODO: Support fallback when specific registration not exists
+                            .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
                             // keyed injection under the specific view address
                             .ForALL(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection-server1"))
                             .ForStudentStatsView(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection2"));
