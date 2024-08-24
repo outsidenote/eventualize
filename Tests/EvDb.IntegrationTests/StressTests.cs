@@ -21,7 +21,6 @@ public sealed class StressTests : IntegrationTests
     {
         CoconaAppBuilder builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
-        // services.AddSingleton(StorageContext);
         services.AddEvDb()
             .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream(), StorageContext)
             .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
