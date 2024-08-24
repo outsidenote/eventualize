@@ -85,9 +85,8 @@ public static class EvDbSqlServerStorageAdapterDI
         IServiceCollection services = instance.Services;
         EvDbViewBasicAddress key = instance.Address; 
         var context = instance.Context;
-        string keyString = key.ViewName == string.Empty ? $"{key.Domain}:{key.Partition}" : key.ToString();
         services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(
-            keyString, 
+            key.ToString(), 
             (sp, _) =>
                 {
                     var ctx = context

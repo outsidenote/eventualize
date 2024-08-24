@@ -30,7 +30,7 @@ public class ApiDesignTests
                             .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
                             // keyed injection under the specific view address
                             .ForALL(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection-server1"))
-                            .ForStudentStatsView(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection2"));
+                            .ForStudentStats(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection2"));
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
     }

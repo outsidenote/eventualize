@@ -37,6 +37,8 @@ public readonly partial record struct EvDbViewBasicAddress(string Domain, string
 
     public override string ToString()
     {
+        if(string.IsNullOrWhiteSpace(ViewName))
+            return $"{Domain}:{Partition}";
         return $"{Domain}:{Partition}:{ViewName}";
     }
 

@@ -21,7 +21,12 @@ public class TimeProviderTests
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddSingleton(_storageAdapter);
-        services.AddEvDbDemoStreamFactory();
+        services.AddEvDb()
+              .AddDemoStreamFactory(c =>
+              {
+                  c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => _storageAdapter);
+                  c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => _storageAdapter);
+              });
         services.AddSingleton<TimeProvider>(_timeProvider);
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();

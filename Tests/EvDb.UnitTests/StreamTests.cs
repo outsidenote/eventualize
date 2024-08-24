@@ -17,9 +17,9 @@ public class StreamTests
     }
 
     [Fact]
-    public void Stream_WhenAddingPendingEvent_Succeed()
+    public async Task Stream_WhenAddingPendingEvent_Succeed()
     {
-        IEvDbSchoolStream stream = _storageAdapter
+        IEvDbSchoolStream stream = await _storageAdapter
                             .GivenLocalStreamWithPendingEvents(_output);
 
         ThenPendingEventsAddedSuccessfully();
@@ -80,7 +80,7 @@ public class StreamTests
 
         ThenStreamSavedWithSnapshot(stream);
 
-        void ThenStreamSavedWithSnapshot(IEvDbSchoolStream aggregate)
+        void ThenStreamSavedWithSnapshot(IEvDbSchoolStream stream)
         {
             Assert.Equal(6, stream.StoredOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
@@ -133,7 +133,7 @@ public class StreamTests
     [Fact]
     public async Task Stream_WhenStoringStaleStream_ThrowException()
     {
-        IEvDbSchoolStream stream = _storageAdapter
+        IEvDbSchoolStream stream = await _storageAdapter
                     .GivenStreamWithStaleEvents(_output);
 
         await Assert.ThrowsAsync<OCCException>(async () => await stream.StoreAsync(default));

@@ -48,8 +48,12 @@ internal static class Steps
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddSingleton(storageAdapter);
-        services.AddEvDbDemoStreamFactory();
-        services.AddEvDbSchoolStreamFactory();
+        services.AddEvDb()
+              .AddDemoStreamFactory(c =>
+              {
+                    c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
+                    c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
+              });
         services.AddSingleton<TimeProvider>(timeProvider ?? TimeProvider.System);
         var sp = services.BuildServiceProvider();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
@@ -117,16 +121,16 @@ internal static class Steps
                     int numOfGrades = NUM_OF_GRADES)
     {
         var stream = await streamTask;
-        return stream.WhenAddingPendingEvents(numOfGrades);
+        return await stream.WhenAddingPendingEvents(numOfGrades);
     }
 
-    public static IEvDbSchoolStream WhenAddingPendingEvents(
+    public static async Task<IEvDbSchoolStream> WhenAddingPendingEvents(
                     this IEvDbSchoolStream stream,
                     int numOfGrades = NUM_OF_GRADES)
     {
         if (stream.StoredOffset == -1)
-            stream.EnlistStudent();
-        stream.WhenAddGrades(numOfGrades: numOfGrades);
+            await stream.EnlistStudent();
+        await stream.WhenAddGrades(numOfGrades: numOfGrades);
         return stream;
 
     }
@@ -165,14 +169,14 @@ internal static class Steps
 
     #region GivenStreamWithStaleEvents
 
-    public static IEvDbSchoolStream GivenStreamWithStaleEvents(
+    public static async Task<IEvDbSchoolStream> GivenStreamWithStaleEvents(
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output)
     {
 
         A.CallTo(() => storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
                 .Throws<OCCException>();
-        var stream = storageAdapter.GivenLocalStreamWithPendingEvents(output, 6);
+        var stream = await storageAdapter.GivenLocalStreamWithPendingEvents(output, 6);
         return stream;
     }
 
@@ -437,13 +441,13 @@ internal static class Steps
 
     #region GivenLocalStreamWithPendingEvents
 
-    public static IEvDbSchoolStream GivenLocalStreamWithPendingEvents(
+    public static async Task<IEvDbSchoolStream> GivenLocalStreamWithPendingEvents(
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output,
         int numOfGrades = NUM_OF_GRADES,
         TimeProvider? timeProvider = null)
     {
-        return GivenLocalStream(storageAdapter, timeProvider: timeProvider)
+        return await GivenLocalStream(storageAdapter, timeProvider: timeProvider)
                             .WhenAddingPendingEvents(numOfGrades);
     }
 
@@ -453,6 +457,13 @@ internal static class Steps
 
     public static Task<IEvDbSchoolStream> GivenStreamIsSavedAsync(
         this IEvDbSchoolStream stream) => stream.WhenStreamIsSavedAsync();
+
+    public static async Task<IEvDbSchoolStream> GivenStreamIsSavedAsync(
+        this Task<IEvDbSchoolStream> streamTask)
+    {
+        var stream = await streamTask;
+        return await stream.WhenStreamIsSavedAsync();
+    }
 
     public async static Task<IEvDbSchoolStream> WhenStreamIsSavedAsync(
         this IEvDbSchoolStream stream)

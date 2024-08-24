@@ -263,7 +263,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         builder.Clear();
 
-        #region DI
+        #region  // DI
 
         builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
         builder.AppendLine();
@@ -281,7 +281,7 @@ public partial class FactoryGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath("DI", $"{factoryName}Registration"), builder.ToString());
+        // context.AddSource(typeSymbol.StandardPath("DI", $"{factoryName}Registration"), builder.ToString());
 
         #endregion // DI
     }

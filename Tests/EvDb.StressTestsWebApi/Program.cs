@@ -9,8 +9,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 services.AddScoped<EvDbStorageContext>(_ => new EvDbTestStorageContext());
 services.AddEvDbSqlServerStoreMigration();
-services.AddEvDbSqlServerStore();
-services.AddEvDbDemoStreamFactory();
+services.AddEvDb()
+        .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
+        .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
 builder.AddOtel();
 services.AddSingleton(Channel.CreateUnbounded<StressOptions>());
 services.AddHostedService<StressJob>();

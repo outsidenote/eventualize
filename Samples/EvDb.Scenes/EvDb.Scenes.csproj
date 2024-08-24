@@ -20,9 +20,5 @@
 		</None>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="_gen-temp\" />
-	</ItemGroup>
-
 
 </Project>

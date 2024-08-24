@@ -39,8 +39,6 @@ public partial class ViewRefGenerator : BaseGenerator
 
         StringBuilder builder = new StringBuilder();
 
-        AssemblyName asm = GetType().Assembly.GetName();
-
         string type = typeSymbol.ToType(syntax, cancellationToken);
 
         AttributeData attOfFactory = typeSymbol.GetAttributes()
@@ -161,10 +159,9 @@ public partial class ViewRefGenerator : BaseGenerator
 
                                                 """);
 
+        #region Views Encapsulation
 
         builder.Clear();
-
-        #region Views Encapsulation
 
         var viewsCtor2Props = propsNames.Select((p, i) =>
                                         $$"""
@@ -207,9 +204,9 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #endregion // Views Encapsulation
 
-        builder.Clear();
-
         #region Stream Interface
+
+        builder.Clear();
 
         builder.AppendHeader(syntax, typeSymbol);
         builder.AppendLine();
@@ -224,13 +221,40 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #endregion // Stream Interface
 
-        #region IEvDb{}ViewRegistrationEntry Interface
+        #region EvDb{typeSymbol.Name}SnapshotEntry 
+
+        builder.Clear();
 
         builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+        builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public interface IEvDb{{typeSymbol.Name}}ViewRegistrationEntry
+                    public readonly record struct EvDb{{typeSymbol.Name}}Entry (IServiceCollection Services)
+                    {
+                        internal EvDb{{typeSymbol.Name}}Entry(
+                                EvDbRegistrationEntry parent)
+                            : this(parent.Services)
+                        {
+                        }
+                    }
+                    """);
+        context.AddSource(typeSymbol.StandardPath($"EvDb{typeSymbol.Name}Entry"),
+                    builder.ToString());
+
+        #endregion // EvDb{typeSymbol.Name}SnapshotEntry 
+
+        #region IEvDb{}ViewRegistrationEntry Interface
+
+        builder.Clear();
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    public interface IEvDb{{typeSymbol.Name}}SnapshotEntry
                     {
                         EvDbPartitionAddress Address { get; }
                         EvDbStorageContext? Context { get; }
@@ -242,27 +266,30 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #endregion // IEvDb{}ViewRegistrationEntry Interface
 
-        #region IEvDb{}ViewRegistrationEntry Interface
+        #region EvDb{typeSymbol.Name}SnapshotEntry
+
+        builder.Clear();
 
         builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public readonly record struct EvDb{{typeSymbol.Name}}RegistrationEntry(
+                    public readonly record struct EvDb{{typeSymbol.Name}}SnapshotEntry(
                         EvDbStorageContext? Context,
                         EvDbPartitionAddress Address,
-                        IServiceCollection Services) : IEvDbSchoolViewRegistrationEntry
+                        IServiceCollection Services) : IEvDb{{typeSymbol.Name}}SnapshotEntry
                     {
-                        public EvDbSchoolRegistrationEntry(EvDbStreamStoreRegistrationContext context)
+                        public EvDb{{typeSymbol.Name}}SnapshotEntry(EvDbStreamStoreRegistrationContext context)
                             : this(context.Context, context.Address, context.Services)
                         {
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"EvDb{typeSymbol.Name}RegistrationEntry"),
+        context.AddSource(typeSymbol.StandardPath($"EvDb{typeSymbol.Name}SnapshotEntry"),
                     builder.ToString());
 
-        #endregion // IEvDb{}ViewRegistrationEntry Interface
+        #endregion // EvDb{typeSymbol.Name}SnapshotEntry 
 
         #region Views Factory
 
@@ -334,7 +361,6 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #endregion // Views Factory
 
-
         #region DI
 
         var addViewsFactories = propsNames.Select(viewRef =>
@@ -351,11 +377,11 @@ public partial class ViewRefGenerator : BaseGenerator
                                 /// <param name="entry"></param>
                                 /// <param name="registrationAction">The registration action.</param>
                                 /// <returns></returns>
-                                public static IEvDb{{typeSymbol.Name}}ViewRegistrationEntry For{{viewRef.Name}}(
-                                    this EvDb{{typeSymbol.Name}}RegistrationEntry entry,
+                                public static IEvDb{{typeSymbol.Name}}SnapshotEntry For{{viewRef.Name}}(
+                                    this EvDb{{typeSymbol.Name}}SnapshotEntry entry,
                                     Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
                                 {
-                                    IEvDb{{typeSymbol.Name}}ViewRegistrationEntry e = entry;
+                                    IEvDb{{typeSymbol.Name}}SnapshotEntry e = entry;
                                     return e.For{{viewRef.Name}}(registrationAction);
                                 }
 
@@ -366,8 +392,8 @@ public partial class ViewRefGenerator : BaseGenerator
                                 /// <param name="entry"></param>
                                 /// <param name="registrationAction">The registration action.</param>
                                 /// <returns></returns>
-                                public static IEvDb{{typeSymbol.Name}}ViewRegistrationEntry For{{viewRef.Name}}(
-                                    this IEvDb{{typeSymbol.Name}}ViewRegistrationEntry entry,
+                                public static IEvDb{{typeSymbol.Name}}SnapshotEntry For{{viewRef.Name}}(
+                                    this IEvDb{{typeSymbol.Name}}SnapshotEntry entry,
                                     Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
                                 {
                                     var viewAdress = new EvDbViewBasicAddress(entry.Address, "{{viewRef.Name}}");
@@ -392,13 +418,14 @@ public partial class ViewRefGenerator : BaseGenerator
 
         builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
         builder.AppendLine($"using {typeSymbol.ContainingNamespace.ToDisplayString()};");
-        builder.AppendLine($"using {typeSymbol.ContainingNamespace.ToDisplayString()}.Generated;");
+        // builder.AppendLine($"using {typeSymbol.ContainingNamespace.ToDisplayString()}.Generated;");
         builder.AppendLine("using EvDb.Core.Internals;");
+        builder.AppendLine("using EvDb.Core.Store.Internals;");
         builder.AppendLine();
         builder.AppendLine($$"""
                     public static class {{factoryName}}Registration 
                     { 
-                        public static EvDb{{typeSymbol.Name}}SnapshotRegistration Add{{typeSymbol.Name}}(
+                        public static EvDb{{typeSymbol.Name}}SnapshotEntry Add{{typeSymbol.Name}}(
                             this EvDbRegistrationEntry instance,
                             Action<EvDbStreamStoreRegistrationContext> registrationAction,
                             EvDbStorageContext? context = null)
@@ -415,14 +442,14 @@ public partial class ViewRefGenerator : BaseGenerator
                                 services);
 
                             registrationAction(storageContext);
-                            var viewContext = new EvDb{{typeSymbol.Name}}SnapshotRegistration(
+                            var viewContext = new EvDb{{typeSymbol.Name}}SnapshotEntry(
                                                     storageContext.Context, 
                                                     storageContext.Address,
                                                     services);
                             return viewContext;
                         }
 
-                        public static IServiceCollection Add{{rootName}}ViewsFactories(
+                        internal static IServiceCollection Add{{rootName}}ViewsFactories(
                                                                 this IServiceCollection services)
                         {
                         {{string.Join("\t", addViewsFactories)}}
@@ -435,8 +462,8 @@ public partial class ViewRefGenerator : BaseGenerator
                         /// </summary>
                         /// <param name="registrationAction">The registration action.</param>
                         /// <returns></returns>
-                        public static IEvDb{{typeSymbol.Name}}ViewRegistrationEntry DefaultSnapshotConfiguration(
-                            this EvDb{{typeSymbol.Name}}RegistrationEntry entry,
+                        public static IEvDb{{typeSymbol.Name}}SnapshotEntry DefaultSnapshotConfiguration(
+                            this EvDb{{typeSymbol.Name}}SnapshotEntry entry,
                             Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
                         {
                             var viewAdress = new EvDbViewBasicAddress(entry.Address, string.Empty);
@@ -455,11 +482,9 @@ public partial class ViewRefGenerator : BaseGenerator
                     """);
 
 
-        context.AddSource(typeSymbol.StandardPath("DI", $"Add{factoryName}"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath("DI", $"{factoryName}Registration"), builder.ToString());
 
         #endregion //  DI
-
-
     }
 
     #endregion // OnGenerate
