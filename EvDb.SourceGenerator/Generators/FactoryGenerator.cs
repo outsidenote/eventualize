@@ -27,15 +27,16 @@ public partial class FactoryGenerator : BaseGenerator
             CancellationToken cancellationToken)
     {
         context.ThrowIfNotPartial(typeSymbol, syntax);
+        AssemblyName asm = GetType().Assembly.GetName();
 
         StringBuilder builder = new StringBuilder();
 
         #region eventType = .., factoryName = ..
 
-        AttributeData att = typeSymbol.GetAttributes()
+        AttributeData attOfFactory = typeSymbol.GetAttributes()
                                   .First(att => att.AttributeClass?.Name == EventTargetAttribute);
 
-        ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
+        ImmutableArray<ITypeSymbol> args = attOfFactory.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         ITypeSymbol eventTypeSymbol = args[0];
         string eventType = eventTypeSymbol.ToDisplayString();
 
@@ -43,13 +44,13 @@ public partial class FactoryGenerator : BaseGenerator
 
         #region string domain = ..., string partition = ...
 
-        if (!att.TryGetValue("domain", out string domain))
+        if (!attOfFactory.TryGetValue("domain", out string domain))
         {
             // TODO: Bnaya 2024-08-12 report an error
             throw new ArgumentException("domain");
         }
 
-        if (!att.TryGetValue("partition", out string partition))
+        if (!attOfFactory.TryGetValue("partition", out string partition))
         {
             // TODO: Bnaya 2024-08-12 report an error
             throw new ArgumentException("partition");
@@ -69,7 +70,6 @@ public partial class FactoryGenerator : BaseGenerator
         else
             factoryName = $"{factoryName}Factory";
 
-        AssemblyName asm = GetType().Assembly.GetName();
 
         if (rootName == typeSymbol.Name)
             rootName = $"{rootName}_";
@@ -79,38 +79,6 @@ public partial class FactoryGenerator : BaseGenerator
         string factoryInterfaceType = $"{interfaceType}Factory";
 
         #endregion // string rootName = .., interfaceType = .., stateType = ..
-
-        #region Stream Interface
-
-        builder.AppendHeader(syntax, typeSymbol);
-        builder.AppendLine();
-
-        builder.AppendLine($$"""
-                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public partial interface {{interfaceType}}: IEvDbStreamStore, {{eventType}}
-                    { 
-                    }
-                    """);
-        context.AddSource(typeSymbol.StandardPath(interfaceType), builder.ToString());
-
-        #endregion // Stream Interface
-
-        builder.Clear();
-
-        #region Factory Interface
-
-        builder.AppendHeader(syntax, typeSymbol);
-        builder.AppendLine();
-
-        builder.AppendLine($$"""
-                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public interface {{factoryInterfaceType}}: IEvDbStreamFactory<{{interfaceType}}>
-                    { 
-                    }
-                    """);
-        context.AddSource(typeSymbol.StandardPath(factoryInterfaceType), builder.ToString());
-
-        #endregion // Factory Interface
 
         builder.Clear();
 

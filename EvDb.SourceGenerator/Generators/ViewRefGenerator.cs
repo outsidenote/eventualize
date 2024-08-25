@@ -36,6 +36,7 @@ public partial class ViewRefGenerator : BaseGenerator
             CancellationToken cancellationToken)
     {
         context.ThrowIfNotPartial(typeSymbol, syntax);
+        AssemblyName asm = GetType().Assembly.GetName();
 
         StringBuilder builder = new StringBuilder();
 
@@ -43,6 +44,19 @@ public partial class ViewRefGenerator : BaseGenerator
 
         AttributeData attOfFactory = typeSymbol.GetAttributes()
                           .First(att => att.AttributeClass?.Name == FactoryGenerator.EVENT_TARGET_ATTRIBUTE);
+
+        string factoryName = $"EvDb{typeSymbol.Name}";
+        string rootName = factoryName;
+        if (factoryName.EndsWith("Factory"))
+            rootName = factoryName.Substring(0, factoryName.Length - 7);
+        if (rootName == typeSymbol.Name)
+            rootName = $"{rootName}_";
+        string interfaceType = $"I{rootName}";
+        string factoryInterfaceType = $"{interfaceType}Factory";
+
+        ImmutableArray<ITypeSymbol> args = attOfFactory.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
+        ITypeSymbol eventTypeSymbol = args[0];
+        string supportedEventsTypeName = eventTypeSymbol.ToDisplayString();
 
         #region string domain = ..., string partition = ...
 
@@ -100,8 +114,32 @@ public partial class ViewRefGenerator : BaseGenerator
                                   }).ToArray();
         #endregion // propsNames = .., props = .., viewFactoriesYield = ..
 
+        var propsColInterface = propsNames.Select((p, i) =>
+                                        $$"""
+                                                    public {{p.StateType}} {{p.Name}} => _view{{p.Name}}.State;
+
+                                                """);
+
+        #region Factory Interface
+
+        builder.Clear();
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    public interface {{factoryInterfaceType}}: IEvDbStreamFactory<{{interfaceType}}>
+                    { 
+                    }
+                    """);
+        context.AddSource(typeSymbol.StandardPath(factoryInterfaceType), builder.ToString());
+
+        #endregion // Factory Interface
+
         #region Stream Factory
 
+        builder.Clear();
         var viewFactoriesCtorInjection =
             propsNames.Select((viewRef,i) =>
             $$"""
@@ -144,20 +182,6 @@ public partial class ViewRefGenerator : BaseGenerator
         context.AddSource(typeSymbol.StandardDefaultAndPath("partial-view-ref"), builder.ToString());
 
         #endregion // Stream Factory
-
-        string factoryName = $"EvDb{typeSymbol.Name}";
-        string rootName = factoryName;
-        if (factoryName.EndsWith("Factory"))
-            rootName = factoryName.Substring(0, factoryName.Length - 7);
-        if (rootName == typeSymbol.Name)
-            rootName = $"{rootName}_";
-        string interfaceType = $"I{rootName}";
-
-        var propsColInterface = propsNames.Select((p, i) =>
-                                        $$"""
-                                                    public {{p.StateType}} {{p.Name}} => _view{{p.Name}}.State;
-
-                                                """);
 
         #region Views Encapsulation
 
@@ -212,7 +236,8 @@ public partial class ViewRefGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial interface {{interfaceType}}
+                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    public partial interface {{interfaceType}}: IEvDbStreamStore, {{supportedEventsTypeName}}
                     { 
                         {{rootName}}Views Views { get; }
                     }
