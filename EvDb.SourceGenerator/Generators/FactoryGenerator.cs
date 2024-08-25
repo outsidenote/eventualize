@@ -80,11 +80,11 @@ public partial class FactoryGenerator : BaseGenerator
 
         #endregion // string rootName = .., interfaceType = .., stateType = ..
 
-        builder.Clear();
-
         #region Factory
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.Clear();
+
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
         builder.AppendLine($$"""
@@ -127,7 +127,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         #region Stream
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
         var adds = eventsPayloads.Select(ep =>
@@ -178,7 +178,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         #region  // DI
 
-        builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
+        builder.ClearAndAppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
         builder.AppendLine();
 
         builder.AppendLine($$"""

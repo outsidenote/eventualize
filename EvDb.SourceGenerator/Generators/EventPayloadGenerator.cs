@@ -38,7 +38,7 @@ public partial class EventPayloadGenerator : BaseGenerator
         if (key == null)
             return;
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("#pragma warning disable SYSLIB1037 // Deserialization of init-only properties is currently not supported in source generation mode.");
         builder.AppendLine();
 

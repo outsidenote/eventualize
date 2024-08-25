@@ -122,9 +122,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #region Factory Interface
 
-        builder.Clear();
-
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
         builder.AppendLine($$"""
@@ -139,14 +137,12 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #region FactoryBase
 
-        builder.Clear();
-
         #region var eventsPayloads = ...
 
         #endregion // var eventsPayloads = ...
 
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
         builder.AppendLine($$"""
@@ -194,7 +190,6 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #region Stream Factory
 
-        builder.Clear();
         var viewFactoriesCtorInjection =
             propsNames.Select((viewRef,i) =>
             $$"""
@@ -208,7 +203,7 @@ public partial class ViewRefGenerator : BaseGenerator
                         factoryOf{{viewRef.TypeName}}{{i}}
             """);
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
@@ -240,8 +235,6 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #region Views Encapsulation
 
-        builder.Clear();
-
         var viewsCtor2Props = propsNames.Select((p, i) =>
                                         $$"""
                                                 _view{{p.Name}} = ((IEvDbViewStore<{{p.StateType}}>)_views[{{i}}]);
@@ -258,7 +251,7 @@ public partial class ViewRefGenerator : BaseGenerator
                                         
                                         """);
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
@@ -285,9 +278,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #region Stream Interface
 
-        builder.Clear();
-
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
         builder.AppendLine($$"""
@@ -303,9 +294,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #region EvDb{typeSymbol.Name}SnapshotEntry 
 
-        builder.Clear();
-
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
@@ -327,9 +316,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #region IEvDb{}ViewRegistrationEntry Interface
 
-        builder.Clear();
-
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
@@ -348,9 +335,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #region EvDb{typeSymbol.Name}SnapshotEntry
 
-        builder.Clear();
-
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
@@ -375,8 +360,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         foreach (var viewRef in propsNames)
         {
-            builder.Clear();
-            builder.AppendHeader(syntax, typeSymbol, viewRef.Namespace);
+            builder.ClearAndAppendHeader(syntax, typeSymbol, viewRef.Namespace);
             builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
             builder.AppendLine("using Microsoft.Extensions.Logging;");
             builder.AppendLine();
@@ -496,7 +480,7 @@ public partial class ViewRefGenerator : BaseGenerator
 
         builder.Clear();
 
-        builder.AppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
+        builder.ClearAndAppendHeader(syntax, typeSymbol, "Microsoft.Extensions.DependencyInjection");
         builder.AppendLine($"using {typeSymbol.ContainingNamespace.ToDisplayString()};");
         // builder.AppendLine($"using {typeSymbol.ContainingNamespace.ToDisplayString()}.Generated;");
         builder.AppendLine("using EvDb.Core.Internals;");

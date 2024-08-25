@@ -27,7 +27,7 @@ public partial class EventAdderGenerator : BaseGenerator
 
         StringBuilder builder = new StringBuilder();
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
 
         builder.AppendLine();
 

@@ -100,7 +100,7 @@ public partial class ViewGenerator : BaseGenerator
                         
                 """);
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
@@ -177,7 +177,7 @@ public partial class ViewGenerator : BaseGenerator
 
         #region View
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 

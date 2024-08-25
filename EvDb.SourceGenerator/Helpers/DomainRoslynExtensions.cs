@@ -6,13 +6,14 @@ namespace EvDb.SourceGenerator.Helpers;
 
 internal static class DomainRoslynExtensions
 {
-    #region AppendHeader
+    #region ClearAndAppendHeader
 
-    public static void AppendHeader(this StringBuilder builder,
+    public static void ClearAndAppendHeader(this StringBuilder builder,
                                     TypeDeclarationSyntax syntax,
                                     INamedTypeSymbol typeSymbol,
                                     string? @namespace = null)
     {
+        builder.Clear();
         builder.AppendLine("#nullable enable");
 
         builder.AppendLine($"#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.");
@@ -39,5 +40,5 @@ internal static class DomainRoslynExtensions
         }
     }
 
-    #endregion // AppendHeader
+    #endregion // ClearAndAppendHeader
 }
