@@ -137,6 +137,61 @@ public partial class ViewRefGenerator : BaseGenerator
 
         #endregion // Factory Interface
 
+        #region FactoryBase
+
+        builder.Clear();
+
+        #region var eventsPayloads = ...
+
+        #endregion // var eventsPayloads = ...
+
+
+        builder.AppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
+                    public abstract class {{factoryName}}Base:
+                        EvDbStreamFactoryBase<{{interfaceType}}>
+                    {                
+                        #region Ctor
+                            
+                        public {{factoryName}}Base(
+                                    IEvDbStorageStreamAdapter storageAdapter, 
+                                    TimeProvider timeProvider):
+                                        base(storageAdapter, timeProvider)
+                        {
+                        }
+
+                        #endregion // Ctor
+
+                        #region OnCreate
+
+                        protected override {{rootName}} OnCreate(
+                                string streamId,
+                                IImmutableList<IEvDbViewStore> views,
+                                long lastStoredEventOffset)
+                        {
+                            {{rootName}} stream =
+                                new(
+                                    this,
+                                    views,
+                                    _storageAdapter,
+                                    streamId,
+                                    lastStoredEventOffset);
+
+                            return stream;
+                        }
+
+                        #endregion // OnCreate
+
+                    }
+                    """);
+        context.AddSource(typeSymbol.StandardPath($"{factoryName}Base"), builder.ToString());
+
+        #endregion // FactoryBase
+
         #region Stream Factory
 
         builder.Clear();
