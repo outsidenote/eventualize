@@ -38,7 +38,6 @@ public partial class FactoryGenerator : BaseGenerator
 
         ImmutableArray<ITypeSymbol> args = attOfFactory.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         ITypeSymbol eventTypeSymbol = args[0];
-        string eventType = eventTypeSymbol.ToDisplayString();
 
         string factoryName = $"EvDb{typeSymbol.Name}";
 
@@ -80,99 +79,7 @@ public partial class FactoryGenerator : BaseGenerator
 
         #endregion // string rootName = .., interfaceType = .., stateType = ..
 
-        #region Factory
-
         builder.Clear();
-
-        builder.ClearAndAppendHeader(syntax, typeSymbol);
-        builder.AppendLine();
-
-        builder.AppendLine($$"""
-                    partial {{type}} {{typeSymbol.Name}}: {{factoryName}}Base,
-                            {{factoryInterfaceType}}
-                    { 
-                        #region Partition
-
-                        public override EvDbPartitionAddress PartitionAddress { get; } = 
-                            new EvDbPartitionAddress("{{domain}}", "{{partition}}");
-
-                        #endregion // PartitionAddress
-                    }
-                    """);
-        context.AddSource(typeSymbol.StandardPath(), builder.ToString());
-
-        #endregion // Factory
-
-        builder.Clear();
-
-        #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
-
-        var eventsPayloads = from a in eventTypeSymbol.GetAttributes()
-                             let cls = a.AttributeClass!
-                             where cls != null
-                             let text = cls.Name
-                             where text == EventAdderGenerator.EventTarget
-                             let payloadType = cls.TypeArguments.First()
-                             let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
-                             let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()
-                             let fullName = cls?.ToString()
-                             let genStart = fullName.IndexOf('<') + 1
-                             let genLen = fullName.Length - genStart - 1
-                             let generic = fullName.Substring(genStart, genLen)
-                             let attName = a.ConstructorArguments.FirstOrDefault().Value
-                             select (Type: generic, Key: eventTypeValue);
-        eventsPayloads = eventsPayloads.ToArray(); // run once
-
-        #endregion // var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
-
-        #region Stream
-
-        builder.ClearAndAppendHeader(syntax, typeSymbol);
-        builder.AppendLine();
-
-        var adds = eventsPayloads.Select(ep =>
-                    $$"""
-                        async ValueTask<IEvDbEventMeta> {{eventType}}.AddAsync(
-                                {{ep.Type}} payload, 
-                                string? capturedBy)
-                        {
-                            IEvDbEventMeta meta = await AddEventAsync(payload, capturedBy);
-                            return meta;
-                        }
-
-                    """);
-        builder.AppendLine($$"""
-                    public partial class {{rootName}}: 
-                            EvDbStream,
-                            {{eventType}},
-                            {{interfaceType}}
-                    { 
-                        #region Ctor
-
-                        public {{rootName}}(
-                            IEvDbStreamConfig stramConfiguration,
-                            IImmutableList<IEvDbViewStore> views,
-                            IEvDbStorageStreamAdapter storageAdapter,
-                            string streamId,
-                            long lastStoredOffset) : 
-                                base(stramConfiguration, views, storageAdapter, streamId, lastStoredOffset)
-                        {
-                            Views = new {{rootName}}Views(views);
-                        }
-
-                        #endregion // Ctor
-                    
-                        public {{rootName}}Views Views { get; }
-                    
-                        #region Add
-
-                    {{string.Join("", adds)}}
-                        #endregion // Add
-                    }
-                    """);
-        context.AddSource(typeSymbol.StandardPath(rootName), builder.ToString());
-
-        #endregion // Stream
 
         builder.Clear();
 
