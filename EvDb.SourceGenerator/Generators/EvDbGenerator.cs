@@ -12,10 +12,11 @@ using System.Xml.Linq;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class ViewRefGenerator : BaseGenerator
+public partial class EvDbGenerator : BaseGenerator
 {
-    private const string EVENT_TARGET = "EvDbAttachView";
-    protected override string EventTargetAttribute { get; } = $"{EVENT_TARGET}Attribute";
+    internal const string STREAM_FACTORY_ATT = "EvDbStreamFactoryAttribute";
+    private const string ATTACHE_VIEW_ATT = "EvDbAttachView";
+    protected override string EventTargetAttribute { get; } = $"{ATTACHE_VIEW_ATT}Attribute";
 
     #region OnGenerate
 
@@ -43,7 +44,7 @@ public partial class ViewRefGenerator : BaseGenerator
         string type = typeSymbol.ToType(syntax, cancellationToken);
 
         AttributeData attOfFactory = typeSymbol.GetAttributes()
-                          .First(att => att.AttributeClass?.Name == FactoryGenerator.EVENT_TARGET_ATTRIBUTE);
+                          .First(att => att.AttributeClass?.Name == STREAM_FACTORY_ATT);
 
         string factoryName = $"EvDb{typeSymbol.Name}";
         string rootName = factoryName;
@@ -80,7 +81,7 @@ public partial class ViewRefGenerator : BaseGenerator
                                   .Where(att =>
                                   {
                                       string? name = att.AttributeClass?.Name;
-                                      bool match = EVENT_TARGET == name || EventTargetAttribute == name;
+                                      bool match = ATTACHE_VIEW_ATT == name || EventTargetAttribute == name;
                                       return match;
                                   })
                                   .Select(att =>
