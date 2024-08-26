@@ -18,7 +18,7 @@ internal static class GeneralExtensions
         string @namespace,
         IEnumerable<string> path)
     {
-        if (!(path?.Any() ?? false)) 
+        if (!(path?.Any() ?? false))
         {
             path = new[] { typeSymbol.Name };
         }
@@ -77,46 +77,35 @@ internal static class GeneralExtensions
         INamedTypeSymbol typeSymbol,
         TypeDeclarationSyntax syntax)
     {
-        if (!syntax.IsPartial())
-        {
-            var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor($"EvDb: {EvDbErrorsNumbers.MissingPartialClass}", "class must be partial",
-                $"{typeSymbol.Name}, Must be partial", "EvDb",
-                DiagnosticSeverity.Error, isEnabledByDefault: true),
-                Location.Create(syntax.SyntaxTree, syntax.Span));
-            //var content = $"`Factory {typeSymbol.Name}` MUST BE A partial interface!";
-            //context.AddSource(typeSymbol.StandardDefaultAndPath("partial-is-missing"), content);
-            context.ReportDiagnostic(diagnostic);
-        }
+        context.ThrowIf(!syntax.IsPartial(),
+            EvDbErrorsNumbers.MissingPartialClass,
+            $"{typeSymbol.Name}, Must be partial",
+            syntax);
     }
 
     public static void ThrowIf(
         this SourceProductionContext context,
         bool condition,
         EvDbErrorsNumbers errorNumber,
-        string desctiption,
+        string description,
         TypeDeclarationSyntax syntax)
     {
         if (!condition)
             return;
-        context.Throw(errorNumber, desctiption, syntax);
+        context.Throw(errorNumber, description, syntax);
     }
 
     public static void Throw(
         this SourceProductionContext context,
         EvDbErrorsNumbers errorNumber,
-        string desctiption,
+        string description,
         TypeDeclarationSyntax syntax)
     {
-        if (!syntax.IsPartial())
-        {
-            var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor($"EvDb: {errorNumber}", desctiption,
-                desctiption, "EvDb",
-                DiagnosticSeverity.Error, isEnabledByDefault: true),
-                Location.Create(syntax.SyntaxTree, syntax.Span));
-            context.ReportDiagnostic(diagnostic);
-        }
+        var diagnostic = Diagnostic.Create(
+            new DiagnosticDescriptor($"EvDb ({(int)errorNumber}): {errorNumber}", description,
+            description, "EvDb",
+            DiagnosticSeverity.Error, isEnabledByDefault: true),
+            Location.Create(syntax.SyntaxTree, syntax.Span));
+        context.ReportDiagnostic(diagnostic);
     }
-
 }

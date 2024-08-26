@@ -17,4 +17,8 @@ namespace EvDb.UnitTests;
 public partial interface IEvDbSchoolStreamAdders
 {
 }
+[EvDbEventAdder<StudentTestSubmittedEvent>]
+public partial interface IEvDbSchoolStreamAdders1
+{
+}
 
