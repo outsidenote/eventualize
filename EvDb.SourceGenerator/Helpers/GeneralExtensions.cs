@@ -80,12 +80,41 @@ internal static class GeneralExtensions
         if (!syntax.IsPartial())
         {
             var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor("EvDb: 013", "class must be partial",
+                new DiagnosticDescriptor($"EvDb: {EvDbErrorsNumbers.MissingPartialClass}", "class must be partial",
                 $"{typeSymbol.Name}, Must be partial", "EvDb",
                 DiagnosticSeverity.Error, isEnabledByDefault: true),
                 Location.Create(syntax.SyntaxTree, syntax.Span));
             //var content = $"`Factory {typeSymbol.Name}` MUST BE A partial interface!";
             //context.AddSource(typeSymbol.StandardDefaultAndPath("partial-is-missing"), content);
+            context.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    public static void ThrowIf(
+        this SourceProductionContext context,
+        bool condition,
+        EvDbErrorsNumbers errorNumber,
+        string desctiption,
+        TypeDeclarationSyntax syntax)
+    {
+        if (!condition)
+            return;
+        context.Throw(errorNumber, desctiption, syntax);
+    }
+
+    public static void Throw(
+        this SourceProductionContext context,
+        EvDbErrorsNumbers errorNumber,
+        string desctiption,
+        TypeDeclarationSyntax syntax)
+    {
+        if (!syntax.IsPartial())
+        {
+            var diagnostic = Diagnostic.Create(
+                new DiagnosticDescriptor($"EvDb: {errorNumber}", desctiption,
+                desctiption, "EvDb",
+                DiagnosticSeverity.Error, isEnabledByDefault: true),
+                Location.Create(syntax.SyntaxTree, syntax.Span));
             context.ReportDiagnostic(diagnostic);
         }
     }

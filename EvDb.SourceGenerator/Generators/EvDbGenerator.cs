@@ -46,18 +46,19 @@ public partial class EvDbGenerator : BaseGenerator
         AttributeData attOfFactory = typeSymbol.GetAttributes()
                           .First(att => att.AttributeClass?.Name == STREAM_FACTORY_ATT);
 
-        string factoryName = $"EvDb{typeSymbol.Name}";
-        string rootName = factoryName;
+        string factoryOriginName = typeSymbol.Name;
+        string factoryName = $"EvDb{factoryOriginName}";
+        string streamName = factoryName;
         if (factoryName.EndsWith("Factory"))
-            rootName = factoryName.Substring(0, factoryName.Length - 7);
-        if (rootName == typeSymbol.Name)
-            rootName = $"{rootName}_";
-        string interfaceType = $"I{rootName}";
-        string factoryInterfaceType = $"{interfaceType}Factory";
+            streamName = factoryName.Substring(0, factoryName.Length - 7);
+        if (streamName == factoryOriginName)
+            streamName = $"{streamName}1";
+        string streamInterface = $"I{streamName}";
+        string factoryInterface = $"{streamInterface}Factory";
 
         ImmutableArray<ITypeSymbol> args = attOfFactory.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
-        ITypeSymbol eventTypeSymbol = args[0];
-        string supportedEventsTypeName = eventTypeSymbol.ToDisplayString();
+        ITypeSymbol relatedEventsTypeSymbol = args[0];
+        string relatedEventsTypesFullName = relatedEventsTypeSymbol.ToDisplayString();
 
         #region string domain = ..., string partition = ...
 
@@ -75,49 +76,36 @@ public partial class EvDbGenerator : BaseGenerator
 
         #endregion //  string domain = ..., string partition = ...
 
-        #region propsNames = .., props = .., propsCreates = ..
+        #region ViewInfo[] viewsInfo = ..
 
-        var propsNames = typeSymbol.GetAttributes()
+        ViewInfo[] viewsInfo = typeSymbol.GetAttributes()
                                   .Where(att =>
                                   {
                                       string? name = att.AttributeClass?.Name;
                                       bool match = ATTACHE_VIEW_ATT == name || EventTargetAttribute == name;
                                       return match;
                                   })
-                                  .Select(att =>
-                                  {
-                                      ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
-                                      ITypeSymbol viewTypeSymbol = args[0];
-                                      string viewTypeName = viewTypeSymbol.ToDisplayString();
-                                      string typeName = viewTypeSymbol.Name;
+                                  .Select(a => new ViewInfo(context, syntax, a)).ToArray();
+        #endregion // ViewInfo[] viewsInfo = ..
 
-                                      TypedConstant propName = att.ConstructorArguments.FirstOrDefault();
-                                      string? pName = propName.Value?.ToString();
-                                      if (pName == null)
-                                      {
-                                          pName = viewTypeSymbol.Name;
-                                          if (pName.EndsWith("View") && pName.Length != 4)
-                                              pName = pName.Substring(0, pName.Length - 4);
-                                      }
+        var symbolEqualityComparer = SymbolEqualityComparer.Default;
 
-                                      var viewAtt = viewTypeSymbol.GetAttributes().First(vatt => vatt.AttributeClass?.Name == ViewGenerator.EVENT_TARGET);
-                                      ImmutableArray<ITypeSymbol> argsState = viewAtt.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
-                                      string stateType = argsState[0].ToDisplayString();
-                                      string ns = viewTypeSymbol.ContainingNamespace.ToDisplayString();
+        #region Validation
 
-                                      if (!viewAtt.TryGetValue("name", out string storageName))
-                                      {
-                                          var diagnostic = syntax.CreateDiagnostic(14, "view-name on store is missng", typeSymbol.Name);
-                                          context.ReportDiagnostic(diagnostic);
-                                      }
+        foreach (var v in viewsInfo)
+        {
+            if (!symbolEqualityComparer.Equals(v.RelatedEventsSymbol, relatedEventsTypeSymbol))
+                context.Throw(
+                    EvDbErrorsNumbers.EventsNotMatch, 
+                    $"[{v.ViewTypeName}] events [{v.RelatedEventsTypeFullName}] not match the [{factoryOriginName}] events [{relatedEventsTypesFullName}]",
+                    syntax);
+        }
 
-                                      return (Name: pName, Type: viewTypeName, TypeName: typeName, StateType: stateType, Namespace: ns, StorageName: storageName);
-                                  }).ToArray();
-        #endregion // propsNames = .., props = .., viewFactoriesYield = ..
-
-        var propsColInterface = propsNames.Select((p, i) =>
+        #endregion //  Validation
+   
+        var propsColInterface = viewsInfo.Select((p, i) =>
                                         $$"""
-                                                    public {{p.StateType}} {{p.Name}} => _view{{p.Name}}.State;
+                                                    public {{p.ViewStateTypeFullName}} {{p.ViewPropName}} => _view{{p.ViewPropName}}.State;
 
                                                 """);
 
@@ -128,11 +116,11 @@ public partial class EvDbGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public interface {{factoryInterfaceType}}: IEvDbStreamFactory<{{interfaceType}}>
+                    public interface {{factoryInterface}}: IEvDbStreamFactory<{{streamInterface}}>
                     { 
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath(factoryInterfaceType), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(factoryInterface), builder.ToString());
 
         #endregion // Factory Interface
 
@@ -145,7 +133,7 @@ public partial class EvDbGenerator : BaseGenerator
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     public abstract class {{factoryName}}Base:
-                        EvDbStreamFactoryBase<{{interfaceType}}>
+                        EvDbStreamFactoryBase<{{streamInterface}}>
                     {                
                         #region Ctor
                             
@@ -160,12 +148,12 @@ public partial class EvDbGenerator : BaseGenerator
 
                         #region OnCreate
 
-                        protected override {{rootName}} OnCreate(
+                        protected override {{streamName}} OnCreate(
                                 string streamId,
                                 IImmutableList<IEvDbViewStore> views,
                                 long lastStoredEventOffset)
                         {
-                            {{rootName}} stream =
+                            {{streamName}} stream =
                                 new(
                                     this,
                                     views,
@@ -190,8 +178,8 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial {{type}} {{typeSymbol.Name}}: {{factoryName}}Base,
-                            {{factoryInterfaceType}}
+                    partial {{type}} {{factoryOriginName}}: {{factoryName}}Base,
+                            {{factoryInterface}}
                     { 
                         #region Partition
 
@@ -208,16 +196,16 @@ public partial class EvDbGenerator : BaseGenerator
         #region Stream Factory
 
         var viewFactoriesCtorInjection =
-            propsNames.Select((viewRef,i) =>
+            viewsInfo.Select((viewRef, i) =>
             $$"""
-                        [FromKeyedServices("{{domain}}:{{partition}}:{{viewRef.Name}}")]IEvDbViewFactory factoryOf{{viewRef.TypeName}}{{i}},
+                        [FromKeyedServices("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}")]IEvDbViewFactory factoryOf{{viewRef.ViewTypeName}}{{i}},
 
             """);
 
-        var viewFactoriesYield = propsNames.Select((viewRef,i) =>
+        var viewFactoriesYield = viewsInfo.Select((viewRef, i) =>
             $$"""
 
-                        factoryOf{{viewRef.TypeName}}{{i}}
+                        factoryOf{{viewRef.ViewTypeName}}{{i}}
             """);
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
@@ -226,14 +214,14 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial {{type}} {{typeSymbol.Name}}
+                    partial {{type}} {{factoryOriginName}}
                     {
                         #region Ctor
                         
-                        public {{typeSymbol.Name}}(
+                        public {{factoryOriginName}}(
                                 [FromKeyedServices("{{domain}}:{{partition}}")]IEvDbStorageStreamAdapter storageAdapter,                    
                     {{string.Join("", viewFactoriesCtorInjection)}}       
-                                ILogger<{{typeSymbol.Name}}> logger,
+                                ILogger<{{factoryOriginName}}> logger,
                                 TimeProvider? timeProvider = null) : base(storageAdapter, timeProvider ?? TimeProvider.System)
                         {
                             ViewFactories = new IEvDbViewFactory[] 
@@ -252,19 +240,19 @@ public partial class EvDbGenerator : BaseGenerator
 
         #region Views Encapsulation
 
-        var viewsCtor2Props = propsNames.Select((p, i) =>
+        var viewsCtor2Props = viewsInfo.Select((p, i) =>
                                         $$"""
-                                                _view{{p.Name}} = ((IEvDbViewStore<{{p.StateType}}>)_views[{{i}}]);
+                                                _view{{p.ViewPropName}} = ((IEvDbViewStore<{{p.ViewStateTypeFullName}}>)_views[{{i}}]);
                                         
                                         """);
-        var viewsFields = propsNames.Select((p, i) =>
+        var viewsFields = viewsInfo.Select((p, i) =>
                                         $$"""
-                                            private readonly IEvDbViewStore<{{p.StateType}}> _view{{p.Name}};
+                                            private readonly IEvDbViewStore<{{p.ViewStateTypeFullName}}> _view{{p.ViewPropName}};
                                         
                                         """);
-        var viewsYield = propsNames.Select((p, i) =>
+        var viewsYield = viewsInfo.Select((p, i) =>
                                         $$"""
-                                                yield return _view{{p.Name}};
+                                                yield return _view{{p.ViewPropName}};
                                         
                                         """);
 
@@ -273,11 +261,11 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public class {{rootName}}Views
+                    public class {{streamName}}Views
                     { 
                         private readonly IImmutableList<IEvDbViewStore> _views;
                     {{string.Join("", viewsFields)}}
-                        public {{rootName}}Views(IImmutableList<IEvDbViewStore> views)
+                        public {{streamName}}Views(IImmutableList<IEvDbViewStore> views)
                         {
                             _views = views;
                     {{string.Join("", viewsCtor2Props)}}
@@ -289,7 +277,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"{rootName}Views"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath($"{streamName}Views"), builder.ToString());
 
         #endregion // Views Encapsulation
 
@@ -300,18 +288,18 @@ public partial class EvDbGenerator : BaseGenerator
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    public partial interface {{interfaceType}}: IEvDbStreamStore, {{supportedEventsTypeName}}
+                    public partial interface {{streamInterface}}: IEvDbStreamStore, {{relatedEventsTypesFullName}}
                     { 
-                        {{rootName}}Views Views { get; }
+                        {{streamName}}Views Views { get; }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath(interfaceType), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(streamInterface), builder.ToString());
 
         #endregion // Stream Interface
 
         #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
-        var eventsPayloads = from a in eventTypeSymbol.GetAttributes()
+        var eventsPayloads = from a in relatedEventsTypeSymbol.GetAttributes()
                              let cls = a.AttributeClass!
                              where cls != null
                              let text = cls.Name
@@ -326,7 +314,7 @@ public partial class EvDbGenerator : BaseGenerator
                              select (Type: generic, Key: eventTypeValue);
         eventsPayloads = eventsPayloads.ToArray(); // run once
 
-        #endregion // var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
+        #endregion // var eventsPayloads = from a in relatedEventsTypeSymbol.GetAttributes() ...
 
         #region Stream
 
@@ -335,7 +323,7 @@ public partial class EvDbGenerator : BaseGenerator
 
         var adds = eventsPayloads.Select(ep =>
                     $$"""
-                        async ValueTask<IEvDbEventMeta> {{supportedEventsTypeName}}.AddAsync(
+                        async ValueTask<IEvDbEventMeta> {{relatedEventsTypesFullName}}.AddAsync(
                                 {{ep.Type}} payload, 
                                 string? capturedBy)
                         {
@@ -345,14 +333,14 @@ public partial class EvDbGenerator : BaseGenerator
 
                     """);
         builder.AppendLine($$"""
-                    public partial class {{rootName}}: 
+                    public partial class {{streamName}}: 
                             EvDbStream,
-                            {{supportedEventsTypeName}},
-                            {{interfaceType}}
+                            {{relatedEventsTypesFullName}},
+                            {{streamInterface}}
                     { 
                         #region Ctor
 
-                        public {{rootName}}(
+                        public {{streamName}}(
                             IEvDbStreamConfig stramConfiguration,
                             IImmutableList<IEvDbViewStore> views,
                             IEvDbStorageStreamAdapter storageAdapter,
@@ -360,12 +348,12 @@ public partial class EvDbGenerator : BaseGenerator
                             long lastStoredOffset) : 
                                 base(stramConfiguration, views, storageAdapter, streamId, lastStoredOffset)
                         {
-                            Views = new {{rootName}}Views(views);
+                            Views = new {{streamName}}Views(views);
                         }
 
                         #endregion // Ctor
                     
-                        public {{rootName}}Views Views { get; }
+                        public {{streamName}}Views Views { get; }
                     
                         #region Add
 
@@ -373,11 +361,11 @@ public partial class EvDbGenerator : BaseGenerator
                         #endregion // Add
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath(rootName), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(streamName), builder.ToString());
 
         #endregion // Stream
 
-        #region EvDb{typeSymbol.Name}SnapshotEntry 
+        #region EvDb{factoryOriginName}SnapshotEntry 
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
@@ -385,19 +373,19 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public readonly record struct EvDb{{typeSymbol.Name}}Entry (IServiceCollection Services)
+                    public readonly record struct EvDb{{factoryOriginName}}Entry (IServiceCollection Services)
                     {
-                        internal EvDb{{typeSymbol.Name}}Entry(
+                        internal EvDb{{factoryOriginName}}Entry(
                                 EvDbRegistrationEntry parent)
                             : this(parent.Services)
                         {
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"EvDb{typeSymbol.Name}Entry"),
+        context.AddSource(typeSymbol.StandardPath($"EvDb{factoryOriginName}Entry"),
                     builder.ToString());
 
-        #endregion // EvDb{typeSymbol.Name}SnapshotEntry 
+        #endregion // EvDb{factoryOriginName}SnapshotEntry 
 
         #region IEvDb{}ViewRegistrationEntry Interface
 
@@ -406,44 +394,44 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public interface IEvDb{{typeSymbol.Name}}SnapshotEntry
+                    public interface IEvDb{{factoryOriginName}}SnapshotEntry
                     {
                         EvDbPartitionAddress Address { get; }
                         EvDbStorageContext? Context { get; }
                         IServiceCollection Services { get; }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"IEvDb{typeSymbol.Name}ViewRegistrationEntry"),
+        context.AddSource(typeSymbol.StandardPath($"IEvDb{factoryOriginName}ViewRegistrationEntry"),
                     builder.ToString());
 
         #endregion // IEvDb{}ViewRegistrationEntry Interface
 
-        #region EvDb{typeSymbol.Name}SnapshotEntry
+        #region EvDb{factoryOriginName}SnapshotEntry
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public readonly record struct EvDb{{typeSymbol.Name}}SnapshotEntry(
+                    public readonly record struct EvDb{{factoryOriginName}}SnapshotEntry(
                         EvDbStorageContext? Context,
                         EvDbPartitionAddress Address,
-                        IServiceCollection Services) : IEvDb{{typeSymbol.Name}}SnapshotEntry
+                        IServiceCollection Services) : IEvDb{{factoryOriginName}}SnapshotEntry
                     {
-                        public EvDb{{typeSymbol.Name}}SnapshotEntry(EvDbStreamStoreRegistrationContext context)
+                        public EvDb{{factoryOriginName}}SnapshotEntry(EvDbStreamStoreRegistrationContext context)
                             : this(context.Context, context.Address, context.Services)
                         {
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"EvDb{typeSymbol.Name}SnapshotEntry"),
+        context.AddSource(typeSymbol.StandardPath($"EvDb{factoryOriginName}SnapshotEntry"),
                     builder.ToString());
 
-        #endregion // EvDb{typeSymbol.Name}SnapshotEntry 
+        #endregion // EvDb{factoryOriginName}SnapshotEntry 
 
         #region Views Factory
 
-        foreach (var viewRef in propsNames)
+        foreach (var viewRef in viewsInfo)
         {
             builder.ClearAndAppendHeader(syntax, typeSymbol, viewRef.Namespace);
             builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
@@ -451,7 +439,7 @@ public partial class EvDbGenerator : BaseGenerator
             builder.AppendLine();
 
             builder.AppendLine($$"""
-                    internal partial class {{viewRef.TypeName}}Factory: IEvDbViewFactory
+                    internal partial class {{viewRef.ViewTypeName}}Factory: IEvDbViewFactory
                     { 
                         private readonly IEvDbStorageSnapshotAdapter _storageAdapter;                        
                         private readonly ILogger _logger;
@@ -460,26 +448,26 @@ public partial class EvDbGenerator : BaseGenerator
                         /// <summary>
                         /// Using `IServiceProvider` in order to have either a specific store provider or the default one.
                         /// </summary>
-                        public {{viewRef.TypeName}}Factory(
+                        public {{viewRef.ViewTypeName}}Factory(
                                         IServiceProvider serviceProvider,
-                                        ILogger<{{viewRef.TypeName}}> logger)
+                                        ILogger<{{viewRef.ViewTypeName}}> logger)
                         {
                             IEvDbStorageSnapshotAdapter storageAdapter = 
-                                serviceProvider.GetKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}:{{viewRef.Name}}") ??
+                                serviceProvider.GetKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}") ??
                                 serviceProvider.GetRequiredKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}");
 
                             _storageAdapter = storageAdapter;
                             _logger = logger;
                         } 
 
-                        string IEvDbViewFactory.ViewName { get; } = "{{viewRef.StorageName}}";
+                        string IEvDbViewFactory.ViewName { get; } = "{{viewRef.SnapshotStorageName}}";
                     
                         IEvDbViewStore IEvDbViewFactory.CreateEmpty(
                                                 EvDbStreamAddress address, 
                                                 JsonSerializerOptions? options, 
                                                 TimeProvider? timeProvider) 
                         {
-                            return new {{viewRef.TypeName}}(
+                            return new {{viewRef.ViewTypeName}}(
                                                     address, 
                                                     _storageAdapter, 
                                                     timeProvider ?? TimeProvider.System, 
@@ -492,7 +480,7 @@ public partial class EvDbGenerator : BaseGenerator
                             JsonSerializerOptions? options, 
                                                 TimeProvider? timeProvider)
                         {
-                            return new {{viewRef.TypeName}}(
+                            return new {{viewRef.ViewTypeName}}(
                                                 address,
                                                 _storageAdapter, 
                                                 timeProvider ?? TimeProvider.System, 
@@ -505,47 +493,47 @@ public partial class EvDbGenerator : BaseGenerator
                     }
                     """);
             var folder = viewRef.Namespace;
-            context.AddSource(typeSymbol.StandardNsAndPath(folder, $"{viewRef.TypeName}Factory"), builder.ToString());
+            context.AddSource(typeSymbol.StandardNsAndPath(folder, $"{viewRef.ViewTypeName}Factory"), builder.ToString());
         }
 
         #endregion // Views Factory
 
         #region DI
 
-        var addViewsFactories = propsNames.Select(viewRef =>
+        var addViewsFactories = viewsInfo.Select(viewRef =>
                         $$"""
-                            services.AddKeyedScoped<IEvDbViewFactory, {{viewRef.Type}}Factory>("{{domain}}:{{partition}}:{{viewRef.Name}}");
+                            services.AddKeyedScoped<IEvDbViewFactory, {{viewRef.ViewTypeFullName}}Factory>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
 
                         """);
 
-        var forViews = propsNames.Select(viewRef =>
+        var forViews = viewsInfo.Select(viewRef =>
                         $$"""
                                 /// <summary>
-                                /// Register a snapshot store provider for `{{viewRef.Name}}` view
+                                /// Register a snapshot store provider for `{{viewRef.ViewPropName}}` view
                                 /// </summary>
                                 /// <param name="entry"></param>
                                 /// <param name="registrationAction">The registration action.</param>
                                 /// <returns></returns>
-                                public static IEvDb{{typeSymbol.Name}}SnapshotEntry For{{viewRef.Name}}(
-                                    this EvDb{{typeSymbol.Name}}SnapshotEntry entry,
+                                public static IEvDb{{factoryOriginName}}SnapshotEntry For{{viewRef.ViewPropName}}(
+                                    this EvDb{{factoryOriginName}}SnapshotEntry entry,
                                     Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
                                 {
-                                    IEvDb{{typeSymbol.Name}}SnapshotEntry e = entry;
-                                    return e.For{{viewRef.Name}}(registrationAction);
+                                    IEvDb{{factoryOriginName}}SnapshotEntry e = entry;
+                                    return e.For{{viewRef.ViewPropName}}(registrationAction);
                                 }
 
 
                                 /// <summary>
-                                /// Register a snapshot store provider for `{{viewRef.Name}}` view
+                                /// Register a snapshot store provider for `{{viewRef.ViewPropName}}` view
                                 /// </summary>
                                 /// <param name="entry"></param>
                                 /// <param name="registrationAction">The registration action.</param>
                                 /// <returns></returns>
-                                public static IEvDb{{typeSymbol.Name}}SnapshotEntry For{{viewRef.Name}}(
-                                    this IEvDb{{typeSymbol.Name}}SnapshotEntry entry,
+                                public static IEvDb{{factoryOriginName}}SnapshotEntry For{{viewRef.ViewPropName}}(
+                                    this IEvDb{{factoryOriginName}}SnapshotEntry entry,
                                     Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
                                 {
-                                    var viewAdress = new EvDbViewBasicAddress(entry.Address, "{{viewRef.Name}}");
+                                    var viewAdress = new EvDbViewBasicAddress(entry.Address, "{{viewRef.ViewPropName}}");
                                     var ctx = new EvDbSnapshotStoreRegistrationContext(
                                         entry.Context,
                                         viewAdress,
@@ -557,9 +545,9 @@ public partial class EvDbGenerator : BaseGenerator
                                 }
                         """);
 
-        var addViewFactories = propsNames.Select(viewRef =>
+        var addViewFactories = viewsInfo.Select(viewRef =>
                                             $$"""
-                                                    services.AddKeyedScoped<IEvDbViewFactory,{{viewRef.Type}}Factory>("{{domain}}:{{partition}}:{{viewRef.Name}}");
+                                                    services.AddKeyedScoped<IEvDbViewFactory,{{viewRef.ViewTypeFullName}}Factory>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
 
                                             """);
 
@@ -571,31 +559,31 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public static class {{factoryName}}Registration 
                     { 
-                        public static EvDb{{typeSymbol.Name}}SnapshotEntry Add{{typeSymbol.Name}}(
+                        public static EvDb{{factoryOriginName}}SnapshotEntry Add{{factoryOriginName}}(
                             this EvDbRegistrationEntry instance,
                             Action<EvDbStreamStoreRegistrationContext> registrationAction,
                             EvDbStorageContext? context = null)
                         { 
                             IServiceCollection services = instance.Services;
-                            services.Add{{rootName}}ViewsFactories();
+                            services.Add{{streamName}}ViewsFactories();
 
                     {{string.Join("", addViewFactories)}}
 
-                            services.AddScoped<I{{factoryName}},{{typeSymbol.Name}}>();     
+                            services.AddScoped<I{{factoryName}},{{factoryOriginName}}>();     
                         
                             var storageContext = new EvDbStreamStoreRegistrationContext(context,
                                 new EvDbPartitionAddress("{{domain}}","{{partition}}"),
                                 services);
 
                             registrationAction(storageContext);
-                            var viewContext = new EvDb{{typeSymbol.Name}}SnapshotEntry(
+                            var viewContext = new EvDb{{factoryOriginName}}SnapshotEntry(
                                                     storageContext.Context, 
                                                     storageContext.Address,
                                                     services);
                             return viewContext;
                         }
 
-                        internal static IServiceCollection Add{{rootName}}ViewsFactories(
+                        internal static IServiceCollection Add{{streamName}}ViewsFactories(
                                                                 this IServiceCollection services)
                         {
                         {{string.Join("\t", addViewsFactories)}}
@@ -608,8 +596,8 @@ public partial class EvDbGenerator : BaseGenerator
                         /// </summary>
                         /// <param name="registrationAction">The registration action.</param>
                         /// <returns></returns>
-                        public static IEvDb{{typeSymbol.Name}}SnapshotEntry DefaultSnapshotConfiguration(
-                            this EvDb{{typeSymbol.Name}}SnapshotEntry entry,
+                        public static IEvDb{{factoryOriginName}}SnapshotEntry DefaultSnapshotConfiguration(
+                            this EvDb{{factoryOriginName}}SnapshotEntry entry,
                             Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
                         {
                             var viewAdress = new EvDbViewBasicAddress(entry.Address, string.Empty);

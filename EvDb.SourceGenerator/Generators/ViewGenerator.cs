@@ -14,8 +14,8 @@ namespace EvDb.SourceGenerator;
 [Generator]
 public partial class ViewGenerator : BaseGenerator
 {
-    internal const string EVENT_TARGET = "EvDbViewTypeAttribute";
-    protected override string EventTargetAttribute { get; } = EVENT_TARGET;
+    internal const string VIEW_TYPE_ATT = "EvDbViewTypeAttribute";
+    protected override string EventTargetAttribute { get; } = VIEW_TYPE_ATT;
 
     #region OnGenerate
 
@@ -30,10 +30,12 @@ public partial class ViewGenerator : BaseGenerator
 
         StringBuilder builder = new StringBuilder();
 
-        #region string rootName = .., stateType = .., eventType = .., fullName = ..
+        string viewOriginName = typeSymbol.Name;
+
+        #region stateType = .., eventType = .., fullName = ..
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
-        string viewClassName = $"EvDb{typeSymbol.Name}";
+        string viewClassName = $"EvDb{viewOriginName}";
         if (!viewClassName.EndsWith("View"))
             viewClassName = $"{viewClassName}View";
 
@@ -46,12 +48,11 @@ public partial class ViewGenerator : BaseGenerator
         ITypeSymbol eventTypeSymbol = args[1];
         string eventType = eventTypeSymbol.ToDisplayString();
 
-        #endregion // string baseName = .., stateType = .., eventType = .., fullName = ..
+        #endregion //  stateType = .., eventType = .., fullName = ..
 
         if (!att.TryGetValue("name", out string name))
         {
-            // TODO: Bnaya 2024-08-12 report an error
-            throw new ArgumentException("name");
+            context.Throw(EvDbErrorsNumbers.MissingViewName, $"{viewOriginName}: View name is missing", syntax);
         }
 
         #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
@@ -182,9 +183,9 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial {{type}} {{typeSymbol.Name}}: {{viewClassName}}Base
+                    partial {{type}} {{viewOriginName}}: {{viewClassName}}Base
                     { 
-                        internal {{typeSymbol.Name}}(
+                        internal {{viewOriginName}}(
                             EvDbStreamAddress address,
                             IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
@@ -199,7 +200,7 @@ public partial class ViewGenerator : BaseGenerator
                         {
                         }
 
-                        internal {{typeSymbol.Name}}(
+                        internal {{viewOriginName}}(
                             EvDbStreamAddress address,
                             IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
                             TimeProvider timeProvider,
