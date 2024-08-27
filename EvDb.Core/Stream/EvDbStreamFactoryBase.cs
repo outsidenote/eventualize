@@ -132,7 +132,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     protected IImmutableList<IEvDbViewStore> CreateEmptyViews(EvDbStreamAddress address)
     {
         var options = Options;
-        var views = ViewFactories.Select(viewFactory => viewFactory.CreateEmpty(address, options));
+        var views = ViewFactories.Select(viewFactory => viewFactory.CreateEmpty(address, options, TimeProvider));
 
         var immutable = ImmutableList.CreateRange(views);
         return immutable;
