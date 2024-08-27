@@ -7,6 +7,20 @@ namespace EvDb.SourceGenerator.Helpers;
 
 internal static class RoslynExtensions
 {
+    public static Diagnostic CreateDiagnostic(
+        this TypeDeclarationSyntax syntax,
+        int errorNumber,
+        string description,
+        string? typeName = "",
+        DiagnosticSeverity severity = DiagnosticSeverity.Error)
+    {
+        var diagnostic = Diagnostic.Create(
+            new DiagnosticDescriptor($"EvDb: {errorNumber}", description,
+            $"{typeName}: {description}", "EvDb",
+            severity, isEnabledByDefault: true),
+            Location.Create(syntax.SyntaxTree, syntax.Span));
+        return diagnostic;  
+    }
     #region MatchAttribute
 
     /// <summary>
@@ -171,17 +185,20 @@ internal static class RoslynExtensions
                         ?.Parameters
                         .Select(p => p.Name)
                         .ToArray() ?? Array.Empty<string>();
-        int i = 0;
-        foreach (var prm in attributeData.ConstructorArguments)
+
+        var prms = attributeData.ConstructorArguments;
+        for (int i = 0; i < prms.Length; i++)
         {
             if (string.Compare(names[i], name, true) != 0)
             {
                 continue;
             }
 
+            var prm = prms[i];
             value = (T)prm.Value;
             return true;
         }
+
         var prop = attributeData.NamedArguments
                                 .FirstOrDefault(m => m.Key == name);
         var val = prop.Value;

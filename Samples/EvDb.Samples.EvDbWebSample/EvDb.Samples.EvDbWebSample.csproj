@@ -5,6 +5,10 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Compile Remove="Aggregates\**" />
 		<Content Remove="Aggregates\**" />
@@ -14,13 +18,15 @@
 
 	<ItemGroup>
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="8.6.0" />
+		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="8.7.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerMigration\EvDb.Adapters.Store.EvDbSqlServerMigration.csproj" />
 		<ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServer\EvDb.Adapters.Store.EvDbSqlServer.csproj" />
 		<ProjectReference Include="..\EvDb.Scenes\EvDb.Scenes.csproj" />
+		<ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />
+		<ProjectReference Include="..\..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -29,9 +35,9 @@
 		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.9.0" />
-		<PackageReference Include="SharpAbp.Abp.OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="3.3.9" />
+		<PackageReference Include="SharpAbp.Abp.OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="3.4.0" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="0.5.0-beta.6" />
-		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.7" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.0.0-rc9.15" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.9.0-beta.1" />
 	</ItemGroup>

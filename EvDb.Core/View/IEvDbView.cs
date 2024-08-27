@@ -3,11 +3,9 @@
 public interface IEvDbView
 {
     /// <summary>
-    /// Gets the offset of the last folded event.
+    /// Gets the offset of the last folded event (in-memory).
     /// </summary>
     long FoldOffset { get; }
-
-    int MinEventsBetweenSnapshots { get; }
 
     /// <summary>
     /// Gets the name of the view.
@@ -17,7 +15,5 @@ public interface IEvDbView
     /// <summary>
     /// The offset of the last snapshot that was stored.
     /// </summary>
-    long StoreOffset { get; set; }
-
-    bool ShouldStoreSnapshot { get; }
+    long StoreOffset { get; }
 }

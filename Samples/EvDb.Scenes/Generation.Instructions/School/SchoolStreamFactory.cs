@@ -1,4 +1,5 @@
 ﻿using EvDb.Core;
+using System.Text.Json;
 
 
 namespace EvDb.UnitTests;
@@ -6,19 +7,7 @@ namespace EvDb.UnitTests;
 [EvDbAttachView<StudentStatsView>]
 [EvDbAttachView<StatsView>("ALL")]
 //[EvDbAttachView<MinEventIntervalSecondsView>("MinInterval")]
-[EvDbStreamFactory<IEvDbSchoolStreamAdders>]
+[EvDbStreamFactory<IEvDbSchoolStreamAdders>("school-records", "students")]
 public partial class SchoolStreamFactory
 {
-    #region JsonSerializerOptions
-
-    //public override JsonSerializerOptions? Options { get; } = SchoolStreamSerializationContext.Default.Options;
-    // TODO: [bnaya 2024-01-28] use: SchoolStreamSerializationContext.Default.Options;
-
-    #endregion // JsonSerializerOptions
-
-    #region Partition
-
-    public override EvDbPartitionAddress PartitionAddress { get; } = new EvDbPartitionAddress("school-records", "students");
-
-    #endregion // PartitionAddress
 }

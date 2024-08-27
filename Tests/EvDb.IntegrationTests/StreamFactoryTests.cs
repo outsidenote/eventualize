@@ -14,7 +14,7 @@ public sealed class StreamFactoryTests : IntegrationTests
     public async Task StreamFactory_WhenInstantiatingWithEvents_Succeed()
     {
 
-        var stream = await _storageAdapter
+        var stream = await StorageContext
                         .GivenFactoryForStoredStreamWithEvents(_output)
                         .WhenGetStreamAsync();
 
@@ -34,14 +34,14 @@ public sealed class StreamFactoryTests : IntegrationTests
     [Fact]
     public async Task StreamFactory_WhenGettingDifferent_Succeed()
     {
-        IEvDbSchoolStreamFactory f = _storageAdapter.CreateFactory();
-        var (_, streamId) = await _storageAdapter
+        IEvDbSchoolStreamFactory f = StorageContext.CreateFactory();
+        var (_, streamId) = await StorageContext
                         .GivenFactoryForStoredStreamWithEvents(_output);
 
         string stream1Id = streamId + "-a";
         string stream2Id = streamId + "-b";
-        await _storageAdapter.GivenSavedEventsAsync(_output, stream1Id);
-        await _storageAdapter.GivenSavedEventsAsync(_output, stream2Id);
+        await StorageContext.GivenSavedEventsAsync(_output, stream1Id);
+        await StorageContext.GivenSavedEventsAsync(_output, stream2Id);
 
 
         IEvDbSchoolStream stream1 = await f.WhenGetStreamAsync(stream1Id);
@@ -72,7 +72,7 @@ public sealed class StreamFactoryTests : IntegrationTests
     [Fact]
     public async Task StreamFactory_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
     {
-        var stream = await _storageAdapter
+        var stream = await StorageContext
                         .GivenFactoryForStoredStreamWithEvents(_output, numOfGrades: 6)
                         .WhenGetStreamAsync();
 
@@ -99,7 +99,7 @@ public sealed class StreamFactoryTests : IntegrationTests
     [Fact]
     public async Task StreamFactory_WhenInstantiatingWithSnapshotOnDifferentOffsetAndEvents_Succeed()
     {
-        var stream = await _storageAdapter.GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset(_output);
+        var stream = await StorageContext.GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset(_output);
 
         ThenStoredEventsAddedSuccessfully();
 

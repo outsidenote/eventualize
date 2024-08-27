@@ -21,14 +21,19 @@ public class TimeProviderTests
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddSingleton(_storageAdapter);
-        services.AddEvDbDemoStreamFactory();
+        services.AddEvDb()
+              .AddDemoStreamFactory(c =>
+              {
+                  c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => _storageAdapter);
+                  c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => _storageAdapter);
+              });
         services.AddSingleton<TimeProvider>(_timeProvider);
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
     }
 
     [Fact]
-    public async Task Stream_WhenAddingPendingEvent_HonorTimeProvider()
+    public async Task Stream_WhenAddingPendingEvent_HonorTimeProvider_Test()
     {
         #region TimeProvider timeProvider = A.Fake<TimeProvider>()
 
@@ -51,8 +56,8 @@ public class TimeProviderTests
         var stream = _factory.Create(streamId);
         for (int k = 0; k < 4; k++)
         {
-            await stream.AddAsync(new Event1(1, $"Person {k}", k));
-
+            var meta = await stream.AddAsync(new Event1(1, $"Person {k}", k));
+            _output.WriteLine($"{meta.CapturedAt}");
         }
 
         ThenPendingEventsAddedSuccessfully();

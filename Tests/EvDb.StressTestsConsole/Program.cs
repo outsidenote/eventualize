@@ -19,9 +19,10 @@ builder.Configuration
             .AddJsonFile($"appsettings.json", true, true)
             .AddJsonFile($"appsettings.{environmentName}.json", true, true);
 var services = builder.Services;
-services.AddEvDbDemoStreamFactory();
+services.AddEvDb()
+      .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
+      .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
 services.AddEvDbSqlServerStoreMigration(context);
-services.AddEvDbSqlServerStore(context);
 builder.AddOtel();
 
 var app = builder.Build();

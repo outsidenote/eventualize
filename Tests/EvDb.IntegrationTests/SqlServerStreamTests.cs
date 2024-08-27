@@ -16,7 +16,7 @@ public class SqlServerStreamTests : IntegrationTests
     [Fact]
     public async Task Stream_WhenStoringWithoutSnapshotting_Succeed()
     {
-        IEvDbSchoolStream stream = await _storageAdapter
+        IEvDbSchoolStream stream = await StorageContext
                             .GivenLocalStreamWithPendingEvents()
                             .WhenStreamIsSavedAsync();
 
@@ -44,7 +44,7 @@ public class SqlServerStreamTests : IntegrationTests
     [Fact]
     public async Task Stream_WhenStoringWithSnapshotting_Succeed()
     {
-        IEvDbSchoolStream stream = await _storageAdapter
+        IEvDbSchoolStream stream = await StorageContext
                             .GivenLocalStreamWithPendingEvents(6)
                             .WhenStreamIsSavedAsync();
 
@@ -72,7 +72,7 @@ public class SqlServerStreamTests : IntegrationTests
     [Fact]
     public async Task Stream_WhenStoringWithSnapshottingWhenStoringTwice_Succeed()
     {
-        IEvDbSchoolStream stream = await _storageAdapter
+        IEvDbSchoolStream stream = await StorageContext
                             .GivenLocalStreamWithPendingEvents()
                             .GivenStreamIsSavedAsync()
                             .GivenAddingPendingEventsAsync()
@@ -105,9 +105,9 @@ public class SqlServerStreamTests : IntegrationTests
     {
         string streamId = $"occ-{Guid.NewGuid():N}";
 
-        IEvDbSchoolStream stream1 = await _storageAdapter
+        IEvDbSchoolStream stream1 = await StorageContext
                     .GivenLocalStreamWithPendingEvents(streamId: streamId);
-        IEvDbSchoolStream stream2 = await _storageAdapter
+        IEvDbSchoolStream stream2 = await StorageContext
                     .GivenLocalStreamWithPendingEvents(streamId: streamId);
 
         await Assert.ThrowsAsync<OCCException>(() =>

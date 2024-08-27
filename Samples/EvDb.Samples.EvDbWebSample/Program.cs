@@ -15,9 +15,11 @@ builder.Services.AddControllers();
 var services = builder.Services;
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
-services.AddEvDbIssueStreamFactory();
-services.AddEvDbSchoolStreamFactory();
-services.AddEvDbSqlServerStore();
+var evdb = services.AddEvDb();
+evdb.AddSchoolStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
+    .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
+evdb.AddIssueStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
+    .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
 
 #region services.AddSingleton<IConnectionMultiplexer>(connectionMultiplexer)
 
@@ -36,7 +38,6 @@ services.AddStackExchangeRedisCache(options =>
 {
     options.ConnectionMultiplexerFactory =
             () => Task.FromResult(connectionMultiplexer);
-    //options.Configuration = redisConnStr;
     options.InstanceName = "DemoInstance";
 });
 
@@ -81,6 +82,8 @@ services.AddOpenTelemetry()
                 {
                     o.SetDbStatementForText = true;
                     o.SetDbStatementForStoredProcedure = true;
+                    o.EnableConnectionLevelAttributes = true;
+                    o.RecordException = true;
                 })
                 .AddAspNetCoreInstrumentation(o => o.AddDefaultNetCoreTraceFilters())
                 .AddHttpClientInstrumentation(o => o.AddDefaultHttpClientTraceFilters())

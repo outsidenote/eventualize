@@ -21,8 +21,9 @@ public sealed class StressTests : IntegrationTests
     {
         CoconaAppBuilder builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
-        services.AddSingleton(_storageAdapter);
-        services.AddEvDbDemoStreamFactory();
+        services.AddEvDb()
+            .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream(), StorageContext)
+            .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
         Otel(builder);
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
@@ -83,9 +84,6 @@ public sealed class StressTests : IntegrationTests
             .WithMetrics(meterBuilder =>
                     meterBuilder.AddEvDbInstrumentation()
                                 .AddProcessInstrumentation()
-                                .AddHttpClientInstrumentation()
-                                .AddAspNetCoreInstrumentation()
-                                .AddPrometheusExporter()
                                 //.AddOtlpExporter()
                                 //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
                                 .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889")));

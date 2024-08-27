@@ -97,7 +97,7 @@ public static class TelemetryExtensions
 
     #endregion // Record
 
-    #region Record
+    #region StartActivity
 
     /// <summary>
     /// Creates and starts a new <see cref="Activity"/> object if there is any listener to the Activity, returns null otherwise.
@@ -120,7 +120,7 @@ public static class TelemetryExtensions
         return activity;
     }
 
-    #endregion // Record
+    #endregion // StartActivity
 
 }
 

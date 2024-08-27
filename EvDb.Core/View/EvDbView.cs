@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using System.Text.Json;
 
-// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
-
 namespace EvDb.Core;
 
 public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
@@ -11,7 +9,7 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
     protected EvDbView(
         EvDbViewAddress address,
         EvDbStoredSnapshot snapshot,
-        IEvDbStorageAdapter storageAdapter,
+        IEvDbStorageSnapshotAdapter storageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options) :
@@ -41,13 +39,13 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
     }
 }
 
-[DebuggerDisplay("Offset:[Stored: {StoredOffset}, Folded:{FoldOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
+[DebuggerDisplay("Offset:[Folded:{FoldOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
 public abstract class EvDbView : IEvDbViewStore
 {
     private readonly static ActivitySource _trace = Telemetry.Trace;
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
 
-    private readonly IEvDbStorageAdapter _storageAdapter;
+    private readonly IEvDbStorageSnapshotAdapter _storageAdapter;
     protected readonly JsonSerializerOptions? _options;
     protected readonly ILogger _logger;
 
@@ -55,7 +53,7 @@ public abstract class EvDbView : IEvDbViewStore
 
     protected EvDbView(
         EvDbViewAddress address,
-        IEvDbStorageAdapter storageAdapter,
+        IEvDbStorageSnapshotAdapter storageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options,
@@ -125,7 +123,6 @@ public abstract class EvDbView : IEvDbViewStore
         using var duration = _sysMeters.MeasureStoreSnapshotsDuration(tags);
         await this._storageAdapter.StoreViewAsync(this, cancellation);
         _sysMeters.SnapshotStored.Add(1, tags);
-        return;
     }
 
     #endregion //  StoreAsync

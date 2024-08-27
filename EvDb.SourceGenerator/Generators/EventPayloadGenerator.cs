@@ -22,25 +22,9 @@ public partial class EventPayloadGenerator : BaseGenerator
             TypeDeclarationSyntax syntax,
             CancellationToken cancellationToken)
     {
+        context.ThrowIfNotPartial(typeSymbol, syntax);
+
         StringBuilder builder = new StringBuilder();
-
-        #region Exception Handling
-
-        if (!syntax.IsPartial())
-        {
-            var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor("EvDb: 003", "interface must be partial",
-                $"{typeSymbol.Name}, Must be partial", "EvDb",
-                DiagnosticSeverity.Error, isEnabledByDefault: true),
-                Location.Create(syntax.SyntaxTree, syntax.Span));
-            builder.AppendLine($"""
-                `type {typeSymbol.Name}` MUST BE A partial interface!
-                """);
-            context.AddSource(typeSymbol.GenFileName("payload-not-partial"), builder.ToString());
-            context.ReportDiagnostic(diagnostic);
-        }
-
-        #endregion // Exception Handling
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
         string name = typeSymbol.Name;
@@ -54,12 +38,13 @@ public partial class EventPayloadGenerator : BaseGenerator
         if (key == null)
             return;
 
-        builder.AppendHeader(syntax, typeSymbol);
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("#pragma warning disable SYSLIB1037 // Deserialization of init-only properties is currently not supported in source generation mode.");
         builder.AppendLine();
 
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
+                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     partial {{type}} {{name}}: IEvDbEventPayload
                     {
                         [System.Text.Json.Serialization.JsonIgnore]
@@ -67,7 +52,7 @@ public partial class EventPayloadGenerator : BaseGenerator
                     }                
                     """);
 
-        context.AddSource(typeSymbol.GenFileName("payload"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(), builder.ToString());
     }
 
     #endregion // OnGenerate

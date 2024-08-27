@@ -8,14 +8,14 @@ namespace EvDb.Core;
 public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     where T : IEvDbStreamStore, IEvDbEventAdder
 {
-    protected readonly IEvDbStorageAdapter _storageAdapter;
+    protected readonly IEvDbStorageStreamAdapter _storageAdapter;
     private readonly static ActivitySource _trace = Telemetry.Trace;
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
 
     #region Ctor
 
-    public EvDbStreamFactoryBase(
-        IEvDbStorageAdapter storageAdapter,
+    protected EvDbStreamFactoryBase(
+        IEvDbStorageStreamAdapter storageAdapter,
         TimeProvider? timeProvider = null)
     {
         TimeProvider = timeProvider ?? TimeProvider.System;
@@ -67,7 +67,6 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         using var snapsActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshots");
 
         long minSnapshotOffset = -1;
-        //List<IEvDbViewStore> views = new(ViewFactories.Length);
         var tasks = ViewFactories.Select(viewFactory => GetViewAsync(viewFactory));
 
         #region Task<IEvDbViewStore> GetViewAsync(IEvDbViewFactory viewFactory)
@@ -78,12 +77,12 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
             using var snapActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshot")
                                            ?.AddTag("evdb.view.name", viewAddress.ViewName);
-            EvDbStoredSnapshot snapshot = await _storageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
+            IEvDbStorageSnapshotAdapter snapshotAdapter = viewFactory.StoreAdapter;
+            EvDbStoredSnapshot snapshot = await snapshotAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
             minSnapshotOffset = minSnapshotOffset == -1
                                     ? snapshot.Offset
                                     : Math.Min(minSnapshotOffset, snapshot.Offset);
             IEvDbViewStore view = viewFactory.CreateFromSnapshot(address, snapshot, Options);
-            //views.Add(view);
             return view;
         }
 
@@ -131,7 +130,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     protected IImmutableList<IEvDbViewStore> CreateEmptyViews(EvDbStreamAddress address)
     {
         var options = Options;
-        var views = ViewFactories.Select(viewFactory => viewFactory.CreateEmpty(address, options));
+        var views = ViewFactories.Select(viewFactory => viewFactory.CreateEmpty(address, options, TimeProvider));
 
         var immutable = ImmutableList.CreateRange(views);
         return immutable;

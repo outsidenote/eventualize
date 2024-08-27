@@ -2,6 +2,11 @@
 
 public interface IEvDbViewStore : IEvDbView
 {
+    /// <summary>
+    /// Indication whether the snapshot should be saved.
+    /// </summary>
+    bool ShouldStoreSnapshot { get; }
+
     void FoldEvent(EvDbEvent e);
 
     void OnSaved();
