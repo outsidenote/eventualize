@@ -96,7 +96,7 @@ public partial class EvDbGenerator : BaseGenerator
         {
             if (!symbolEqualityComparer.Equals(v.RelatedEventsSymbol, relatedEventsTypeSymbol))
                 context.Throw(
-                    EvDbErrorsNumbers.EventsNotMatch, 
+                    EvDbErrorsNumbers.EventsNotMatch,
                     $"[{v.ViewTypeName}] events [{v.RelatedEventsTypeFullName}] not match the [{factoryOriginName}] events [{relatedEventsTypesFullName}]",
                     syntax);
         }
@@ -117,75 +117,6 @@ public partial class EvDbGenerator : BaseGenerator
         context.AddSource(typeSymbol.StandardPath(factoryInterface), builder.ToString());
 
         #endregion // Factory Interface
-
-        #region FactoryBase
-
-        builder.ClearAndAppendHeader(syntax, typeSymbol);
-        builder.AppendLine();
-
-        builder.AppendLine($$"""
-                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
-                    public abstract class {{factoryName}}Base:
-                        EvDbStreamFactoryBase<{{streamInterface}}>
-                    {                
-                        #region Ctor
-                            
-                        public {{factoryName}}Base(
-                                    IEvDbStorageStreamAdapter storageAdapter, 
-                                    TimeProvider timeProvider):
-                                        base(storageAdapter, timeProvider)
-                        {
-                        }
-
-                        #endregion // Ctor
-
-                        #region OnCreate
-
-                        protected override {{streamName}} OnCreate(
-                                string streamId,
-                                IImmutableList<IEvDbViewStore> views,
-                                long lastStoredEventOffset)
-                        {
-                            {{streamName}} stream =
-                                new(
-                                    this,
-                                    views,
-                                    _storageAdapter,
-                                    streamId,
-                                    lastStoredEventOffset);
-
-                            return stream;
-                        }
-
-                        #endregion // OnCreate
-
-                    }
-                    """);
-        context.AddSource(typeSymbol.StandardPath($"{factoryName}Base"), builder.ToString());
-
-        #endregion // FactoryBase
-
-        #region Factory
-
-        builder.ClearAndAppendHeader(syntax, typeSymbol);
-        builder.AppendLine();
-
-        builder.AppendLine($$"""
-                    partial {{type}} {{factoryOriginName}}: {{factoryName}}Base,
-                            {{factoryInterface}}
-                    { 
-                        #region Partition
-
-                        public override EvDbPartitionAddress PartitionAddress { get; } = 
-                            new EvDbPartitionAddress("{{domain}}", "{{partition}}");
-
-                        #endregion // PartitionAddress
-                    }
-                    """);
-        context.AddSource(typeSymbol.StandardPath(), builder.ToString());
-
-        #endregion // Factory
 
         #region Stream Factory
 
@@ -208,7 +139,8 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial {{type}} {{factoryOriginName}}
+                    partial {{type}} {{factoryOriginName}}: EvDbStreamFactoryBase<{{streamInterface}}>,
+                            {{factoryInterface}}
                     {
                         #region Ctor
                         
@@ -226,6 +158,32 @@ public partial class EvDbGenerator : BaseGenerator
                         #endregion // Ctor
                                                              
                         protected override IEvDbViewFactory[] ViewFactories { get; }
+                        #region Partition
+                    
+                        public override EvDbPartitionAddress PartitionAddress { get; } = 
+                            new EvDbPartitionAddress("{{domain}}", "{{partition}}");
+                    
+                        #endregion // PartitionAddress
+                    
+                        #region OnCreate
+                    
+                        protected override {{streamName}} OnCreate(
+                                string streamId,
+                                IImmutableList<IEvDbViewStore> views,
+                                long lastStoredEventOffset)
+                        {
+                            {{streamName}} stream =
+                                new(
+                                    this,
+                                    views,
+                                    _storageAdapter,
+                                    streamId,
+                                    lastStoredEventOffset);
+                    
+                            return stream;
+                        }
+                    
+                        #endregion // OnCreate                    
                     }
                     """);
         context.AddSource(typeSymbol.StandardDefaultAndPath("partial-view-ref"), builder.ToString());
@@ -233,7 +191,7 @@ public partial class EvDbGenerator : BaseGenerator
         #endregion // Stream Factory
 
         #region Views Encapsulation
-   
+
         var propsColInterface = viewsInfo.Select((p, i) =>
                                         $$"""
                                                     public {{p.ViewStateTypeFullName}} {{p.ViewPropName}} => _view{{p.ViewPropName}}.State;
