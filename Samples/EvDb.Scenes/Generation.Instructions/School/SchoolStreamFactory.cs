@@ -1,4 +1,5 @@
 ﻿using EvDb.Core;
+using System.Text.Json;
 
 
 namespace EvDb.UnitTests;
@@ -9,10 +10,4 @@ namespace EvDb.UnitTests;
 [EvDbStreamFactory<IEvDbSchoolStreamAdders>("school-records", "students")]
 public partial class SchoolStreamFactory
 {
-    #region JsonSerializerOptions
-
-    //public override JsonSerializerOptions? Options { get; } = SchoolStreamSerializationContext.Default.Options;
-    // TODO: [bnaya 2024-01-28] use: SchoolStreamSerializationContext.Default.Options;
-
-    #endregion // JsonSerializerOptions
 }

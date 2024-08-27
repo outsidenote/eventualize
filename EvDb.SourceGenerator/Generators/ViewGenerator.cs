@@ -46,7 +46,6 @@ public partial class ViewGenerator : BaseGenerator
         ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         string stateType = args[0].ToDisplayString();
         ITypeSymbol eventTypeSymbol = args[1];
-        string eventType = eventTypeSymbol.ToDisplayString();
 
         #endregion //  stateType = .., eventType = .., fullName = ..
 
@@ -58,7 +57,7 @@ public partial class ViewGenerator : BaseGenerator
         #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
 
         var eventsPayloads = from a in eventTypeSymbol.GetAttributes()
-                             let cls = (INamedTypeSymbol)(a.AttributeClass!)
+                             let cls = a.AttributeClass!
                              where cls != null
                              let text = cls.Name
                              where text == EventAdderGenerator.EventTarget

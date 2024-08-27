@@ -14,7 +14,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     #region Ctor
 
-    public EvDbStreamFactoryBase(
+    protected EvDbStreamFactoryBase(
         IEvDbStorageStreamAdapter storageAdapter,
         TimeProvider? timeProvider = null)
     {
@@ -67,7 +67,6 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         using var snapsActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshots");
 
         long minSnapshotOffset = -1;
-        //List<IEvDbViewStore> views = new(ViewFactories.Length);
         var tasks = ViewFactories.Select(viewFactory => GetViewAsync(viewFactory));
 
         #region Task<IEvDbViewStore> GetViewAsync(IEvDbViewFactory viewFactory)
@@ -84,7 +83,6 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
                                     ? snapshot.Offset
                                     : Math.Min(minSnapshotOffset, snapshot.Offset);
             IEvDbViewStore view = viewFactory.CreateFromSnapshot(address, snapshot, Options);
-            //views.Add(view);
             return view;
         }
 
