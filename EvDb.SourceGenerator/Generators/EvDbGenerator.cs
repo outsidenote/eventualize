@@ -102,12 +102,6 @@ public partial class EvDbGenerator : BaseGenerator
         }
 
         #endregion //  Validation
-   
-        var propsColInterface = viewsInfo.Select((p, i) =>
-                                        $$"""
-                                                    public {{p.ViewStateTypeFullName}} {{p.ViewPropName}} => _view{{p.ViewPropName}}.State;
-
-                                                """);
 
         #region Factory Interface
 
@@ -239,6 +233,12 @@ public partial class EvDbGenerator : BaseGenerator
         #endregion // Stream Factory
 
         #region Views Encapsulation
+   
+        var propsColInterface = viewsInfo.Select((p, i) =>
+                                        $$"""
+                                                    public {{p.ViewStateTypeFullName}} {{p.ViewPropName}} => _view{{p.ViewPropName}}.State;
+
+                                                """);
 
         var viewsCtor2Props = viewsInfo.Select((p, i) =>
                                         $$"""
