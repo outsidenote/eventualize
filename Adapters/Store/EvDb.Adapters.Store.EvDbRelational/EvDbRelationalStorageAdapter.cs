@@ -11,9 +11,6 @@ using System.Runtime.CompilerServices;
 
 namespace EvDb.Core.Adapters;
 
-// TODO: [bnaya 2023-12-19] all parameters and field should be driven from nameof or const
-// TODO: [bnaya 2023-12-20] how do we get the domain?, shouldn't it be a parameter in each and every query?
-
 /// <summary>
 /// Store adapter for rational database
 /// </summary>
@@ -69,7 +66,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
             #endregion //  Exception Handling
             finally
             {
-                conn?.Dispose();
+                await (conn?.DisposeAsync() ?? ValueTask.CompletedTask);
             }
         }
         throw new DataException("Failed to execute", exception);
@@ -126,7 +123,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     async Task<int> IEvDbStorageStreamAdapter.StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
-        IEvDbStreamStoreData streamData,
+        IEvDbStreamStoreData streamStore,
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -136,23 +133,23 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
         var eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
 
-        using (var transaction = conn.BeginTransaction())
+        using (var transaction = await conn.BeginTransactionAsync())
         {
             try
             {
                 int affcted = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
-                transaction.Commit();
+                await transaction.CommitAsync();
                 return affcted;
                 // TODO: Bnaya 2024-06-10 add metrics affcted
             }
             catch (Exception ex) when (IsOccException(ex))
             {
-                transaction.Rollback();
-                throw new OCCException(streamData.Events.FirstOrDefault());
+                await transaction.RollbackAsync();
+                throw new OCCException(streamStore.Events.FirstOrDefault());
             }
             catch
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync();
                 throw;
             }
         }
@@ -172,7 +169,6 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
         EvDbStoredSnapshotData snapshot = viewStore.GetSnapshotData();
 
-        // TODO: Bnaya 2024-06-24 add resiliency: "System.InvalidOperationException: ''"
         await ExecuteSafe(conn => conn.ExecuteAsync(saveSnapshotQuery, snapshot));
     }
 
