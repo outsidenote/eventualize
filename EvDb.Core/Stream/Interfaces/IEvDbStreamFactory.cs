@@ -8,7 +8,7 @@
 /// <typeparam name="T"></typeparam>
 /// <seealso cref="EvDb.Core.IEvDbStreamConfig" />
 public interface IEvDbStreamFactory<T> : IEvDbStreamConfig
-    where T : IEvDbStreamStore, IEvDbEventAdder
+    where T : IEvDbStreamStore, IEvDbEventTypes
 {
     T Create(string streamId);
 

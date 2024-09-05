@@ -4,7 +4,7 @@ namespace EvDb.Core;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class EvDbViewTypeAttribute
     <TState, TEventAdder> : Attribute
-    where TEventAdder : IEvDbEventAdder
+    where TEventAdder : IEvDbEventTypes
 {
     public EvDbViewTypeAttribute(string name)
     {

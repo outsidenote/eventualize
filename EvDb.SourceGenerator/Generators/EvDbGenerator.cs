@@ -261,7 +261,7 @@ public partial class EvDbGenerator : BaseGenerator
                              let cls = a.AttributeClass!
                              where cls != null
                              let text = cls.Name
-                             where text == EventAdderGenerator.EventTarget
+                             where text == EventTypesGenerator.EventTarget
                              let payloadType = cls.TypeArguments.First()
                              let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
                              let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()

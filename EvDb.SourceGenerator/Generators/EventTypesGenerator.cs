@@ -9,9 +9,9 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EventAdderGenerator : BaseGenerator
+public partial class EventTypesGenerator : BaseGenerator
 {
-    internal const string EventTarget = "EvDbEventAdderAttribute";
+    internal const string EventTarget = "EvDbEventTypesAttribute";
     protected override string EventTargetAttribute { get; } = EventTarget;
 
     #region OnGenerate
@@ -45,7 +45,7 @@ public partial class EventAdderGenerator : BaseGenerator
         var adds = attributes.Select(m => $"ValueTask<IEvDbEventMeta> AddAsync({m} payload, string? capturedBy = null);");
 
         builder.AppendLine($$"""       
-                    partial interface {{typeSymbol.Name}}: IEvDbEventAdder
+                    partial interface {{typeSymbol.Name}}: IEvDbEventTypes
                     {
                     """);
         foreach (var add in adds)

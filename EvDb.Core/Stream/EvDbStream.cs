@@ -23,6 +23,7 @@ public abstract class EvDbStream :
 
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<EvDbEvent> _pendingEvents = ImmutableList<EvDbEvent>.Empty;
+    protected internal IImmutableList<EvDbEvent> _pendingOutput = ImmutableList<EvDbEvent>.Empty;
 
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ??
                                                          throw new NotSupportedException("GetExecutingAssembly");
@@ -77,6 +78,11 @@ public abstract class EvDbStream :
 
         foreach (IEvDbViewStore folding in _views)
             folding.FoldEvent(e);
+
+        // TODO: public events
+
+        //var outputs = CreateOutputs();
+        //PublicFold(e, _views, outputs);
 
         return e;
 

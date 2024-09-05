@@ -6,7 +6,7 @@ namespace EvDb.Core;
 
 [DebuggerDisplay("{PartitionAddress.Domain}:{PartitionAddress.Partition}")]
 public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
-    where T : IEvDbStreamStore, IEvDbEventAdder
+    where T : IEvDbStreamStore, IEvDbEventTypes
 {
     protected readonly IEvDbStorageStreamAdapter _storageAdapter;
     private readonly static ActivitySource _trace = Telemetry.Trace;
