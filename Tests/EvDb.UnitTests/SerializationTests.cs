@@ -37,8 +37,8 @@ public class SerializationTests
         //IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
         //var jdef = SchoolStreamSerializationContext.Default;
         //JsonSerializerOptions options = new();
-        //options.Converters.Add(jdef.CourseCreatedEvent.Converter);
-        //options.Converters.Add(jdef.ScheduleTestEvent.Converter);
+        //options.Converters.Publish(jdef.CourseCreatedEvent.Converter);
+        //options.Converters.Publish(jdef.ScheduleTestEvent.Converter);
         //var json = JsonSerializer.Serialize(payload, options);
         //var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
 

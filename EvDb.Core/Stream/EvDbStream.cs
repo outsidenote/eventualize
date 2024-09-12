@@ -2,11 +2,12 @@
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
 
-// TODO:bnaya 2024-06-03 Add / View state should support fully immutable pattern for saving without locking
+// TODO:bnaya 2024-06-03 Publish / View state should support fully immutable pattern for saving without locking
 namespace EvDb.Core;
 
 
@@ -17,7 +18,6 @@ public abstract class EvDbStream :
 {
     private readonly static ActivitySource _trace = Telemetry.Trace;
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
-    private const int ADDS_TRY_LIMIT = 10_000;
     private readonly AsyncLock _sync = new AsyncLock();
 
 
@@ -81,8 +81,7 @@ public abstract class EvDbStream :
 
         // TODO: public events
 
-        //var outputs = CreateOutputs();
-        //PublicFold(e, _views, outputs);
+        PublicFold(e, _views);
 
         return e;
 
@@ -102,6 +101,17 @@ public abstract class EvDbStream :
     }
 
     #endregion // AddEventAsync
+
+    protected abstract void PublicFold(EvDbEvent evDbEvent, IImmutableList<IEvDbViewStore> views);
+
+    /// <summary>
+    /// Put a row into the publication (out-box pattern).
+    /// </summary>
+    /// <param name="e">The e.</param>
+    public void Publish(EvDbEvent e)
+    {
+        _pendingOutput.Add(e);
+    }
 
     #region StoreAsync
 

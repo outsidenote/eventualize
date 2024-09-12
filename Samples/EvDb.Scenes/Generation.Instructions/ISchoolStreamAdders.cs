@@ -4,15 +4,6 @@ using EvDb.Scenes;
 
 namespace EvDb.UnitTests;
 
-
-//[EvDbEventPublication<CourseCreatedPublicEvent>]
-//[EvDbEventPublication<StudentQuitCoursePublicEvent>]
-[EvDbEventTypes<CourseCreatedPublicEvent>]
-[EvDbEventTypes<StudentQuitCoursePublicEvent>]
-public partial interface IEvDbSchoolStreamPublication
-{
-}
-
 [EvDbEventTypes<CourseCreatedEvent>]
 [EvDbEventTypes<ScheduleTestEvent>]
 [EvDbEventTypes<StudentAppliedToCourseEvent>]

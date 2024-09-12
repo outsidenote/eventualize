@@ -11,7 +11,7 @@ namespace EvDb.Core;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class EvDbStreamFactoryAttribute<TEventType, TPublicEventType> : EvDbStreamFactoryAttribute<TEventType>
     where TEventType : IEvDbEventTypes
-    where TPublicEventType : IEvDbEventTypes
+    where TPublicEventType : IEvDbPublicationTypes
 {
     public EvDbStreamFactoryAttribute(string domain, string partition): base(domain, partition)
     {
