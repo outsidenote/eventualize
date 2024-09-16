@@ -29,11 +29,11 @@ internal static class Steps
         EvDbStreamCursor streamCursor,
         string? capturedBy = null,
         JsonSerializerOptions? options = null)
-        where T : IEvDbEventPayload
+        where T : IEvDbPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
         var json = JsonSerializer.Serialize(data, options);
-        var result = new EvDbEvent(data.EventType, DateTimeOffset.UtcNow, capturedBy, streamCursor, json);
+        var result = new EvDbEvent(data.PayloadType, DateTimeOffset.UtcNow, capturedBy, streamCursor, json);
         return result;
     }
 

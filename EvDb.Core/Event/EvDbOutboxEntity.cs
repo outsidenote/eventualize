@@ -5,14 +5,16 @@ using System.Text.Json;
 namespace EvDb.Core;
 
 [Equatable]
-[DebuggerDisplay("{EventType}: {Payload}")]
-public partial record struct EvDbEvent(string EventType,
+[DebuggerDisplay("{OutboxType}:{PayloadType}: {Payload}")]
+public partial record struct EvDbOutboxEntity(
+                                string EventType,
+                                string OutboxType,
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,
                                 EvDbStreamCursor StreamCursor,
                                 string Payload) :
                                             IEvDbEventConverter,
-                                            IEvDbEventMeta
+                                            IEvDbOutboxMeta
 {
     public static readonly EvDbEvent Empty = new EvDbEvent();
 

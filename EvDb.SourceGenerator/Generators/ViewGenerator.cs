@@ -62,7 +62,7 @@ public partial class ViewGenerator : BaseGenerator
                              let text = cls.Name
                              where text == EventTypesGenerator.EventTarget
                              let payloadType = cls.TypeArguments.First()
-                             let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
+                             let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbPayload") ?? false)
                              let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()
                              let fullName = cls?.ToString()
                              let genStart = fullName.IndexOf('<') + 1
@@ -169,7 +169,7 @@ public partial class ViewGenerator : BaseGenerator
                         #endregion // Fold
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"{viewClassName}Base"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{viewClassName}Base"), builder.ToString());
 
         #endregion // ViewBase
 

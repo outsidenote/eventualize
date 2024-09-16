@@ -2,7 +2,7 @@
 
 namespace EvDb.StressTestsWebApi;
 
-[EvDbEventPayload("fault-occurred")]
+[EvDbPayload("fault-occurred")]
 public partial record FaultOccurred(int Id, string Name, int Rate);
 
 

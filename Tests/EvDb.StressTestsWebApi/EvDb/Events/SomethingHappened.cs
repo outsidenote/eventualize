@@ -2,7 +2,7 @@
 
 namespace EvDb.StressTestsWebApi;
 
-[EvDbEventPayload("something-happened")]
+[EvDbPayload("something-happened")]
 public partial record SomethingHappened(int Id, string Name);
 
 

@@ -1,13 +1,15 @@
-﻿using System.Collections.Immutable;
+﻿// Ignore Spelling: OutboxHandler Outbox
+
+using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
-// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<T> which is a wrapper of T that holds T and snapshotOffset 
+// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<TStreamFactory> which is a wrapper of TStreamFactory that holds TStreamFactory and snapshotOffset 
 
-// TODO:bnaya 2024-06-03 Publish / View state should support fully immutable pattern for saving without locking
+// TODO:bnaya 2024-06-03 AddToOutbox / View state should support fully immutable pattern for saving without locking
 namespace EvDb.Core;
 
 
@@ -23,7 +25,7 @@ public abstract class EvDbStream :
 
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<EvDbEvent> _pendingEvents = ImmutableList<EvDbEvent>.Empty;
-    protected internal IImmutableList<EvDbEvent> _pendingOutput = ImmutableList<EvDbEvent>.Empty;
+    protected internal IImmutableList<EvDbOutboxEntity> _pendingOutput = ImmutableList<EvDbOutboxEntity>.Empty;
 
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ??
                                                          throw new NotSupportedException("GetExecutingAssembly");
@@ -61,7 +63,7 @@ public abstract class EvDbStream :
     #region AddEventAsync
 
     protected async ValueTask<IEvDbEventMeta> AddEventAsync<T>(T payload, string? capturedBy = null)
-        where T : IEvDbEventPayload
+        where T : IEvDbPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
         var json = JsonSerializer.Serialize(payload, Options);
@@ -71,7 +73,7 @@ public abstract class EvDbStream :
         using var @lock = await _sync.AcquireAsync();
         var pending = _pendingEvents;
         EvDbStreamCursor cursor = GetNextCursor(pending);
-        EvDbEvent e = new EvDbEvent(payload.EventType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
+        EvDbEvent e = new EvDbEvent(payload.PayloadType, TimeProvider.GetUtcNow(), capturedBy, cursor, json);
         _pendingEvents = pending.Add(e);
 
         #endregion // _pendingEvents
@@ -79,9 +81,7 @@ public abstract class EvDbStream :
         foreach (IEvDbViewStore folding in _views)
             folding.FoldEvent(e);
 
-        // TODO: public events
-
-        PublicFold(e, _views);
+        OutboxHandler?.OnOutboxHandler(e, _views);
 
         return e;
 
@@ -102,16 +102,27 @@ public abstract class EvDbStream :
 
     #endregion // AddEventAsync
 
-    protected abstract void PublicFold(EvDbEvent evDbEvent, IImmutableList<IEvDbViewStore> views);
+    #region OutboxHandler
+
+    /// <summary>
+    /// Gets the outbox pattern handler.
+    /// </summary>
+    protected virtual IEvDbOutboxHandler? OutboxHandler { get; }
+
+    #endregion //  OutboxHandler
+
+    #region AddToOutbox
 
     /// <summary>
     /// Put a row into the publication (out-box pattern).
     /// </summary>
     /// <param name="e">The e.</param>
-    public void Publish(EvDbEvent e)
+    public void AddToOutbox(EvDbOutboxEntity e)
     {
         _pendingOutput.Add(e);
     }
+
+    #endregion //  AddToOutbox
 
     #region StoreAsync
 
@@ -135,6 +146,7 @@ public abstract class EvDbStream :
         }
         try
         {
+            // TODO: bnaya 2024-09-16 add the outbox into the StoreStreamAsync
             int affected = await _storageAdapter.StoreStreamAsync(events, this, cancellation);
             _sysMeters.EventsStored.Add(affected, tags);
 
@@ -207,7 +219,6 @@ public abstract class EvDbStream :
     public IEnumerable<EvDbEvent> Events => _pendingEvents;
 
     #endregion // IEvDbStreamStoreData.Events
-
 
     #region Dispose Pattern
 

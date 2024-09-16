@@ -69,7 +69,7 @@
 //        //List<IEvDbStoredEvent> events = new();
 //        //for (int offset = 0; offset < 3; offset++)
 //        //{
-//        //    events.Publish(TestHelper.GetCorrectTestEvent(offset));
+//        //    events.AddToOutbox(TestHelper.GetCorrectTestEvent(offset));
 //        //}
 //        //return events.ToAsync();
 //    }

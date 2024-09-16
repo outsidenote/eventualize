@@ -1,7 +1,6 @@
 ﻿namespace EvDb.Core;
 
 
-// TODO: [bnaya 2023-01-23] Encapsulate IEvDbStreamConfig in a property
 /// <summary>
 /// EvDB Stream factory
 /// </summary>

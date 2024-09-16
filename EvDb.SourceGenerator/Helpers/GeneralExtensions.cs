@@ -4,73 +4,81 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace EvDb.SourceGenerator.Helpers;
 internal static class GeneralExtensions
 {
-    public static string StandardNsAndPath(
+    public static string StandardPathWithNsIgnoreSymbolName(
         this INamedTypeSymbol typeSymbol,
         string @namespace,
         params string[] path)
     {
-        path = path ?? Array.Empty<string>();
-        return typeSymbol.StandardNsAndPath(@namespace, (IEnumerable<string>)path);
+        return typeSymbol.StandardPath(@namespace, (IEnumerable<string>)path);
     }
 
-    private static string StandardNsAndPath(
+    private static string StandardPath(
         this INamedTypeSymbol typeSymbol,
         string @namespace,
-        IEnumerable<string> path)
+        IEnumerable<string> path,
+        bool useSymbolNameAsPrefix = false,
+        string seperator = @"\")
     {
-        if (!(path?.Any() ?? false))
+        path = path ?? Array.Empty<string>();
+        if (useSymbolNameAsPrefix)
+        { 
+            path = new[] { typeSymbol.Name }.Concat(path) ;
+        }
+        else if (!(path?.Any() ?? false))
         {
             path = new[] { typeSymbol.Name };
         }
 
-        var flattenPath = string.Join(@"\", path);
+        var flattenPath = string.Join(seperator, path);
         var result = $@"{@namespace}\{flattenPath}.generated.cs";
         return result;
     }
 
-    public static string StandardNs(
-        this INamedTypeSymbol typeSymbol,
-        string @namespace)
-    {
-        string[] path = new[] { typeSymbol.Name };
-        var result = typeSymbol.StandardNsAndPath(@namespace, path);
-
-        return result;
-    }
-
-
+    /// <summary>
+    /// Produce a standards name from the symbol's name and additional path.
+    /// </summary>
+    /// <param name="typeSymbol">The type symbol.</param>
+    /// <param name="path">The path.</param>
+    /// <returns></returns>
     public static string StandardPath(
         this INamedTypeSymbol typeSymbol,
         params string[] path)
     {
-        path = path ?? Array.Empty<string>();
         string @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
-        var result = typeSymbol.StandardNsAndPath(@namespace, path);
+        var result = typeSymbol.StandardPath(@namespace, path, true);
         return result;
     }
 
-    public static string StandardDefaultAndPath(
+    /// <summary>
+    /// Produce a standards name from the symbol's name and additional path.
+    /// </summary>
+    /// <param name="typeSymbol">The type symbol.</param>
+    /// <param name="separator">The separator.</param>
+    /// <param name="path">The path.</param>
+    /// <returns></returns>
+    public static string StandardSuffix(
         this INamedTypeSymbol typeSymbol,
         params string[] path)
     {
-        IEnumerable<string> concatPath = new[] { typeSymbol.Name };
-        concatPath = concatPath.Concat(path ?? Array.Empty<string>());
         string @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
-        var result = typeSymbol.StandardNsAndPath(@namespace, concatPath);
+        var result = typeSymbol.StandardPath(@namespace, path, true, "");
         return result;
     }
 
-    //public static string StandardPathAndDefault(
-    //    this INamedTypeSymbol typeSymbol,
-    //    params string[] path)
-    //{
-    //    path = path ?? Array.Empty<string>();
-    //    IEnumerable<string> concatPath = new[] { typeSymbol.Name };
-    //    concatPath = path.Concat(concatPath);
-    //    string @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
-    //    var result = typeSymbol.StandardNsAndPath(@namespace, concatPath);
-    //    return result;
-    //}
+    /// <summary>
+    /// Produce a standards name from a path, if path is empty, use the synbol's name.
+    /// </summary>
+    /// <param name="typeSymbol">The type symbol.</param>
+    /// <param name="path">The path.</param>
+    /// <returns></returns>
+    public static string StandardPathIgnoreSymbolName(
+        this INamedTypeSymbol typeSymbol,
+        params string[] path)
+    {
+        string @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
+        var result = typeSymbol.StandardPathWithNsIgnoreSymbolName(@namespace, path);
+        return result;
+    }
 
     public static void ThrowIfNotPartial(
         this SourceProductionContext context,

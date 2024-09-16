@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbEventPayload
+public interface IEvDbPayload
 {
-    string EventType { get; }
+    string PayloadType { get; }
 }

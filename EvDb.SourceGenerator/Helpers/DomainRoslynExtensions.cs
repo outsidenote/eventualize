@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace EvDb.SourceGenerator.Helpers;
@@ -41,4 +42,30 @@ internal static class DomainRoslynExtensions
     }
 
     #endregion // ClearAndAppendHeader
+
+
+    public static IEnumerable<PayloadInfo> GetPayloadsFromFatory(
+                                            this ITypeSymbol factoryTypeSymbol)
+    {
+        AttributeData attOfFactory = factoryTypeSymbol.GetAttributes()
+              .First(att => att.AttributeClass?.Name == EvDbGenerator.STREAM_FACTORY_ATT);
+
+        ImmutableArray<ITypeSymbol> args = attOfFactory.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
+        ITypeSymbol relatedEventsTypeSymbol = args[0];
+        IEnumerable<PayloadInfo> eventsPayloads = relatedEventsTypeSymbol.GetPayloads();
+        return eventsPayloads;
+    }
+
+    public static IEnumerable<PayloadInfo> GetPayloads(
+                                            this ITypeSymbol relatedEventsTypeSymbol)
+    {
+        var eventsPayloads = from a in relatedEventsTypeSymbol.GetAttributes()
+                             let cls = a.AttributeClass!
+                             where cls != null
+                             let text = cls.Name
+                             where text == EventTypesGenerator.EventTarget                         
+                             select new PayloadInfo(cls);
+        eventsPayloads = eventsPayloads.ToArray(); // run once
+        return eventsPayloads;
+    }
 }

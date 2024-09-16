@@ -14,4 +14,8 @@ public enum EvDbErrorsNumbers
     /// The missing view name
     /// </summary>
     MissingViewName = 15,
+    /// <summary>
+    /// The factory type not found
+    /// </summary>
+    FactoryTypeNotFound = 16,
 }

@@ -7,3 +7,8 @@ public interface IEvDbEventMeta
     DateTimeOffset CapturedAt { get; }
     string CapturedBy { get; }
 }
+
+public interface IEvDbOutboxMeta: IEvDbEventMeta
+{
+    string OutboxType { get; }
+}

@@ -15,8 +15,9 @@ namespace EvDb.SourceGenerator;
 public partial class EvDbGenerator : BaseGenerator
 {
     internal const string STREAM_FACTORY_ATT = "EvDbStreamFactoryAttribute";
-    private const string ATTACHE_VIEW_ATT = "EvDbAttachView";
-    protected override string EventTargetAttribute { get; } = $"{ATTACHE_VIEW_ATT}Attribute";
+    private const string ATTACHE_VIEW = "EvDbAttachView";
+    private const string ATTACHE_VIEW_ATT = "EvDbAttachViewAttribute";
+    protected override string EventTargetAttribute { get; } = STREAM_FACTORY_ATT;
 
     #region OnGenerate
 
@@ -82,10 +83,11 @@ public partial class EvDbGenerator : BaseGenerator
                                   .Where(att =>
                                   {
                                       string? name = att.AttributeClass?.Name;
-                                      bool match = ATTACHE_VIEW_ATT == name || EventTargetAttribute == name;
+                                      bool match = ATTACHE_VIEW_ATT == name || ATTACHE_VIEW == name;
                                       return match;
                                   })
                                   .Select(a => new ViewInfo(context, syntax, a)).ToArray();
+
         #endregion // ViewInfo[] viewsInfo = ..
 
         var symbolEqualityComparer = SymbolEqualityComparer.Default;
@@ -114,7 +116,7 @@ public partial class EvDbGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath(factoryInterface), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName(factoryInterface), builder.ToString());
 
         #endregion // Factory Interface
 
@@ -186,7 +188,7 @@ public partial class EvDbGenerator : BaseGenerator
                         #endregion // OnCreate                    
                     }
                     """);
-        context.AddSource(typeSymbol.StandardDefaultAndPath("partial-view-ref"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath(), builder.ToString());
 
         #endregion // Stream Factory
 
@@ -235,7 +237,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"{streamName}Views"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{streamName}Views"), builder.ToString());
 
         #endregion // Views Encapsulation
 
@@ -251,28 +253,11 @@ public partial class EvDbGenerator : BaseGenerator
                         {{streamName}}Views Views { get; }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath(streamInterface), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName(streamInterface), builder.ToString());
 
         #endregion // Stream Interface
 
-        #region var eventsPayloads = from a in eventTypeSymbol.GetAttributes() ...
-
-        var eventsPayloads = from a in relatedEventsTypeSymbol.GetAttributes()
-                             let cls = a.AttributeClass!
-                             where cls != null
-                             let text = cls.Name
-                             where text == EventTypesGenerator.EventTarget
-                             let payloadType = cls.TypeArguments.First()
-                             let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
-                             let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()
-                             let fullName = cls?.ToString()
-                             let genStart = fullName.IndexOf('<') + 1
-                             let genLen = fullName.Length - genStart - 1
-                             let generic = fullName.Substring(genStart, genLen)
-                             select (Type: generic, Key: eventTypeValue);
-        eventsPayloads = eventsPayloads.ToArray(); // run once
-
-        #endregion // var eventsPayloads = from a in relatedEventsTypeSymbol.GetAttributes() ...
+        IEnumerable<PayloadInfo> eventsPayloads = relatedEventsTypeSymbol.GetPayloads();
 
         #region Stream
 
@@ -282,7 +267,7 @@ public partial class EvDbGenerator : BaseGenerator
         var adds = eventsPayloads.Select(ep =>
                     $$"""
                         async ValueTask<IEvDbEventMeta> {{relatedEventsTypesFullName}}.AddAsync(
-                                {{ep.Type}} payload, 
+                                {{ep.FullTypeName}} payload, 
                                 string? capturedBy)
                         {
                             IEvDbEventMeta meta = await AddEventAsync(payload, capturedBy);
@@ -319,7 +304,7 @@ public partial class EvDbGenerator : BaseGenerator
                         #endregion // Add
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath(streamName), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName(streamName), builder.ToString());
 
         #endregion // Stream
 
@@ -340,7 +325,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"EvDb{factoryOriginName}Entry"),
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"EvDb{factoryOriginName}Entry"),
                     builder.ToString());
 
         #endregion // EvDb{factoryOriginName}SnapshotEntry 
@@ -359,7 +344,7 @@ public partial class EvDbGenerator : BaseGenerator
                         IServiceCollection Services { get; }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"IEvDb{factoryOriginName}ViewRegistrationEntry"),
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"IEvDb{factoryOriginName}ViewRegistrationEntry"),
                     builder.ToString());
 
         #endregion // IEvDb{}ViewRegistrationEntry Interface
@@ -382,7 +367,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"EvDb{factoryOriginName}SnapshotEntry"),
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"EvDb{factoryOriginName}SnapshotEntry"),
                     builder.ToString());
 
         #endregion // EvDb{factoryOriginName}SnapshotEntry 
@@ -451,7 +436,7 @@ public partial class EvDbGenerator : BaseGenerator
                     }
                     """);
             var folder = viewRef.Namespace;
-            context.AddSource(typeSymbol.StandardNsAndPath(folder, $"{viewRef.ViewTypeName}Factory"), builder.ToString());
+            context.AddSource(typeSymbol.StandardPathWithNsIgnoreSymbolName(folder, $"{viewRef.ViewTypeName}Factory"), builder.ToString());
         }
 
         #endregion // Views Factory
@@ -574,10 +559,9 @@ public partial class EvDbGenerator : BaseGenerator
                     """);
 
 
-        context.AddSource(typeSymbol.StandardPath("DI", $"{factoryName}Registration"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("DI", $"{factoryName}Registration"), builder.ToString());
 
         #endregion //  DI
     }
-
     #endregion // OnGenerate
 }

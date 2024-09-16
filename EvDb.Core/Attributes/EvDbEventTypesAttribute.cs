@@ -3,6 +3,6 @@ namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Interface, AllowMultiple = true)]
 public class EvDbEventTypesAttribute<T> : Attribute
-    where T : IEvDbEventPayload
+    where T : IEvDbPayload
 {
 }

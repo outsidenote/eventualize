@@ -2,8 +2,8 @@
 namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class EvDbPublicationTypesAttribute<T> : Attribute
-    where T : IEvDbEventPayload
+public class EvDbOutboxTypesAttribute<T> : Attribute
+    where T : IEvDbPayload
 {
 }
 
