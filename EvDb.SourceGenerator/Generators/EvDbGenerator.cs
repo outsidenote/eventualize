@@ -61,6 +61,13 @@ public partial class EvDbGenerator : BaseGenerator
         ITypeSymbol relatedEventsTypeSymbol = args[0];
         string relatedEventsTypesFullName = relatedEventsTypeSymbol.ToDisplayString();
 
+        string? relatedOutboxTypesFullName = null;
+        if (args.Length == 2)
+        {
+            ITypeSymbol relatedOutboxTypeSymbol = args[1];
+            relatedOutboxTypesFullName = relatedOutboxTypeSymbol.ToDisplayString();
+        }
+
         #region string domain = ..., string partition = ...
 
         if (!attOfFactory.TryGetValue("domain", out string domain))
@@ -116,7 +123,7 @@ public partial class EvDbGenerator : BaseGenerator
                     { 
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName(factoryInterface), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("Factories", "Interfaces", factoryInterface), builder.ToString());
 
         #endregion // Factory Interface
 
@@ -188,7 +195,7 @@ public partial class EvDbGenerator : BaseGenerator
                         #endregion // OnCreate                    
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath(), builder.ToString());
+        context.AddSource(typeSymbol.StandardPath("Factories"), builder.ToString());
 
         #endregion // Stream Factory
 
@@ -237,7 +244,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{streamName}Views"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("Views", $"{streamName}Views"), builder.ToString());
 
         #endregion // Views Encapsulation
 
@@ -253,7 +260,7 @@ public partial class EvDbGenerator : BaseGenerator
                         {{streamName}}Views Views { get; }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName(streamInterface), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("Streams", "Interfaces", streamInterface), builder.ToString());
 
         #endregion // Stream Interface
 
@@ -263,6 +270,10 @@ public partial class EvDbGenerator : BaseGenerator
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
+
+        string setOutbox = relatedOutboxTypesFullName != null
+                        ? $"OutboxHandler = new {relatedOutboxTypesFullName}(this);"
+                        : string.Empty;
 
         var adds = eventsPayloads.Select(ep =>
                     $$"""
@@ -292,9 +303,12 @@ public partial class EvDbGenerator : BaseGenerator
                                 base(stramConfiguration, views, storageAdapter, streamId, lastStoredOffset)
                         {
                             Views = new {{streamName}}Views(views);
+                            {{setOutbox}}
                         }
 
                         #endregion // Ctor
+
+                        protected override IEvDbOutboxHandler? OutboxHandler { get; } 
                     
                         public {{streamName}}Views Views { get; }
                     
@@ -304,7 +318,7 @@ public partial class EvDbGenerator : BaseGenerator
                         #endregion // Add
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName(streamName), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("Streams", streamName), builder.ToString());
 
         #endregion // Stream
 
@@ -325,7 +339,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"EvDb{factoryOriginName}Entry"),
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("DI", $"EvDb{factoryOriginName}Entry"),
                     builder.ToString());
 
         #endregion // EvDb{factoryOriginName}SnapshotEntry 
@@ -344,7 +358,7 @@ public partial class EvDbGenerator : BaseGenerator
                         IServiceCollection Services { get; }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"IEvDb{factoryOriginName}ViewRegistrationEntry"),
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("DI", $"IEvDb{factoryOriginName}SnapshotEntry"),
                     builder.ToString());
 
         #endregion // IEvDb{}ViewRegistrationEntry Interface
@@ -367,7 +381,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"EvDb{factoryOriginName}SnapshotEntry"),
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("DI", $"EvDb{factoryOriginName}SnapshotEntry"),
                     builder.ToString());
 
         #endregion // EvDb{factoryOriginName}SnapshotEntry 
@@ -436,7 +450,7 @@ public partial class EvDbGenerator : BaseGenerator
                     }
                     """);
             var folder = viewRef.Namespace;
-            context.AddSource(typeSymbol.StandardPathWithNsIgnoreSymbolName(folder, $"{viewRef.ViewTypeName}Factory"), builder.ToString());
+            context.AddSource(typeSymbol.StandardPathWithNsIgnoreSymbolName(folder, "Views", "Factories", $"{viewRef.ViewTypeName}Factory"), builder.ToString());
         }
 
         #endregion // Views Factory
