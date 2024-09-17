@@ -18,11 +18,15 @@ public interface IEvDbStorageStreamAdapter
     /// Saves the pending events to the stream
     /// </summary>
     /// <param name="events">The events to save</param>
+    /// <param name="outbox">The outbox entries to save.</param>
     /// <param name="streamStore">The stream store.</param>
     /// <param name="cancellation">The cancellation.</param>
-    /// <returns>Count of added events</returns>
+    /// <returns>
+    /// Count of added events
+    /// </returns>
     Task<int> StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
+        IImmutableList<EvDbOutboxEntity> outbox,
         IEvDbStreamStoreData streamStore,
         CancellationToken cancellation = default);
 }

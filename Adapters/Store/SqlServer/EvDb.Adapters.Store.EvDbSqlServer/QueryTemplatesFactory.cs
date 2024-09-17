@@ -61,6 +61,28 @@ internal static class QueryTemplatesFactory
                         @{nameof(EvDbEventRecord.CapturedBy)},
                         @{nameof(EvDbEventRecord.CapturedAt)})
                     """,
+            SaveToOutbox = $"""
+                    INSERT INTO {storageContext}outbox (
+                        {toSnakeCase(nameof(EvDbOutboxRecord.Domain))},
+                        {toSnakeCase(nameof(EvDbOutboxRecord.Partition))}, 
+                        {toSnakeCase(nameof(EvDbOutboxRecord.StreamId))},
+                        {toSnakeCase(nameof(EvDbOutboxRecord.Offset))},
+                        {toSnakeCase(nameof(EvDbOutboxRecord.EventType))}, 
+                        {toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))}, 
+                        {toSnakeCase(nameof(EvDbOutboxRecord.Payload))},
+                        {toSnakeCase(nameof(EvDbOutboxRecord.CapturedBy))},
+                        {toSnakeCase(nameof(EvDbOutboxRecord.CapturedAt))}) 
+                    VALUES (
+                        @{nameof(EvDbOutboxRecord.Domain)}, 
+                        @{nameof(EvDbOutboxRecord.Partition)}, 
+                        @{nameof(EvDbOutboxRecord.StreamId)}, 
+                        @{nameof(EvDbOutboxRecord.Offset)}, 
+                        @{nameof(EvDbOutboxRecord.EventType)}, 
+                        @{nameof(EvDbOutboxRecord.OutboxType)}, 
+                        @{nameof(EvDbOutboxRecord.Payload)},
+                        @{nameof(EvDbOutboxRecord.CapturedBy)},
+                        @{nameof(EvDbOutboxRecord.CapturedAt)})
+                    """,
             SaveSnapshot = $"""
             INSERT INTO {storageContext}snapshot (
                         {toSnakeCase(nameof(SnapshotSaveParameter.Domain))},

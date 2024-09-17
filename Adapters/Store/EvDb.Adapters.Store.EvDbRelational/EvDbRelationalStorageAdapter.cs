@@ -123,12 +123,14 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     async Task<int> IEvDbStorageStreamAdapter.StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
+        IImmutableList<EvDbOutboxEntity> outbox,
         IEvDbStreamStoreData streamStore,
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         using DbConnection conn = await InitAsync();
         string saveEventsQuery = Queries.SaveEvents;
+        string saveToOutboxQuery = Queries.SaveToOutbox;
         _logger.LogQuery(saveEventsQuery);
 
         var eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
@@ -137,10 +139,16 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         {
             try
             {
-                int affcted = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
+                int affctedEvents = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
+                if (outbox.Count != 0)
+                {
+                    var outboxRecords = outbox.Select<EvDbOutboxEntity, EvDbOutboxRecord>(e => e).ToArray();
+                    int affctedOutbox = await conn.ExecuteAsync(saveToOutboxQuery, outboxRecords, transaction);
+                    _logger.LogDebug("Affected outbox records = {Records}", affctedOutbox); // TODO: bnaya 2024-09-17 convert to hih-perf logging
+                }
                 await transaction.CommitAsync();
-                return affcted;
-                // TODO: Bnaya 2024-06-10 add metrics affcted
+                return affctedEvents;
+                // TODO: Bnaya 2024-06-10 add metrics affctedEvents
             }
             catch (Exception ex) when (IsOccException(ex))
             {

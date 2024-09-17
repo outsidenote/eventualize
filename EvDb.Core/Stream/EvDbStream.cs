@@ -139,6 +139,7 @@ public abstract class EvDbStream :
 
         using var @lock = await _sync.AcquireAsync();
         var events = _pendingEvents;
+        var outbox = _pendingOutput;
         if (events.Count == 0)
         {
             await Task.FromResult(true);
@@ -147,7 +148,7 @@ public abstract class EvDbStream :
         try
         {
             // TODO: bnaya 2024-09-16 add the outbox into the StoreStreamAsync
-            int affected = await _storageAdapter.StoreStreamAsync(events, this, cancellation);
+            int affected = await _storageAdapter.StoreStreamAsync(events, outbox, this, cancellation);
             _sysMeters.EventsStored.Add(affected, tags);
 
             EvDbEvent ev = events[^1];
@@ -156,8 +157,8 @@ public abstract class EvDbStream :
             await Task.WhenAll(viewSaveTasks);
 
             using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
-            var empty = ImmutableList<EvDbEvent>.Empty;
-            _pendingEvents = empty;
+            _pendingEvents = ImmutableList<EvDbEvent>.Empty;
+            _pendingOutput = ImmutableList<EvDbOutboxEntity>.Empty;
             foreach (IEvDbViewStore view in _views)
                 view.OnSaved();
 

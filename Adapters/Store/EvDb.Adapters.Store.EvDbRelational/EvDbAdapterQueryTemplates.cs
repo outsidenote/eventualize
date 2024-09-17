@@ -2,6 +2,8 @@
 
 namespace EvDb.Core.Adapters;
 
+// TODO: bnaya 2024-09-17 split it into stream & snapshot
+
 /// <summary>
 /// Queries permutation with a specific context
 /// </summary>
@@ -17,9 +19,13 @@ public readonly partial record struct EvDbAdapterQueryTemplates
     /// </summary>
     public string GetEvents { get; init; }
     /// <summary>
-    /// SaveEvents.
+    /// Save Events.
     /// </summary>
     public string SaveEvents { get; init; }
+    /// <summary>
+    /// Save into the outbox table.
+    /// </summary>
+    public string SaveToOutbox { get; init; }
     /// <summary>
     /// SaveEvents snapshot.
     /// </summary>
