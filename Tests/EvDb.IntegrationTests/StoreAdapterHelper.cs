@@ -4,9 +4,11 @@ using Microsoft.Extensions.Logging;
 
 namespace EvDb.Core.Tests;
 
+public record StoreAdapters (IEvDbStorageStreamAdapter Stream, IEvDbStorageSnapshotAdapter Snapshot);
+
 public static class StoreAdapterHelper
 {
-    public static IEvDbStorageAdapter CreateStoreAdapter(
+    public static StoreAdapters CreateStoreAdapter(
         ILogger logger,
         StoreType storeType,
         EvDbTestStorageContext context)
@@ -26,15 +28,24 @@ public static class StoreAdapterHelper
 
         string connectionString = configuration.GetConnectionString(connectionKey) ?? throw new ArgumentNullException(connectionKey);
 
-        IEvDbStorageAdapter result = storeType switch
+        IEvDbStorageStreamAdapter streamStoreAdapter = storeType switch
         {
             StoreType.SqlServer =>
-                EvDbSqlServerStorageAdapterFactory.Create(logger, connectionString, context),
+                EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context),
             //StoreType.Posgres => ,
             //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
             _ => throw new NotImplementedException()
         };
-        return result;
+
+        IEvDbStorageSnapshotAdapter snapshotStoreAdapter = storeType switch
+        {
+            StoreType.SqlServer =>
+                EvDbSqlServerStorageAdapterFactory.CreateSnapshotAdapter(logger, connectionString, context),
+            //StoreType.Posgres => ,
+            //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
+            _ => throw new NotImplementedException()
+        };
+        return new StoreAdapters(streamStoreAdapter, snapshotStoreAdapter);
     }
 
     public static IEvDbStorageMigration CreateStoreMigration(

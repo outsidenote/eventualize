@@ -7,15 +7,15 @@ using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
 
-// TODO: [bnaya 2023-12-20] default timeout
-
 namespace EvDb.Core.Adapters;
 
 /// <summary>
 /// Store adapter for rational database
 /// </summary>
 /// <seealso cref="EvDb.Core.IEvDbStorageAdapter" />
-public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
+public abstract class EvDbRelationalStorageAdapter : 
+    IEvDbStorageStreamAdapter,
+    IEvDbStorageSnapshotAdapter
 {
     protected readonly ILogger _logger;
     private readonly IEvDbConnectionFactory _factory;
@@ -76,7 +76,14 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     #endregion // Ctor
 
-    protected abstract EvDbAdapterQueryTemplates Queries { get; }
+    /// <summary>
+    /// Gets the stream's queries.
+    /// </summary>
+    protected abstract EvDbStreamAdapterQueryTemplates StreamQueries { get; }
+    /// <summary>
+    /// Gets the snapshot's queries.
+    /// </summary>
+    protected abstract EvDbSnapshotAdapterQueryTemplates SnapshotQueries { get; }
 
     #region IEvDbStorageAdapter Members
 
@@ -93,7 +100,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     {
         cancellation.ThrowIfCancellationRequested();
 
-        string query = Queries.GetSnapshot;
+        string query = SnapshotQueries.GetSnapshot;
         _logger.LogQuery(query);
 
         var snapshot = await ExecuteSafe(conn =>
@@ -108,7 +115,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         [EnumeratorCancellation] CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        string query = Queries.GetEvents;
+        string query = StreamQueries.GetEvents;
         _logger.LogQuery(query);
 
         using DbConnection conn = await InitAsync();
@@ -129,8 +136,8 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     {
         cancellation.ThrowIfCancellationRequested();
         using DbConnection conn = await InitAsync();
-        string saveEventsQuery = Queries.SaveEvents;
-        string saveToOutboxQuery = Queries.SaveToOutbox;
+        string saveEventsQuery = StreamQueries.SaveEvents;
+        string saveToOutboxQuery = StreamQueries.SaveToOutbox;
         _logger.LogQuery(saveEventsQuery);
 
         var eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
@@ -144,7 +151,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
                 {
                     var outboxRecords = outbox.Select<EvDbOutboxEntity, EvDbOutboxRecord>(e => e).ToArray();
                     int affctedOutbox = await conn.ExecuteAsync(saveToOutboxQuery, outboxRecords, transaction);
-                    _logger.LogDebug("Affected outbox records = {Records}", affctedOutbox); // TODO: bnaya 2024-09-17 convert to hih-perf logging
+                    _logger.LogAffectedOutbox(affctedOutbox); 
                 }
                 await transaction.CommitAsync();
                 return affctedEvents;
@@ -172,7 +179,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
 
         cancellation.ThrowIfCancellationRequested();
-        string saveSnapshotQuery = Queries.SaveSnapshot;
+        string saveSnapshotQuery = SnapshotQueries.SaveSnapshot;
         _logger.LogQuery(saveSnapshotQuery);
 
         EvDbStoredSnapshotData snapshot = viewStore.GetSnapshotData();

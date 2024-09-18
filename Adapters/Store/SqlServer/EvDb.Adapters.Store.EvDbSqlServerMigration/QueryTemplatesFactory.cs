@@ -15,9 +15,12 @@ internal static class QueryTemplatesFactory
         {
             DestroyEnvironment = $"""
             DROP TABLE {storageContext}event;
+            DROP TABLE {storageContext}outbox;            
             DROP TABLE {storageContext}snapshot;            
             """,
             CreateEnvironment = $"""
+            ----------------------------------- EVENT -------------------------------
+            
             -- Create the event table
             CREATE TABLE {storageContext}event (
                 {toSnakeCase(nameof(EvDbEventRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -65,7 +68,48 @@ internal static class QueryTemplatesFactory
             ON {storageContext}event ({toSnakeCase(nameof(EvDbEventRecord.EventType))}, {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))});
 
 
+            ------------------------------------  OUTBOX  ----------------------------------------
 
+            -- Create the outbox table
+            CREATE TABLE {storageContext}outbox (
+                {toSnakeCase(nameof(EvDbOutboxRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbOutboxRecord.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbOutboxRecord.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbOutboxRecord.Offset))} BIGINT NOT NULL,
+                {toSnakeCase(nameof(EvDbOutboxRecord.EventType))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbOutboxRecord.CapturedBy))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbOutboxRecord.CapturedAt))} datetimeoffset NOT NULL,
+                stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
+                {toSnakeCase(nameof(EvDbOutboxRecord.Payload))} NVARCHAR(MAX) NOT NULL,
+            
+                CONSTRAINT PK_{storageContext}outbox PRIMARY KEY (
+                        {toSnakeCase(nameof(EvDbOutboxRecord.Domain))}, 
+                        {toSnakeCase(nameof(EvDbOutboxRecord.Partition))}, 
+                        {toSnakeCase(nameof(EvDbOutboxRecord.StreamId))}, 
+                        {toSnakeCase(nameof(EvDbOutboxRecord.Offset))},
+                        {toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))}),
+                CONSTRAINT CK_{storageContext}outbox_domain_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbOutboxRecord.Domain))}) > 0),
+                CONSTRAINT CK_{storageContext}outbox_stream_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbOutboxRecord.Partition))}) > 0),
+                CONSTRAINT CK_{storageContext}outbox_stream_id_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbOutboxRecord.StreamId))}) > 0),
+                CONSTRAINT CK_{storageContext}outbox_event_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbOutboxRecord.EventType))}) > 0),
+                CONSTRAINT CK_{storageContext}outbox_outbox_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))}) > 0),
+                CONSTRAINT CK_{storageContext}outbox_captured_by_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbOutboxRecord.CapturedBy))}) > 0),
+                CONSTRAINT CK_{storageContext}outbox_json_data_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbOutboxRecord.Payload))}) > 0)
+            );
+            
+            -- Index for getting distinct values for columns domain, stream_type, and stream_id together
+            CREATE INDEX IX_outbox_{toSnakeCase(nameof(EvDbOutboxRecord.Domain))}_{toSnakeCase(nameof(EvDbOutboxRecord.Partition))}_{toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))}_{toSnakeCase(nameof(EvDbOutboxRecord.EventType))}
+            ON {storageContext}outbox (
+                    {toSnakeCase(nameof(EvDbOutboxRecord.CapturedAt))}, 
+                    {toSnakeCase(nameof(EvDbOutboxRecord.Domain))}, 
+                    {toSnakeCase(nameof(EvDbOutboxRecord.Partition))},
+                    {toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))}, 
+                    {toSnakeCase(nameof(EvDbOutboxRecord.EventType))});
+            
+            
+            ------------------------------------------------  SNAPSHOT ---------------------------------------
+            
             -- Create the snapshot table
             CREATE TABLE {storageContext}snapshot (
                 {toSnakeCase(nameof(EvDbViewAddress.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,

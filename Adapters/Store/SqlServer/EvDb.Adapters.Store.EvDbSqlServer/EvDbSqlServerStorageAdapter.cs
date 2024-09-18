@@ -1,4 +1,6 @@
-﻿using EvDb.Core;
+﻿// Ignore Spelling: Sql
+
+using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
 using System.Data.SqlClient;
@@ -13,10 +15,13 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         IEvDbConnectionFactory factory)
             : base(logger, factory)
     {
-        Queries = QueryTemplatesFactory.Create(context);
+        StreamQueries = QueryTemplatesFactory.CreateStreamQueries(context);
+        SnapshotQueries = QueryTemplatesFactory.CreateSnapshotQueries(context);
     }
 
-    protected override EvDbAdapterQueryTemplates Queries { get; }
+    protected override EvDbStreamAdapterQueryTemplates StreamQueries { get; }
+
+    protected override EvDbSnapshotAdapterQueryTemplates SnapshotQueries { get; }
 
     protected override bool IsOccException(Exception exception)
     {

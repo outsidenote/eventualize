@@ -8,25 +8,47 @@ public static class EvDbSqlServerStorageAdapterFactory
 {
     #region Ctor
 
-    public static IEvDbStorageAdapter Create(
+    public static IEvDbStorageStreamAdapter CreateStreamAdapter(
         ILogger logger,
         IEvDbConnectionFactory factory,
         EvDbStorageContext context)
     {
-        IEvDbStorageAdapter result = new EvDbSqlServerStorageAdapter(
+        IEvDbStorageStreamAdapter result = new EvDbSqlServerStorageAdapter(
                     logger,
                     context,
                     factory);
         return result;
     }
 
-    public static IEvDbStorageAdapter Create(
+    public static IEvDbStorageStreamAdapter CreateStreamAdapter(
         ILogger logger,
         string connectionString,
         EvDbStorageContext context)
     {
         IEvDbConnectionFactory factory = new EvDbSqlConnectionFactory(connectionString);
-        var result = Create(logger, factory, context);
+        var result = CreateStreamAdapter(logger, factory, context);
+        return result;
+    }
+
+    public static IEvDbStorageSnapshotAdapter CreateSnapshotAdapter(
+        ILogger logger,
+        IEvDbConnectionFactory factory,
+        EvDbStorageContext context)
+    {
+        IEvDbStorageSnapshotAdapter result = new EvDbSqlServerStorageAdapter(
+                    logger,
+                    context,
+                    factory);
+        return result;
+    }
+
+    public static IEvDbStorageSnapshotAdapter CreateSnapshotAdapter(
+        ILogger logger,
+        string connectionString,
+        EvDbStorageContext context)
+    {
+        IEvDbConnectionFactory factory = new EvDbSqlConnectionFactory(connectionString);
+        var result = CreateSnapshotAdapter(logger, factory, context);
         return result;
     }
 

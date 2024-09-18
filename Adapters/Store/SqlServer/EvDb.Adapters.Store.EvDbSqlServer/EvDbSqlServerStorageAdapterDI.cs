@@ -20,6 +20,7 @@ public static class EvDbSqlServerStorageAdapterDI
             string connectionStringOrConfigurationKey = "EvDbSqlServerConnection")
     {
         IServiceCollection services = instance.Services;
+        services.UseRelationalStore();
         EvDbPartitionAddress key = instance.Address;
         var context = instance.Context;
         services.AddKeyedScoped(
@@ -40,7 +41,7 @@ public static class EvDbSqlServerStorageAdapterDI
 
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();
-                    IEvDbStorageStreamAdapter adapter = EvDbSqlServerStorageAdapterFactory.Create(logger, connectionString, ctx);
+                    IEvDbStorageStreamAdapter adapter = EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, ctx);
                     return adapter;
                 });
     }
@@ -50,6 +51,7 @@ public static class EvDbSqlServerStorageAdapterDI
             string connectionStringOrConfigurationKey = "EvDbSqlServerConnection")
     {
         IServiceCollection services = instance.Services;
+        services.UseRelationalStore();
         EvDbViewBasicAddress key = instance.Address; 
         var context = instance.Context;
         services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(
@@ -69,7 +71,7 @@ public static class EvDbSqlServerStorageAdapterDI
 
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();
-                    IEvDbStorageSnapshotAdapter adapter = EvDbSqlServerStorageAdapterFactory.Create(logger, connectionString, ctx);
+                    IEvDbStorageSnapshotAdapter adapter = EvDbSqlServerStorageAdapterFactory.CreateSnapshotAdapter(logger, connectionString, ctx);
                     return adapter;
                 });
     }
