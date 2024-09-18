@@ -38,6 +38,8 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(student.Name, studentStat.StudentName);
             Assert.Equal(180, studentStat.Sum);
             Assert.Equal(3, studentStat.Count);
+
+            // TODO: validate outbox : avg:60, pass: 2, fail: 1
         }
     }
 
