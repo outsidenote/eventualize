@@ -1,7 +1,7 @@
 ﻿using EvDb.Core.Adapters;
 using System.Diagnostics;
 
-namespace EvDb.Core;
+namespace EvDb.Core.Adapters;
 
 internal static class StoreTelemetry
 {

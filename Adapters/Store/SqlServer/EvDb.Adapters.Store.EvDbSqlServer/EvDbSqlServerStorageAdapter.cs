@@ -19,6 +19,8 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         SnapshotQueries = QueryTemplatesFactory.CreateSnapshotQueries(context);
     }
 
+    protected override string DatabaseType { get; } = "sql-server";
+
     protected override EvDbStreamAdapterQueryTemplates StreamQueries { get; }
 
     protected override EvDbSnapshotAdapterQueryTemplates SnapshotQueries { get; }

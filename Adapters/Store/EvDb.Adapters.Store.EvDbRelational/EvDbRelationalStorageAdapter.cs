@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
+using static EvDb.Core.Adapters.StoreTelemetry;
 
 namespace EvDb.Core.Adapters;
 
@@ -38,6 +39,8 @@ public abstract class EvDbRelationalStorageAdapter :
         await connection.OpenAsync();
         return connection;
     }
+
+    #endregion // Ctor
 
     #region ExecuteSafe
 
@@ -74,16 +77,32 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #endregion //  ExecuteSafe
 
-    #endregion // Ctor
+    #region DbType
+
+    /// <summary>
+    /// Gets the type of the database.
+    /// </summary>
+    protected abstract string DatabaseType { get; }
+
+    #endregion //  DatabaseType
+
+    #region StreamQueries
 
     /// <summary>
     /// Gets the stream's queries.
     /// </summary>
     protected abstract EvDbStreamAdapterQueryTemplates StreamQueries { get; }
+
+    #endregion //  StreamQueries
+
+    #region SnapshotQueries
+
     /// <summary>
     /// Gets the snapshot's queries.
     /// </summary>
     protected abstract EvDbSnapshotAdapterQueryTemplates SnapshotQueries { get; }
+
+    #endregion //  SnapshotQueries
 
     #region IEvDbStorageAdapter Members
 
@@ -147,15 +166,15 @@ public abstract class EvDbRelationalStorageAdapter :
             try
             {
                 int affctedEvents = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
+                StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
                 if (messages.Count != 0)
                 {
                     var msgRecords = messages.Select<EvDbMessage, EvDbMessageRecord>(e => e).ToArray();
                     int affctedMessages = await conn.ExecuteAsync(saveToTopicQuery, msgRecords, transaction);
-                    _logger.LogAffectedMessages(affctedMessages); 
+                    StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType);
                 }
                 await transaction.CommitAsync();
                 return affctedEvents;
-                // TODO: Bnaya 2024-06-10 add metrics affctedEvents
             }
             catch (Exception ex) when (IsOccException(ex))
             {
@@ -190,5 +209,13 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #endregion // IEvDbStorageAdapter Members
 
+    #region IsOccException
+
+    /// <summary>
+    /// Determines whether  the exception is an occ exception.
+    /// </summary>
+    /// <param name="exception">The exception.</param>
     protected abstract bool IsOccException(Exception exception);
+
+    #endregion //  IsOccException
 }

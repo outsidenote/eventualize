@@ -16,7 +16,7 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
     {
     }
 
-    public EvDbStoreMeters([FromKeyedServices(MetricName)] IMeterFactory meterFactory) 
+    public EvDbStoreMeters([FromKeyedServices(MetricName)] IMeterFactory meterFactory)
                                 : this(meterFactory.Create(MetricName))
     {
     }
@@ -24,15 +24,15 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
     private EvDbStoreMeters(Meter counterMeter)
     {
         _eventsStored = counterMeter.CreateCounter<int>("evdb_store_events_stored",
-            "{events}",
-            "Count of events stored into the storage");
+            "{messages}",
+            "Count of messages stored into the storage");
         _messagesStored = counterMeter.CreateCounter<int>("evdb_store_notification_stored",
-            "{events}",
+            "{messages}",
             "Count of messages stored into topics ");
     }
 
     /// <summary>
-    /// Number of events stored
+    /// Number of messages stored
     /// </summary>
     private readonly Counter<int> _eventsStored;
 
@@ -41,17 +41,25 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
     /// </summary>
     private readonly Counter<int> _messagesStored;
 
-    void IEvDbStoreMeters.AddEvents(IImmutableList<EvDbEvent> events)
+    void IEvDbStoreMeters.AddEvents(int count, IEvDbStreamStoreData streamStore, string dbType)
     {
         if (!_eventsStored.Enabled)
             return;
-        // TODO: bnaya 2024-09-19 group by
+
+        var adr = streamStore.StreamAddress;
+        _eventsStored.Add(count, tags => tags.Add("evdb_store_db", dbType)
+                                                          .Add("evdb_store_domain", adr.Domain)
+                                                          .Add("evdb_store_partition", adr.Partition));
     }
 
-    void IEvDbStoreMeters.AddMessages(IImmutableList<EvDbMessage> events)
+    void IEvDbStoreMeters.AddMessages(int count, IEvDbStreamStoreData streamStore, string dbType)
     {
         if (!_messagesStored.Enabled)
             return;
-        // TODO: bnaya 2024-09-19 group by
+        var adr = streamStore.StreamAddress;
+
+        _eventsStored.Add(count, tags => tags.Add("evdb_store_db", dbType)
+                                                      .Add("evdb_store_domain", adr.Domain)
+                                                      .Add("evdb_store_partition", adr.Partition));
     }
 }

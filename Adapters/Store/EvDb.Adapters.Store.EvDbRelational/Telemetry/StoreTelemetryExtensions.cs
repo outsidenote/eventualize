@@ -5,8 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
 
-namespace EvDb.Core;
-
+namespace EvDb.Core.Adapters;
 
 public static class StoreTelemetryExtensions
 {
