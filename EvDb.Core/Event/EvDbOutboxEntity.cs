@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace EvDb.Core;
 
 [Equatable]
-[DebuggerDisplay("{OutboxType}:{PayloadType}: {Payload}")]
+[DebuggerDisplay("{OutboxType} : {EventType} : {Payload}")]
 public partial record struct EvDbOutboxEntity(
                                 string EventType,
                                 string OutboxType,

@@ -98,7 +98,6 @@ internal static class QueryTemplatesFactory
                 CONSTRAINT CK_{storageContext}outbox_json_data_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbOutboxRecord.Payload))}) > 0)
             );
             
-            -- Index for getting distinct values for columns domain, stream_type, and stream_id together
             CREATE INDEX IX_outbox_{toSnakeCase(nameof(EvDbOutboxRecord.Domain))}_{toSnakeCase(nameof(EvDbOutboxRecord.Partition))}_{toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))}_{toSnakeCase(nameof(EvDbOutboxRecord.EventType))}
             ON {storageContext}outbox (
                     {toSnakeCase(nameof(EvDbOutboxRecord.CapturedAt))}, 
@@ -106,7 +105,10 @@ internal static class QueryTemplatesFactory
                     {toSnakeCase(nameof(EvDbOutboxRecord.Partition))},
                     {toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))}, 
                     {toSnakeCase(nameof(EvDbOutboxRecord.EventType))});
-            
+
+            CREATE INDEX IX_outbox_{toSnakeCase(nameof(EvDbOutboxRecord.CapturedAt))}
+            ON {storageContext}outbox (
+                    {toSnakeCase(nameof(EvDbOutboxRecord.CapturedAt))});
             
             ------------------------------------------------  SNAPSHOT ---------------------------------------
             

@@ -119,7 +119,7 @@ public abstract class EvDbStream :
     /// <param name="e">The e.</param>
     public void AddToOutbox(EvDbOutboxEntity e)
     {
-        _pendingOutput.Add(e);
+        _pendingOutput = _pendingOutput.Add(e);
     }
 
     #endregion //  AddToOutbox

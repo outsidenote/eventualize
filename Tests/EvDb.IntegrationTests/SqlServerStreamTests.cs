@@ -4,7 +4,9 @@ namespace EvDb.Core.Tests;
 
 using EvDb.Scenes;
 using EvDb.UnitTests;
+using System.Text.Json;
 using Xunit.Abstractions;
+using static EvDb.Adapters.Store.SqlServer.EvDbSqlServerStorageAdapterFactory;
 
 public class SqlServerStreamTests : IntegrationTests
 {
@@ -16,13 +18,14 @@ public class SqlServerStreamTests : IntegrationTests
     [Fact]
     public async Task Stream_WhenStoringWithoutSnapshotting_Succeed()
     {
+        var streamId = Steps.GenerateStreamId();
         IEvDbSchoolStream stream = await StorageContext
-                            .GivenLocalStreamWithPendingEvents()
+                            .GivenLocalStreamWithPendingEvents(streamId: streamId)
                             .WhenStreamIsSavedAsync();
 
-        ThenStreamSavedWithoutSnapshot();
+        await ThenStreamSavedWithoutSnapshot();
 
-        void ThenStreamSavedWithoutSnapshot()
+        async Task ThenStreamSavedWithoutSnapshot()
         {
             Assert.Equal(3, stream.StoredOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(-1, v.StoreOffset));
@@ -39,7 +42,52 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(180, studentStat.Sum);
             Assert.Equal(3, studentStat.Count);
 
-            // TODO: validate outbox : avg:60, pass: 2, fail: 1
+            var outboxCollection = await GetOutboxAsync().ToEnumerableAsync();
+            var outbox = outboxCollection.ToArray();
+
+            string connectionString = StoreAdapterHelper.GetConnectionString(StoreType.SqlServer);
+            IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext);
+            var address = new EvDbStreamCursor(stream.StreamAddress);
+            var eventsCollection = await adapter.GetEventsAsync(address).ToEnumerableAsync();
+            var events = eventsCollection.ToArray();
+
+            var avg1 = JsonSerializer.Deserialize<AvgOutbox>(outbox[0].Payload);
+            Assert.Equal(30, avg1!.Avg);           
+            var avg2 = JsonSerializer.Deserialize<AvgOutbox>(outbox[2].Payload);
+            Assert.Equal(45, avg2!.Avg);
+            var avg3 = JsonSerializer.Deserialize<AvgOutbox>(outbox[4].Payload);
+            Assert.Equal(60, avg3!.Avg);
+
+            var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
+            for (int i = 0; i < outbox.Length; i++)
+            {
+                var item = outbox[i];
+                Assert.Equal("student-received-grade", item.EventType);
+                var itemOffset = item.StreamCursor.Offset;
+                Assert.Equal(i / 2 + 1, itemOffset);
+                Assert.Contains(itemOffset, eventsOffsets);
+            }
+
+            // Avg
+            for (int i = 0; i < 6; i+=2)
+            {
+                Assert.Equal("avg", outbox[i].OutboxType);
+            }
+
+            // Fail
+            Assert.Equal("student-fail", outbox[1].OutboxType);
+            var fail = JsonSerializer.Deserialize<StudentFailOutbox>(outbox[1].Payload);
+            Assert.Equal(2202, fail.StudentId);
+            Assert.Equal("Lora", fail.Name);
+
+            // Pass
+            for (int i = 3; i < 6; i+=2)
+            {
+                Assert.Equal("student-pass", outbox[i].OutboxType);
+                var pass = JsonSerializer.Deserialize<StudentPassOutbox>(outbox[i].Payload);
+                Assert.Equal(2202, pass.StudentId);
+                Assert.Equal("Lora", pass.Name);
+            }
         }
     }
 

@@ -1,6 +1,10 @@
 ﻿using EvDb.Adapters.Store.SqlServer;
+using EvDb.Core.Adapters;
+using LiteDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Data.Common;
+using System.Data.SqlClient;
 
 namespace EvDb.Core.Tests;
 
@@ -48,12 +52,43 @@ public static class StoreAdapterHelper
         return new StoreAdapters(streamStoreAdapter, snapshotStoreAdapter);
     }
 
+    public static DbConnection GetConnection(StoreType storeType,
+        EvDbTestStorageContext storageContext)
+    {
+        string connectionString = GetConnectionString(storeType);
+        DbConnection conn = storeType switch
+        {
+            StoreType.SqlServer => new SqlConnection(connectionString),
+            //StoreType.Posgres => ,
+            _ => throw new NotImplementedException()
+        };
+
+        return conn;
+    }
+
+    // TODO: return context
     public static IEvDbStorageMigration CreateStoreMigration(
         ILogger logger,
         StoreType storeType,
         EvDbTestStorageContext? context = null)
     {
         context = context ?? new EvDbTestStorageContext();
+        string connectionString = GetConnectionString(storeType);
+
+        IEvDbStorageMigration result = storeType switch
+        {
+            StoreType.SqlServer =>
+                SqlServerStorageMigrationFactory.Create(logger, connectionString, context),
+            //StoreType.Posgres => ,
+            //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
+            _ => throw new NotImplementedException()
+        };
+        
+        return result;
+    }
+
+    public static string GetConnectionString(StoreType storeType)
+    {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -68,16 +103,6 @@ public static class StoreAdapterHelper
 
 
         string connectionString = configuration.GetConnectionString(connectionKey) ?? throw new ArgumentNullException(connectionKey);
-
-        IEvDbStorageMigration result = storeType switch
-        {
-            StoreType.SqlServer =>
-                SqlServerStorageMigrationFactory.Create(logger, connectionString, context),
-            //StoreType.Posgres => ,
-            //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
-            _ => throw new NotImplementedException()
-        };
-        return result;
+        return connectionString;
     }
-
 }

@@ -32,6 +32,8 @@ public partial class EvDbSchoolStreamOutbox
                                              meta.CapturedAt,
                                              payload.Grade);
             outbox.Add(pass);
+            //outbox.Topic1.Add(pass);
+            //outbox.Topic2.Add(pass);
         }
         else
         { 
