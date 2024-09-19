@@ -9,6 +9,6 @@ internal static class StoreTelemetry
 
     public static ActivitySource Trace { get; } = new ActivitySource(TraceName);
 
-    //public static IEvDbStoreMeters StoreMeters { get; } = new EvDbStoreMeters();
+    public static IEvDbStoreMeters StoreMeters { get; } = new EvDbStoreMeters();
 }
 

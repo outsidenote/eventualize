@@ -21,7 +21,7 @@ public record StudentStatsState
         return this with { Students = students };
     }
 
-    #endregion // AddToOutbox
+    #endregion // AddToTopic
 
     #region Update
 

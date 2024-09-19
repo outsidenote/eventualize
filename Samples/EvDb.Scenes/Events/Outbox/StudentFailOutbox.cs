@@ -1,11 +1,11 @@
-﻿// Ignore Spelling: Outbox
+﻿// Ignore Spelling: Topic
 
 using EvDb.Core;
 
 namespace EvDb.Scenes;
 
 [EvDbPayload("student-fail")]
-public partial record StudentFailOutbox(int StudentId, string Name, DateTimeOffset When, double Grade);
+public partial record StudentFailTopic(int StudentId, string Name, DateTimeOffset When, double Grade);
 
 
 

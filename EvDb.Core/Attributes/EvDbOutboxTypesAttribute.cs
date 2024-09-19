@@ -2,7 +2,7 @@
 namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class EvDbOutboxTypesAttribute<T> : Attribute
+public class EvDbMessageTypesAttribute<T> : Attribute
     where T : IEvDbPayload
 {
 }

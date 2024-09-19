@@ -42,8 +42,8 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(180, studentStat.Sum);
             Assert.Equal(3, studentStat.Count);
 
-            var outboxCollection = await GetOutboxAsync().ToEnumerableAsync();
-            var outbox = outboxCollection.ToArray();
+            var messageCollection = await GetMessagesFromTopicsAsync().ToEnumerableAsync();
+            var messages = messageCollection.ToArray();
 
             string connectionString = StoreAdapterHelper.GetConnectionString(StoreType.SqlServer);
             IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext);
@@ -51,17 +51,17 @@ public class SqlServerStreamTests : IntegrationTests
             var eventsCollection = await adapter.GetEventsAsync(address).ToEnumerableAsync();
             var events = eventsCollection.ToArray();
 
-            var avg1 = JsonSerializer.Deserialize<AvgOutbox>(outbox[0].Payload);
+            var avg1 = JsonSerializer.Deserialize<AvgTopic>(messages[0].Payload);
             Assert.Equal(30, avg1!.Avg);           
-            var avg2 = JsonSerializer.Deserialize<AvgOutbox>(outbox[2].Payload);
+            var avg2 = JsonSerializer.Deserialize<AvgTopic>(messages[2].Payload);
             Assert.Equal(45, avg2!.Avg);
-            var avg3 = JsonSerializer.Deserialize<AvgOutbox>(outbox[4].Payload);
+            var avg3 = JsonSerializer.Deserialize<AvgTopic>(messages[4].Payload);
             Assert.Equal(60, avg3!.Avg);
 
             var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
-            for (int i = 0; i < outbox.Length; i++)
+            for (int i = 0; i < messages.Length; i++)
             {
-                var item = outbox[i];
+                var item = messages[i];
                 Assert.Equal("student-received-grade", item.EventType);
                 var itemOffset = item.StreamCursor.Offset;
                 Assert.Equal(i / 2 + 1, itemOffset);
@@ -71,20 +71,20 @@ public class SqlServerStreamTests : IntegrationTests
             // Avg
             for (int i = 0; i < 6; i+=2)
             {
-                Assert.Equal("avg", outbox[i].OutboxType);
+                Assert.Equal("avg", messages[i].MessageType);
             }
 
             // Fail
-            Assert.Equal("student-fail", outbox[1].OutboxType);
-            var fail = JsonSerializer.Deserialize<StudentFailOutbox>(outbox[1].Payload);
+            Assert.Equal("student-fail", messages[1].MessageType);
+            var fail = JsonSerializer.Deserialize<StudentFailTopic>(messages[1].Payload);
             Assert.Equal(2202, fail.StudentId);
             Assert.Equal("Lora", fail.Name);
 
             // Pass
             for (int i = 3; i < 6; i+=2)
             {
-                Assert.Equal("student-pass", outbox[i].OutboxType);
-                var pass = JsonSerializer.Deserialize<StudentPassOutbox>(outbox[i].Payload);
+                Assert.Equal("student-pass", messages[i].MessageType);
+                var pass = JsonSerializer.Deserialize<StudentPassTopic>(messages[i].Payload);
                 Assert.Equal(2202, pass.StudentId);
                 Assert.Equal("Lora", pass.Name);
             }

@@ -9,7 +9,7 @@ namespace EvDb.UnitTests;
 [EvDbAttachView<StudentStatsView>]
 [EvDbAttachView<StatsView>("ALL")]
 //[EvDbAttachView<MinEventIntervalSecondsView>("MinInterval")]
-[EvDbStreamFactory<IEvDbSchoolStreamAdders, EvDbSchoolStreamOutbox>("school-records", "students")]
+[EvDbStreamFactory<IEvDbSchoolStreamAdders, EvDbSchoolStreamTopic>("school-records", "students")]
 public partial class SchoolStreamFactory
 {
 }

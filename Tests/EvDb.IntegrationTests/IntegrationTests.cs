@@ -14,7 +14,7 @@ public class IntegrationTests : IAsyncLifetime
     protected readonly ITestOutputHelper _output;
     protected readonly ILogger _logger = A.Fake<ILogger>();
     protected readonly DbConnection _connection;
-    private readonly string _outboxQuery;
+    private readonly string _topicQuery;
 
     public IntegrationTests(ITestOutputHelper output, StoreType storeType)
     {
@@ -25,31 +25,32 @@ public class IntegrationTests : IAsyncLifetime
         _connection = StoreAdapterHelper.GetConnection(storeType, context);
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
-        _outboxQuery =
+        _topicQuery =
             $"""
                 SELECT
-                    {toSnakeCase(nameof(EvDbOutboxRecord.Domain))} as {nameof(EvDbOutboxRecord.Domain)},
-                    {toSnakeCase(nameof(EvDbOutboxRecord.Partition))} as {nameof(EvDbOutboxRecord.Partition)},
-                    {toSnakeCase(nameof(EvDbOutboxRecord.StreamId))} as {nameof(EvDbOutboxRecord.StreamId)},
-                    {toSnakeCase(nameof(EvDbOutboxRecord.Offset))} as {nameof(EvDbOutboxRecord.Offset)},
-                    {toSnakeCase(nameof(EvDbOutboxRecord.EventType))} as {nameof(EvDbOutboxRecord.EventType)},
-                    {toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))} as {nameof(EvDbOutboxRecord.OutboxType)},
-                    {toSnakeCase(nameof(EvDbOutboxRecord.CapturedAt))} as {nameof(EvDbOutboxRecord.CapturedAt)},
-                    {toSnakeCase(nameof(EvDbOutboxRecord.CapturedBy))} as {nameof(EvDbOutboxRecord.CapturedBy)},
-                    {toSnakeCase(nameof(EvDbOutboxRecord.Payload))} as {nameof(EvDbOutboxRecord.Payload)}                  
-                FROM {context}outbox WITH (READCOMMITTEDLOCK)
-                ORDER BY {toSnakeCase(nameof(EvDbOutboxRecord.Offset))};
+                    {toSnakeCase(nameof(EvDbMessageRecord.Domain))} as {nameof(EvDbMessageRecord.Domain)},
+                    {toSnakeCase(nameof(EvDbMessageRecord.Partition))} as {nameof(EvDbMessageRecord.Partition)},
+                    {toSnakeCase(nameof(EvDbMessageRecord.StreamId))} as {nameof(EvDbMessageRecord.StreamId)},
+                    {toSnakeCase(nameof(EvDbMessageRecord.Offset))} as {nameof(EvDbMessageRecord.Offset)},
+                    {toSnakeCase(nameof(EvDbMessageRecord.EventType))} as {nameof(EvDbMessageRecord.EventType)},
+                    {toSnakeCase(nameof(EvDbMessageRecord.Topic))} as {nameof(EvDbMessageRecord.Topic)},
+                    {toSnakeCase(nameof(EvDbMessageRecord.MessageType))} as {nameof(EvDbMessageRecord.MessageType)},
+                    {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))} as {nameof(EvDbMessageRecord.CapturedAt)},
+                    {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))} as {nameof(EvDbMessageRecord.CapturedBy)},
+                    {toSnakeCase(nameof(EvDbMessageRecord.Payload))} as {nameof(EvDbMessageRecord.Payload)}                  
+                FROM {context}topic WITH (READCOMMITTEDLOCK)
+                ORDER BY {toSnakeCase(nameof(EvDbMessageRecord.Offset))};
                 """;
     }
 
-    public async IAsyncEnumerable<EvDbOutboxEntity> GetOutboxAsync()
+    public async IAsyncEnumerable<EvDbMessage> GetMessagesFromTopicsAsync()
     {
         await _connection.OpenAsync();
-        DbDataReader reader = await _connection.ExecuteReaderAsync(_outboxQuery);
-        var parser = reader.GetRowParser<EvDbOutboxRecord>();
+        DbDataReader reader = await _connection.ExecuteReaderAsync(_topicQuery);
+        var parser = reader.GetRowParser<EvDbMessageRecord>();
         while (await reader.ReadAsync())
         {
-            EvDbOutboxEntity e = parser(reader);
+            EvDbMessage e = parser(reader);
             yield return e;
         }
     }

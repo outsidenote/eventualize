@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Outbox
+﻿// Ignore Spelling: Topic
 
 #pragma warning disable HAA0301 // Closure Allocation Source
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
@@ -10,16 +10,16 @@ using System.Collections.Immutable;
 
 namespace EvDb.SourceGenerator;
 
-internal struct OutboxTypeInfo
+internal struct TopicTypeInfo
 {
-    public OutboxTypeInfo(
+    public TopicTypeInfo(
             SourceProductionContext context,
             TypeDeclarationSyntax syntax,
-            AttributeData outboxTypeAttribute)
+            AttributeData topicTypeAttribute)
     {
         #region string attachedViewTypeFullName = .., attachedViewTypeName = ..
 
-        ImmutableArray<ITypeSymbol> attachedViewArgs = outboxTypeAttribute.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
+        ImmutableArray<ITypeSymbol> attachedViewArgs = topicTypeAttribute.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         ITypeSymbol attachedViewFirstArgSymbol = attachedViewArgs[0];
         string attachedViewTypeFullName = attachedViewFirstArgSymbol.ToDisplayString();
         string attachedViewTypeName = attachedViewFirstArgSymbol.Name;
@@ -29,18 +29,17 @@ internal struct OutboxTypeInfo
 
         string ns = attachedViewFirstArgSymbol.ContainingNamespace.ToDisplayString();
 
-        var outBoxTypeAtt = attachedViewFirstArgSymbol.GetAttributes()
+        var messageTypeAtt = attachedViewFirstArgSymbol.GetAttributes()
                                 .First(m => m.AttributeClass?.Name == "EvDbPayloadAttribute");
-        string? snapshotStorageName = outBoxTypeAtt?.ConstructorArguments.First().Value?.ToString();
-        if (snapshotStorageName == null)
+        string? storageName = messageTypeAtt?.ConstructorArguments.First().Value?.ToString();
+        if (storageName == null)
         {
-            context.Throw(EvDbErrorsNumbers.MissingViewName, "outbox-type-name on store is missing", syntax);
+            context.Throw(EvDbErrorsNumbers.MissingViewName, "message name on store is missing", syntax);
         }
         FullTypeName = attachedViewTypeFullName;
         TypeName = attachedViewTypeName;
         Namespace = ns;
-        SnapshotStorageName = snapshotStorageName;
-
+        StorageName = storageName!;
     }
 
     /// <summary>
@@ -62,5 +61,5 @@ internal struct OutboxTypeInfo
     /// Gets the name of the snapshot type define for usage at the storage level.
     /// Decoupled from the view/snapshot type that is subject for refactoring.
     /// </summary>
-    public string SnapshotStorageName { get; }
+    public string StorageName { get; }
 }

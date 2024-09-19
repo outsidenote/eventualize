@@ -48,27 +48,29 @@ internal static class QueryTemplatesFactory
                         @{nameof(EvDbEventRecord.CapturedBy)},
                         @{nameof(EvDbEventRecord.CapturedAt)})
                     """,
-            SaveToOutbox = $"""
-                    INSERT INTO {storageContext}outbox (
-                        {toSnakeCase(nameof(EvDbOutboxRecord.Domain))},
-                        {toSnakeCase(nameof(EvDbOutboxRecord.Partition))}, 
-                        {toSnakeCase(nameof(EvDbOutboxRecord.StreamId))},
-                        {toSnakeCase(nameof(EvDbOutboxRecord.Offset))},
-                        {toSnakeCase(nameof(EvDbOutboxRecord.EventType))}, 
-                        {toSnakeCase(nameof(EvDbOutboxRecord.OutboxType))}, 
-                        {toSnakeCase(nameof(EvDbOutboxRecord.Payload))},
-                        {toSnakeCase(nameof(EvDbOutboxRecord.CapturedBy))},
-                        {toSnakeCase(nameof(EvDbOutboxRecord.CapturedAt))}) 
+            SaveToTopics = $"""
+                    INSERT INTO {storageContext}topic (
+                        {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Partition))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.EventType))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.Topic))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.MessageType))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.Payload))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}) 
                     VALUES (
-                        @{nameof(EvDbOutboxRecord.Domain)}, 
-                        @{nameof(EvDbOutboxRecord.Partition)}, 
-                        @{nameof(EvDbOutboxRecord.StreamId)}, 
-                        @{nameof(EvDbOutboxRecord.Offset)}, 
-                        @{nameof(EvDbOutboxRecord.EventType)}, 
-                        @{nameof(EvDbOutboxRecord.OutboxType)}, 
-                        @{nameof(EvDbOutboxRecord.Payload)},
-                        @{nameof(EvDbOutboxRecord.CapturedBy)},
-                        @{nameof(EvDbOutboxRecord.CapturedAt)})
+                        @{nameof(EvDbMessageRecord.Domain)}, 
+                        @{nameof(EvDbMessageRecord.Partition)}, 
+                        @{nameof(EvDbMessageRecord.StreamId)}, 
+                        @{nameof(EvDbMessageRecord.Offset)}, 
+                        @{nameof(EvDbMessageRecord.EventType)}, 
+                        @{nameof(EvDbMessageRecord.Topic)}, 
+                        @{nameof(EvDbMessageRecord.MessageType)}, 
+                        @{nameof(EvDbMessageRecord.Payload)},
+                        @{nameof(EvDbMessageRecord.CapturedBy)},
+                        @{nameof(EvDbMessageRecord.CapturedAt)})
                     """,
         };
     }

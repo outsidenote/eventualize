@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: OutboxHandler Outbox
+﻿// Ignore Spelling: TopicProducer Topic
 
 using EvDb.Core;
 using EvDb.Scenes;
@@ -7,41 +7,41 @@ using EvDb.Scenes;
 namespace EvDb.UnitTests;
 
 
-[EvDbOutboxTypes<AvgOutbox>]
-[EvDbOutboxTypes<StudentPassOutbox>]
-[EvDbOutboxTypes<StudentFailOutbox>]
-[EvDbOutbox<SchoolStreamFactory>]
-public partial class EvDbSchoolStreamOutbox
+[EvDbMessageTypes<AvgTopic>]
+[EvDbMessageTypes<StudentPassTopic>]
+[EvDbMessageTypes<StudentFailTopic>]
+[EvDbTopic<SchoolStreamFactory>]
+public partial class EvDbSchoolStreamTopic
 {
-    protected override void OutboxHandler(
+    protected override void ProduceTopicMessages(
         StudentReceivedGradeEvent payload,
         EvDbSchoolStreamViews views,
         IEvDbEventMeta meta,
-        EvDbSchoolStreamOutboxContext outbox)
+        EvDbSchoolStreamTopicContext topics)
     {
         var state = views.ALL;
-        var avg = new AvgOutbox(state.Sum / (double)state.Count);
-        outbox.Add(avg);
+        var avg = new AvgTopic(state.Sum / (double)state.Count);
+        topics.Add(avg);
         var studentName = views.StudentStats.Students
             .First(m => m.StudentId == payload.StudentId)
             .StudentName;
         if (payload.Grade >= 60)
         {
-            var pass = new StudentPassOutbox(payload.StudentId,
+            var pass = new StudentPassTopic(payload.StudentId,
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            outbox.Add(pass);
-            //outbox.Topic1.Add(pass);
-            //outbox.Topic2.Add(pass);
+            topics.Add(pass);
+            //topics.Topic1.Add(pass);
+            //topics.Topic2.Add(pass);
         }
         else
         { 
-            var fail = new StudentFailOutbox(payload.StudentId,
+            var fail = new StudentFailTopic(payload.StudentId,
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            outbox.Add(fail);
+            topics.Add(fail);
         }
     }    
 }

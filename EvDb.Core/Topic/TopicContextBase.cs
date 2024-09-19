@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: OutboxHandler Outbox
+﻿// Ignore Spelling: TopicProducer Topic
 
 using System;
 using System.Collections.Generic;
@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace EvDb.Core.Internals;
 
-public abstract class OutboxHandlerBase
+public abstract class TopicContextBase
 {
     private readonly EvDbStream _evDbStream;
     private readonly IEvDbEventMeta _relatedEventMeta;
     private readonly TimeProvider _timeProvider;
     private readonly JsonSerializerOptions? _options;
 
-    protected OutboxHandlerBase(
+    protected TopicContextBase(
         EvDbStream evDbStream,
         IEvDbEventMeta relatedEventMeta)
     {
@@ -30,14 +30,15 @@ public abstract class OutboxHandlerBase
         where T : IEvDbPayload
     {
         var json = JsonSerializer.Serialize(payload, _options);
-        EvDbOutboxEntity e = new EvDbOutboxEntity(
+        EvDbMessage e = new EvDbMessage(
                                     _relatedEventMeta.EventType, 
+                                    "DEFAULT", // TODO: Bnaya 2024-09-19 get the topic name
                                     payload.PayloadType,
                                     _timeProvider.GetUtcNow(),
                                     _relatedEventMeta.CapturedBy,
                                     _relatedEventMeta.StreamCursor,
                                     json);
 
-        _evDbStream.AddToOutbox(e);
+        _evDbStream.AddToTopic(e);
     }
 }

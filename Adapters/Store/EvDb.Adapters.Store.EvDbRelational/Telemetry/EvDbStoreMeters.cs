@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
 namespace EvDb.Core.Adapters;
@@ -9,92 +11,47 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
 {
     public const string MetricName = "EvDb.Store.Relational";
 
-    public EvDbStoreMeters(IMeterFactory meterFactory) : this(
-        meterFactory.Create(MetricName))
+    public EvDbStoreMeters() : this(
+        new Meter(MetricName))
     {
     }
 
-    //public EvDbSysMeters(
-    //              [FromKeyedServices(MetricCounterName)]IMeterFactory meterFactory,
-    //              [FromKeyedServices(MetricDurationName)]IMeterFactory meterDurationFactory
-    //              ): this(meterFactory.Create(MetricCounterName))
-    //{
-    //}
+    public EvDbStoreMeters([FromKeyedServices(MetricName)] IMeterFactory meterFactory) 
+                                : this(meterFactory.Create(MetricName))
+    {
+    }
 
     private EvDbStoreMeters(Meter counterMeter)
     {
-        //OCC = counterMeter.CreateCounter<int>("evdb_occ",
-        //    "{collision}",
-        //    "Optimistic Concurrency Collisions");
-        //EventsStored = counterMeter.CreateCounter<int>("evdb_events_stored",
-        //    "{event}",
-        //    "Events stored into the storage database");
-        //SnapshotStored = counterMeter.CreateCounter<int>(
-        //    "evdb_snapshot_stored",
-        //    "{snapshot}", "Snapshot stored into the storage database");
-
-        //_factoryGetDuration = durationMeter.CreateHistogram<double>(
-        //    "evdb_factory_get-duration",
-        //    "ms",
-        //    "Durations of factory get");
-
-        //_eventsStoredDuration = durationMeter.CreateHistogram<double>(
-        //    "evdb_events_stored_duration",
-        //    "ms",
-        //    "Durations of events stored into the storage database");
-        //_snapshotStoredDuration = durationMeter.CreateHistogram<double>(
-        //    "evdb_snapshot_stored_duration",
-        //    "ms",
-        //    "Durations of snapshot stored into the storage database");
+        _eventsStored = counterMeter.CreateCounter<int>("evdb_store_events_stored",
+            "{events}",
+            "Count of events stored into the storage");
+        _messagesStored = counterMeter.CreateCounter<int>("evdb_store_notification_stored",
+            "{events}",
+            "Count of messages stored into topics ");
     }
 
     /// <summary>
     /// Number of events stored
     /// </summary>
-    private readonly Counter<int> EventsStored;
+    private readonly Counter<int> _eventsStored;
 
-    ///// <summary>
-    ///// Number of outbox stored
-    ///// </summary>
-    //private readonly Counter<int> OutboxStored { get; }
-    ///// <summary>
-    ///// Snapshot stored into the storage database
-    ///// </summary>
-    //private readonly Counter<int> SnapshotStored { get; }
+    /// <summary>
+    /// Number of Notification stored (into topics)
+    /// </summary>
+    private readonly Counter<int> _messagesStored;
 
-    Counter<int> IEvDbStoreMeters.EventsStored => throw new NotImplementedException();
-
-    Counter<int> IEvDbStoreMeters.OCC => throw new NotImplementedException();
-
-    Counter<int> IEvDbStoreMeters.SnapshotStored => throw new NotImplementedException();
-
-    IDisposable IEvDbStoreMeters.MeasureFactoryGetDuration(Func<OtelTags, OtelTags>? action)
+    void IEvDbStoreMeters.AddEvents(IImmutableList<EvDbEvent> events)
     {
-        throw new NotImplementedException();
+        if (!_eventsStored.Enabled)
+            return;
+        // TODO: bnaya 2024-09-19 group by
     }
 
-    IDisposable IEvDbStoreMeters.MeasureFactoryGetDuration(OtelTags tags)
+    void IEvDbStoreMeters.AddMessages(IImmutableList<EvDbMessage> events)
     {
-        throw new NotImplementedException();
-    }
-
-    IDisposable IEvDbStoreMeters.MeasureStoreEventsDuration(Func<OtelTags, OtelTags>? action)
-    {
-        throw new NotImplementedException();
-    }
-
-    IDisposable IEvDbStoreMeters.MeasureStoreEventsDuration(OtelTags tags)
-    {
-        throw new NotImplementedException();
-    }
-
-    IDisposable IEvDbStoreMeters.MeasureStoreSnapshotsDuration(Func<OtelTags, OtelTags>? action)
-    {
-        throw new NotImplementedException();
-    }
-
-    IDisposable IEvDbStoreMeters.MeasureStoreSnapshotsDuration(OtelTags tags)
-    {
-        throw new NotImplementedException();
+        if (!_messagesStored.Enabled)
+            return;
+        // TODO: bnaya 2024-09-19 group by
     }
 }

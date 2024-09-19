@@ -174,7 +174,7 @@ internal static class Steps
         ITestOutputHelper output)
     {
 
-        A.CallTo(() => storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IImmutableList<EvDbOutboxEntity>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
+        A.CallTo(() => storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IImmutableList<EvDbMessage>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
                 .Throws<OCCException>();
         var stream = await storageAdapter.GivenLocalStreamWithPendingEvents(output, 6);
         return stream;

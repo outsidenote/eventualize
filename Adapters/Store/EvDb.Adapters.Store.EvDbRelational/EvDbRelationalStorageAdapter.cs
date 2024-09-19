@@ -130,14 +130,14 @@ public abstract class EvDbRelationalStorageAdapter :
 
     async Task<int> IEvDbStorageStreamAdapter.StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
-        IImmutableList<EvDbOutboxEntity> outbox,
+        IImmutableList<EvDbMessage> messages,
         IEvDbStreamStoreData streamStore,
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         using DbConnection conn = await InitAsync();
         string saveEventsQuery = StreamQueries.SaveEvents;
-        string saveToOutboxQuery = StreamQueries.SaveToOutbox;
+        string saveToTopicQuery = StreamQueries.SaveToTopics;
         _logger.LogQuery(saveEventsQuery);
 
         var eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
@@ -147,11 +147,11 @@ public abstract class EvDbRelationalStorageAdapter :
             try
             {
                 int affctedEvents = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
-                if (outbox.Count != 0)
+                if (messages.Count != 0)
                 {
-                    var outboxRecords = outbox.Select<EvDbOutboxEntity, EvDbOutboxRecord>(e => e).ToArray();
-                    int affctedOutbox = await conn.ExecuteAsync(saveToOutboxQuery, outboxRecords, transaction);
-                    _logger.LogAffectedOutbox(affctedOutbox); 
+                    var msgRecords = messages.Select<EvDbMessage, EvDbMessageRecord>(e => e).ToArray();
+                    int affctedMessages = await conn.ExecuteAsync(saveToTopicQuery, msgRecords, transaction);
+                    _logger.LogAffectedMessages(affctedMessages); 
                 }
                 await transaction.CommitAsync();
                 return affctedEvents;
@@ -160,7 +160,8 @@ public abstract class EvDbRelationalStorageAdapter :
             catch (Exception ex) when (IsOccException(ex))
             {
                 await transaction.RollbackAsync();
-                throw new OCCException(streamStore.Events.FirstOrDefault());
+                var cursor = new EvDbStreamCursor(streamStore.StreamAddress);
+                throw new OCCException(cursor);
             }
             catch
             {

@@ -61,11 +61,11 @@ public partial class EvDbGenerator : BaseGenerator
         ITypeSymbol relatedEventsTypeSymbol = args[0];
         string relatedEventsTypesFullName = relatedEventsTypeSymbol.ToDisplayString();
 
-        string? relatedOutboxTypesFullName = null;
+        string? relatedTopicTypesFullName = null;
         if (args.Length == 2)
         {
-            ITypeSymbol relatedOutboxTypeSymbol = args[1];
-            relatedOutboxTypesFullName = relatedOutboxTypeSymbol.ToDisplayString();
+            ITypeSymbol relatedTopicTypeSymbol = args[1];
+            relatedTopicTypesFullName = relatedTopicTypeSymbol.ToDisplayString();
         }
 
         #region string domain = ..., string partition = ...
@@ -271,8 +271,8 @@ public partial class EvDbGenerator : BaseGenerator
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
-        string setOutbox = relatedOutboxTypesFullName != null
-                        ? $"OutboxHandler = new {relatedOutboxTypesFullName}(this);"
+        string setTopic = relatedTopicTypesFullName != null
+                        ? $"TopicProducer = new {relatedTopicTypesFullName}(this);"
                         : string.Empty;
 
         var adds = eventsPayloads.Select(ep =>
@@ -303,12 +303,12 @@ public partial class EvDbGenerator : BaseGenerator
                                 base(stramConfiguration, views, storageAdapter, streamId, lastStoredOffset)
                         {
                             Views = new {{streamName}}Views(views);
-                            {{setOutbox}}
+                            {{setTopic}}
                         }
 
                         #endregion // Ctor
 
-                        protected override IEvDbOutboxHandler? OutboxHandler { get; } 
+                        protected override IEvDbTopicProducer? TopicProducer { get; } 
                     
                         public {{streamName}}Views Views { get; }
                     

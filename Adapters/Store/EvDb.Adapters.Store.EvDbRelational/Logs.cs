@@ -9,6 +9,6 @@ namespace EvDb.Core.Adapters;
 
 public static partial class Logs
 {
-    [LoggerMessage(LogLevel.Debug, "Affected outbox records = {records}")]
-    public static partial void LogAffectedOutbox(this ILogger logger, long records);
+    [LoggerMessage(LogLevel.Debug, "Affected topic's messages = {count}")]
+    public static partial void LogAffectedMessages(this ILogger logger, long count);
 }

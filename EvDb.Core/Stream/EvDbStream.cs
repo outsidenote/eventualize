@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: OutboxHandler Outbox
+﻿// Ignore Spelling: TopicProducer Topic
 
 using System.Collections.Immutable;
 using System.Data;
@@ -9,7 +9,7 @@ using System.Text.Json;
 
 // TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<TStreamFactory> which is a wrapper of TStreamFactory that holds TStreamFactory and snapshotOffset 
 
-// TODO:bnaya 2024-06-03 AddToOutbox / View state should support fully immutable pattern for saving without locking
+// TODO:bnaya 2024-06-03 AddToTopic / View state should support fully immutable pattern for saving without locking
 namespace EvDb.Core;
 
 
@@ -25,7 +25,7 @@ public abstract class EvDbStream :
 
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<EvDbEvent> _pendingEvents = ImmutableList<EvDbEvent>.Empty;
-    protected internal IImmutableList<EvDbOutboxEntity> _pendingOutput = ImmutableList<EvDbOutboxEntity>.Empty;
+    protected internal IImmutableList<EvDbMessage> _pendingOutput = ImmutableList<EvDbMessage>.Empty;
 
     private static readonly AssemblyName ASSEMBLY_NAME = Assembly.GetExecutingAssembly()?.GetName() ??
                                                          throw new NotSupportedException("GetExecutingAssembly");
@@ -81,7 +81,7 @@ public abstract class EvDbStream :
         foreach (IEvDbViewStore folding in _views)
             folding.FoldEvent(e);
 
-        OutboxHandler?.OnOutboxHandler(e, _views);
+        TopicProducer?.OnProduceTopicMessages(e, _views);
 
         return e;
 
@@ -102,27 +102,27 @@ public abstract class EvDbStream :
 
     #endregion // AddEventAsync
 
-    #region OutboxHandler
+    #region IEvDbTopicProducer
 
     /// <summary>
-    /// Gets the outbox pattern handler.
+    /// Produce messages into topics based on an event and states.
     /// </summary>
-    protected virtual IEvDbOutboxHandler? OutboxHandler { get; }
+    protected virtual IEvDbTopicProducer? TopicProducer { get; }
 
-    #endregion //  OutboxHandler
+    #endregion //  IEvDbTopicProducer
 
-    #region AddToOutbox
+    #region AddToTopic
 
     /// <summary>
     /// Put a row into the publication (out-box pattern).
     /// </summary>
     /// <param name="e">The e.</param>
-    public void AddToOutbox(EvDbOutboxEntity e)
+    public void AddToTopic(EvDbMessage e)
     {
         _pendingOutput = _pendingOutput.Add(e);
     }
 
-    #endregion //  AddToOutbox
+    #endregion //  AddToTopic
 
     #region StoreAsync
 
@@ -139,7 +139,7 @@ public abstract class EvDbStream :
 
         using var @lock = await _sync.AcquireAsync();
         var events = _pendingEvents;
-        var outbox = _pendingOutput;
+        var topic = _pendingOutput;
         if (events.Count == 0)
         {
             await Task.FromResult(true);
@@ -147,8 +147,8 @@ public abstract class EvDbStream :
         }
         try
         {
-            // TODO: bnaya 2024-09-16 add the outbox into the StoreStreamAsync
-            int affected = await _storageAdapter.StoreStreamAsync(events, outbox, this, cancellation);
+            // TODO: bnaya 2024-09-16 add the topic into the StoreStreamAsync
+            int affected = await _storageAdapter.StoreStreamAsync(events, topic, this, cancellation);
             _sysMeters.EventsStored.Add(affected, tags);
 
             EvDbEvent ev = events[^1];
@@ -158,7 +158,7 @@ public abstract class EvDbStream :
 
             using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
             _pendingEvents = ImmutableList<EvDbEvent>.Empty;
-            _pendingOutput = ImmutableList<EvDbOutboxEntity>.Empty;
+            _pendingOutput = ImmutableList<EvDbMessage>.Empty;
             foreach (IEvDbViewStore view in _views)
                 view.OnSaved();
 
@@ -173,7 +173,7 @@ public abstract class EvDbStream :
 
     #endregion // StoreAsync
 
-    #region StreamId
+    #region StreamAddress
 
     public EvDbStreamAddress StreamAddress { get; init; }
 
@@ -220,6 +220,15 @@ public abstract class EvDbStream :
     public IEnumerable<EvDbEvent> Events => _pendingEvents;
 
     #endregion // IEvDbStreamStoreData.Events
+
+    #region IEvDbStreamStoreData.Notificatoins
+
+    /// <summary>
+    /// Unspecialized notifications
+    /// </summary>
+    public IEnumerable<EvDbMessage> Notifications => _pendingOutput;
+
+    #endregion //  IEvDbStreamStoreData.Notificatoins
 
     #region Dispose Pattern
 

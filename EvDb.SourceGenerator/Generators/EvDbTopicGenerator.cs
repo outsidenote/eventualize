@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Outbox
+﻿// Ignore Spelling: Topic
 
 #pragma warning disable HAA0301 // Closure Allocation Source
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
@@ -15,12 +15,12 @@ using System.Xml.Linq;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EvDbOutboxGenerator : BaseGenerator
+public partial class EvDbTopicGenerator : BaseGenerator
 {
-    internal const string OUTBOX_ATT = "EvDbOutboxAttribute";
-    private const string OUTBOX_TYPES = "EvDbOutboxTypes";
-    private const string OUTBOX_TYPES_ATT = "EvDbOutboxTypesAttribute";
-    protected override string EventTargetAttribute { get; } = OUTBOX_ATT;
+    internal const string TOPIC_ATT = "EvDbTopicAttribute";
+    private const string MESSAGE_TYPES = "EvDbMessageTypes";
+    private const string MESSAGE_TYPES_ATT = "EvDbMessageTypesAttribute";
+    protected override string EventTargetAttribute { get; } = TOPIC_ATT;
 
     #region OnGenerate
 
@@ -43,18 +43,18 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         context.ThrowIfNotPartial(typeSymbol, syntax);
         StringBuilder builder = new StringBuilder();
 
-        AttributeData attOfOutbox = typeSymbol.GetAttributes()
-                          .First(att => att.AttributeClass?.Name == OUTBOX_ATT);
+        AttributeData attOfTopic = typeSymbol.GetAttributes()
+                          .First(att => att.AttributeClass?.Name == TOPIC_ATT);
 
-        string outboxName = typeSymbol.Name;
+        string topicName = typeSymbol.Name;
 
-        ITypeSymbol? factoryTypeSymbol = attOfOutbox.AttributeClass?.TypeArguments.First();
+        ITypeSymbol? factoryTypeSymbol = attOfTopic.AttributeClass?.TypeArguments.First();
         #region Validation
 
             if (factoryTypeSymbol == null)
                 context.Throw(
                     EvDbErrorsNumbers.FactoryTypeNotFound,
-                    $"The factory type for outbox [{outboxName}]",
+                    $"The factory type for topic [{topicName}]",
                     syntax);
 
         #endregion //  Validation
@@ -69,23 +69,23 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         IEnumerable<PayloadInfo> eventsPayloads = factoryTypeSymbol.GetPayloadsFromFatory();
 
-        #region OutboxTypeInfo[] outboxTypes = ..
+        #region TopicTypeInfo[] messageTypes = ..
 
-        OutboxTypeInfo[] outboxTypes = typeSymbol.GetAttributes()
+        TopicTypeInfo[] messageTypes = typeSymbol.GetAttributes()
                                   .Where(att =>
                                   {
                                       string? name = att.AttributeClass?.Name;
-                                      bool match = OUTBOX_TYPES_ATT == name || OUTBOX_TYPES == name;
+                                      bool match = MESSAGE_TYPES_ATT == name || MESSAGE_TYPES == name;
                                       return match;
                                   })
                                   .Select(a =>
-                                        new OutboxTypeInfo(context, syntax, a)).ToArray();
-        #endregion // OutboxTypeInfo[] outboxTypes = ..
+                                        new TopicTypeInfo(context, syntax, a)).ToArray();
+        #endregion // TopicTypeInfo[] messageTypes = ..
 
-        #region Outbox Context
+        #region Topic Context
 
-        var addOutboxTypes =
-            outboxTypes.Select((info, i) =>
+        var addMessageTypes =
+            messageTypes.Select((info, i) =>
             $$"""
 
                 public void Add({{info.FullTypeName}} payload)
@@ -100,45 +100,45 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public sealed class {{outboxName}}Context : OutboxHandlerBase
+                    public sealed class {{topicName}}Context : TopicContextBase
                     {
-                        public {{outboxName}}Context(
+                        public {{topicName}}Context(
                             EvDbStream evDbStream,
                             IEvDbEventMeta relatedEventMeta)
                                     : base(evDbStream, relatedEventMeta)
                         {
                         }
-                    {{string.Join("", addOutboxTypes)}}
+                    {{string.Join("", addMessageTypes)}}
                     }
                     """);
         context.AddSource(typeSymbol.StandardSuffix( "Context"), builder.ToString());
 
-        #endregion // Outbox Context
+        #endregion // Topic Context
 
-        #region Outbox Base
+        #region Topic Base
 
-        var addOutboxHandlers =
+        var addTopicHandlers =
             eventsPayloads.Select((info, i) =>
             $$"""
 
-                protected virtual void OutboxHandler(
+                protected virtual void ProduceTopicMessages(
                     {{info.FullTypeName}} payload,
                     {{streamName}}Views views,
                     IEvDbEventMeta meta,
-                    {{outboxName}}Context outbox)
+                    {{topicName}}Context topics)
                 {
                 }
             
             """);
 
-        var addOutboxCases =
+        var addTopicCases =
             eventsPayloads.Select((info, i) =>
             $$"""
 
                         case "{{info.SnapshotStorageName}}":
                             {
                                 var payload = c.GetData<{{info.FullTypeName}}>(_serializationOptions);
-                                OutboxHandler(payload, states, e, outbox);
+                                ProduceTopicMessages(payload, states, e, topics);
                                 break;
                             }
                         
@@ -148,52 +148,52 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public abstract class {{outboxName}}Base : IEvDbOutboxHandler
+                    public abstract class {{topicName}}Base : IEvDbTopicProducer
                     {
                         private readonly EvDbSchoolStream _evDbStream;
                         private readonly JsonSerializerOptions? _serializationOptions;
 
-                        public {{outboxName}}Base({{streamName}} evDbStream)
+                        public {{topicName}}Base({{streamName}} evDbStream)
                         {
                             _evDbStream = evDbStream;
                             _serializationOptions = _evDbStream.Options;
                         }
 
-                        void IEvDbOutboxHandler.OnOutboxHandler(
+                        void IEvDbTopicProducer.OnProduceTopicMessages(
                             EvDbEvent e,
                             IImmutableList<IEvDbViewStore> views)
                         {
                             {{streamName}}Views states = _evDbStream.Views;
-                            {{outboxName}}Context outbox = new(_evDbStream, e);
+                            {{topicName}}Context topics = new(_evDbStream, e);
                             IEvDbEventConverter c = e;
                             switch (e.EventType)
                             {
-                    {{string.Join("", addOutboxCases)}}
+                    {{string.Join("", addTopicCases)}}
                             }
                         }
-                    {{string.Join("", addOutboxHandlers)}}
+                    {{string.Join("", addTopicHandlers)}}
                     }
                     """);
         context.AddSource(typeSymbol.StandardSuffix( "Base"), builder.ToString());
 
-        #endregion // Outbox Base
+        #endregion // Topic Base
 
-        #region Outbox
+        #region Topic
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial class {{outboxName}} : {{outboxName}}Base
+                    partial class {{topicName}} : {{topicName}}Base
                     {
-                        public {{outboxName}}({{streamName}} evDbStream): base(evDbStream)
+                        public {{topicName}}({{streamName}} evDbStream): base(evDbStream)
                         {
                         }
                     }
                     """);
         context.AddSource(typeSymbol.StandardPath(), builder.ToString());
 
-        #endregion // Outbox
+        #endregion // Topic
     }
 
     #endregion // OnGenerate
