@@ -31,7 +31,7 @@ public partial class EvDbSchoolStreamTopics
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Topic1.Add(pass);
+            topics.Add(pass, TopicsOfStudentPassTopic.Topic1);
             //topics.Add(pass, StudentPassTopicTopics.Topic1);
             //topics.Topic1.Add(pass);
             //topics.Topic2.Add(pass);
@@ -42,7 +42,8 @@ public partial class EvDbSchoolStreamTopics
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Topic2.Add(fail);
+            topics.Add(fail, TopicsOfStudentFailTopic.Topic1);
+            topics.Add(fail, TopicsOfStudentFailTopic.Topic2);
         }
     }    
 }

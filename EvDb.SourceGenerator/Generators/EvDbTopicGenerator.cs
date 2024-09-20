@@ -82,7 +82,12 @@ public partial class EvDbTopicGenerator : BaseGenerator
                                         new TopicTypeInfo(context, syntax, a)).ToArray();
         #endregion // TopicTypeInfo[] messageTypes = ..
 
+        var multiTopics = messageTypes
+                .Where(m => m.Topics.Length > 1);
+
         #region Topic Context
+
+        #region addMessageTypes = ...
 
         var addMessageTypes =
             messageTypes
@@ -97,35 +102,46 @@ public partial class EvDbTopicGenerator : BaseGenerator
             
             """);
 
-        var addTopics = from info in messageTypes
-                        where info.Topics.Length != 0
-                        from topic in info.Topics
-                        group info by topic into g
-                        let tpc = g.Key
-                        let clsName = tpc.FixNameForClass()
-                        select
-                            $$"""
-                                public EvDb{{clsName}}Producer {{clsName}} { get; } // = new EvDb{{clsName}}Producer(this);
+        #endregion //  addMessageTypes = ...
 
-                                public class EvDb{{clsName}}Producer
-                                {
-                                    private readonly IEvDbTopicProducerGeneric _producer;
-                                    internal EvDb{{clsName}}Producer(IEvDbTopicProducerGeneric producer)
-                                    {
-                                        _producer = producer; 
-                                    }
-                            {{string.Join("", g.Select(inf =>
-                              $$"""
-                                    public void Add({{inf.FullTypeName}} payload)
-                                    {
-                                        _producer.Add(payload, "{{tpc}}");
-                                    }
+        #region addMessageTypesSingleTopic = ...
 
-                            """))}}
+        var addMessageTypesSingleTopic =
+            messageTypes
+                .Where(m => m.Topics.Length == 1)
+                .Select((info, i) =>
+            $$"""
 
-                                }
+                public void Add({{info.FullTypeName}} payload)
+                {
+                    base.Add(payload, "{{info.Topics[0]}}");
+                }
             
-                            """;
+            """);
+
+        #endregion //  addMessageTypesSingleTopic = ...
+
+        #region addMessageTypesMultiTopic = ...
+
+        var addMessageTypesMultiTopic = multiTopics.Select((info, i) =>
+            $$"""
+
+                public void Add({{info.FullTypeName}} payload, TopicsOf{{info.TypeName}} topic)
+                {
+                    string topicText = topic switch
+                        {
+            {{string.Join(",", info.Topics.Select(t =>
+            $$"""
+
+                            TopicsOf{{info.TypeName}}.{{t.FixNameForClass()}} => "{{t}}"
+            """))}}                
+                        };
+                    base.Add(payload, topicText);
+                }
+            
+            """);
+
+        #endregion //  addMessageTypesMultiTopic = ...
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
@@ -143,12 +159,36 @@ public partial class EvDbTopicGenerator : BaseGenerator
                         {
                         }
                     {{string.Join("", addMessageTypes)}}
-                    {{string.Join("", addTopics)}}
+                    {{string.Join("", addMessageTypesSingleTopic)}}
+                    {{string.Join("", addMessageTypesMultiTopic)}}
                     }
                     """);
         context.AddSource(typeSymbol.StandardSuffix( "Context"), builder.ToString());
 
         #endregion // Topic Context
+
+        #region Multi Topics Enum
+
+        foreach (var info in multiTopics)
+        {
+            builder.ClearAndAppendHeader(syntax, typeSymbol);
+            builder.AppendLine("using EvDb.Core.Internals;");
+            builder.AppendLine();
+
+            builder.AppendLine($$"""
+                    public enum TopicsOf{{info.TypeName}}
+                    {
+                    {{string.Join(",", info.Topics.Select(t =>
+                        $$"""
+
+                            {{t.FixNameForClass()}}   
+                        """))}}
+                    }
+                    """);
+            context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"TopicsOf{info.TypeName}"), builder.ToString());
+        }
+
+        #endregion // Multi Topics Enum
 
         #region Topic Base
 
