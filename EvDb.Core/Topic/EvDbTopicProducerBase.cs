@@ -1,22 +1,17 @@
 ﻿// Ignore Spelling: TopicProducer Topic
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace EvDb.Core.Internals;
 
-public abstract class TopicContextBase
+public abstract class EvDbTopicContextBase : IEvDbTopicProducerGeneric
 {
     private readonly EvDbStream _evDbStream;
     private readonly IEvDbEventMeta _relatedEventMeta;
     private readonly TimeProvider _timeProvider;
     private readonly JsonSerializerOptions? _options;
 
-    protected TopicContextBase(
+    protected EvDbTopicContextBase(
         EvDbStream evDbStream,
         IEvDbEventMeta relatedEventMeta)
     {
@@ -26,13 +21,13 @@ public abstract class TopicContextBase
         _options = _evDbStream.Options;
     }
 
-    public void Add<T>(T payload)
+    public void Add<T>(T payload, string topic)
         where T : IEvDbPayload
     {
         var json = JsonSerializer.Serialize(payload, _options);
         EvDbMessage e = new EvDbMessage(
-                                    _relatedEventMeta.EventType, 
-                                    "DEFAULT", // TODO: Bnaya 2024-09-19 get the topic name
+                                    _relatedEventMeta.EventType,
+                                    topic,
                                     payload.PayloadType,
                                     _timeProvider.GetUtcNow(),
                                     _relatedEventMeta.CapturedBy,

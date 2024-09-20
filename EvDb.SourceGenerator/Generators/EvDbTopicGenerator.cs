@@ -46,7 +46,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         AttributeData attOfTopic = typeSymbol.GetAttributes()
                           .First(att => att.AttributeClass?.Name == TOPIC_ATT);
 
-        string topicName = typeSymbol.Name;
+        string topicsName = typeSymbol.Name;
 
         ITypeSymbol? factoryTypeSymbol = attOfTopic.AttributeClass?.TypeArguments.First();
         #region Validation
@@ -54,7 +54,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
             if (factoryTypeSymbol == null)
                 context.Throw(
                     EvDbErrorsNumbers.FactoryTypeNotFound,
-                    $"The factory type for topic [{topicName}]",
+                    $"The factory type for topic [{topicsName}]",
                     syntax);
 
         #endregion //  Validation
@@ -85,30 +85,65 @@ public partial class EvDbTopicGenerator : BaseGenerator
         #region Topic Context
 
         var addMessageTypes =
-            messageTypes.Select((info, i) =>
+            messageTypes
+                .Where(m => m.Topics.Length == 0)
+                .Select((info, i) =>
             $$"""
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    base.Add(payload);
+                    base.Add(payload, DEFAULT_TOPIC);
                 }
             
             """);
+
+        var addTopics = from info in messageTypes
+                        where info.Topics.Length != 0
+                        from topic in info.Topics
+                        group info by topic into g
+                        let tpc = g.Key
+                        let clsName = tpc.FixNameForClass()
+                        select
+                            $$"""
+                                public EvDb{{clsName}}Producer {{clsName}} { get; } // = new EvDb{{clsName}}Producer(this);
+
+                                public class EvDb{{clsName}}Producer
+                                {
+                                    private readonly IEvDbTopicProducerGeneric _producer;
+                                    internal EvDb{{clsName}}Producer(IEvDbTopicProducerGeneric producer)
+                                    {
+                                        _producer = producer; 
+                                    }
+                            {{string.Join("", g.Select(inf =>
+                              $$"""
+                                    public void Add({{inf.FullTypeName}} payload)
+                                    {
+                                        _producer.Add(payload, "{{tpc}}");
+                                    }
+
+                            """))}}
+
+                                }
+            
+                            """;
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public sealed class {{topicName}}Context : TopicContextBase
+                    public sealed class {{topicsName}}Context : EvDbTopicContextBase
                     {
-                        public {{topicName}}Context(
+                        private const string DEFAULT_TOPIC = "DEFAULT";
+
+                        public {{topicsName}}Context(
                             EvDbStream evDbStream,
                             IEvDbEventMeta relatedEventMeta)
                                     : base(evDbStream, relatedEventMeta)
                         {
                         }
                     {{string.Join("", addMessageTypes)}}
+                    {{string.Join("", addTopics)}}
                     }
                     """);
         context.AddSource(typeSymbol.StandardSuffix( "Context"), builder.ToString());
@@ -125,7 +160,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
                     {{info.FullTypeName}} payload,
                     {{streamName}}Views views,
                     IEvDbEventMeta meta,
-                    {{topicName}}Context topics)
+                    {{topicsName}}Context topics)
                 {
                 }
             
@@ -148,12 +183,12 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public abstract class {{topicName}}Base : IEvDbTopicProducer
+                    public abstract class {{topicsName}}Base : IEvDbTopicProducer
                     {
                         private readonly EvDbSchoolStream _evDbStream;
                         private readonly JsonSerializerOptions? _serializationOptions;
 
-                        public {{topicName}}Base({{streamName}} evDbStream)
+                        public {{topicsName}}Base({{streamName}} evDbStream)
                         {
                             _evDbStream = evDbStream;
                             _serializationOptions = _evDbStream.Options;
@@ -164,7 +199,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
                             IImmutableList<IEvDbViewStore> views)
                         {
                             {{streamName}}Views states = _evDbStream.Views;
-                            {{topicName}}Context topics = new(_evDbStream, e);
+                            {{topicsName}}Context topics = new(_evDbStream, e);
                             IEvDbEventConverter c = e;
                             switch (e.EventType)
                             {
@@ -184,9 +219,9 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    partial class {{topicName}} : {{topicName}}Base
+                    partial class {{topicsName}} : {{topicsName}}Base
                     {
-                        public {{topicName}}({{streamName}} evDbStream): base(evDbStream)
+                        public {{topicsName}}({{streamName}} evDbStream): base(evDbStream)
                         {
                         }
                     }

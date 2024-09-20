@@ -1,5 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Text.RegularExpressions;
 
 namespace EvDb.SourceGenerator.Helpers;
 internal static class GeneralExtensions
@@ -115,5 +117,31 @@ internal static class GeneralExtensions
             DiagnosticSeverity.Error, isEnabledByDefault: true),
             Location.Create(syntax.SyntaxTree, syntax.Span));
         context.ReportDiagnostic(diagnostic);
+    }
+
+    public static string FixNameForClass(this string input)
+    {
+        // Step 1: Remove invalid characters
+        var sanitized = Regex.Replace(input, @"[^a-zA-Z0-9_]", "");
+        if (string.IsNullOrEmpty(sanitized))
+            return "_";
+
+        // Step 2: Ensure it starts with a letter or underscore
+        if (!char.IsLetter(sanitized, 0))
+        {
+            sanitized = "_" + sanitized;
+        }
+        else if (char.IsLower(sanitized, 0))
+        {
+            sanitized = $"{Char.ToUpper(sanitized[0])}{sanitized.Substring(1)}";
+        }
+
+        // Step 3: Check if it's a valid identifier (Roslyn check)
+        if (!SyntaxFacts.IsValidIdentifier(sanitized))
+        {
+            throw new ArgumentException($"The name '{sanitized}' is not a valid C# identifier.");
+        }
+
+        return sanitized;
     }
 }

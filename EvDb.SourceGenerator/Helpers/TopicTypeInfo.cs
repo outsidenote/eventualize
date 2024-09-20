@@ -29,13 +29,18 @@ internal struct TopicTypeInfo
 
         string ns = attachedViewFirstArgSymbol.ContainingNamespace.ToDisplayString();
 
-        var messageTypeAtt = attachedViewFirstArgSymbol.GetAttributes()
+        var attributes = attachedViewFirstArgSymbol.GetAttributes();
+        var messageTypeAtt = attributes
                                 .First(m => m.AttributeClass?.Name == "EvDbPayloadAttribute");
         string? storageName = messageTypeAtt?.ConstructorArguments.First().Value?.ToString();
         if (storageName == null)
         {
             context.Throw(EvDbErrorsNumbers.MissingViewName, "message name on store is missing", syntax);
         }
+
+        Topics = attributes.Where(m => m.AttributeClass?.Name == "EvDbAttachTopicAttribute")
+                                .Select(m => m.ConstructorArguments.First().Value?.ToString() ?? "")
+                                .ToArray();
         FullTypeName = attachedViewTypeFullName;
         TypeName = attachedViewTypeName;
         Namespace = ns;
@@ -62,4 +67,9 @@ internal struct TopicTypeInfo
     /// Decoupled from the view/snapshot type that is subject for refactoring.
     /// </summary>
     public string StorageName { get; }
+
+    /// <summary>
+    /// Gets the attached topics.
+    /// </summary>
+    public string[] Topics { get; }
 }

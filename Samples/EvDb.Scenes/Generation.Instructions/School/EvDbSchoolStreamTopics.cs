@@ -11,13 +11,13 @@ namespace EvDb.UnitTests;
 [EvDbMessageTypes<StudentPassTopic>]
 [EvDbMessageTypes<StudentFailTopic>]
 [EvDbTopic<SchoolStreamFactory>]
-public partial class EvDbSchoolStreamTopic
+public partial class EvDbSchoolStreamTopics
 {
     protected override void ProduceTopicMessages(
         StudentReceivedGradeEvent payload,
         EvDbSchoolStreamViews views,
         IEvDbEventMeta meta,
-        EvDbSchoolStreamTopicContext topics)
+        EvDbSchoolStreamTopicsContext topics)
     {
         var state = views.ALL;
         var avg = new AvgTopic(state.Sum / (double)state.Count);
@@ -31,7 +31,8 @@ public partial class EvDbSchoolStreamTopic
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(pass);
+            topics.Topic1.Add(pass);
+            //topics.Add(pass, StudentPassTopicTopics.Topic1);
             //topics.Topic1.Add(pass);
             //topics.Topic2.Add(pass);
         }
@@ -41,7 +42,7 @@ public partial class EvDbSchoolStreamTopic
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(fail);
+            topics.Topic2.Add(fail);
         }
     }    
 }
