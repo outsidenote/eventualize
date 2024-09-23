@@ -3,8 +3,8 @@
 namespace EvDb.StressTestsWebApi;
 
 
-[EvDbEventAdder<FaultOccurred>]
-[EvDbEventAdder<SomethingHappened>]
+[EvDbEventTypes<FaultOccurred>]
+[EvDbEventTypes<SomethingHappened>]
 public partial interface IEvents
 {
 }

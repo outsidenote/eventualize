@@ -2,7 +2,7 @@
 
 namespace EvDb.Scenes;
 
-[EvDbEventPayload("schedule-test")]
+[EvDbDefinePayload("schedule-test")]
 public partial record ScheduleTestEvent(int CourseId, TestEntity Test);
 
 

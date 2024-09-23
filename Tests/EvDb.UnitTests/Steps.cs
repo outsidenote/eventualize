@@ -29,11 +29,11 @@ internal static class Steps
         EvDbStreamCursor streamCursor,
         string? capturedBy = null,
         JsonSerializerOptions? options = null)
-        where T : IEvDbEventPayload
+        where T : IEvDbPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
         var json = JsonSerializer.Serialize(data, options);
-        var result = new EvDbEvent(data.EventType, DateTimeOffset.UtcNow, capturedBy, streamCursor, json);
+        var result = new EvDbEvent(data.PayloadType, DateTimeOffset.UtcNow, capturedBy, streamCursor, json);
         return result;
     }
 
@@ -174,7 +174,7 @@ internal static class Steps
         ITestOutputHelper output)
     {
 
-        A.CallTo(() => storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
+        A.CallTo(() => storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IImmutableList<EvDbMessage>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
                 .Throws<OCCException>();
         var stream = await storageAdapter.GivenLocalStreamWithPendingEvents(output, 6);
         return stream;

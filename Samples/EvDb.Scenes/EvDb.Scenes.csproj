@@ -20,5 +20,9 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="gen\" />
+	</ItemGroup>
+
 
 </Project>

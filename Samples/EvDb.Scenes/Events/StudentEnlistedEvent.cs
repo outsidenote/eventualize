@@ -3,7 +3,7 @@
 namespace EvDb.Scenes;
 
 //-------------- events -------------
-[EvDbEventPayload("StudentEnlistedEvent")]
+[EvDbDefinePayload("StudentEnlistedEvent")]
 public partial record StudentEnlistedEvent(StudentEntity Student);
 
 

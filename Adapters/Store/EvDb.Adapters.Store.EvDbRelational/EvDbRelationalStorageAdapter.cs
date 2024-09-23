@@ -6,8 +6,7 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
-
-// TODO: [bnaya 2023-12-20] default timeout
+using static EvDb.Core.Adapters.StoreTelemetry;
 
 namespace EvDb.Core.Adapters;
 
@@ -15,7 +14,9 @@ namespace EvDb.Core.Adapters;
 /// Store adapter for rational database
 /// </summary>
 /// <seealso cref="EvDb.Core.IEvDbStorageAdapter" />
-public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
+public abstract class EvDbRelationalStorageAdapter : 
+    IEvDbStorageStreamAdapter,
+    IEvDbStorageSnapshotAdapter
 {
     protected readonly ILogger _logger;
     private readonly IEvDbConnectionFactory _factory;
@@ -38,6 +39,8 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         await connection.OpenAsync();
         return connection;
     }
+
+    #endregion // Ctor
 
     #region ExecuteSafe
 
@@ -74,9 +77,32 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     #endregion //  ExecuteSafe
 
-    #endregion // Ctor
+    #region DbType
 
-    protected abstract EvDbAdapterQueryTemplates Queries { get; }
+    /// <summary>
+    /// Gets the type of the database.
+    /// </summary>
+    protected abstract string DatabaseType { get; }
+
+    #endregion //  DatabaseType
+
+    #region StreamQueries
+
+    /// <summary>
+    /// Gets the stream's queries.
+    /// </summary>
+    protected abstract EvDbStreamAdapterQueryTemplates StreamQueries { get; }
+
+    #endregion //  StreamQueries
+
+    #region SnapshotQueries
+
+    /// <summary>
+    /// Gets the snapshot's queries.
+    /// </summary>
+    protected abstract EvDbSnapshotAdapterQueryTemplates SnapshotQueries { get; }
+
+    #endregion //  SnapshotQueries
 
     #region IEvDbStorageAdapter Members
 
@@ -93,7 +119,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
     {
         cancellation.ThrowIfCancellationRequested();
 
-        string query = Queries.GetSnapshot;
+        string query = SnapshotQueries.GetSnapshot;
         _logger.LogQuery(query);
 
         var snapshot = await ExecuteSafe(conn =>
@@ -108,7 +134,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         [EnumeratorCancellation] CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        string query = Queries.GetEvents;
+        string query = StreamQueries.GetEvents;
         _logger.LogQuery(query);
 
         using DbConnection conn = await InitAsync();
@@ -123,12 +149,14 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     async Task<int> IEvDbStorageStreamAdapter.StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
+        IImmutableList<EvDbMessage> messages,
         IEvDbStreamStoreData streamStore,
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         using DbConnection conn = await InitAsync();
-        string saveEventsQuery = Queries.SaveEvents;
+        string saveEventsQuery = StreamQueries.SaveEvents;
+        string saveToTopicQuery = StreamQueries.SaveToTopics;
         _logger.LogQuery(saveEventsQuery);
 
         var eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
@@ -137,15 +165,22 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         {
             try
             {
-                int affcted = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
+                int affctedEvents = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
+                StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
+                if (messages.Count != 0)
+                {
+                    var msgRecords = messages.Select<EvDbMessage, EvDbMessageRecord>(e => e).ToArray();
+                    int affctedMessages = await conn.ExecuteAsync(saveToTopicQuery, msgRecords, transaction);
+                    StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType);
+                }
                 await transaction.CommitAsync();
-                return affcted;
-                // TODO: Bnaya 2024-06-10 add metrics affcted
+                return affctedEvents;
             }
             catch (Exception ex) when (IsOccException(ex))
             {
                 await transaction.RollbackAsync();
-                throw new OCCException(streamStore.Events.FirstOrDefault());
+                var cursor = new EvDbStreamCursor(streamStore.StreamAddress);
+                throw new OCCException(cursor);
             }
             catch
             {
@@ -164,7 +199,7 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
         }
 
         cancellation.ThrowIfCancellationRequested();
-        string saveSnapshotQuery = Queries.SaveSnapshot;
+        string saveSnapshotQuery = SnapshotQueries.SaveSnapshot;
         _logger.LogQuery(saveSnapshotQuery);
 
         EvDbStoredSnapshotData snapshot = viewStore.GetSnapshotData();
@@ -174,5 +209,13 @@ public abstract class EvDbRelationalStorageAdapter : IEvDbStorageAdapter
 
     #endregion // IEvDbStorageAdapter Members
 
+    #region IsOccException
+
+    /// <summary>
+    /// Determines whether  the exception is an occ exception.
+    /// </summary>
+    /// <param name="exception">The exception.</param>
     protected abstract bool IsOccException(Exception exception);
+
+    #endregion //  IsOccException
 }

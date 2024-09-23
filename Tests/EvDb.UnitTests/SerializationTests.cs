@@ -6,10 +6,10 @@ using System.Text.Json;
 
 public class SerializationTests
 {
-    [Fact(Skip = "Polymorphism (IEvDbEventPayload)")]
+    [Fact(Skip = "Polymorphism (IEvDbPayload)")]
     public void CourseCreatedEvent_Serialization_Succeed()
     {
-        IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
+        IEvDbPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
         JsonSerializerOptions? options = null;
         var json = JsonSerializer.Serialize(payload, options);
         var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
@@ -30,15 +30,15 @@ public class SerializationTests
 
 #pragma warning disable S125 // Sections of code should not be commented out
 #pragma warning disable S2699 // Tests should include assertions
-    [Fact(Skip = "Polymorphism (IEvDbEventPayload)")]
+    [Fact(Skip = "Polymorphism (IEvDbPayload)")]
     public void CourseCreatedEvent_Serialization_Converter_Succeed()
     {
         throw new NotImplementedException();
-        //IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
+        //IEvDbPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
         //var jdef = SchoolStreamSerializationContext.Default;
         //JsonSerializerOptions options = new();
-        //options.Converters.Add(jdef.CourseCreatedEvent.Converter);
-        //options.Converters.Add(jdef.ScheduleTestEvent.Converter);
+        //options.Converters.AddToTopic(jdef.CourseCreatedEvent.Converter);
+        //options.Converters.AddToTopic(jdef.ScheduleTestEvent.Converter);
         //var json = JsonSerializer.Serialize(payload, options);
         //var deserialized = JsonSerializer.Deserialize<CourseCreatedEvent>(json, options);
 
@@ -49,11 +49,11 @@ public class SerializationTests
 
 #pragma warning disable S125 // Sections of code should not be commented out
 #pragma warning disable S2699 // Tests should include assertions
-    [Fact(Skip = "Polymorphism (IEvDbEventPayload)")]
+    [Fact(Skip = "Polymorphism (IEvDbPayload)")]
     public void CourseCreatedEvent_Serialization_Resolver_Succeed()
     {
         throw new NotImplementedException();
-        //IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
+        //IEvDbPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
 
         //var options = new JsonSerializerOptions
         //{
@@ -74,7 +74,7 @@ public class SerializationTests
     public void CourseCreatedEvent_Serialization_Resolver1_Succeed()
     {
         throw new NotImplementedException();
-        //IEvDbEventPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
+        //IEvDbPayload payload = new CourseCreatedEvent(1234, "Anatomy", 40);
 
         //var options = SchoolStreamSerializationContext.Default.CourseCreatedEvent;
 

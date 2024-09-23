@@ -3,27 +3,14 @@ using EvDb.Core.Adapters;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-// TODO: [bnaya 2023-12-19] all parameters and field should be driven from nameof or const
-
 internal static class QueryTemplatesFactory
 {
-    public static EvDbAdapterQueryTemplates Create(EvDbStorageContext storageContext)
+    public static EvDbStreamAdapterQueryTemplates CreateStreamQueries(EvDbStorageContext storageContext)
     {
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
-        return new EvDbAdapterQueryTemplates
+        return new EvDbStreamAdapterQueryTemplates
         {
-            GetSnapshot = $"""
-                SELECT {toSnakeCase(nameof(EvDbStoredSnapshot.State))} as {nameof(EvDbStoredSnapshot.State)}, 
-                        {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} as {nameof(EvDbStoredSnapshot.Offset)}
-                FROM {storageContext}snapshot
-                WHERE {toSnakeCase(nameof(EvDbViewAddress.Domain))} = @{nameof(EvDbViewAddress.Domain)}
-                    AND {toSnakeCase(nameof(EvDbViewAddress.Partition))} = @{nameof(EvDbViewAddress.Partition)}
-                    AND {toSnakeCase(nameof(EvDbViewAddress.StreamId))} = @{nameof(EvDbViewAddress.StreamId)}
-                    AND {toSnakeCase(nameof(EvDbViewAddress.ViewName))} = @{nameof(EvDbViewAddress.ViewName)}
-                ORDER BY offset DESC
-                OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
-                """,
             GetEvents = $"""
                 SELECT
                     {toSnakeCase(nameof(EvDbEventRecord.Domain))} as {nameof(EvDbEventRecord.Domain)},
@@ -61,6 +48,50 @@ internal static class QueryTemplatesFactory
                         @{nameof(EvDbEventRecord.CapturedBy)},
                         @{nameof(EvDbEventRecord.CapturedAt)})
                     """,
+            SaveToTopics = $"""
+                    INSERT INTO {storageContext}topic (
+                        {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Partition))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.EventType))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.Topic))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.MessageType))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.Payload))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}) 
+                    VALUES (
+                        @{nameof(EvDbMessageRecord.Domain)}, 
+                        @{nameof(EvDbMessageRecord.Partition)}, 
+                        @{nameof(EvDbMessageRecord.StreamId)}, 
+                        @{nameof(EvDbMessageRecord.Offset)}, 
+                        @{nameof(EvDbMessageRecord.EventType)}, 
+                        @{nameof(EvDbMessageRecord.Topic)}, 
+                        @{nameof(EvDbMessageRecord.MessageType)}, 
+                        @{nameof(EvDbMessageRecord.Payload)},
+                        @{nameof(EvDbMessageRecord.CapturedBy)},
+                        @{nameof(EvDbMessageRecord.CapturedAt)})
+                    """,
+        };
+    }
+
+    public static EvDbSnapshotAdapterQueryTemplates CreateSnapshotQueries(EvDbStorageContext storageContext)
+    {
+        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
+
+        return new EvDbSnapshotAdapterQueryTemplates
+        {
+            GetSnapshot = $"""
+                SELECT {toSnakeCase(nameof(EvDbStoredSnapshot.State))} as {nameof(EvDbStoredSnapshot.State)}, 
+                        {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} as {nameof(EvDbStoredSnapshot.Offset)}
+                FROM {storageContext}snapshot
+                WHERE {toSnakeCase(nameof(EvDbViewAddress.Domain))} = @{nameof(EvDbViewAddress.Domain)}
+                    AND {toSnakeCase(nameof(EvDbViewAddress.Partition))} = @{nameof(EvDbViewAddress.Partition)}
+                    AND {toSnakeCase(nameof(EvDbViewAddress.StreamId))} = @{nameof(EvDbViewAddress.StreamId)}
+                    AND {toSnakeCase(nameof(EvDbViewAddress.ViewName))} = @{nameof(EvDbViewAddress.ViewName)}
+                ORDER BY offset DESC
+                OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
+                """,
             SaveSnapshot = $"""
             INSERT INTO {storageContext}snapshot (
                         {toSnakeCase(nameof(SnapshotSaveParameter.Domain))},

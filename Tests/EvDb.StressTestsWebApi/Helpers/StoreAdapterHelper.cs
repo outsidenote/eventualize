@@ -26,15 +26,16 @@ public static class StoreAdapterHelper
 
         string connectionString = configuration.GetConnectionString(connectionKey) ?? throw new ArgumentNullException(connectionKey);
 
-        IEvDbStorageAdapter result = storeType switch
-        {
-            StoreType.SqlServer =>
-                EvDbSqlServerStorageAdapterFactory.Create(logger, connectionString, context),
-            //StoreType.Posgres => ,
-            //    PosgresStorageAdapterFactory.Create(_logger, connectionString, context),
-            _ => throw new NotImplementedException()
-        };
-        return result;
+        //IEvDbStorageAdapter result = storeType switch
+        //{
+        //    StoreType.SqlServer =>
+        //        EvDbSqlServerStorageAdapterFactory.Create(logger, connectionString, context),
+        //    //StoreType.Posgres => ,
+        //    //    PosgresStorageAdapterFactory.Create(_logger, connectionString, context),
+        //    _ => throw new NotImplementedException()
+        //};
+        //return result;
+        throw new NotImplementedException();
     }
 
     public static IEvDbStorageMigration CreateStoreMigration(

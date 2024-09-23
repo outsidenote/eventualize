@@ -3,8 +3,8 @@
 namespace EvDb.MinimalStructure;
 
 
-[EvDbEventAdder<Event1>]
-[EvDbEventAdder<Event2>]
+[EvDbEventTypes<Event1>]
+[EvDbEventTypes<Event2>]
 public partial interface IEvents
 {
 }

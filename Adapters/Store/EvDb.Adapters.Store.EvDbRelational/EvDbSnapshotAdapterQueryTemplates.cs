@@ -6,20 +6,12 @@ namespace EvDb.Core.Adapters;
 /// Queries permutation with a specific context
 /// </summary>
 [Equatable]
-public readonly partial record struct EvDbAdapterQueryTemplates
+public readonly partial record struct EvDbSnapshotAdapterQueryTemplates
 {
     /// <summary>
     /// Get latest snapshot.
     /// </summary>
     public string GetSnapshot { get; init; }
-    /// <summary>
-    /// Get events.
-    /// </summary>
-    public string GetEvents { get; init; }
-    /// <summary>
-    /// SaveEvents.
-    /// </summary>
-    public string SaveEvents { get; init; }
     /// <summary>
     /// SaveEvents snapshot.
     /// </summary>

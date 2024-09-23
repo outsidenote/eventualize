@@ -15,9 +15,12 @@ internal static class QueryTemplatesFactory
         {
             DestroyEnvironment = $"""
             DROP TABLE {storageContext}event;
+            DROP TABLE {storageContext}topic;            
             DROP TABLE {storageContext}snapshot;            
             """,
             CreateEnvironment = $"""
+            ----------------------------------- EVENT -------------------------------
+            
             -- Create the event table
             CREATE TABLE {storageContext}event (
                 {toSnakeCase(nameof(EvDbEventRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -65,7 +68,67 @@ internal static class QueryTemplatesFactory
             ON {storageContext}event ({toSnakeCase(nameof(EvDbEventRecord.EventType))}, {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))});
 
 
+            ------------------------------------  TOPICS  ----------------------------------------
 
+            -- Create the topic table
+            CREATE TABLE {storageContext}topic (
+                {toSnakeCase(nameof(EvDbMessageRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.Offset))} BIGINT NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.EventType))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.Topic))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.MessageType))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))} datetimeoffset NOT NULL,
+                stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.Payload))} NVARCHAR(MAX) NOT NULL,
+            
+                CONSTRAINT PK_{storageContext}topic PRIMARY KEY (
+                        {toSnakeCase(nameof(EvDbMessageRecord.Domain))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.Partition))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.StreamId))}, 
+                        {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Topic))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.MessageType))}),
+                CONSTRAINT CK_{storageContext}topic_domain_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Domain))}) > 0),
+                CONSTRAINT CK_{storageContext}topic_stream_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Partition))}) > 0),
+                CONSTRAINT CK_{storageContext}topic_stream_id_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.StreamId))}) > 0),
+                CONSTRAINT CK_{storageContext}topic_event_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.EventType))}) > 0),
+                -- CONSTRAINT CK_{storageContext}topic_topic_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Topic))}) > 0),
+                CONSTRAINT CK_{storageContext}topic_message_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.MessageType))}) > 0),
+                CONSTRAINT CK_{storageContext}topic_captured_by_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}) > 0),
+                CONSTRAINT CK_{storageContext}topic_json_data_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Payload))}) > 0)
+            );
+            
+            -- CREATE INDEX IX_topic_{toSnakeCase(nameof(EvDbMessageRecord.Topic))}
+            -- ON {storageContext}topic (
+            --         {toSnakeCase(nameof(EvDbMessageRecord.Topic))},
+            --         {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},  
+            --         {toSnakeCase(nameof(EvDbMessageRecord.Offset))});
+            -- 
+            -- CREATE INDEX IX_topic_{toSnakeCase(nameof(EvDbMessageRecord.Topic))}_{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}
+            -- ON {storageContext}topic (
+            --         {toSnakeCase(nameof(EvDbMessageRecord.Topic))}, 
+            --         {toSnakeCase(nameof(EvDbMessageRecord.MessageType))},
+            --         {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},  
+            --         {toSnakeCase(nameof(EvDbMessageRecord.Offset))});
+            -- 
+            -- CREATE INDEX IX_topic_{toSnakeCase(nameof(EvDbMessageRecord.Domain))}_{toSnakeCase(nameof(EvDbMessageRecord.Partition))}_{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}_{toSnakeCase(nameof(EvDbMessageRecord.EventType))}
+            -- ON {storageContext}topic (
+            --         {toSnakeCase(nameof(EvDbMessageRecord.Domain))}, 
+            --         {toSnakeCase(nameof(EvDbMessageRecord.Partition))},
+            --         {toSnakeCase(nameof(EvDbMessageRecord.Topic))}, 
+            --         {toSnakeCase(nameof(EvDbMessageRecord.MessageType))}, 
+            --         {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}, 
+            --         {toSnakeCase(nameof(EvDbMessageRecord.Offset))});
+            
+            CREATE INDEX IX_topic_{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}
+            ON {storageContext}topic (
+                    {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))});
+            
+            ------------------------------------------------  SNAPSHOT ---------------------------------------
+            
             -- Create the snapshot table
             CREATE TABLE {storageContext}snapshot (
                 {toSnakeCase(nameof(EvDbViewAddress.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,

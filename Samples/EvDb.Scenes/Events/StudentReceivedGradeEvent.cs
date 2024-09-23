@@ -2,7 +2,7 @@
 
 namespace EvDb.Scenes;
 
-[EvDbEventPayload("student-received-grade")]
+[EvDbDefinePayload("student-received-grade")]
 public partial record StudentReceivedGradeEvent(int TestId, int StudentId, double Grade, string? Comments = null);
 
 

@@ -7,3 +7,8 @@ public interface IEvDbEventMeta
     DateTimeOffset CapturedAt { get; }
     string CapturedBy { get; }
 }
+
+public interface IEvDbTopicMeta: IEvDbEventMeta
+{
+    string MessageType { get; }
+}

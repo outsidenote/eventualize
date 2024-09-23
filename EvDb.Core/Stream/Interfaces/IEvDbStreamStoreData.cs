@@ -18,4 +18,14 @@ public interface IEvDbStreamStoreData
     /// Unspecialized events
     /// </summary>
     IEnumerable<EvDbEvent> Events { get; }
+
+    /// <summary>
+    /// Unspecialized notifications
+    /// </summary>
+    IEnumerable<EvDbMessage> Notifications { get; }
+
+    /// <summary>
+    /// Gets the stream address (uniqueness).
+    /// </summary>
+    EvDbStreamAddress StreamAddress { get; }
 }

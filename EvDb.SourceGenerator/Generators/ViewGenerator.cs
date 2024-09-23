@@ -60,9 +60,9 @@ public partial class ViewGenerator : BaseGenerator
                              let cls = a.AttributeClass!
                              where cls != null
                              let text = cls.Name
-                             where text == EventAdderGenerator.EventTarget
+                             where text == EventTypesGenerator.EventTarget
                              let payloadType = cls.TypeArguments.First()
-                             let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbEventPayload") ?? false)
+                             let payloadAtt = payloadType.GetAttributes().First(m => m.AttributeClass?.Name.StartsWith("EvDbDefinePayload") ?? false)
                              let eventTypeValue = payloadAtt.ConstructorArguments.First().Value?.ToString()
                              let fullName = cls?.ToString()
                              let genStart = fullName.IndexOf('<') + 1
@@ -116,7 +116,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter,
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -131,7 +131,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot snapshot, 
@@ -169,7 +169,7 @@ public partial class ViewGenerator : BaseGenerator
                         #endregion // Fold
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPath($"{viewClassName}Base"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{viewClassName}Base"), builder.ToString());
 
         #endregion // ViewBase
 
@@ -186,7 +186,7 @@ public partial class ViewGenerator : BaseGenerator
                     { 
                         internal {{viewOriginName}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -201,7 +201,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         internal {{viewOriginName}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot snapshot, 

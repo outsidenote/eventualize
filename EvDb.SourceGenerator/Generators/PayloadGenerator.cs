@@ -9,9 +9,9 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EventPayloadGenerator : BaseGenerator
+public partial class PayloadGenerator : BaseGenerator
 {
-    protected override string EventTargetAttribute { get; } = "EvDbEventPayloadAttribute";
+    protected override string EventTargetAttribute { get; } = "EvDbDefinePayloadAttribute";
 
     #region OnGenerate
 
@@ -32,7 +32,7 @@ public partial class EventPayloadGenerator : BaseGenerator
         var payloadName = from atts in syntax.AttributeLists
                           from att in atts.Attributes
                           let fn = att.Name.ToFullString()
-                          where fn.StartsWith("EvDbEventPayload")
+                          where fn.StartsWith("EvDbDefinePayload")
                           select att.ArgumentList?.Arguments[0].ToString();
         var key = payloadName.FirstOrDefault();
         if (key == null)
@@ -45,10 +45,10 @@ public partial class EventPayloadGenerator : BaseGenerator
         builder.AppendLine($$"""
                     [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
-                    partial {{type}} {{name}}: IEvDbEventPayload
+                    partial {{type}} {{name}}: IEvDbPayload
                     {
                         [System.Text.Json.Serialization.JsonIgnore]
-                        string IEvDbEventPayload.EventType { get; } = {{key}};
+                        string IEvDbPayload.PayloadType { get; } = {{key}};
                     }                
                     """);
 
