@@ -1,6 +1,4 @@
-﻿// TODO: [bnaya 2023-12-20] default timeout
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace EvDb.Core.Adapters;
 

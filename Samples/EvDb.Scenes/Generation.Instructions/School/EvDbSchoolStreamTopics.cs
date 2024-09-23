@@ -15,8 +15,8 @@ public partial class EvDbSchoolStreamTopics
 {
     protected override void ProduceTopicMessages(
         StudentReceivedGradeEvent payload,
+        IEvDbEventMeta meta,
         EvDbSchoolStreamViews views,
-        IEvDbEventMeta meta, // TODO: move up
         EvDbSchoolStreamTopicsContext topics)
     {
         var state = views.ALL;

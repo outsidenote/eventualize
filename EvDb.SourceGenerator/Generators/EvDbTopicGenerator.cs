@@ -196,8 +196,8 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
                 protected virtual void ProduceTopicMessages(
                     {{info.FullTypeName}} payload,
-                    {{streamName}}Views views,
                     IEvDbEventMeta meta,
+                    {{streamName}}Views views,
                     {{topicsName}}Context topics)
                 {
                 }
@@ -211,7 +211,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
                         case "{{info.SnapshotStorageName}}":
                             {
                                 var payload = c.GetData<{{info.FullTypeName}}>(_serializationOptions);
-                                ProduceTopicMessages(payload, states, e, topics);
+                                ProduceTopicMessages(payload, e, states, topics);
                                 break;
                             }
                         

@@ -2,8 +2,6 @@
 
 namespace EvDb.Core.Adapters;
 
-// TODO: bnaya 2024-09-17 split it into stream & snapshot
-
 /// <summary>
 /// Queries permutation with a specific context
 /// </summary>

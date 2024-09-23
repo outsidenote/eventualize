@@ -116,7 +116,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter,
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -131,7 +131,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot snapshot, 
@@ -186,7 +186,7 @@ public partial class ViewGenerator : BaseGenerator
                     { 
                         internal {{viewOriginName}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -201,7 +201,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         internal {{viewOriginName}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter storageAdapter, // TODO: * IEvDbStorageSnapshotAdapter
+                            IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot snapshot, 

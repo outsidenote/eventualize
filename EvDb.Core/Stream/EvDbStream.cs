@@ -7,9 +7,6 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
-// TODO [bnaya 2023-12-13] consider to encapsulate snapshot object with Snapshot<TStreamFactory> which is a wrapper of TStreamFactory that holds TStreamFactory and snapshotOffset 
-
-// TODO:bnaya 2024-06-03 AddToTopic / View state should support fully immutable pattern for saving without locking
 namespace EvDb.Core;
 
 
@@ -147,7 +144,6 @@ public abstract class EvDbStream :
         }
         try
         {
-            // TODO: bnaya 2024-09-16 add the topic into the StoreStreamAsync
             int affected = await _storageAdapter.StoreStreamAsync(events, topic, this, cancellation);
             _sysMeters.EventsStored.Add(affected, tags);
 

@@ -66,7 +66,6 @@ public static class StoreAdapterHelper
         return conn;
     }
 
-    // TODO: return context
     public static IEvDbStorageMigration CreateStoreMigration(
         ILogger logger,
         StoreType storeType,
