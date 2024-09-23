@@ -8,7 +8,7 @@ namespace EvDb.Scenes;
 [EvDbAttachTopic("topic-3")]
 [EvDbAttachTopic("topic-2")]
 [EvDbAttachTopic("topic-1")]
-[EvDbPayload("student-passed")]
+[EvDbDefinePayload("student-passed")]
 public partial record StudentPassedMessage(int StudentId, string Name, DateTimeOffset When, double Grade);
 
 

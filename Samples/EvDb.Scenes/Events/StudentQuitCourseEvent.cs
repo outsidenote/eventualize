@@ -2,7 +2,7 @@
 
 namespace EvDb.Scenes;
 
-[EvDbPayload("student-quit-course")]
+[EvDbDefinePayload("student-quit-course")]
 public partial record StudentQuitCourseEvent(int CourseId, int StudentId);
 
 

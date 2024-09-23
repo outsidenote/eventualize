@@ -3,9 +3,8 @@
 using EvDb.Core;
 
 namespace EvDb.Scenes;
-// TODO: EvDbDefinePayload
 
-[EvDbPayload("avg")]
+[EvDbDefinePayload("avg")]
 public partial record AvgMessage(double Avg);
 
 

@@ -31,7 +31,7 @@ internal struct TopicTypeInfo
 
         var attributes = attachedViewFirstArgSymbol.GetAttributes();
         var messageTypeAtt = attributes
-                                .First(m => m.AttributeClass?.Name == "EvDbPayloadAttribute");
+                                .First(m => m.AttributeClass?.Name == "EvDbDefinePayloadAttribute");
         string? storageName = messageTypeAtt?.ConstructorArguments.First().Value?.ToString();
         if (storageName == null)
         {

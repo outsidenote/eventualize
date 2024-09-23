@@ -1,9 +1,9 @@
 ﻿namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Assembly, AllowMultiple = true)]
-public class EvDbPayloadAttribute : Attribute
+public class EvDbDefinePayloadAttribute : Attribute
 {
-    public EvDbPayloadAttribute(string payloadType)
+    public EvDbDefinePayloadAttribute(string payloadType)
     {
         PayloadType = payloadType;
     }

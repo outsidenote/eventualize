@@ -8,7 +8,7 @@ public struct PayloadInfo
     {
         ITypeSymbol payloadType = cls.TypeArguments.First();
         AttributeData payloadAtt = payloadType.GetAttributes()
-            .First(m => m.AttributeClass?.Name.StartsWith("EvDbPayload") ?? false);
+            .First(m => m.AttributeClass?.Name.StartsWith("EvDbDefinePayload") ?? false);
         SnapshotStorageName = payloadAtt.ConstructorArguments.First().Value?.ToString() ?? string.Empty;
         FullTypeName = cls.TypeArguments.First().ToDisplayString();
     }

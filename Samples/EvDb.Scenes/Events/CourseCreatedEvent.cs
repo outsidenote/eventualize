@@ -2,7 +2,7 @@
 
 namespace EvDb.Scenes;
 
-[EvDbPayload("course-created")]
+[EvDbDefinePayload("course-created")]
 public partial record CourseCreatedEvent(int Id, string Name, int Capacity);
 
 

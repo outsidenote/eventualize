@@ -11,7 +11,7 @@ namespace EvDb.SourceGenerator;
 [Generator]
 public partial class PayloadGenerator : BaseGenerator
 {
-    protected override string EventTargetAttribute { get; } = "EvDbPayloadAttribute";
+    protected override string EventTargetAttribute { get; } = "EvDbDefinePayloadAttribute";
 
     #region OnGenerate
 
@@ -32,7 +32,7 @@ public partial class PayloadGenerator : BaseGenerator
         var payloadName = from atts in syntax.AttributeLists
                           from att in atts.Attributes
                           let fn = att.Name.ToFullString()
-                          where fn.StartsWith("EvDbPayload")
+                          where fn.StartsWith("EvDbDefinePayload")
                           select att.ArgumentList?.Arguments[0].ToString();
         var key = payloadName.FirstOrDefault();
         if (key == null)

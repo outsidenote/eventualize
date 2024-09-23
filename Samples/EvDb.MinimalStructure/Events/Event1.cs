@@ -2,7 +2,7 @@
 
 namespace EvDb.MinimalStructure;
 
-[EvDbPayload("event-1")]
+[EvDbDefinePayload("event-1")]
 public partial record Event1(int Id, string Name, int Capacity);
 
 
