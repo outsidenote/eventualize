@@ -43,7 +43,7 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(3, studentStat.Count);
 
             var messageCollection = await GetMessagesFromTopicsAsync().ToEnumerableAsync();
-            var messages = messageCollection.ToArray();
+            EvDbMessage[] messages = messageCollection.ToArray();
 
             string connectionString = StoreAdapterHelper.GetConnectionString(StoreType.SqlServer);
             IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext);
@@ -55,20 +55,20 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(30, avg1!.Avg);           
             var avg2 = JsonSerializer.Deserialize<AvgMessage>(messages[2].Payload);
             Assert.Equal(45, avg2!.Avg);
-            var avg3 = JsonSerializer.Deserialize<AvgMessage>(messages[5].Payload);
+            var avg3 = JsonSerializer.Deserialize<AvgMessage>(messages[6].Payload);
             Assert.Equal(60, avg3!.Avg);
 
-            const int firstGradeOffset = 1; // it's start from the second event
             var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
             for (int i = 0; i < messages.Length; i++)
             {
-                var item = messages[i];
+                EvDbMessage item = messages[i];
                 Assert.Equal("student-received-grade", item.EventType);
                 var itemOffset = item.StreamCursor.Offset;
                 int expectedOffset = i switch
                 {
-                    < 2 => firstGradeOffset,            // produce 2 messages
-                    _ => (i + 1) / 3 + firstGradeOffset // produce 3 messages
+                    < 2 => 1,  // produce 2 messages
+                    < 6 => 2,   // produce 4 messages
+                    _ => 3      // produce 4 messages
                 };
                 Assert.Equal(expectedOffset, itemOffset);
                 Assert.Contains(itemOffset, eventsOffsets);
@@ -78,7 +78,7 @@ public class SqlServerStreamTests : IntegrationTests
              Assert.Equal("avg", messages[0].MessageType);
 
             // Avg
-            for (int i = 2; i < 8; i+=3)
+            for (int i = 2; i < 8; i+=4)
             {
                 Assert.Equal("avg", messages[i].MessageType);
             }
@@ -91,22 +91,25 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal("Lora", fail.Name);
             Assert.Equal("topic-1", msg.Topic);
 
-            // Pass
-            for (int i = 3; i < 6; i+=3)
-            {
-                msg = messages[i];
-                Assert.Equal("student-passed", msg.MessageType);
-                var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload);
-                Assert.Equal(2202, pass.StudentId);
-                Assert.Equal("Lora", pass.Name);
-                Assert.Equal("topic-1", msg.Topic);
+            var passCollection = messages.Where(m => m.MessageType == "student-passed")
+                                         .ToArray();
+            Assert.Equal(6, passCollection.Length);
 
-                msg = messages[i + 1];
+            // Pass
+            for (int i = 0; i < passCollection.Length; i++)
+            {
+                msg = passCollection[i];
+                var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload);
                 Assert.Equal("student-passed", msg.MessageType);
-                pass = JsonSerializer.Deserialize<StudentPassedMessage>(messages[i+1].Payload);
                 Assert.Equal(2202, pass.StudentId);
                 Assert.Equal("Lora", pass.Name);
-                Assert.Equal("topic-3", msg.Topic);
+                string expected = (i % 3) switch
+                {
+                    0 => EvDbTopic.DEFAULT_TOPIC,
+                    1 => "topic-1",
+                    _ => "topic-3"
+                };
+                Assert.Equal(expected, msg.Topic);
             }
         }
     }

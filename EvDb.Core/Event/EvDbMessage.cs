@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace EvDb.Core;
 
 [Equatable]
-[DebuggerDisplay("[{Topic}:{MessageType}] driven from [{EventType}]: {Payload}")]
+[DebuggerDisplay("[{Topic} [{StreamCursor.Offset}]:{MessageType}] driven from [{EventType}]: {Payload}")]
 public partial record struct EvDbMessage(
                                 string EventType,
                                 string Topic,

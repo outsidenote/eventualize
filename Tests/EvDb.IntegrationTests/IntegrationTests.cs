@@ -39,7 +39,7 @@ public class IntegrationTests : IAsyncLifetime
                     {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))} as {nameof(EvDbMessageRecord.CapturedBy)},
                     {toSnakeCase(nameof(EvDbMessageRecord.Payload))} as {nameof(EvDbMessageRecord.Payload)}                  
                 FROM {context}topic WITH (READCOMMITTEDLOCK)
-                ORDER BY {toSnakeCase(nameof(EvDbMessageRecord.Offset))};
+                ORDER BY {toSnakeCase(nameof(EvDbMessageRecord.Offset))}, {toSnakeCase(nameof(EvDbMessageRecord.MessageType))};
                 """;
     }
 
