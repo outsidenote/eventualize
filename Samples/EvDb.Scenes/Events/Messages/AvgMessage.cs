@@ -3,9 +3,10 @@
 using EvDb.Core;
 
 namespace EvDb.Scenes;
+// TODO: EvDbDefinePayload
 
 [EvDbPayload("avg")]
-public partial record AvgTopic(double Avg);
+public partial record AvgMessage(double Avg);
 
 
 

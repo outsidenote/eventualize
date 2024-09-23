@@ -1,4 +1,4 @@
-// Ignore Spelling: Sql
+﻿// Ignore Spelling: Sql
 
 namespace EvDb.Core.Tests;
 
@@ -51,42 +51,62 @@ public class SqlServerStreamTests : IntegrationTests
             var eventsCollection = await adapter.GetEventsAsync(address).ToEnumerableAsync();
             var events = eventsCollection.ToArray();
 
-            var avg1 = JsonSerializer.Deserialize<AvgTopic>(messages[0].Payload);
+            var avg1 = JsonSerializer.Deserialize<AvgMessage>(messages[0].Payload);
             Assert.Equal(30, avg1!.Avg);           
-            var avg2 = JsonSerializer.Deserialize<AvgTopic>(messages[2].Payload);
+            var avg2 = JsonSerializer.Deserialize<AvgMessage>(messages[2].Payload);
             Assert.Equal(45, avg2!.Avg);
-            var avg3 = JsonSerializer.Deserialize<AvgTopic>(messages[4].Payload);
+            var avg3 = JsonSerializer.Deserialize<AvgMessage>(messages[5].Payload);
             Assert.Equal(60, avg3!.Avg);
 
+            const int firstGradeOffset = 1; // it's start from the second event
             var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
             for (int i = 0; i < messages.Length; i++)
             {
                 var item = messages[i];
                 Assert.Equal("student-received-grade", item.EventType);
                 var itemOffset = item.StreamCursor.Offset;
-                Assert.Equal(i / 2 + 1, itemOffset);
+                int expectedOffset = i switch
+                {
+                    < 2 => firstGradeOffset,            // produce 2 messages
+                    _ => (i + 1) / 3 + firstGradeOffset // produce 3 messages
+                };
+                Assert.Equal(expectedOffset, itemOffset);
                 Assert.Contains(itemOffset, eventsOffsets);
             }
 
             // Avg
-            for (int i = 0; i < 6; i+=2)
+             Assert.Equal("avg", messages[0].MessageType);
+
+            // Avg
+            for (int i = 2; i < 8; i+=3)
             {
                 Assert.Equal("avg", messages[i].MessageType);
             }
 
             // Fail
-            Assert.Equal("student-fail", messages[1].MessageType);
-            var fail = JsonSerializer.Deserialize<StudentFailTopic>(messages[1].Payload);
+            var msg = messages[1];
+            Assert.Equal("student-failed", msg.MessageType);
+            var fail = JsonSerializer.Deserialize<StudentFailedMessage>(messages[1].Payload);
             Assert.Equal(2202, fail.StudentId);
             Assert.Equal("Lora", fail.Name);
+            Assert.Equal("topic-1", msg.Topic);
 
             // Pass
-            for (int i = 3; i < 6; i+=2)
+            for (int i = 3; i < 6; i+=3)
             {
-                Assert.Equal("student-pass", messages[i].MessageType);
-                var pass = JsonSerializer.Deserialize<StudentPassTopic>(messages[i].Payload);
+                msg = messages[i];
+                Assert.Equal("student-passed", msg.MessageType);
+                var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload);
                 Assert.Equal(2202, pass.StudentId);
                 Assert.Equal("Lora", pass.Name);
+                Assert.Equal("topic-1", msg.Topic);
+
+                msg = messages[i + 1];
+                Assert.Equal("student-passed", msg.MessageType);
+                pass = JsonSerializer.Deserialize<StudentPassedMessage>(messages[i+1].Payload);
+                Assert.Equal(2202, pass.StudentId);
+                Assert.Equal("Lora", pass.Name);
+                Assert.Equal("topic-3", msg.Topic);
             }
         }
     }

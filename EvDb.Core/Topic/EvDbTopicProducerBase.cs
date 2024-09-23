@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace EvDb.Core.Internals;
 
 public abstract class EvDbTopicContextBase : IEvDbTopicProducerGeneric
-{
+{ 
     private readonly EvDbStream _evDbStream;
     private readonly IEvDbEventMeta _relatedEventMeta;
     private readonly TimeProvider _timeProvider;

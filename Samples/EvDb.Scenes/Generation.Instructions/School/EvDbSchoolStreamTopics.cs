@@ -7,44 +7,44 @@ using EvDb.Scenes;
 namespace EvDb.UnitTests;
 
 
-[EvDbMessageTypes<AvgTopic>]
-[EvDbMessageTypes<StudentPassTopic>]
-[EvDbMessageTypes<StudentFailTopic>]
+[EvDbMessageTypes<AvgMessage>]
+[EvDbMessageTypes<StudentPassedMessage>]
+[EvDbMessageTypes<StudentFailedMessage>]
 [EvDbTopic<SchoolStreamFactory>]
 public partial class EvDbSchoolStreamTopics
 {
     protected override void ProduceTopicMessages(
         StudentReceivedGradeEvent payload,
         EvDbSchoolStreamViews views,
-        IEvDbEventMeta meta,
+        IEvDbEventMeta meta, // TODO: move up
         EvDbSchoolStreamTopicsContext topics)
     {
         var state = views.ALL;
-        var avg = new AvgTopic(state.Sum / (double)state.Count);
+        var avg = new AvgMessage(state.Sum / (double)state.Count);
         topics.Add(avg);
         var studentName = views.StudentStats.Students
             .First(m => m.StudentId == payload.StudentId)
             .StudentName;
         if (payload.Grade >= 60)
         {
-            var pass = new StudentPassTopic(payload.StudentId,
+            var pass = new StudentPassedMessage(payload.StudentId,
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(pass, TopicsOfStudentPassTopic.Topic1);
-            //topics.Add(pass, StudentPassTopicTopics.Topic1);
+            topics.Add(pass, TopicsOfStudentPassedMessage.Topic1);
+            topics.Add(pass, TopicsOfStudentPassedMessage.Topic3);
             //topics.Topic1.Add(pass);
             //topics.Topic2.Add(pass);
         }
         else
         { 
-            var fail = new StudentFailTopic(payload.StudentId,
+            var fail = new StudentFailedMessage(payload.StudentId,
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(fail, TopicsOfStudentFailTopic.Topic1);
-            topics.Add(fail, TopicsOfStudentFailTopic.Topic2);
+            topics.Add(fail);
         }
     }    
+
 }
 

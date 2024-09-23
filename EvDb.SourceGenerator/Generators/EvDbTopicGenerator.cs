@@ -97,7 +97,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    base.Add(payload, DEFAULT_TOPIC);
+                    base.Add(payload, EvDbTopic.DEFAULT_TOPIC);
                 }
             
             """);
@@ -150,8 +150,6 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public sealed class {{topicsName}}Context : EvDbTopicContextBase
                     {
-                        private const string DEFAULT_TOPIC = "DEFAULT";
-
                         public {{topicsName}}Context(
                             EvDbStream evDbStream,
                             IEvDbEventMeta relatedEventMeta)
