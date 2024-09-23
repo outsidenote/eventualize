@@ -38,6 +38,7 @@ internal struct TopicTypeInfo
             context.Throw(EvDbErrorsNumbers.MissingViewName, "message name on store is missing", syntax);
         }
 
+        HasDefaultTopic = attributes.Any(m => m.AttributeClass?.Name == "EvDbAttachToDefaultTopicAttribute");
         Topics = attributes.Where(m => m.AttributeClass?.Name == "EvDbAttachTopicAttribute")
                                 .Select(m => m.ConstructorArguments.First().Value?.ToString() ?? "")
                                 .ToArray();
@@ -72,4 +73,9 @@ internal struct TopicTypeInfo
     /// Gets the attached topics.
     /// </summary>
     public string[] Topics { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether it has a default topic.
+    /// </summary>
+    public bool HasDefaultTopic { get; }
 }

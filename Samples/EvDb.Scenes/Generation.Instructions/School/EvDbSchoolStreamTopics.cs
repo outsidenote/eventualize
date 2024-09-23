@@ -33,8 +33,7 @@ public partial class EvDbSchoolStreamTopics
                                              payload.Grade);
             topics.Add(pass, TopicsOfStudentPassedMessage.Topic1);
             topics.Add(pass, TopicsOfStudentPassedMessage.Topic3);
-            //topics.Topic1.Add(pass);
-            //topics.Topic2.Add(pass);
+            topics.Add(pass);
         }
         else
         { 

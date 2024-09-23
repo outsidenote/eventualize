@@ -83,7 +83,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         #endregion // TopicTypeInfo[] messageTypes = ..
 
         var multiTopics = messageTypes
-                .Where(m => m.Topics.Length > 1);
+                .Where(m => m.Topics.Length > 1 || m.Topics.Length == 1 && m.HasDefaultTopic);
 
         #region Topic Context
 
@@ -91,7 +91,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         var addMessageTypes =
             messageTypes
-                .Where(m => m.Topics.Length == 0)
+                .Where(m => m.Topics.Length == 0 || m.HasDefaultTopic)
                 .Select((info, i) =>
             $$"""
 
@@ -108,7 +108,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         var addMessageTypesSingleTopic =
             messageTypes
-                .Where(m => m.Topics.Length == 1)
+                .Where(m => m.Topics.Length == 1 && !m.HasDefaultTopic)
                 .Select((info, i) =>
             $$"""
 
