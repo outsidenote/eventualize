@@ -85,29 +85,13 @@ public class StressJob : BackgroundService
         int batchSize,
         string streamPrefix) = options;
 
-        int counter = 0, lastCount = 0;
+        int counter = 0;
         int occCounter = 0;
-        var queue = new ConcurrentQueue<string>();
-        using var timer = new Timer((_) =>
-        {
-            var perSec = counter - lastCount;
-            lastCount = counter;
-            _logger.LogInformation("------------- 5s ------------------");
-            int x = 0;
-            while (queue.TryDequeue(out string? message) && x++ < 4)
-            {
-                _logger.LogInformation(message);
-            }
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            _logger.LogInformation($"Event per second: {perSec / 5:N0}, Count = {lastCount:N0}");
-            Console.ResetColor();
-        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
 
         var tasks = Enumerable.Range(0, streamsCount)
             .Select(async stream_i =>
             {
                 var streamId = $"{streamPrefix}-{stream_i}";
-                var sw = Stopwatch.StartNew();
 
                 var ab = new ActionBlock<int>(async j =>
                 {
@@ -122,9 +106,7 @@ public class StressJob : BackgroundService
 
                         try
                         {
-                            var offset0 = stream.StoredOffset;
-                            int affected = await stream.StoreAsync(stoppingToken);
-                            var offset1 = stream.StoredOffset;
+                            await stream.StoreAsync(stoppingToken);
                             success = true;
                         }
                         catch (OCCException)
@@ -132,17 +114,6 @@ public class StressJob : BackgroundService
                             Interlocked.Increment(ref occCounter);
                         }
                     } while (!success);
-                    if (counter % REPORT_INTERVAL == 0)
-                    {
-                        sw.Stop();
-                        int count = counter;
-                        double reportPerSecond = REPORT_INTERVAL / sw.Elapsed.TotalSeconds;
-                        queue.Enqueue($"""
-                                Count:              {counter:N0}
-                                Avg Duration (sec): {sw.ElapsedMilliseconds / REPORT_INTERVAL / 1000.0:N3}
-                                """);
-                        sw = Stopwatch.StartNew();
-                    }
                 }, new ExecutionDataflowBlockOptions
                 {
                     MaxDegreeOfParallelism = degreeOfParallelismPerStream,
@@ -160,9 +131,9 @@ public class StressJob : BackgroundService
 
         _logger.LogInformation("=================== COMPLETE ==================");
 
-        int expectedEventsCount = writeCycleCount * batchSize;
         _logger.LogInformation($"count: {counter}");
         _logger.LogInformation($"OCC count: {occCounter}");
+        int expectedEventsCount = writeCycleCount * batchSize;
         for (int i = 0; i < streamsCount; i++)
         {
             var streamId = $"{streamPrefix}-{i}";
