@@ -23,7 +23,7 @@ Let's see what happens when we introduce a Snapshot for the calculating "total p
 <img src="../../images/aggregate-with-snapshot-example.png" width="900"/>
 
 As you can see, a Snapshot is like another type of aggregate.<br>
-The difference is, that it stores the state across different points in time for a cpecific folding logic of a particular aggregate.<br>
+The difference is, that it stores the state across different points in time for a specific folding logic of a particular aggregate.<br>
 In our example, the snapshot stores the different states of folding logic "Total Points" for the user "john" aggregate.<br>
 
 The latest state the Snapshot holds is up to event 990.<br>
