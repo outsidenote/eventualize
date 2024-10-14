@@ -12,7 +12,7 @@ public struct EvDbMessageRecord
     public string EventType { get; init; }
     public string Topic { get; init; }
     public string MessageType { get; init; }
-    public string Payload { get; init; }
+    public byte[] Payload { get; init; }
     public string CapturedBy { get; init; }
     public DateTimeOffset CapturedAt { get; init; }
 

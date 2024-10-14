@@ -24,7 +24,7 @@ public abstract class EvDbTopicContextBase : IEvDbTopicProducerGeneric
     public void Add<T>(T payload, string topic)
         where T : IEvDbPayload
     {
-        var json = JsonSerializer.Serialize(payload, _options);
+        var json = JsonSerializer.SerializeToUtf8Bytes(payload, _options);
         EvDbMessage e = new EvDbMessage(
                                     _relatedEventMeta.EventType,
                                     topic,

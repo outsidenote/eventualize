@@ -25,12 +25,13 @@ public class ApiDesignTests
                         .AddSchoolStreamFactory(
                                 c => c.UseSqlServerStoreForEvDbStream(),
                                 EvDbStorageContext.CreateWithEnvironment())
-                            .Topics(c =>
-                            {
-                                c.CreateTopicGroup(x => [x.Tipic1, x.Topic2])
-                                        .WithTransformation<T>()
-                                        .WithTransformation(x => JsonSerializer.Serialize(x.Payload));
-                            })
+                        .AddTopics(tg => tg.CreateTopicGroup("Testroup",EvDbSchoolStreamTopics.Topic1 | EvDbSchoolStreamTopics.Topic2))
+                            //.Topics(c =>
+                            //{
+                            //    c.CreateTopicGroup(x => [x.Tipic1, x.Topic2])
+                            //            .WithTransformation<T>()
+                            //            .WithTransformation(x => JsonSerializer.Serialize(x.Payload));
+                            //})
                             .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
                             .ForALL(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection-server1"))
                             .ForStudentStats(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection2"));
