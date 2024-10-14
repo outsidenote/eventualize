@@ -28,7 +28,7 @@ public class ApiDesignTests
                         .AddTopics(tg => tg.CreateTopicGroup("Testroup",EvDbSchoolStreamTopics.Topic1 | EvDbSchoolStreamTopics.Topic2))
                             //.Topics(c =>
                             //{
-                            //    c.CreateTopicGroup(x => [x.Tipic1, x.Topic2])
+                            //    c.CreateTopicGroup(x => [x.Topic1, x.Topic2])
                             //            .WithTransformation<T>()
                             //            .WithTransformation(x => JsonSerializer.Serialize(x.Payload));
                             //})

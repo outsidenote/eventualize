@@ -9,6 +9,7 @@ namespace EvDb.Core;
 public partial record struct EvDbMessage(
                                 string EventType,
                                 string Topic,
+                                string TableName,
                                 string MessageType,
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,
