@@ -34,18 +34,16 @@ public class EvDbSchoolStreamTopicDefinitionContext: EvDbSchoolStreamTopicDefini
 public class EvDbSchoolStreamTopicDefinition
 {
 
-    public EvDbSchoolStreamTopicDefinitionContext CreateTopicGroup(string groupName, EvDbSchoolStreamTopics topics)
+    public EvDbSchoolStreamTopicDefinitionContext CreateTopicGroup(string groupName, EvDbSchoolStreamTopics topics, params EvDbSchoolStreamTopics[] additionalTopics)
     {
         throw new NotImplementedException();
     }
 }
 
-[Flags]
 public enum EvDbSchoolStreamTopics
 {
-    None = 0,
-    Topic1 = 1,
-    Topic2 = 2,
-    Topic3 = 4,
-    All = Topic1 | Topic2 | Topic3
+    Default,
+    Topic1,
+    Topic2,
+    Topic3
 }

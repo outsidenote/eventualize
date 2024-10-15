@@ -165,6 +165,24 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         #endregion // Topic Context
 
+        #region AllTopicsEnum
+        var allTopics = multiTopics.SelectMany(t => t.Topics).Distinct();
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using EvDb.Core.Internals;");
+        builder.AppendLine();
+        builder.AppendLine($$"""
+                    public enum {{streamName}}TopicOptions
+                    {
+                    {{string.Join(",", allTopics.Select(t =>
+                    $$"""
+
+                            {{t.FixNameForClass()}}   
+                        """))}}
+                    }
+                    """);
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{streamName}TopicOptions"), builder.ToString());
+        #endregion AllTopicsEnum
+
         #region Multi Topics Enum
 
         foreach (var info in multiTopics)
