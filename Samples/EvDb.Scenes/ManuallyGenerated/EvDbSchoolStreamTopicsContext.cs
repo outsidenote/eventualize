@@ -4,6 +4,7 @@ using EvDb.Core;
 using EvDb.Scenes;
 namespace EvDb.UnitTests;
 using EvDb.Core.Internals;
+using static EvDb.UnitTests.EvDbSchoolStreamTableMatching;
 
 public sealed class EvDbSchoolStreamTopicsContext1 : EvDbTopicContextBase
 {
@@ -62,7 +63,11 @@ public sealed class EvDbSchoolStreamTopicsContext1 : EvDbTopicContextBase
         }
     }
 
-    private static string[] ToTables(string topic)
+}
+
+internal static class EvDbSchoolStreamTableMatching
+{
+    public static string[] ToTables(string topic)
     {
         string[] tables = topic switch
         {
@@ -75,5 +80,4 @@ public sealed class EvDbSchoolStreamTopicsContext1 : EvDbTopicContextBase
 
         return tables;
     }
-
 }

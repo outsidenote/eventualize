@@ -101,7 +101,6 @@ public abstract class EvDbRelationalStorageAdapter :
     /// Gets the snapshot's queries.
     /// </summary>
     protected abstract EvDbSnapshotAdapterQueryTemplates SnapshotQueries { get; }
-
     #endregion //  SnapshotQueries
 
     #region IEvDbStorageAdapter Members
