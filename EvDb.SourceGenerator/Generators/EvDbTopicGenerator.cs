@@ -302,7 +302,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public abstract class {{topicsName}}Base : IEvDbTopicProducer
                     {
-                        private readonly EvDbSchoolStream _evDbStream;
+                        private readonly {{streamName} _evDbStream;
                         private readonly JsonSerializerOptions? _serializationOptions;
                         protected const string DefaultTableNameForTopic = "ev-db-topic";
 
