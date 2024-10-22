@@ -2,6 +2,7 @@
 
 namespace EvDb.Core.Tests;
 
+using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
 using System.Text.Json;
@@ -43,7 +44,7 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(3, studentStat.Count);
 
             var messageCollection = await GetMessagesFromTopicsAsync().ToEnumerableAsync();
-            EvDbMessage[] messages = messageCollection.ToArray();
+            EvDbMessageRecord[] messages = messageCollection.ToArray();
 
             string connectionString = StoreAdapterHelper.GetConnectionString(StoreType.SqlServer);
             IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext);
@@ -61,9 +62,9 @@ public class SqlServerStreamTests : IntegrationTests
             var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
             for (int i = 0; i < messages.Length; i++)
             {
-                EvDbMessage item = messages[i];
+                EvDbMessageRecord item = messages[i];
                 Assert.Equal("student-received-grade", item.EventType);
-                var itemOffset = item.StreamCursor.Offset;
+                var itemOffset = item.Offset;
                 int expectedOffset = i switch
                 {
                     < 2 => 1,  // produce 2 messages

@@ -43,14 +43,14 @@ public class IntegrationTests : IAsyncLifetime
                 """;
     }
 
-    public async IAsyncEnumerable<EvDbMessage> GetMessagesFromTopicsAsync()
+    public async IAsyncEnumerable<EvDbMessageRecord> GetMessagesFromTopicsAsync()
     {
         await _connection.OpenAsync();
         DbDataReader reader = await _connection.ExecuteReaderAsync(_topicQuery);
         var parser = reader.GetRowParser<EvDbMessageRecord>();
         while (await reader.ReadAsync())
         {
-            EvDbMessage e = parser(reader);
+            EvDbMessageRecord e = parser(reader);
             yield return e;
         }
     }

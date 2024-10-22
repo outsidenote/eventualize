@@ -86,8 +86,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         var multiTopics = messageTypes
                 .Where(m => m.Topics.Length > 1 || m.Topics.Length == 1 && m.HasDefaultTopic);
 
-        bool hasDefaultTopic = messageTypes
-        .Any(m => m.HasDefaultTopic || m.Topics.Length == 0);
+        bool hasDefaultTopic = Array.Exists(messageTypes, m => m.HasDefaultTopic || m.Topics.Length == 0);
 
         #region Topic Context
 
@@ -101,7 +100,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    var tableNames = TopicToTables(EvDbTopic.DEFAULT_TOPIC);
+                    var tableNames = _topicToTables.TopicToTables(EvDbTopic.DEFAULT_TOPIC);
                     foreach (var tableName in tableNames)
                     {
                         base.Add(payload, EvDbTopic.DEFAULT_TOPIC, tableName); 
@@ -122,7 +121,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    var tableNames = TopicToTables("{{{info.Topics[0]}}}");
+                    var tableNames = _topicToTables.TopicToTables("{{info.Topics[0]}}");
                     foreach (var tableName in tableNames)
                     {
                         base.Add(payload, "{{info.Topics[0]}}", tableName); 
@@ -149,7 +148,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
             """))}}                
                         };
 
-                    var tableNames = TopicToTables(topicText);
+                    var tableNames = _topicToTables.TopicToTables(topicText);
                     foreach (var tableName in tableNames)
                     {
                         base.Add(payload, topicText, tableName);
@@ -168,11 +167,15 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public sealed class {{topicsName}}Context : EvDbTopicContextBase
                     {
+                        private readonly IEvDbTopicToTables _topicToTables;
+
                         public {{topicsName}}Context(
                             EvDbStream evDbStream,
-                            IEvDbEventMeta relatedEventMeta)
+                            IEvDbEventMeta relatedEventMeta,
+                            IEvDbTopicToTables topicToTables)
                                     : base(evDbStream, relatedEventMeta)
                         {
+                            _topicToTables = topicToTables;
                         }
                     {{string.Join("", addMessageTypes)}}
                     {{string.Join("", addMessageTypesSingleTopic)}}
@@ -297,10 +300,11 @@ public partial class EvDbTopicGenerator : BaseGenerator
             """);
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public abstract class {{topicsName}}Base : IEvDbTopicProducer
+                    public abstract class {{topicsName}}Base : IEvDbTopicProducer, IEvDbTopicToTables
                     {
                         private readonly {{streamName}} _evDbStream;
                         private readonly JsonSerializerOptions? _serializationOptions;
@@ -318,14 +322,14 @@ public partial class EvDbTopicGenerator : BaseGenerator
                         /// <param name="topic"></param>
                         /// <remarks></remarks>
                         /// <returns></returns>
-                        protected virtual string[] TopicToTables(string topic) => [DefaultTableNameForTopic];
+                        public virtual string[] TopicToTables(string topic) => [DefaultTableNameForTopic];
 
                         void IEvDbTopicProducer.OnProduceTopicMessages(
                             EvDbEvent e,
                             IImmutableList<IEvDbViewStore> views)
                         {
                             {{streamName}}Views states = _evDbStream.Views;
-                            {{topicsName}}Context topics = new(_evDbStream, e);
+                            {{topicsName}}Context topics = new(_evDbStream, e, this);
                             IEvDbEventConverter c = e;
                             switch (e.EventType)
                             {
