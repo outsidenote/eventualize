@@ -52,7 +52,10 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
                                                           .Add("evdb_store_partition", adr.Partition));
     }
 
-    void IEvDbStoreMeters.AddMessages(int count, IEvDbStreamStoreData streamStore, string dbType)
+    void IEvDbStoreMeters.AddMessages(int count,
+                                      IEvDbStreamStoreData streamStore,
+                                      string dbType,
+                                      string tableName)
     {
         if (!_messagesStored.Enabled)
             return;
@@ -60,6 +63,7 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
 
         _eventsStored.Add(count, tags => tags.Add("evdb_store_db", dbType)
                                                       .Add("evdb_store_domain", adr.Domain)
-                                                      .Add("evdb_store_partition", adr.Partition));
+                                                      .Add("evdb_store_partition", adr.Partition)
+                                                      .Add("evdb_store_topic_table", tableName)                                                      );
     }
 }
