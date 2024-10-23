@@ -62,6 +62,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         string factoryOriginName = factoryTypeSymbol!.Name;
         string factoryName = $"EvDb{factoryOriginName}";
         string streamName = factoryName;
+        string ns = typeSymbol.ContainingNamespace.ToDisplayString();
         if (factoryName.EndsWith("Factory"))
             streamName = factoryName.Substring(0, factoryName.Length - 7);
         if (streamName == factoryOriginName)
@@ -85,6 +86,8 @@ public partial class EvDbTopicGenerator : BaseGenerator
         var multiTopics = messageTypes
                 .Where(m => m.Topics.Length > 1 || m.Topics.Length == 1 && m.HasDefaultTopic);
 
+        bool hasDefaultTopic = Array.Exists(messageTypes, m => m.HasDefaultTopic || m.Topics.Length == 0);
+
         #region Topic Context
 
         #region addMessageTypes = ...
@@ -97,7 +100,11 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    base.Add(payload, EvDbTopic.DEFAULT_TOPIC);
+                    var tableNames = _topicToTables.TopicToTables({{streamName}}TopicOptions.DEFAULT);
+                    foreach (var tableName in tableNames)
+                    {
+                        base.Add(payload, EvDbTopic.DEFAULT_TOPIC, tableName); 
+                    }
                 }
             
             """);
@@ -114,7 +121,11 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    base.Add(payload, "{{info.Topics[0]}}");
+                    var tableNames = _topicToTables.TopicToTables({{streamName}}TopicOptions.{{info.Topics[0].FixNameForClass()}});
+                    foreach (var tableName in tableNames)
+                    {
+                        base.Add(payload, "{{info.Topics[0]}}", tableName); 
+                    }
                 }
             
             """);
@@ -136,7 +147,21 @@ public partial class EvDbTopicGenerator : BaseGenerator
                             TopicsOf{{info.TypeName}}.{{t.FixNameForClass()}} => "{{t}}"
             """))}}                
                         };
-                    base.Add(payload, topicText);
+            
+                    {{streamName}}TopicOptions topicTextEnum = topic switch
+                        {
+            {{string.Join(",", info.Topics.Select(t =>
+            $$"""
+
+                            TopicsOf{{info.TypeName}}.{{t.FixNameForClass()}} => {{streamName}}TopicOptions.{{t.FixNameForClass()}}
+            """))}}                
+                        };
+
+                    var tableNames = _topicToTables.TopicToTables(topicTextEnum);
+                    foreach (var tableName in tableNames)
+                    {
+                        base.Add(payload, topicText, tableName);
+                    }
                 }
             
             """);
@@ -145,16 +170,21 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
+        builder.AppendLine($"using static {ns}.{streamName}TableMatching;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
                     public sealed class {{topicsName}}Context : EvDbTopicContextBase
                     {
+                        private readonly I{{streamName}}TopicToTables _topicToTables;
+
                         public {{topicsName}}Context(
                             EvDbStream evDbStream,
-                            IEvDbEventMeta relatedEventMeta)
+                            IEvDbEventMeta relatedEventMeta,
+                            I{{streamName}}TopicToTables topicToTables)
                                     : base(evDbStream, relatedEventMeta)
                         {
+                            _topicToTables = topicToTables;
                         }
                     {{string.Join("", addMessageTypes)}}
                     {{string.Join("", addMessageTypesSingleTopic)}}
@@ -164,6 +194,69 @@ public partial class EvDbTopicGenerator : BaseGenerator
         context.AddSource(typeSymbol.StandardSuffix( "Context"), builder.ToString());
 
         #endregion // Topic Context
+
+        #region AllTopicsEnum
+
+        var allTopics = multiTopics.SelectMany(t => t.Topics).Distinct().OrderBy(x => x).ToList();
+        if (hasDefaultTopic) allTopics.Insert(0, "DEFAULT");
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using EvDb.Core.Internals;");
+        builder.AppendLine();
+        builder.AppendLine($$"""
+                    public enum {{streamName}}TopicOptions
+                    {
+                    {{string.Join(",", allTopics.Select(t =>
+                    $$"""
+
+                            {{t.FixNameForClass()}}   
+                        """))}}
+                    }
+                    """);
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{streamName}TopicOptions"), builder.ToString());
+        
+        #endregion // AllTopicsEnum
+
+        #region Stream Topic Extensions
+
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using EvDb.Core.Internals;");
+        builder.AppendLine();
+        builder.AppendLine($$"""
+                    public static class {{streamName}}TopicExtensions
+                    {
+
+                        public static {{streamName}}FactorySnapshotEntry AddTopics(this {{streamName}}FactorySnapshotEntry context, Action<{{streamName}}TopicDefinition> createTopicGroup)
+                        {
+                            return context;
+                        }
+
+                        public class {{streamName}}TopicDefinitionContext : {{streamName}}TopicDefinition
+                        {
+                            static internal readonly {{streamName}}TopicDefinitionContext Instance = new();
+
+                            public {{streamName}}TopicDefinition WithTransformation(Func<byte[], byte[]> transform)
+                            {
+                                return this;
+                            }
+
+                            public {{streamName}}TopicDefinition WithTransformation<T>() where T : IEvDbTopicTransformer
+                            {
+                                return this;
+                            }
+                        }
+
+                        public class {{streamName}}TopicDefinition
+                        {
+                            public {{streamName}}TopicDefinitionContext CreateTopicGroup(string groupName, {{streamName}}TopicOptions topics, params {{streamName}}TopicOptions[] additionalTopics)
+                            {
+                                return {{streamName}}TopicDefinitionContext.Instance;
+                            }
+                        }
+                    }
+                    """);
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{streamName}TopicExtensions"), builder.ToString());
+
+        #endregion Stream Topic Extensions
 
         #region Multi Topics Enum
 
@@ -218,13 +311,15 @@ public partial class EvDbTopicGenerator : BaseGenerator
             """);
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
 
         builder.AppendLine($$"""
-                    public abstract class {{topicsName}}Base : IEvDbTopicProducer
+                    public abstract class {{topicsName}}Base : IEvDbTopicProducer, I{{streamName}}TopicToTables
                     {
-                        private readonly EvDbSchoolStream _evDbStream;
+                        private readonly {{streamName}} _evDbStream;
                         private readonly JsonSerializerOptions? _serializationOptions;
+                        protected const string DefaultTableNameForTopic = "ev-db-topic";
 
                         public {{topicsName}}Base({{streamName}} evDbStream)
                         {
@@ -232,12 +327,22 @@ public partial class EvDbTopicGenerator : BaseGenerator
                             _serializationOptions = _evDbStream.Options;
                         }
 
+                        string[] I{{streamName}}TopicToTables.TopicToTables({{streamName}}TopicOptions topic) => TopicToTables(topic);
+                       
+                        /// <summary>
+                        /// Keep in mind the table name will be prefixed using the EvDbStorageContext conventions.
+                        /// </summary>
+                        /// <param name="topic"></param>
+                        /// <remarks></remarks>
+                        /// <returns></returns>
+                        protected virtual string[] TopicToTables({{streamName}}TopicOptions topic) => [DefaultTableNameForTopic];
+
                         void IEvDbTopicProducer.OnProduceTopicMessages(
                             EvDbEvent e,
                             IImmutableList<IEvDbViewStore> views)
                         {
                             {{streamName}}Views states = _evDbStream.Views;
-                            {{topicsName}}Context topics = new(_evDbStream, e);
+                            {{topicsName}}Context topics = new(_evDbStream, e, this);
                             IEvDbEventConverter c = e;
                             switch (e.EventType)
                             {
@@ -267,6 +372,32 @@ public partial class EvDbTopicGenerator : BaseGenerator
         context.AddSource(typeSymbol.StandardPath(), builder.ToString());
 
         #endregion // Topic
+
+        #region TopicToTables
+
+        builder.ClearAndAppendHeader(syntax, typeSymbol);
+        builder.AppendLine();
+
+        builder.AppendLine($$"""
+                    /// <summary>
+                    /// Map topic to tables.
+                    /// Keep in mind that the actual table names will be prefixed according to the context specified in the `EvDbStorageContext` 
+                    /// </summary>
+                    public interface I{{streamName}}TopicToTables
+                    {
+                        /// <summary>
+                        /// Map topic to tables.
+                        /// Keep in mind that the actual table names will be prefixed according to the context specified in the `EvDbStorageContext` 
+                        /// </summary>
+                        /// <param name="topic">The topic.</param>
+                        /// <returns></returns>
+                        string[] TopicToTables({{streamName}}TopicOptions topic);
+                    }
+                    """);
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName( $"I{streamName}TopicToTables"),
+                    builder.ToString());
+
+        #endregion // TopicToTables
     }
 
     #endregion // OnGenerate

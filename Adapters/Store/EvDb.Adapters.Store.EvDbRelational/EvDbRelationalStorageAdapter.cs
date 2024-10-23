@@ -101,7 +101,6 @@ public abstract class EvDbRelationalStorageAdapter :
     /// Gets the snapshot's queries.
     /// </summary>
     protected abstract EvDbSnapshotAdapterQueryTemplates SnapshotQueries { get; }
-
     #endregion //  SnapshotQueries
 
     #region IEvDbStorageAdapter Members
@@ -169,9 +168,14 @@ public abstract class EvDbRelationalStorageAdapter :
                 StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
                 if (messages.Count != 0)
                 {
-                    var msgRecords = messages.Select<EvDbMessage, EvDbMessageRecord>(e => e).ToArray();
-                    int affctedMessages = await conn.ExecuteAsync(saveToTopicQuery, msgRecords, transaction);
-                    StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType);
+                    var tables = from message in messages
+                                 group (EvDbMessageRecord)message by message.TableName;
+                    foreach (var table in tables)
+                    {
+                        string query = string.Format(saveToTopicQuery, table.Key);
+                        int affctedMessages = await conn.ExecuteAsync(query, table, transaction);
+                        StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, table.Key);
+                    }
                 }
                 await transaction.CommitAsync();
                 return affctedEvents;

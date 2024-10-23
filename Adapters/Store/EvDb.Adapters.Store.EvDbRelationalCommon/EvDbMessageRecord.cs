@@ -12,26 +12,9 @@ public struct EvDbMessageRecord
     public string EventType { get; init; }
     public string Topic { get; init; }
     public string MessageType { get; init; }
-    public string Payload { get; init; }
+    public byte[] Payload { get; init; }
     public string CapturedBy { get; init; }
     public DateTimeOffset CapturedAt { get; init; }
-
-    public static implicit operator EvDbMessage(EvDbMessageRecord entity)
-    {
-        EvDbStreamCursor StreamCursor = new(
-                                            entity.Domain,
-                                            entity.Partition,
-                                            entity.StreamId,
-                                            entity.Offset);
-        return new EvDbMessage(
-                    entity.EventType,
-                    entity.Topic,
-                    entity.MessageType,
-                    entity.CapturedAt,
-                    entity.CapturedBy,
-                    StreamCursor,
-                    entity.Payload);
-    }
 
     public static implicit operator EvDbMessageRecord(EvDbMessage e)
     {

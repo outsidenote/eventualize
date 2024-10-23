@@ -82,7 +82,7 @@ internal static class QueryTemplatesFactory
                 {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))} datetimeoffset NOT NULL,
                 stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.Payload))} NVARCHAR(MAX) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.Payload))} VARBINARY(4000) NOT NULL,
             
                 CONSTRAINT PK_{storageContext}topic PRIMARY KEY (
                         {toSnakeCase(nameof(EvDbMessageRecord.Domain))}, 

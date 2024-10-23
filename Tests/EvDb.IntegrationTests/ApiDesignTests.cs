@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using Xunit.Abstractions;
 using EvDb.Core.Store;
+using EvDb.UnitTests;
 
 public class ApiDesignTests
 {
@@ -25,6 +26,14 @@ public class ApiDesignTests
                         .AddSchoolStreamFactory(
                                 c => c.UseSqlServerStoreForEvDbStream(),
                                 EvDbStorageContext.CreateWithEnvironment())
+                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup",EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic2))
+                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup2", EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic3))
+                            //.Topics(c =>
+                            //{
+                            //    c.CreateTopicGroup(x => [x.Topic1, x.Topic2])
+                            //            .WithTransformation<T>()
+                            //            .WithTransformation(x => JsonSerializer.Serialize(x.Payload));
+                            //})
                             .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
                             .ForALL(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection-server1"))
                             .ForStudentStats(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection2"));

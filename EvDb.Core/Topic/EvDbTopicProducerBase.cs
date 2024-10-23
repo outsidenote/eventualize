@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace EvDb.Core.Internals;
 
 public abstract class EvDbTopicContextBase : IEvDbTopicProducerGeneric
-{ 
+{
     private readonly EvDbStream _evDbStream;
     private readonly IEvDbEventMeta _relatedEventMeta;
     private readonly TimeProvider _timeProvider;
@@ -21,13 +21,14 @@ public abstract class EvDbTopicContextBase : IEvDbTopicProducerGeneric
         _options = _evDbStream.Options;
     }
 
-    public void Add<T>(T payload, string topic)
+    public void Add<T>(T payload, string topic, string tableName)
         where T : IEvDbPayload
     {
-        var json = JsonSerializer.Serialize(payload, _options);
+        var json = JsonSerializer.SerializeToUtf8Bytes(payload, _options);
         EvDbMessage e = new EvDbMessage(
                                     _relatedEventMeta.EventType,
                                     topic,
+                                    tableName,
                                     payload.PayloadType,
                                     _timeProvider.GetUtcNow(),
                                     _relatedEventMeta.CapturedBy,

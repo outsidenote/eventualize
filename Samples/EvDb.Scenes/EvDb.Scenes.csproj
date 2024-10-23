@@ -9,6 +9,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="gen\**" />
+	  <EmbeddedResource Remove="gen\**" />
+	  <None Remove="gen\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />
 		<ProjectReference Include="..\..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
@@ -18,10 +24,6 @@
 			<PackagePath></PackagePath>
 			<Pack>True</Pack>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="gen\" />
 	</ItemGroup>
 
 

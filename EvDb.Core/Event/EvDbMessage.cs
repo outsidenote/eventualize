@@ -5,15 +5,16 @@ using System.Text.Json;
 namespace EvDb.Core;
 
 [Equatable]
-[DebuggerDisplay("[{Topic} [{StreamCursor.Offset}]:{MessageType}] driven from [{EventType}]: {Payload}")]
+[DebuggerDisplay("[{Topic} [{StreamCursor.Offset}]:{MessageType}] driven from [{EventType}]")]
 public partial record struct EvDbMessage(
                                 string EventType,
                                 string Topic,
+                                string TableName,
                                 string MessageType,
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,
                                 EvDbStreamCursor StreamCursor,
-                                string Payload) :
+                                byte[] Payload) :
                                             IEvDbEventConverter,
                                             IEvDbTopicMeta
 {
