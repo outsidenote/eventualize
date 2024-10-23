@@ -13,7 +13,8 @@ namespace EvDb.UnitTests;
 [EvDbTopic<SchoolStreamFactory>]
 public partial class EvDbSchoolStreamTopics
 {
-    public override string[] TopicToTables(string topic) => ["topic"];
+    protected override string[] TopicToTables(EvDbSchoolStreamTopicOptions topic) =>
+        ["topic"];
 
     protected override void ProduceTopicMessages(
         StudentReceivedGradeEvent payload,
