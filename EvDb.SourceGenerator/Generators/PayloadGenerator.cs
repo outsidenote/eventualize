@@ -28,7 +28,6 @@ public partial class PayloadGenerator : BaseGenerator
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
         string name = typeSymbol.Name;
-        var asm = GetType().Assembly.GetName();
         var payloadName = from atts in syntax.AttributeLists
                           from att in atts.Attributes
                           let fn = att.Name.ToFullString()
@@ -42,9 +41,8 @@ public partial class PayloadGenerator : BaseGenerator
         builder.AppendLine("#pragma warning disable SYSLIB1037 // Deserialization of init-only properties is currently not supported in source generation mode.");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
-                    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     partial {{type}} {{name}}: IEvDbPayload
                     {
                         [System.Text.Json.Serialization.JsonIgnore]

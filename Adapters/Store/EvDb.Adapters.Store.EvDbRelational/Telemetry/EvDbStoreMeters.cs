@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using VogenTableName;
 
 namespace EvDb.Core.Adapters;
 
@@ -55,7 +56,7 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
     void IEvDbStoreMeters.AddMessages(int count,
                                       IEvDbStreamStoreData streamStore,
                                       string dbType,
-                                      string tableName)
+                                      EvDbTableName tableName)
     {
         if (!_messagesStored.Enabled)
             return;

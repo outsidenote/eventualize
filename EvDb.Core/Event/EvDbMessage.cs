@@ -1,6 +1,7 @@
 ﻿using Generator.Equals;
 using System.Diagnostics;
 using System.Text.Json;
+using VogenTableName;
 
 namespace EvDb.Core;
 
@@ -9,7 +10,7 @@ namespace EvDb.Core;
 public partial record struct EvDbMessage(
                                 string EventType,
                                 string Topic,
-                                string TableName,
+                                EvDbTableName TableName,
                                 string MessageType,
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,

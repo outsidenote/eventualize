@@ -68,7 +68,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         if (streamName == factoryOriginName)
             streamName = $"{streamName}1";
 
-        IEnumerable<PayloadInfo> eventsPayloads = factoryTypeSymbol.GetPayloadsFromFatory();
+        IEnumerable<PayloadInfo> eventsPayloads = factoryTypeSymbol.GetPayloadsFromFactory();
 
         #region TopicTypeInfo[] messageTypes = ..
 
@@ -133,7 +133,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         #endregion //  addMessageTypesSingleTopic = ...
 
         #region addMessageTypesMultiTopic = ...
-
+        
         var addMessageTypesMultiTopic = multiTopics.Select((info, i) =>
             $$"""
 
@@ -145,7 +145,8 @@ public partial class EvDbTopicGenerator : BaseGenerator
             $$"""
 
                             TopicsOf{{info.TypeName}}.{{t.FixNameForClass()}} => "{{t}}"
-            """))}}                
+            """))}},
+                            _ => throw new NotImplementedException()
                         };
             
                     {{streamName}}TopicOptions topicTextEnum = topic switch
@@ -170,9 +171,9 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
-        builder.AppendLine($"using static {ns}.{streamName}TableMatching;");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     public sealed class {{topicsName}}Context : EvDbTopicContextBase
                     {
@@ -202,6 +203,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
+        builder.DefaultsOnType(typeSymbol, false);
         builder.AppendLine($$"""
                     public enum {{streamName}}TopicOptions
                     {
@@ -221,6 +223,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     public static class {{streamName}}TopicExtensions
                     {
@@ -266,6 +269,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
             builder.AppendLine("using EvDb.Core.Internals;");
             builder.AppendLine();
 
+            builder.DefaultsOnType(typeSymbol, false);
             builder.AppendLine($$"""
                     public enum TopicsOf{{info.TypeName}}
                     {
@@ -314,6 +318,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     public abstract class {{topicsName}}Base : IEvDbTopicProducer, I{{streamName}}TopicToTables
                     {
@@ -361,6 +366,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     partial class {{topicsName}} : {{topicsName}}Base
                     {
@@ -378,6 +384,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol, false);
         builder.AppendLine($$"""
                     /// <summary>
                     /// Map topic to tables.

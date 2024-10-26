@@ -43,8 +43,8 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(180, studentStat.Sum);
             Assert.Equal(3, studentStat.Count);
 
-            var messageCollection = await GetMessagesFromTopicsAsync().ToEnumerableAsync();
-            EvDbMessageRecord[] messages = messageCollection.ToArray();
+            ICollection<EvDbMessageRecord> messageCollection = await GetMessagesFromTopicsAsync().ToEnumerableAsync();
+            EvDbMessageRecord[] messages = messageCollection!.ToArray();
 
             string connectionString = StoreAdapterHelper.GetConnectionString(StoreType.SqlServer);
             IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext);
@@ -88,7 +88,7 @@ public class SqlServerStreamTests : IntegrationTests
             var msg = messages[1];
             Assert.Equal("student-failed", msg.MessageType);
             var fail = JsonSerializer.Deserialize<StudentFailedMessage>(messages[1].Payload);
-            Assert.Equal(2202, fail.StudentId);
+            Assert.Equal(2202, fail!.StudentId);
             Assert.Equal("Lora", fail.Name);
             Assert.Equal("topic-1", msg.Topic);
 
@@ -102,7 +102,7 @@ public class SqlServerStreamTests : IntegrationTests
                 msg = passCollection[i];
                 var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload);
                 Assert.Equal("student-passed", msg.MessageType);
-                Assert.Equal(2202, pass.StudentId);
+                Assert.Equal(2202, pass!.StudentId);
                 Assert.Equal("Lora", pass.Name);
                 string expected = (i % 3) switch
                 {
