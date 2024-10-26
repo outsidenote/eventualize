@@ -31,9 +31,6 @@ public partial class EventTypesGenerator : BaseGenerator
 
         builder.AppendLine();
 
-        string name = typeSymbol.Name.Substring(1);
-
-        var asm = GetType().Assembly.GetName();
         var attributes = from att in typeSymbol.GetAttributes()
                          let text = att.AttributeClass?.Name
                          where text == EventTargetAttribute
@@ -44,6 +41,7 @@ public partial class EventTypesGenerator : BaseGenerator
                          select generic;
         var adds = attributes.Select(m => $"ValueTask<IEvDbEventMeta> AddAsync({m} payload, string? capturedBy = null);");
 
+        builder.DefaultsOnType(typeSymbol, false);
         builder.AppendLine($$"""       
                     partial interface {{typeSymbol.Name}}: IEvDbEventTypes
                     {

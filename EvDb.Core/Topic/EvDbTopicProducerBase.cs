@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: TopicProducer Topic
 
 using System.Text.Json;
+using VogenTableName;
 
 namespace EvDb.Core.Internals;
 
@@ -21,7 +22,7 @@ public abstract class EvDbTopicContextBase : IEvDbTopicProducerGeneric
         _options = _evDbStream.Options;
     }
 
-    public void Add<T>(T payload, string topic, string tableName)
+    public void Add<T>(T payload, string topic, EvDbTableName tableName)
         where T : IEvDbPayload
     {
         var json = JsonSerializer.SerializeToUtf8Bytes(payload, _options);

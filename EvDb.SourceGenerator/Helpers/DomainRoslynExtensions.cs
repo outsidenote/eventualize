@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
+using System.Reflection;
 using System.Text;
 
 namespace EvDb.SourceGenerator.Helpers;
@@ -43,8 +44,28 @@ internal static class DomainRoslynExtensions
 
     #endregion // ClearAndAppendHeader
 
+    #region DefaultsOnType
 
-    public static IEnumerable<PayloadInfo> GetPayloadsFromFatory(
+    public static StringBuilder DefaultsOnType(
+        this StringBuilder builder, 
+        INamedTypeSymbol typeSymbol,
+        bool isClassOrStruct = true)
+    {
+        var asm = typeSymbol.ContainingAssembly.Identity;
+        builder.AppendLine($"[System.CodeDom.Compiler.GeneratedCode(\"{asm.Name}\",\"{asm.Version}\")]");
+        if (isClassOrStruct)
+        {
+            builder.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]");
+        }
+        builder.AppendLine("// ReSharper disable once UnusedType.Global");
+        return builder;
+    }
+
+    #endregion //  DefaultsOnType
+
+    #region GetPayloadsFromFatory
+
+    public static IEnumerable<PayloadInfo> GetPayloadsFromFactory(
                                             this ITypeSymbol factoryTypeSymbol)
     {
         AttributeData attOfFactory = factoryTypeSymbol.GetAttributes()
@@ -55,6 +76,10 @@ internal static class DomainRoslynExtensions
         IEnumerable<PayloadInfo> eventsPayloads = relatedEventsTypeSymbol.GetPayloads();
         return eventsPayloads;
     }
+
+    #endregion //  GetPayloadsFromFactory
+
+    #region GetPayloads
 
     public static IEnumerable<PayloadInfo> GetPayloads(
                                             this ITypeSymbol relatedEventsTypeSymbol)
@@ -68,4 +93,6 @@ internal static class DomainRoslynExtensions
         eventsPayloads = eventsPayloads.ToArray(); // run once
         return eventsPayloads;
     }
+
+    #endregion //  GetPayloads
 }

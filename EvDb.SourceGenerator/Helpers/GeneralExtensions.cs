@@ -32,7 +32,7 @@ internal static class GeneralExtensions
         }
 
         var flattenPath = string.Join(seperator, path);
-        var result = $@"{@namespace}\{flattenPath}.generated.cs";
+        var result = $@"{@namespace}\{flattenPath}.g.cs";
         return result;
     }
 

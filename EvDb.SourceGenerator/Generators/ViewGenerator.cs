@@ -39,8 +39,6 @@ public partial class ViewGenerator : BaseGenerator
         if (!viewClassName.EndsWith("View"))
             viewClassName = $"{viewClassName}View";
 
-        AssemblyName asm = GetType().Assembly.GetName();
-
         AttributeData att = typeSymbol.GetAttributes()
                                   .First(att => att.AttributeClass?.Name == EventTargetAttribute);
         ImmutableArray<ITypeSymbol> args = att.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
@@ -104,9 +102,8 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")] 
-                    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] 
                     public abstract class {{viewClassName}}Base: 
                         EvDbView<{{stateType}}>
                     {                                
@@ -181,6 +178,7 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     partial {{type}} {{viewOriginName}}: {{viewClassName}}Base
                     { 

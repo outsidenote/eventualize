@@ -38,7 +38,6 @@ public partial class EvDbGenerator : BaseGenerator
             CancellationToken cancellationToken)
     {
         context.ThrowIfNotPartial(typeSymbol, syntax);
-        AssemblyName asm = GetType().Assembly.GetName();
 
         StringBuilder builder = new StringBuilder();
 
@@ -117,8 +116,8 @@ public partial class EvDbGenerator : BaseGenerator
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol, false);
         builder.AppendLine($$"""
-                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     public interface {{factoryInterface}}: IEvDbStreamFactory<{{streamInterface}}>
                     { 
                     }
@@ -147,6 +146,7 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     partial {{type}} {{factoryOriginName}}: EvDbStreamFactoryBase<{{streamInterface}}>,
                             {{factoryInterface}}
@@ -227,6 +227,7 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     public class {{streamName}}Views
                     { 
@@ -253,8 +254,8 @@ public partial class EvDbGenerator : BaseGenerator
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol, false);
         builder.AppendLine($$"""
-                    [System.CodeDom.Compiler.GeneratedCode("{{asm.Name}}","{{asm.Version}}")]
                     public partial interface {{streamInterface}}: IEvDbStreamStore, {{relatedEventsTypesFullName}}
                     { 
                         {{streamName}}Views Views { get; }
@@ -286,6 +287,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
 
                     """);
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     public partial class {{streamName}}: 
                             EvDbStream,
@@ -329,6 +331,7 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     public readonly record struct EvDb{{factoryOriginName}}Entry (IServiceCollection Services)
                     {
@@ -350,6 +353,7 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol, false);
         builder.AppendLine($$"""
                     public interface IEvDb{{factoryOriginName}}SnapshotEntry
                     {
@@ -369,6 +373,7 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         builder.AppendLine();
 
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     public readonly record struct EvDb{{factoryOriginName}}SnapshotEntry(
                         EvDbStorageContext? Context,
@@ -395,6 +400,7 @@ public partial class EvDbGenerator : BaseGenerator
             builder.AppendLine("using Microsoft.Extensions.Logging;");
             builder.AppendLine();
 
+            builder.DefaultsOnType(typeSymbol);
             builder.AppendLine($$"""
                     internal partial class {{viewRef.ViewTypeName}}Factory: IEvDbViewFactory
                     { 
@@ -513,6 +519,7 @@ public partial class EvDbGenerator : BaseGenerator
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine("using EvDb.Core.Store.Internals;");
         builder.AppendLine();
+        builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
                     public static class {{factoryName}}Registration 
                     { 
