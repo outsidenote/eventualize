@@ -10,11 +10,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbSqlServerStorageMigrationDI
 {
-    public static IServiceCollection AddEvDbSqlServerStoreMigrationFromStringOrEnvironmentKey(
+    public static IServiceCollection AddEvDbSqlServerStoreMigration(
             this IServiceCollection services,
             string connectionStringOrKey)
     {
-        return services.AddEvDbSqlServerStoreMigrationFromStringOrEnvironmentKey(connectionStringOrKey: connectionStringOrKey);
+        return services.AddEvDbSqlServerStoreMigration(
+                            null,
+                            connectionStringOrKey);
     }
 
     public static IServiceCollection AddEvDbSqlServerStoreMigration(
@@ -33,7 +35,6 @@ public static class EvDbSqlServerStorageMigrationDI
             string connectionString;
             IConfiguration? configuration = sp.GetService<IConfiguration>();
             connectionString = configuration?.GetConnectionString(connectionStringOrKey) ?? connectionStringOrKey;
-            IEvDbConnectionFactory connectionFactory = new EvDbSqlConnectionFactory(connectionString);
 
             #endregion // IEvDbConnectionFactory connectionFactory = ...
 
