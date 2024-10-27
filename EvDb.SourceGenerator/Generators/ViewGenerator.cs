@@ -182,7 +182,7 @@ public partial class ViewGenerator : BaseGenerator
         builder.AppendLine($$"""
                     partial {{type}} {{viewOriginName}}: {{viewClassName}}Base
                     { 
-                        internal {{viewOriginName}}(
+                        public {{viewOriginName}}(
                             EvDbStreamAddress address,
                             IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,
@@ -197,7 +197,7 @@ public partial class ViewGenerator : BaseGenerator
                         {
                         }
 
-                        internal {{viewOriginName}}(
+                        public {{viewOriginName}}(
                             EvDbStreamAddress address,
                             IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,

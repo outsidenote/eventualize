@@ -62,7 +62,6 @@ public partial class EvDbTopicGenerator : BaseGenerator
         string factoryOriginName = factoryTypeSymbol!.Name;
         string factoryName = $"EvDb{factoryOriginName}";
         string streamName = factoryName;
-        string ns = typeSymbol.ContainingNamespace.ToDisplayString();
         if (factoryName.EndsWith("Factory"))
             streamName = factoryName.Substring(0, factoryName.Length - 7);
         if (streamName == factoryOriginName)

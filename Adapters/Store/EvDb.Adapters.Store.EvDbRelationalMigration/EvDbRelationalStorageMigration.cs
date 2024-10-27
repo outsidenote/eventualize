@@ -53,11 +53,17 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
 
     #region Dispose Pattern
 
-    void IDisposable.Dispose()
+    public void Dispose()
     {
+        GC.SuppressFinalize(this);
+        Dispose(true);
+    }
+
+    protected virtual async void Dispose(bool disposed)
+    {
+        await Task.Yield();
         IDisposable commands = _commandsTask.Result;
         commands.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     public async ValueTask DisposeAsync()
@@ -69,55 +75,8 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
 
     ~EvDbRelationalStorageMigration()
     {
-        ((IDisposable)this).Dispose();
+        Dispose(false);
     }
 
     #endregion // Dispose Pattern
-
-    #region class Commands
-
-    private sealed class Commands : IDisposable, IAsyncDisposable
-    {
-        private readonly DbConnection _connection;
-
-        public Commands(
-            DbConnection connection,
-            EvDbMigrationQueryTemplates queryTemplates)
-        {
-            CreateEnvironment = connection.CreateCommand();
-            CreateEnvironment.CommandText = queryTemplates.CreateEnvironment;
-
-            DestroyEnvironment = connection.CreateCommand();
-            DestroyEnvironment.CommandText = queryTemplates.DestroyEnvironment;
-
-            _connection = connection;
-        }
-
-        /// <summary>
-        /// Get last snapshot sequence identifier.
-        /// </summary>
-        public DbCommand CreateEnvironment { get; }
-        /// <summary>
-        /// Get latest snapshot.
-        /// </summary>
-        public DbCommand DestroyEnvironment { get; }
-
-        #region Dispose Pattern
-
-        void IDisposable.Dispose()
-        {
-            _connection.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            GC.SuppressFinalize(this);
-            await _connection.DisposeAsync();
-        }
-
-        #endregion // Dispose Pattern
-    }
-
-    #endregion // class Commands
 }

@@ -117,14 +117,10 @@ public partial struct EvDbTableName :
     /// <param name = "vo">An instance of the value object.</param>
     /// <returns>True if the value object can be built, otherwise false.</returns>
     public static bool TryFrom(
-#if NETCOREAPP3_0_OR_GREATER
-[NotNullWhen(true)]
-#endif
-    string? value,
-#if NETCOREAPP3_0_OR_GREATER
-[MaybeNullWhen(false)]
-#endif
-out EvDbTableName vo)
+                            [NotNullWhen(true)]
+                            string? value,
+                            [MaybeNullWhen(false)]
+                            out EvDbTableName vo)
     {
         if (value is null)
         {
@@ -170,9 +166,7 @@ out EvDbTableName vo)
 
     #region Initialization
 
-#if !VOGEN_NO_VALIDATION
     private readonly bool _isInitialized;
-#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool IsInitialized() => _isInitialized;
@@ -329,7 +323,6 @@ out EvDbTableName vo)
     /// <returns>
     /// The value created via the <see cref = "From(string)"/> method.
     /// </returns>
-    /// <exception cref = "global::ValueObjectValidationException">Thrown when the value can be parsed, but is not valid.</exception>
     public static EvDbTableName Parse(string s, IFormatProvider? provider)
     {
         return From(s!);
@@ -358,7 +351,7 @@ out EvDbTableName vo)
         {
             writer.WriteStringValue(value.Value);
         }
-#if NET6_0_OR_GREATER
+
         public override EvDbTableName ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             return EvDbTableName.__Deserialize(reader.GetString());
@@ -368,7 +361,6 @@ out EvDbTableName vo)
         {
             writer.WritePropertyName(value.Value);
         }
-#endif
     }
 
 #nullable restore
@@ -413,6 +405,7 @@ out EvDbTableName vo)
     }
 
     #endregion //  EvDbTableNameTypeConverter
+#nullable restore
 
     #region Validation
 
@@ -423,7 +416,7 @@ out EvDbTableName vo)
         /// <summary>
         /// Contains data related to validation.
         /// </summary>
-        public Dictionary<object, object>? Data { get; private set; }
+        public Dictionary<object, object>? Data { get; private set; } = null;
 
         public static readonly Validation Ok = new Validation(string.Empty);
 
@@ -456,6 +449,8 @@ out EvDbTableName vo)
 
     #endregion //  Validation
 
+#nullable disable
+
     #region ValueObjectValidationException
 
     [Serializable]
@@ -470,15 +465,6 @@ out EvDbTableName vo)
         }
 
         public ValueObjectValidationException(string message, Exception inner) : base(message, inner)
-        {
-        }
-
-#if NET8_0_OR_GREATER
-        [Obsolete(DiagnosticId = "SYSLIB0051")] // add this attribute to GetObjectData
-#endif
-        protected ValueObjectValidationException(
-            SerializationInfo info,
-            StreamingContext context) : base(info, context)
         {
         }
     }
@@ -521,29 +507,17 @@ out EvDbTableName vo)
 #nullable restore
     static class ThrowHelper
     {
-#if NETCOREAPP3_0_OR_GREATER
         [DoesNotReturnAttribute]
-#endif
         internal static void ThrowInvalidOperationException(string message) => throw new InvalidOperationException(message);
-#if NETCOREAPP3_0_OR_GREATER
         [DoesNotReturnAttribute]
-#endif
         internal static void ThrowArgumentException(string message, string arg) => throw new ArgumentException(message, arg);
-#if NETCOREAPP3_0_OR_GREATER
         [DoesNotReturnAttribute]
-#endif
         internal static void ThrowWhenCreatedWithNull() => throw new ArgumentException("Cannot create a value object with null.");
-#if NETCOREAPP3_0_OR_GREATER
         [DoesNotReturnAttribute]
-#endif
         internal static void ThrowWhenNotInitialized() => throw new ArgumentException("Use of uninitialized Value Object.");
-#if NETCOREAPP3_0_OR_GREATER
         [DoesNotReturnAttribute]
-#endif
         internal static void ThrowWhenNotInitialized(StackTrace? stackTrace) => throw new ArgumentException("Use of uninitialized Value Object at: " + stackTrace);
-#if NETCOREAPP3_0_OR_GREATER
         [DoesNotReturnAttribute]
-#endif
         internal static void ThrowWhenValidationFails(Validation validation)
         {
             var ex = new ValueObjectValidationException(validation.ErrorMessage);
@@ -579,7 +553,7 @@ out EvDbTableName vo)
             {
                 if (!_isSuccess)
                 {
-                    return _error;
+                    return _error!;
                 }
 
                 return Validation.Ok;
@@ -592,10 +566,10 @@ out EvDbTableName vo)
             {
                 if (!_isSuccess)
                 {
-                    throw new InvalidOperationException("Cannot access the value object as it is not valid: " + _error.ErrorMessage);
+                    throw new InvalidOperationException("Cannot access the value object as it is not valid: " + _error?.ErrorMessage);
                 }
 
-                return _valueObject;
+                return _valueObject!;
             }
         }
 

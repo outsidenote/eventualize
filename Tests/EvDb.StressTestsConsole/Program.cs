@@ -22,7 +22,7 @@ var services = builder.Services;
 services.AddEvDb()
       .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
       .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
-services.AddEvDbSqlServerStoreMigration(context);
+services.AddEvDbSqlServerStoreMigration((EvDbStorageContext)context);
 builder.AddOtel();
 
 var app = builder.Build();
