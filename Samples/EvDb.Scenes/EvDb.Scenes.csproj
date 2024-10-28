@@ -8,11 +8,6 @@
 		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <Compile Remove="gen\**" />
-	  <EmbeddedResource Remove="gen\**" />
-	  <None Remove="gen\**" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />
