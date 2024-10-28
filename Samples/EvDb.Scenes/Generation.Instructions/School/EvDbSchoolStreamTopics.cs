@@ -2,11 +2,16 @@
 
 using EvDb.Core;
 using EvDb.Scenes;
+using System.Collections.Immutable;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using VogenTableName;
 
 
 namespace EvDb.UnitTests;
 
 
+[EvDbAttachTopicTables<TopicTables>] 
 [EvDbMessageTypes<AvgMessage>]
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
@@ -16,14 +21,13 @@ public partial class EvDbSchoolStreamTopics
     protected override string[] TopicToTables(EvDbSchoolStreamTopicOptions topic) =>
         ["topic"];
 
-    protected override void ProduceTopicMessages(
-        StudentReceivedGradeEvent payload,
-        IEvDbEventMeta meta,
-        EvDbSchoolStreamViews views,
-        EvDbSchoolStreamTopicsContext topics)
+    protected override void ProduceTopicMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
+                                                 IEvDbEventMeta meta,
+                                                 EvDbSchoolStreamViews views,
+                                                 EvDbSchoolStreamTopicsContext topics)
     {
-        var state = views.ALL;
-        var avg = new AvgMessage(state.Sum / (double)state.Count);
+        Stats state = views.ALL;
+        AvgMessage avg = new (state.Sum / (double)state.Count);
         topics.Add(avg);
         var studentName = views.StudentStats.Students
             .First(m => m.StudentId == payload.StudentId)

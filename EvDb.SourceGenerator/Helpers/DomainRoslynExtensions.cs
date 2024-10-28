@@ -49,7 +49,7 @@ internal static class DomainRoslynExtensions
     public static StringBuilder DefaultsOnType(
         this StringBuilder builder, 
         INamedTypeSymbol typeSymbol,
-        bool isClassOrStruct = true)
+        bool isClassOrStruct = true)    
     {
         var asm = typeSymbol.ContainingAssembly.Identity;
         builder.AppendLine($"[System.CodeDom.Compiler.GeneratedCode(\"{asm.Name}\",\"{asm.Version}\")]");

@@ -7,6 +7,8 @@ namespace EvDb.SourceGenerator.Helpers;
 
 internal static class RoslynExtensions
 {
+    #region CreateDiagnostic
+
     public static Diagnostic CreateDiagnostic(
         this TypeDeclarationSyntax syntax,
         int errorNumber,
@@ -21,6 +23,9 @@ internal static class RoslynExtensions
             Location.Create(syntax.SyntaxTree, syntax.Span));
         return diagnostic;  
     }
+
+    #endregion //  CreateDiagnostic
+
     #region MatchAttribute
 
     /// <summary>
