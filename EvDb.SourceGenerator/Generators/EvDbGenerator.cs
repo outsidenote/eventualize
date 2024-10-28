@@ -242,6 +242,7 @@ public partial class EvDbGenerator : BaseGenerator
                         public IEnumerable<IEvDbView> ToMetadata()
                         {
                     {{string.Join("", viewsYield)}}
+                            yield break;
                         }
                     }
                     """);
