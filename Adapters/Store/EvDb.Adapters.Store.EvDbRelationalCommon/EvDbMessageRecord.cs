@@ -11,6 +11,8 @@ public struct EvDbMessageRecord
     public long Offset { get; init; }
     public string EventType { get; init; }
     public string Topic { get; init; }
+    public string TraceId { get; init; }
+    public string SpanId { get; init; }
     public string MessageType { get; init; }
     public byte[] Payload { get; init; }
     public string CapturedBy { get; init; }

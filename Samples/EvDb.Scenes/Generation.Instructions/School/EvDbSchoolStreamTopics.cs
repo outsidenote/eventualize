@@ -11,15 +11,23 @@ using VogenTableName;
 namespace EvDb.UnitTests;
 
 
+
 [EvDbAttachTopicTables<TopicTables>] 
 [EvDbMessageTypes<AvgMessage>]
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
-[EvDbTopic<SchoolStreamFactory>]
-public partial class EvDbSchoolStreamTopics
+[EvDbTopic<SchoolStreamFactory>] // TODO: EvDbTopics
+public partial class EvDbSchoolStreamTopics // TODO: MessageRouter
 {
-    protected override string[] TopicToTables(EvDbSchoolStreamTopicOptions topic) =>
-        ["topic"];
+    protected override TopicTablesPreferences[] TopicToTables(EvDbSchoolStreamTopicOptions topic) => [TopicTablesPreferences.Topic];
+        //topic switch
+        //{
+        //    EvDbSchoolStreamTopicOptions.Topic1 => [TopicTablesPreferences.Messaging],
+        //    EvDbSchoolStreamTopicOptions.Topic3 => [
+        //                                            TopicTablesPreferences.Commands,
+        //                                            TopicTablesPreferences.Messaging],
+        //    _ => []
+        //};
 
     protected override void ProduceTopicMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
                                                  IEvDbEventMeta meta,
@@ -50,7 +58,6 @@ public partial class EvDbSchoolStreamTopics
                                              payload.Grade);
             topics.Add(fail);
         }
-    }    
-
+    }
 }
 

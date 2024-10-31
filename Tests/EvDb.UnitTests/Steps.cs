@@ -32,7 +32,7 @@ internal static class Steps
         where T : IEvDbPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
-        var json = JsonSerializer.Serialize(data, options);
+        var json = JsonSerializer.SerializeToUtf8Bytes(data, options);
         var result = new EvDbEvent(data.PayloadType, DateTimeOffset.UtcNow, capturedBy, streamCursor, json);
         return result;
     }

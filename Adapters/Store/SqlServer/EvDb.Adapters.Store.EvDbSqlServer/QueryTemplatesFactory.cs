@@ -46,7 +46,7 @@ internal static class QueryTemplatesFactory
                         @{nameof(EvDbEventRecord.EventType)}, 
                         @{nameof(EvDbEventRecord.Payload)},
                         @{nameof(EvDbEventRecord.CapturedBy)},
-                        @{nameof(EvDbEventRecord.CapturedAt)})
+                        GETUTCDATE())
                     """,
             SaveToTopics = $$"""
                     INSERT INTO {{storageContext}}{0} (
@@ -70,7 +70,7 @@ internal static class QueryTemplatesFactory
                         @{{nameof(EvDbMessageRecord.MessageType)}}, 
                         @{{nameof(EvDbMessageRecord.Payload)}},
                         @{{nameof(EvDbMessageRecord.CapturedBy)}},
-                        @{{nameof(EvDbMessageRecord.CapturedAt)}})
+                        GETUTCDATE())
                     """,
         };
     }

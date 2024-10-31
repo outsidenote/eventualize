@@ -18,4 +18,8 @@ public enum EvDbErrorsNumbers
     /// The factory type not found
     /// </summary>
     FactoryTypeNotFound = 16,
+    /// <summary>
+    /// The no tables defined
+    /// </summary>
+    NoTablesDefined = 17,
 }

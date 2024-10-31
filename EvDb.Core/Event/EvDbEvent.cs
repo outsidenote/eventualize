@@ -10,7 +10,7 @@ public partial record struct EvDbEvent(string EventType,
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,
                                 EvDbStreamCursor StreamCursor,
-                                string Payload) :
+                                byte[] Payload) :
                                             IEvDbEventConverter,
                                             IEvDbEventMeta
 {

@@ -63,7 +63,7 @@ public abstract class EvDbStream :
         where T : IEvDbPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
-        var json = JsonSerializer.Serialize(payload, Options);
+        var json = JsonSerializer.SerializeToUtf8Bytes(payload, Options);
 
         #region _pendingEvents = _pendingEvents.Add(e)
 
