@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers;
+using System.Diagnostics;
 
 namespace EvDb.Core.Adapters;
 
@@ -11,8 +12,8 @@ public struct EvDbMessageRecord
     public long Offset { get; init; }
     public string EventType { get; init; }
     public string Topic { get; init; }
-    public string TraceId { get; init; }
-    public string SpanId { get; init; }
+    public string? TraceId { get; init; }
+    public string? SpanId { get; init; }
     public string MessageType { get; init; }
     public byte[] Payload { get; init; }
     public string CapturedBy { get; init; }
@@ -20,7 +21,8 @@ public struct EvDbMessageRecord
 
     public static implicit operator EvDbMessageRecord(EvDbMessage e)
     {
-        return new EvDbMessageRecord
+        Activity? activity = Activity.Current;
+        var result = new EvDbMessageRecord
         {
             Domain = e.StreamCursor.Domain,
             Partition = e.StreamCursor.Partition,
@@ -31,7 +33,10 @@ public struct EvDbMessageRecord
             MessageType = e.MessageType,
             Payload = e.Payload,
             CapturedBy = e.CapturedBy,
-            CapturedAt = e.CapturedAt
+            CapturedAt = e.CapturedAt,
+            SpanId = activity?.SpanId.ToHexString(),
+            TraceId = activity?.TraceId.ToHexString()
         };
+        return result;
     }
 }

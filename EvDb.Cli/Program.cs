@@ -42,9 +42,7 @@ if (string.IsNullOrEmpty(connectionString) || storeIndex == -1 || args.Length % 
 
 
 
-var context = env == null
-    ? EvDbStorageContext.CreateWithEnvironment(args[^1])
-    : EvDbStorageContext.CreateWithEnvironment(args[^1], env);
+var context = EvDbStorageContext.CreateWithEnvironment("master", args[^1], env);
 
 IEvDbStorageMigration store = args[storeIndex + 1] switch
 {

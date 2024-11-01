@@ -5,12 +5,8 @@ using EvDb.Scenes;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using VogenTableName;
-
 
 namespace EvDb.UnitTests;
-
-
 
 [EvDbAttachTopicTables<TopicTables>] 
 [EvDbMessageTypes<AvgMessage>]
@@ -19,15 +15,17 @@ namespace EvDb.UnitTests;
 [EvDbTopic<SchoolStreamFactory>] // TODO: EvDbTopics
 public partial class EvDbSchoolStreamTopics // TODO: MessageRouter
 {
-    protected override TopicTablesPreferences[] TopicToTables(EvDbSchoolStreamTopicOptions topic) => [TopicTablesPreferences.Topic];
-        //topic switch
-        //{
-        //    EvDbSchoolStreamTopicOptions.Topic1 => [TopicTablesPreferences.Messaging],
-        //    EvDbSchoolStreamTopicOptions.Topic3 => [
-        //                                            TopicTablesPreferences.Commands,
-        //                                            TopicTablesPreferences.Messaging],
-        //    _ => []
-        //};
+    protected override TopicTablesPreferences[] TopicToTables(EvDbSchoolStreamTopicOptions topic) => 
+        topic switch
+        {
+            EvDbSchoolStreamTopicOptions.Topic1 => [TopicTablesPreferences.Commands],
+            EvDbSchoolStreamTopicOptions.Topic2 => [
+                                                    TopicTablesPreferences.Messaging],
+            EvDbSchoolStreamTopicOptions.Topic3 => [
+                                                    TopicTablesPreferences.MessagingVip,
+                                                    TopicTablesPreferences.Messaging],
+            _ => []
+        };
 
     protected override void ProduceTopicMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
                                                  IEvDbEventMeta meta,
@@ -46,9 +44,9 @@ public partial class EvDbSchoolStreamTopics // TODO: MessageRouter
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(pass, TopicsOfStudentPassedMessage.Topic1);
+            topics.Add(pass, TopicsOfStudentPassedMessage.Topic2);
             topics.Add(pass, TopicsOfStudentPassedMessage.Topic3);
-            topics.Add(pass);
+            //topics.Add(pass);
         }
         else
         { 

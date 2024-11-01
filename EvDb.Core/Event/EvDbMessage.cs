@@ -1,7 +1,6 @@
 ﻿using Generator.Equals;
 using System.Diagnostics;
 using System.Text.Json;
-using VogenTableName;
 
 namespace EvDb.Core;
 

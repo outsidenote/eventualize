@@ -1,7 +1,5 @@
 ﻿// Ignore Spelling: TopicProducer Topic
 
-using VogenTableName;
-
 namespace EvDb.Core.Internals;
 
 public interface IEvDbTopicProducerGeneric

@@ -69,7 +69,8 @@ public static class StoreAdapterHelper
     public static IEvDbStorageMigration CreateStoreMigration(
         ILogger logger,
         StoreType storeType,
-        EvDbTestStorageContext? context = null)
+        EvDbTestStorageContext? context = null,
+        params EvDbTableName[] topicTableNames)
     {
         context = context ?? new EvDbTestStorageContext();
         string connectionString = GetConnectionString(storeType);
@@ -77,7 +78,7 @@ public static class StoreAdapterHelper
         IEvDbStorageMigration result = storeType switch
         {
             StoreType.SqlServer =>
-                SqlServerStorageMigrationFactory.Create(logger, connectionString, context),
+                SqlServerStorageMigrationFactory.Create(logger, connectionString, context, topicTableNames),
             //StoreType.Posgres => ,
             //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
             _ => throw new NotImplementedException()

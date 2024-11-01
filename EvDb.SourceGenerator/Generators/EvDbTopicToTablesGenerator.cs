@@ -75,9 +75,9 @@ public partial class EvDbTopicToTablesGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public static class {{clsName}}ChoisesExtensions
                     { 
-                        public static IEnumerable<string> ToTablesName(this {{clsName}}Preferences[] options) => options.Select(m => m.ToTableName());
+                        public static IEnumerable<EvDbTableName> ToTablesName(this {{clsName}}Preferences[] options) => options.Select(m => m.ToTableName());
 
-                        public static string ToTableName(this {{clsName}}Preferences option)
+                        public static EvDbTableName ToTableName(this {{clsName}}Preferences option)
                         {
                             string table = option switch
                             {

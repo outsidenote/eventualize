@@ -1,13 +1,12 @@
 ﻿using EvDb.Core;
 
-
 namespace EvDb.UnitTests;
 
 [EvDbTopicTables]
 public abstract class TopicTables
 {
-    public const string Topic = "topic";
-    public const string Messaging = "messaging";
-    public const string Commands = "commands";
+    public static readonly EvDbTableName MessagingVip = "messaging-vip";
+    public static readonly EvDbTableName Messaging = "messaging";
+    public static readonly EvDbTableName Commands = "commands";
 }
 

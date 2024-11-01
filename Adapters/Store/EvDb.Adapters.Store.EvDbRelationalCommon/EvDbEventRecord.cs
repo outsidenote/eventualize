@@ -40,7 +40,7 @@ public struct EvDbEventRecord
             EventType = e.EventType,
             Payload = e.Payload,
             CapturedBy = e.CapturedBy,
-            CapturedAt = e.CapturedAt
+            CapturedAt = e.CapturedAt,
         };
     }
 }

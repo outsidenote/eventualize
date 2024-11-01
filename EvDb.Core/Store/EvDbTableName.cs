@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
-namespace VogenTableName;
+namespace EvDb.Core;
 
 [ExcludeFromCodeCoverage]
 [JsonConverter(typeof(EvDbTableNameSystemTextJsonConverter))]
@@ -22,20 +22,20 @@ public partial struct EvDbTableName :
     IComparable,
     IParsable<EvDbTableName>
 {
-    private const string DEFAULT_TABLE_NAME = "ev-db-topic";
+    private const string DEFAULT_TABLE_NAME = "topics";
 
     public static readonly EvDbTableName Default = new EvDbTableName(DEFAULT_TABLE_NAME);
 
     #region Validation
 
-    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9_]*(?:-[A-Za-z0-9_]+)*$", RegexOptions.Compiled | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
+    [GeneratedRegex(@"^[A-Za-z]*[A-Za-z0-9_]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
     private static partial Regex Validator();
 
     private static Validation Validate(string value) => Validator().IsMatch(value) switch
     {
 
         true => Validation.Ok,
-        _ => Validation.Invalid("The table name must only contain uppercase letters (A-Z), lowercase letters (a-z), digits (0-9), and underscores (_). Hyphens (-) are allowed but cannot appear consecutively.")
+        _ => Validation.Invalid("The table name must only contain uppercase letters (A-Z), lowercase letters (a-z), digits (0-9), and underscores (_).")
     };
 
     #endregion //  Validation
@@ -89,6 +89,8 @@ public partial struct EvDbTableName :
 
     #endregion //  Ctor
 
+    private static string Format(string value) => value.Replace('-','_');
+
     #region TryFrom / From
 
     /// <summary>
@@ -99,6 +101,7 @@ public partial struct EvDbTableName :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static EvDbTableName From(string value)
     {
+        value = Format(value);
         var validation = EvDbTableName.Validate(value);
         if (validation != Validation.Ok)
         {
@@ -153,6 +156,7 @@ public partial struct EvDbTableName :
             return new ValueObjectOrError<EvDbTableName>(Validation.Invalid("The value provided was null"));
         }
 
+        value = Format(value);
         var validation = EvDbTableName.Validate(value);
         if (validation != Validation.Ok)
         {
@@ -186,12 +190,16 @@ public partial struct EvDbTableName :
 
     #endregion //  Initialization
 
+    #region __Deserialize
+
     // only called internally when something has been deserialized into
     // its primitive type.
     private static EvDbTableName __Deserialize(string value)
     {
         if (value == Default.Value)
             return Default;
+
+        value = Format(value);
         var validation = EvDbTableName.Validate(value);
         if (validation != Validation.Ok)
         {
@@ -200,6 +208,8 @@ public partial struct EvDbTableName :
 
         return new EvDbTableName(value);
     }
+
+    #endregion //  __Deserialize
 
     #region Equals / CompaareTo / GetHashCode
 

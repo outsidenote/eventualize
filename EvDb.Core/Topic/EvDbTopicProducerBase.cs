@@ -1,7 +1,6 @@
 ﻿// Ignore Spelling: TopicProducer Topic
 
 using System.Text.Json;
-using VogenTableName;
 
 namespace EvDb.Core.Internals;
 

@@ -334,15 +334,15 @@ public partial class EvDbTopicGenerator : BaseGenerator
         #region string topicToTables = ...
         string topicToTables = hasTables
             ? $"""      
-                    IEnumerable<string> I{streamName}TopicToTables.TopicToTables({streamName}TopicOptions topic) => [DefaultTableNameForTopic];
+                    IEnumerable<EvDbTableName> I{streamName}TopicToTables.TopicToTables({streamName}TopicOptions topic) => [DefaultTableNameForTopic];
                 """
             : $$"""
-                    IEnumerable<string> I{{streamName}}TopicToTables.TopicToTables({{streamName}}TopicOptions topic) 
+                    IEnumerable<EvDbTableName> I{{streamName}}TopicToTables.TopicToTables({{streamName}}TopicOptions topic) 
                     {
                         {{tableEnum}}Preferences[] tbls = TopicToTables(topic);
                         if(tbls.Length == 0)
                             return [DefaultTableNameForTopic];
-                        IEnumerable<string> result = tbls.ToTablesName();
+                        IEnumerable<EvDbTableName> result = tbls.ToTablesName();
                         return result;
                     }
                        
@@ -369,7 +369,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
                     {
                         private readonly {{streamName}} _evDbStream;
                         private readonly JsonSerializerOptions? _serializationOptions;
-                        protected const string DefaultTableNameForTopic = "ev-db-topic";
+                        protected static readonly EvDbTableName DefaultTableNameForTopic = EvDbTableName.Default;
 
                         public {{topicsName}}Base({{streamName}} evDbStream)
                         {
@@ -435,7 +435,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
                         /// </summary>
                         /// <param name="topic">The topic.</param>
                         /// <returns></returns>
-                        IEnumerable<string> TopicToTables({{streamName}}TopicOptions topic);
+                        IEnumerable<EvDbTableName> TopicToTables({{streamName}}TopicOptions topic);
                     }
                     """);
         context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"I{streamName}TopicToTables"),

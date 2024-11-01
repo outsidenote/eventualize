@@ -25,7 +25,7 @@ public class ApiDesignTests
                            // return IEvDbSchoolBuilder that will be used as the hook for the generated extensions method
                         .AddSchoolStreamFactory(
                                 c => c.UseSqlServerStoreForEvDbStream(),
-                                EvDbStorageContext.CreateWithEnvironment())
+                                EvDbStorageContext.CreateWithEnvironment("master"))
                         .AddTopics(tg => tg.CreateTopicGroup("TestGroup",EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic2))
                         .AddTopics(tg => tg.CreateTopicGroup("TestGroup2", EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic3))
                             //.Topics(c =>

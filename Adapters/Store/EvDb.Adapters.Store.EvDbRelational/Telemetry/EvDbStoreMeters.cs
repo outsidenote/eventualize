@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using VogenTableName;
+using EvDb.Core;
 
 namespace EvDb.Core.Adapters;
 
