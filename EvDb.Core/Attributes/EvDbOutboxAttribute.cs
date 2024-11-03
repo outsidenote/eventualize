@@ -20,7 +20,7 @@ namespace EvDb.Core;
 /// between the database and message broker.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class EvDbTopicAttribute<TStreamFactory> : Attribute
+public class EvDbOutboxAttribute<TStreamFactory> : Attribute
     where TStreamFactory : IEvDbStreamConfig
 {
 }

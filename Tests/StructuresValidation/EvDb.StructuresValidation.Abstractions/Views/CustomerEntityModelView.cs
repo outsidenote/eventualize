@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EvDb.Core;
+﻿using EvDb.Core;
 using EvDb.StructuresValidation.Abstractions.Events;
 
 namespace EvDb.StructuresValidation.Abstractions.Views;

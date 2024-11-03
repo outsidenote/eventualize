@@ -2,5 +2,5 @@
 using EvDb.UnitTests;
 
 public record StreamAndServiceProvider(
-    IEvDbSchoolStream Stream, 
+    IEvDbSchoolStream Stream,
     IServiceProvider ServiceProvider);

@@ -1,9 +1,10 @@
 ﻿namespace EvDb.Core.Tests;
 
 using Dapper;
+using EvDb.Core;
 using EvDb.Core.Adapters;
+using EvDb.UnitTests;
 using FakeItEasy;
-using LiteDB;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
 using Xunit.Abstractions;
@@ -21,38 +22,46 @@ public class IntegrationTests : IAsyncLifetime
         _output = output;
         var context = new EvDbTestStorageContext();
         StorageContext = context;
-        _storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, storeType, context);
+        _storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, storeType, context,
+                                                        TopicTables.MessagingVip,
+                                                        TopicTables.Messaging,
+                                                        TopicTables.Commands,
+                                                        EvDbTableName.Default);
         _connection = StoreAdapterHelper.GetConnection(storeType, context);
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
         _topicQuery =
-            $"""
+            $$"""
                 SELECT
-                    {toSnakeCase(nameof(EvDbMessageRecord.Domain))} as {nameof(EvDbMessageRecord.Domain)},
-                    {toSnakeCase(nameof(EvDbMessageRecord.Partition))} as {nameof(EvDbMessageRecord.Partition)},
-                    {toSnakeCase(nameof(EvDbMessageRecord.StreamId))} as {nameof(EvDbMessageRecord.StreamId)},
-                    {toSnakeCase(nameof(EvDbMessageRecord.Offset))} as {nameof(EvDbMessageRecord.Offset)},
-                    {toSnakeCase(nameof(EvDbMessageRecord.EventType))} as {nameof(EvDbMessageRecord.EventType)},
-                    {toSnakeCase(nameof(EvDbMessageRecord.Topic))} as {nameof(EvDbMessageRecord.Topic)},
-                    {toSnakeCase(nameof(EvDbMessageRecord.MessageType))} as {nameof(EvDbMessageRecord.MessageType)},
-                    {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))} as {nameof(EvDbMessageRecord.CapturedAt)},
-                    {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))} as {nameof(EvDbMessageRecord.CapturedBy)},
-                    {toSnakeCase(nameof(EvDbMessageRecord.Payload))} as {nameof(EvDbMessageRecord.Payload)}                  
-                FROM {context}topic WITH (READCOMMITTEDLOCK)
-                ORDER BY {toSnakeCase(nameof(EvDbMessageRecord.Offset))}, {toSnakeCase(nameof(EvDbMessageRecord.MessageType))};
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Domain))}} as {{nameof(EvDbMessageRecord.Domain)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Partition))}} as {{nameof(EvDbMessageRecord.Partition)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.StreamId))}} as {{nameof(EvDbMessageRecord.StreamId)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Offset))}} as {{nameof(EvDbMessageRecord.Offset)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.EventType))}} as {{nameof(EvDbMessageRecord.EventType)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Topic))}} as {{nameof(EvDbMessageRecord.Topic)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}} as {{nameof(EvDbMessageRecord.MessageType)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}} as {{nameof(EvDbMessageRecord.CapturedAt)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}} as {{nameof(EvDbMessageRecord.CapturedBy)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.SpanId))}} as {{nameof(EvDbMessageRecord.SpanId)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.TraceId))}} as {{nameof(EvDbMessageRecord.TraceId)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Payload))}} as {{nameof(EvDbMessageRecord.Payload)}}                  
+                FROM {{context.Id}}{0} WITH (READCOMMITTEDLOCK)
+                ORDER BY {{toSnakeCase(nameof(EvDbMessageRecord.Offset))}}, {{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}};
                 """;
     }
 
-    public async IAsyncEnumerable<EvDbMessageRecord> GetMessagesFromTopicsAsync()
+    public async IAsyncEnumerable<EvDbMessageRecord> GetMessagesFromTopicsAsync(EvDbTableName table)
     {
         await _connection.OpenAsync();
-        DbDataReader reader = await _connection.ExecuteReaderAsync(_topicQuery);
+        string query = string.Format(_topicQuery, table);
+        DbDataReader reader = await _connection.ExecuteReaderAsync(query);
         var parser = reader.GetRowParser<EvDbMessageRecord>();
         while (await reader.ReadAsync())
         {
             EvDbMessageRecord e = parser(reader);
             yield return e;
         }
+        await _connection.CloseAsync();
     }
 
 

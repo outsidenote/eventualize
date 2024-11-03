@@ -2,12 +2,10 @@ namespace EvDb.Core.Tests;
 
 using Cocona;
 using EvDb.MinimalStructure;
-using FakeItEasy;
+using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using Xunit.Abstractions;
-using EvDb.Core.Store;
-using EvDb.UnitTests;
 
 public class ApiDesignTests
 {
@@ -25,9 +23,9 @@ public class ApiDesignTests
                            // return IEvDbSchoolBuilder that will be used as the hook for the generated extensions method
                         .AddSchoolStreamFactory(
                                 c => c.UseSqlServerStoreForEvDbStream(),
-                                EvDbStorageContext.CreateWithEnvironment())
-                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup",EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic2))
-                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup2", EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic3))
+                                EvDbStorageContext.CreateWithEnvironment("master"))
+                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup", EvDbSchoolStreamOutboxOptions.Topic1, EvDbSchoolStreamOutboxOptions.Topic2))
+                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup2", EvDbSchoolStreamOutboxOptions.Topic1, EvDbSchoolStreamOutboxOptions.Topic3))
                             //.Topics(c =>
                             //{
                             //    c.CreateTopicGroup(x => [x.Topic1, x.Topic2])

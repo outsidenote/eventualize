@@ -1,6 +1,6 @@
 ﻿namespace EvDb.StructuresValidation.Abstractions.Views;
 
-public readonly record struct Person (Guid Id)
+public readonly record struct Person(Guid Id)
 {
     // public static readonly Person Empty = new(Guid.Empty);
 

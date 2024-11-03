@@ -10,7 +10,7 @@ public class OCCException : Exception
     public OCCException() { }
     [Obsolete("Shouldn't be used directly, used by the serialization", true)]
     public OCCException(string message) : base(message) { }
- 
+
     public OCCException(EvDbStreamCursor cursor) : base(cursor.ToString())
     {
     }

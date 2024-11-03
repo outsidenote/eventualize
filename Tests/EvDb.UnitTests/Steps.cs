@@ -32,7 +32,7 @@ internal static class Steps
         where T : IEvDbPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
-        var json = JsonSerializer.Serialize(data, options);
+        var json = JsonSerializer.SerializeToUtf8Bytes(data, options);
         var result = new EvDbEvent(data.PayloadType, DateTimeOffset.UtcNow, capturedBy, streamCursor, json);
         return result;
     }
@@ -51,8 +51,8 @@ internal static class Steps
         services.AddEvDb()
               .AddSchoolStreamFactory(c =>
               {
-                    c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
-                    c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
+                  c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
+                  c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
               });
         services.AddSingleton<TimeProvider>(timeProvider ?? TimeProvider.System);
         var sp = services.BuildServiceProvider();

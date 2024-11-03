@@ -1,5 +1,4 @@
-﻿using EvDb.Core.Adapters;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace EvDb.Core.Adapters;
 

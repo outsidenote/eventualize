@@ -1,9 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Data;
-using System.Diagnostics.Metrics;
-using VogenTableName;
-
-namespace EvDb.Core.Adapters;
+﻿namespace EvDb.Core.Adapters;
 
 internal interface IEvDbStoreMeters
 {

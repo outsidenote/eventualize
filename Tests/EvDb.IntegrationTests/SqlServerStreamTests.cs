@@ -43,8 +43,47 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(180, studentStat.Sum);
             Assert.Equal(3, studentStat.Count);
 
-            ICollection<EvDbMessageRecord> messageCollection = await GetMessagesFromTopicsAsync().ToEnumerableAsync();
-            EvDbMessageRecord[] messages = messageCollection!.ToArray();
+            ICollection<EvDbMessageRecord> messagingCollection = await GetMessagesFromTopicsAsync(TopicTables.Messaging).ToEnumerableAsync();
+            EvDbMessageRecord[] messaging = messagingCollection!.ToArray();
+            Assert.Equal(4, messaging.Length);
+            Assert.All(messaging, m => Assert.Equal("student-received-grade", m.EventType));
+            Assert.All(messaging, m => Assert.Equal("student-passed", m.MessageType));
+            Assert.All(messaging, m => Assert.True(m.Topic == "topic-3" || m.Topic == "topic-2"));
+
+            ICollection<EvDbMessageRecord> messagingVipCollection = await GetMessagesFromTopicsAsync(TopicTables.MessagingVip).ToEnumerableAsync();
+            EvDbMessageRecord[] messagingVip = messagingVipCollection!.ToArray();
+            Assert.Equal(2, messagingVip.Length);
+            Assert.All(messagingVip, m => Assert.Equal("student-received-grade", m.EventType));
+            Assert.All(messagingVip, m => Assert.Equal("student-passed", m.MessageType));
+            Assert.All(messagingVip, m => Assert.Equal("topic-3", m.Topic));
+            Assert.All(messagingVip, msg =>
+            {
+                var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload);
+                Assert.Equal(2202, pass!.StudentId);
+                Assert.Equal("Lora", pass.Name);
+            });
+
+            ICollection<EvDbMessageRecord> commandsCollection = await GetMessagesFromTopicsAsync(TopicTables.Commands).ToEnumerableAsync();
+            EvDbMessageRecord[] commands = commandsCollection!.ToArray();
+            Assert.Single(commands);
+            Assert.All(commands, m => Assert.Equal("student-received-grade", m.EventType));
+            Assert.All(commands, m => Assert.Equal("student-failed", m.MessageType));
+            Assert.All(commands, m => Assert.Equal("topic-1", m.Topic));
+            Assert.All(commands, msg =>
+            {
+                var fail = JsonSerializer.Deserialize<StudentFailedMessage>(msg.Payload);
+                Assert.Equal(2202, fail!.StudentId);
+                Assert.Equal("Lora", fail.Name);
+            });
+
+            ICollection<EvDbMessageRecord> defaultscommandsCollection = await GetMessagesFromTopicsAsync(EvDbTableName.Default).ToEnumerableAsync();
+            EvDbMessageRecord[] defaults = defaultscommandsCollection!.ToArray();
+            Assert.Equal(3, defaults.Length);
+            Assert.All(defaults, m => Assert.Equal("student-received-grade", m.EventType));
+            Assert.All(defaults, m => Assert.Equal("avg", m.MessageType));
+            Assert.All(defaults, m => Assert.Equal(EvDbTopic.DEFAULT_TOPIC, m.Topic));
+
+
 
             string connectionString = StoreAdapterHelper.GetConnectionString(StoreType.SqlServer);
             IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext);
@@ -52,65 +91,22 @@ public class SqlServerStreamTests : IntegrationTests
             var eventsCollection = await adapter.GetEventsAsync(address).ToEnumerableAsync();
             var events = eventsCollection.ToArray();
 
-            var avg1 = JsonSerializer.Deserialize<AvgMessage>(messages[0].Payload);
-            Assert.Equal(30, avg1!.Avg);           
-            var avg2 = JsonSerializer.Deserialize<AvgMessage>(messages[2].Payload);
+            var avg1 = JsonSerializer.Deserialize<AvgMessage>(defaults[0].Payload);
+            Assert.Equal(30, avg1!.Avg);
+            var avg2 = JsonSerializer.Deserialize<AvgMessage>(defaults[1].Payload);
             Assert.Equal(45, avg2!.Avg);
-            var avg3 = JsonSerializer.Deserialize<AvgMessage>(messages[6].Payload);
+            var avg3 = JsonSerializer.Deserialize<AvgMessage>(defaults[2].Payload);
             Assert.Equal(60, avg3!.Avg);
 
             var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
-            for (int i = 0; i < messages.Length; i++)
+            Assert.True(eventsOffsets.SequenceEqual([0, 1, 2, 3]));
+            for (int i = 0; i < defaults.Length; i++)
             {
-                EvDbMessageRecord item = messages[i];
+                EvDbMessageRecord item = defaults[i];
                 Assert.Equal("student-received-grade", item.EventType);
                 var itemOffset = item.Offset;
-                int expectedOffset = i switch
-                {
-                    < 2 => 1,  // produce 2 messages
-                    < 6 => 2,   // produce 4 messages
-                    _ => 3      // produce 4 messages
-                };
-                Assert.Equal(expectedOffset, itemOffset);
+                Assert.Equal(i + 1, itemOffset);
                 Assert.Contains(itemOffset, eventsOffsets);
-            }
-
-            // Avg
-             Assert.Equal("avg", messages[0].MessageType);
-
-            // Avg
-            for (int i = 2; i < 8; i+=4)
-            {
-                Assert.Equal("avg", messages[i].MessageType);
-            }
-
-            // Fail
-            var msg = messages[1];
-            Assert.Equal("student-failed", msg.MessageType);
-            var fail = JsonSerializer.Deserialize<StudentFailedMessage>(messages[1].Payload);
-            Assert.Equal(2202, fail!.StudentId);
-            Assert.Equal("Lora", fail.Name);
-            Assert.Equal("topic-1", msg.Topic);
-
-            var passCollection = messages.Where(m => m.MessageType == "student-passed")
-                                         .ToArray();
-            Assert.Equal(6, passCollection.Length);
-
-            // Pass
-            for (int i = 0; i < passCollection.Length; i++)
-            {
-                msg = passCollection[i];
-                var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload);
-                Assert.Equal("student-passed", msg.MessageType);
-                Assert.Equal(2202, pass!.StudentId);
-                Assert.Equal("Lora", pass.Name);
-                string expected = (i % 3) switch
-                {
-                    0 => EvDbTopic.DEFAULT_TOPIC,
-                    1 => "topic-1",
-                    _ => "topic-3"
-                };
-                Assert.Equal(expected, msg.Topic);
             }
         }
     }

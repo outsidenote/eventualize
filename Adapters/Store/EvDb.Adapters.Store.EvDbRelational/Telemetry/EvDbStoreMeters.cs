@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using VogenTableName;
 
 namespace EvDb.Core.Adapters;
 
@@ -65,6 +62,6 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
         _eventsStored.Add(count, tags => tags.Add("evdb_store_db", dbType)
                                                       .Add("evdb_store_domain", adr.Domain)
                                                       .Add("evdb_store_partition", adr.Partition)
-                                                      .Add("evdb_store_topic_table", tableName)                                                      );
+                                                      .Add("evdb_store_topic_table", tableName));
     }
 }

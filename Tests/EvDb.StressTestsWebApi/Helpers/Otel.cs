@@ -64,7 +64,7 @@ internal static class OtelExtensions
                                 .AddProcessInstrumentation()
                                 .AddRuntimeInstrumentation()
                                 .AddAspNetCoreInstrumentation()
-                                
+
                                 .AddPrometheusExporter()
                                 .AddOtlpExporter()
                                 //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))

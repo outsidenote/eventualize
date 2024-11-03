@@ -10,7 +10,7 @@ public struct EvDbEventRecord
     public string StreamId { get; init; }
     public long Offset { get; init; }
     public string EventType { get; init; }
-    public string Payload { get; init; }
+    public byte[] Payload { get; init; }
     public string CapturedBy { get; init; }
     public DateTimeOffset CapturedAt { get; init; }
 
@@ -40,7 +40,7 @@ public struct EvDbEventRecord
             EventType = e.EventType,
             Payload = e.Payload,
             CapturedBy = e.CapturedBy,
-            CapturedAt = e.CapturedAt
+            CapturedAt = e.CapturedAt,
         };
     }
 }

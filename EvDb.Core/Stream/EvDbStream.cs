@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 namespace EvDb.Core;
@@ -63,7 +62,7 @@ public abstract class EvDbStream :
         where T : IEvDbPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
-        var json = JsonSerializer.Serialize(payload, Options);
+        var json = JsonSerializer.SerializeToUtf8Bytes(payload, Options);
 
         #region _pendingEvents = _pendingEvents.Add(e)
 

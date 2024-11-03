@@ -2,11 +2,8 @@
 
 namespace EvDb.StressTests;
 
-public class EvDbTestStorageContext : EvDbStorageContext
-{
-
-    public EvDbTestStorageContext() : base($"_eventualize_{Guid.NewGuid():N}", "test")
-    {
-
-    }
-}
+public record EvDbTestStorageContext() : EvDbStorageContext(
+    "master",
+    "test",
+    $"_eventualize_{Guid.NewGuid():N}",
+    "dbo");

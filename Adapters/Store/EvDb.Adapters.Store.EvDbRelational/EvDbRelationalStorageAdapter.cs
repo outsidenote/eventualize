@@ -14,7 +14,7 @@ namespace EvDb.Core.Adapters;
 /// Store adapter for rational database
 /// </summary>
 /// <seealso cref="EvDb.Core.IEvDbStorageAdapter" />
-public abstract class EvDbRelationalStorageAdapter : 
+public abstract class EvDbRelationalStorageAdapter :
     IEvDbStorageStreamAdapter,
     IEvDbStorageSnapshotAdapter
 {
@@ -173,7 +173,8 @@ public abstract class EvDbRelationalStorageAdapter :
                     foreach (var table in tables)
                     {
                         string query = string.Format(saveToTopicQuery, table.Key);
-                        int affctedMessages = await conn.ExecuteAsync(query, table, transaction);
+                        var items = table.ToArray();
+                        int affctedMessages = await conn.ExecuteAsync(query, items, transaction);
                         StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, table.Key);
                     }
                 }

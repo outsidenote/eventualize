@@ -1,6 +1,4 @@
 ﻿using EvDb.Adapters.Store.SqlServer;
-using EvDb.Core.Adapters;
-using LiteDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
@@ -8,7 +6,7 @@ using System.Data.SqlClient;
 
 namespace EvDb.Core.Tests;
 
-public record StoreAdapters (IEvDbStorageStreamAdapter Stream, IEvDbStorageSnapshotAdapter Snapshot);
+public record StoreAdapters(IEvDbStorageStreamAdapter Stream, IEvDbStorageSnapshotAdapter Snapshot);
 
 public static class StoreAdapterHelper
 {
@@ -69,7 +67,8 @@ public static class StoreAdapterHelper
     public static IEvDbStorageMigration CreateStoreMigration(
         ILogger logger,
         StoreType storeType,
-        EvDbTestStorageContext? context = null)
+        EvDbTestStorageContext? context = null,
+        params EvDbTableName[] topicTableNames)
     {
         context = context ?? new EvDbTestStorageContext();
         string connectionString = GetConnectionString(storeType);
@@ -77,12 +76,12 @@ public static class StoreAdapterHelper
         IEvDbStorageMigration result = storeType switch
         {
             StoreType.SqlServer =>
-                SqlServerStorageMigrationFactory.Create(logger, connectionString, context),
+                SqlServerStorageMigrationFactory.Create(logger, connectionString, context, topicTableNames),
             //StoreType.Posgres => ,
             //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
             _ => throw new NotImplementedException()
         };
-        
+
         return result;
     }
 

@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
-using System.Reflection;
 using System.Text;
 
 namespace EvDb.SourceGenerator.Helpers;
@@ -47,7 +46,7 @@ internal static class DomainRoslynExtensions
     #region DefaultsOnType
 
     public static StringBuilder DefaultsOnType(
-        this StringBuilder builder, 
+        this StringBuilder builder,
         INamedTypeSymbol typeSymbol,
         bool isClassOrStruct = true)
     {
@@ -88,7 +87,7 @@ internal static class DomainRoslynExtensions
                              let cls = a.AttributeClass!
                              where cls != null
                              let text = cls.Name
-                             where text == EventTypesGenerator.EventTarget                         
+                             where text == EventTypesGenerator.EventTarget
                              select new PayloadInfo(cls);
         eventsPayloads = eventsPayloads.ToArray(); // run once
         return eventsPayloads;

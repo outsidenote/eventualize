@@ -8,7 +8,7 @@ public interface IEvDbEventMeta
     string CapturedBy { get; }
 }
 
-public interface IEvDbTopicMeta: IEvDbEventMeta
+public interface IEvDbTopicMeta : IEvDbEventMeta
 {
     string MessageType { get; }
 }
