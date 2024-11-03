@@ -6,18 +6,14 @@
 using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using System.Reflection;
 using System.Text;
-using System.Xml.Linq;
 
 namespace EvDb.SourceGenerator;
 
 [Generator]
 public partial class EvDbTopicGenerator : BaseGenerator
 {
-    internal const string TOPIC_ATT = "EvDbTopicAttribute";
+    internal const string TOPIC_ATT = "EvDbTopicsAttribute";
     internal const string TOPIC_TABLES_ATT = "EvDbAttachTopicTablesAttribute";
     private const string MESSAGE_TYPES = "EvDbMessageTypes";
     private const string MESSAGE_TYPES_ATT = "EvDbMessageTypesAttribute";
@@ -359,7 +355,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
-        if(hasTables)
+        if (hasTables)
             builder.AppendLine($"using {tableEnumNs};");
         builder.AppendLine();
 

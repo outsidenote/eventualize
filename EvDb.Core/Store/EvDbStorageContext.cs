@@ -51,6 +51,7 @@ public record EvDbStorageContext
     /// The environment variable key represent the environment.
     /// If the key is not found, the value is used as the environment.
     /// </summary>
+    /// <param name="databaseName">The database name</param>
     /// <param name="prefix">Table prefix</param>
     /// <param name="environmentOrKey">
     /// The environment (dev, prod, qa) or 

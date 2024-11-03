@@ -21,7 +21,7 @@ internal static class RoslynExtensions
             $"{typeName}: {description}", "EvDb",
             severity, isEnabledByDefault: true),
             Location.Create(syntax.SyntaxTree, syntax.Span));
-        return diagnostic;  
+        return diagnostic;
     }
 
     #endregion //  CreateDiagnostic

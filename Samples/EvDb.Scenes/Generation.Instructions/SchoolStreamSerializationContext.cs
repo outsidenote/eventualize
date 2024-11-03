@@ -16,6 +16,6 @@ namespace EvDb.UnitTests;
 // [JsonSerializable(typeof(Stats))]
 // [JsonSerializable(typeof(StudentStatsState))]
 // //[JsonSourceGenerationOptions(DefaultIgnoreCondition = JsonIgnoreCondition.Always)]
-public partial class SchoolStreamSerializationContext: JsonSerializerContext
+public partial class SchoolStreamSerializationContext : JsonSerializerContext
 {
 }

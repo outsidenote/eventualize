@@ -23,8 +23,8 @@ internal static class GeneralExtensions
     {
         path = path ?? Array.Empty<string>();
         if (useSymbolNameAsPrefix)
-        { 
-            path = new[] { typeSymbol.Name }.Concat(path) ;
+        {
+            path = new[] { typeSymbol.Name }.Concat(path);
         }
         else if (!(path?.Any() ?? false))
         {

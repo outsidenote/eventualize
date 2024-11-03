@@ -5,7 +5,6 @@ using EvDb.Core;
 using EvDb.Core.Adapters;
 using EvDb.UnitTests;
 using FakeItEasy;
-using LiteDB;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
 using Xunit.Abstractions;
@@ -23,9 +22,9 @@ public class IntegrationTests : IAsyncLifetime
         _output = output;
         var context = new EvDbTestStorageContext();
         StorageContext = context;
-        _storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, storeType, context, 
-                                                        TopicTables.MessagingVip, 
-                                                        TopicTables.Messaging, 
+        _storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, storeType, context,
+                                                        TopicTables.MessagingVip,
+                                                        TopicTables.Messaging,
                                                         TopicTables.Commands,
                                                         EvDbTableName.Default);
         _connection = StoreAdapterHelper.GetConnection(storeType, context);
@@ -62,7 +61,7 @@ public class IntegrationTests : IAsyncLifetime
             EvDbMessageRecord e = parser(reader);
             yield return e;
         }
-        await  _connection.CloseAsync();
+        await _connection.CloseAsync();
     }
 
 

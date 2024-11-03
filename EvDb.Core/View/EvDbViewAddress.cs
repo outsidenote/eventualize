@@ -1,5 +1,4 @@
 ﻿using Generator.Equals;
-using System.Net;
 
 using static EvDb.Core.OtelConstants;
 

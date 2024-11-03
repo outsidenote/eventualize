@@ -1,12 +1,11 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace EvDb.Core;
 
@@ -89,7 +88,7 @@ public partial struct EvDbTableName :
 
     #endregion //  Ctor
 
-    private static string Format(string value) => value.Replace('-','_');
+    private static string Format(string value) => value.Replace('-', '_');
 
     #region TryFrom / From
 

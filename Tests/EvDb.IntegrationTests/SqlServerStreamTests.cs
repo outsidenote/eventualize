@@ -56,7 +56,7 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.All(messagingVip, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(messagingVip, m => Assert.Equal("student-passed", m.MessageType));
             Assert.All(messagingVip, m => Assert.Equal("topic-3", m.Topic));
-            Assert.All(messagingVip, msg => 
+            Assert.All(messagingVip, msg =>
             {
                 var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload);
                 Assert.Equal(2202, pass!.StudentId);
@@ -64,12 +64,12 @@ public class SqlServerStreamTests : IntegrationTests
             });
 
             ICollection<EvDbMessageRecord> commandsCollection = await GetMessagesFromTopicsAsync(TopicTables.Commands).ToEnumerableAsync();
-            EvDbMessageRecord[] commands = commandsCollection!.ToArray(); 
+            EvDbMessageRecord[] commands = commandsCollection!.ToArray();
             Assert.Single(commands);
             Assert.All(commands, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(commands, m => Assert.Equal("student-failed", m.MessageType));
             Assert.All(commands, m => Assert.Equal("topic-1", m.Topic));
-            Assert.All(commands, msg => 
+            Assert.All(commands, msg =>
             {
                 var fail = JsonSerializer.Deserialize<StudentFailedMessage>(msg.Payload);
                 Assert.Equal(2202, fail!.StudentId);
@@ -83,7 +83,7 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.All(defaults, m => Assert.Equal("avg", m.MessageType));
             Assert.All(defaults, m => Assert.Equal(EvDbTopic.DEFAULT_TOPIC, m.Topic));
 
-           
+
 
             string connectionString = StoreAdapterHelper.GetConnectionString(StoreType.SqlServer);
             IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext);
@@ -92,7 +92,7 @@ public class SqlServerStreamTests : IntegrationTests
             var events = eventsCollection.ToArray();
 
             var avg1 = JsonSerializer.Deserialize<AvgMessage>(defaults[0].Payload);
-            Assert.Equal(30, avg1!.Avg);           
+            Assert.Equal(30, avg1!.Avg);
             var avg2 = JsonSerializer.Deserialize<AvgMessage>(defaults[1].Payload);
             Assert.Equal(45, avg2!.Avg);
             var avg3 = JsonSerializer.Deserialize<AvgMessage>(defaults[2].Payload);

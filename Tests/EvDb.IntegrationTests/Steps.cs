@@ -66,8 +66,8 @@ internal static class Steps
     #region GivenSavedEventsAsync
 
     public static async Task<IEvDbSchoolStream> GivenSavedEventsAsync(
-        this EvDbStorageContext storageContext,      
-        ITestOutputHelper output, 
+        this EvDbStorageContext storageContext,
+        ITestOutputHelper output,
         string? streamId,
         int numOfGrades = NUM_OF_GRADES)
     {

@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 namespace EvDb.Core;

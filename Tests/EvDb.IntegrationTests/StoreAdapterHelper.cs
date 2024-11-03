@@ -1,6 +1,4 @@
 ﻿using EvDb.Adapters.Store.SqlServer;
-using EvDb.Core.Adapters;
-using LiteDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
@@ -8,7 +6,7 @@ using System.Data.SqlClient;
 
 namespace EvDb.Core.Tests;
 
-public record StoreAdapters (IEvDbStorageStreamAdapter Stream, IEvDbStorageSnapshotAdapter Snapshot);
+public record StoreAdapters(IEvDbStorageStreamAdapter Stream, IEvDbStorageSnapshotAdapter Snapshot);
 
 public static class StoreAdapterHelper
 {
@@ -83,7 +81,7 @@ public static class StoreAdapterHelper
             //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
             _ => throw new NotImplementedException()
         };
-        
+
         return result;
     }
 

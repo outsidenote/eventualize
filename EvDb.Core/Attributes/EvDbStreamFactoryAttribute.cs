@@ -1,7 +1,5 @@
 ﻿#pragma warning disable S2326 // Unused type parameters should be removed
 
-using EvDb.Core.Internals;
-
 namespace EvDb.Core;
 
 /// <summary>
@@ -15,7 +13,7 @@ public class EvDbStreamFactoryAttribute<TEventType, TTopicProducer> : EvDbStream
     where TEventType : IEvDbEventTypes
     where TTopicProducer : IEvDbTopicProducer
 {
-    public EvDbStreamFactoryAttribute(string domain, string partition): base(domain, partition)
+    public EvDbStreamFactoryAttribute(string domain, string partition) : base(domain, partition)
     {
     }
 

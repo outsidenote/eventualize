@@ -2,12 +2,10 @@ namespace EvDb.Core.Tests;
 
 using Cocona;
 using EvDb.MinimalStructure;
-using FakeItEasy;
+using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using Xunit.Abstractions;
-using EvDb.Core.Store;
-using EvDb.UnitTests;
 
 public class ApiDesignTests
 {
@@ -26,7 +24,7 @@ public class ApiDesignTests
                         .AddSchoolStreamFactory(
                                 c => c.UseSqlServerStoreForEvDbStream(),
                                 EvDbStorageContext.CreateWithEnvironment("master"))
-                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup",EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic2))
+                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup", EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic2))
                         .AddTopics(tg => tg.CreateTopicGroup("TestGroup2", EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic3))
                             //.Topics(c =>
                             //{

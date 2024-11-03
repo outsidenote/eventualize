@@ -14,7 +14,7 @@ namespace EvDb.Core.Adapters;
 /// Store adapter for rational database
 /// </summary>
 /// <seealso cref="EvDb.Core.IEvDbStorageAdapter" />
-public abstract class EvDbRelationalStorageAdapter : 
+public abstract class EvDbRelationalStorageAdapter :
     IEvDbStorageStreamAdapter,
     IEvDbStorageSnapshotAdapter
 {

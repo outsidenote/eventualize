@@ -4,9 +4,7 @@
 using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Reflection;
 using System.Text;
 
 namespace EvDb.SourceGenerator;

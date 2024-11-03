@@ -18,7 +18,7 @@ internal static class QueryTemplatesFactory
 
         #region string destroyEnvironment = ...
 
-        IEnumerable<string> dropTopicsTables = topicTableNames.Select(t =>$"""
+        IEnumerable<string> dropTopicsTables = topicTableNames.Select(t => $"""
             DROP TABLE {tabInitial}{t};
             """);
 

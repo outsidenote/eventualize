@@ -2,5 +2,5 @@
 
 public readonly record struct CustomerEntityModelState
 {
-    public Person Person { get; init; } 
+    public Person Person { get; init; }
 }

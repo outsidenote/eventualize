@@ -2,20 +2,17 @@
 
 using EvDb.Core;
 using EvDb.Scenes;
-using System.Collections.Immutable;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 
 namespace EvDb.UnitTests;
 
-[EvDbAttachTopicTables<TopicTables>] 
+[EvDbAttachTopicTables<TopicTables>]
 [EvDbMessageTypes<AvgMessage>]
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
-[EvDbTopic<SchoolStreamFactory>] // TODO: EvDbTopics
-public partial class EvDbSchoolStreamTopics // TODO: MessageRouter
+[EvDbTopics<SchoolStreamFactory>]
+public partial class EvDbSchoolStreamTopics // TODO: MessageRouter / Outbox
 {
-    protected override TopicTablesPreferences[] TopicToTables(EvDbSchoolStreamTopicOptions topic) => 
+    protected override TopicTablesPreferences[] TopicToTables(EvDbSchoolStreamTopicOptions topic) =>
         topic switch
         {
             EvDbSchoolStreamTopicOptions.Topic1 => [TopicTablesPreferences.Commands],
@@ -33,7 +30,7 @@ public partial class EvDbSchoolStreamTopics // TODO: MessageRouter
                                                  EvDbSchoolStreamTopicsContext topics)
     {
         Stats state = views.ALL;
-        AvgMessage avg = new (state.Sum / (double)state.Count);
+        AvgMessage avg = new(state.Sum / (double)state.Count);
         topics.Add(avg);
         var studentName = views.StudentStats.Students
             .First(m => m.StudentId == payload.StudentId)
@@ -46,10 +43,9 @@ public partial class EvDbSchoolStreamTopics // TODO: MessageRouter
                                              payload.Grade);
             topics.Add(pass, TopicsOfStudentPassedMessage.Topic2);
             topics.Add(pass, TopicsOfStudentPassedMessage.Topic3);
-            //topics.Add(pass);
         }
         else
-        { 
+        {
             var fail = new StudentFailedMessage(payload.StudentId,
                                              studentName,
                                              meta.CapturedAt,

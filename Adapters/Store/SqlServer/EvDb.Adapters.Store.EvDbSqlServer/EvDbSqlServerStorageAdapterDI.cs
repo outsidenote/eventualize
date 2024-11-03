@@ -2,8 +2,6 @@
 
 using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
-using EvDb.Core.Adapters;
-using EvDb.Core.Store;
 using EvDb.Core.Store.Internals;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -24,7 +22,7 @@ public static class EvDbSqlServerStorageAdapterDI
         EvDbPartitionAddress key = instance.Address;
         var context = instance.Context;
         services.AddKeyedScoped(
-            key.ToString(), 
+            key.ToString(),
             (sp, _) =>
                 {
                     var ctx = context
@@ -52,10 +50,10 @@ public static class EvDbSqlServerStorageAdapterDI
     {
         IServiceCollection services = instance.Services;
         services.UseRelationalStore();
-        EvDbViewBasicAddress key = instance.Address; 
+        EvDbViewBasicAddress key = instance.Address;
         var context = instance.Context;
         services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(
-            key.ToString(), 
+            key.ToString(),
             (sp, _) =>
                 {
                     var ctx = context
