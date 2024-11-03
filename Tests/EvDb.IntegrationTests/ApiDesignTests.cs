@@ -24,8 +24,8 @@ public class ApiDesignTests
                         .AddSchoolStreamFactory(
                                 c => c.UseSqlServerStoreForEvDbStream(),
                                 EvDbStorageContext.CreateWithEnvironment("master"))
-                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup", EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic2))
-                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup2", EvDbSchoolStreamTopicOptions.Topic1, EvDbSchoolStreamTopicOptions.Topic3))
+                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup", EvDbSchoolStreamOutboxOptions.Topic1, EvDbSchoolStreamOutboxOptions.Topic2))
+                        .AddTopics(tg => tg.CreateTopicGroup("TestGroup2", EvDbSchoolStreamOutboxOptions.Topic1, EvDbSchoolStreamOutboxOptions.Topic3))
                             //.Topics(c =>
                             //{
                             //    c.CreateTopicGroup(x => [x.Topic1, x.Topic2])

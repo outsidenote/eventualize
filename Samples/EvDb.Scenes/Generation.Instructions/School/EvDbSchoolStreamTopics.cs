@@ -5,20 +5,20 @@ using EvDb.Scenes;
 
 namespace EvDb.UnitTests;
 
-[EvDbAttachTopicTables<TopicTables>]
 [EvDbMessageTypes<AvgMessage>]
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
-[EvDbTopics<SchoolStreamFactory>]
-public partial class EvDbSchoolStreamTopics // TODO: MessageRouter / Outbox
+[EvDbAttachOutboxTables<TopicTables>] // TODO: merge it into [EvDbOutbox]
+[EvDbOutbox<SchoolStreamFactory>]
+public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
 {
-    protected override TopicTablesPreferences[] TopicToTables(EvDbSchoolStreamTopicOptions topic) =>
+    protected override TopicTablesPreferences[] TopicToTables(EvDbSchoolStreamOutboxOptions topic) =>
         topic switch
         {
-            EvDbSchoolStreamTopicOptions.Topic1 => [TopicTablesPreferences.Commands],
-            EvDbSchoolStreamTopicOptions.Topic2 => [
+            EvDbSchoolStreamOutboxOptions.Topic1 => [TopicTablesPreferences.Commands],
+            EvDbSchoolStreamOutboxOptions.Topic2 => [
                                                     TopicTablesPreferences.Messaging],
-            EvDbSchoolStreamTopicOptions.Topic3 => [
+            EvDbSchoolStreamOutboxOptions.Topic3 => [
                                                     TopicTablesPreferences.MessagingVip,
                                                     TopicTablesPreferences.Messaging],
             _ => []
@@ -27,7 +27,7 @@ public partial class EvDbSchoolStreamTopics // TODO: MessageRouter / Outbox
     protected override void ProduceTopicMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
                                                  IEvDbEventMeta meta,
                                                  EvDbSchoolStreamViews views,
-                                                 EvDbSchoolStreamTopicsContext topics)
+                                                 EvDbSchoolOutboxContext topics)
     {
         Stats state = views.ALL;
         AvgMessage avg = new(state.Sum / (double)state.Count);
@@ -41,8 +41,8 @@ public partial class EvDbSchoolStreamTopics // TODO: MessageRouter / Outbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(pass, TopicsOfStudentPassedMessage.Topic2);
-            topics.Add(pass, TopicsOfStudentPassedMessage.Topic3);
+            topics.Add(pass, OutboxOfStudentPassedMessage.Topic2);
+            topics.Add(pass, OutboxOfStudentPassedMessage.Topic3);
         }
         else
         {
