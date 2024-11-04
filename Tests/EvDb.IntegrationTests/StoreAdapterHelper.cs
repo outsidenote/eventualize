@@ -33,7 +33,7 @@ public static class StoreAdapterHelper
         IEvDbStorageStreamAdapter streamStoreAdapter = storeType switch
         {
             StoreType.SqlServer =>
-                EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context),
+                EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []),
             //StoreType.Posgres => ,
             //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
             _ => throw new NotImplementedException()

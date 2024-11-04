@@ -86,7 +86,7 @@ public class SqlServerStreamTests : IntegrationTests
 
 
             string connectionString = StoreAdapterHelper.GetConnectionString(StoreType.SqlServer);
-            IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext);
+            IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext, []);
             var address = new EvDbStreamCursor(stream.StreamAddress);
             var eventsCollection = await adapter.GetEventsAsync(address).ToEnumerableAsync();
             var events = eventsCollection.ToArray();

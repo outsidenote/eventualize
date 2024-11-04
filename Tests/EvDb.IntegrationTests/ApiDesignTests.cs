@@ -22,7 +22,7 @@ public class ApiDesignTests
         services.AddEvDb() // return IEvDbBuilder that will be used as the hook for the generated extensions method
                            // return IEvDbSchoolBuilder that will be used as the hook for the generated extensions method
                         .AddSchoolStreamFactory(
-                                c => c.UseSqlServerStoreForEvDbStream(),
+                                c => c.UseSqlServerStoreForEvDbStream(Enumerable.Empty<IEvDbOutboxTransformer>()),
                                 EvDbStorageContext.CreateWithEnvironment("master"))
                         .AddTopics(tg => tg.CreateTopicGroup("TestGroup", EvDbSchoolStreamOutboxOptions.Topic1, EvDbSchoolStreamOutboxOptions.Topic2))
                         .AddTopics(tg => tg.CreateTopicGroup("TestGroup2", EvDbSchoolStreamOutboxOptions.Topic1, EvDbSchoolStreamOutboxOptions.Topic3))

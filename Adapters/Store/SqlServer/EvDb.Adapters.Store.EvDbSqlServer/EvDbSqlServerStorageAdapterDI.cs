@@ -14,7 +14,19 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class EvDbSqlServerStorageAdapterDI
 {
     public static void UseSqlServerStoreForEvDbStream(
+        this EvDbStreamStoreRegistrationContext instance,
+        params IEvDbOutboxTransformer[] transformers) =>
+        instance.UseSqlServerStoreForEvDbStream("EvDbSqlServerConnection", transformers);
+
+    public static void UseSqlServerStoreForEvDbStream(
+        this EvDbStreamStoreRegistrationContext instance,
+        string connectionStringOrConfigurationKey = "EvDbSqlServerConnection",
+        params IEvDbOutboxTransformer[] transformers)
+        => instance.UseSqlServerStoreForEvDbStream(transformers, connectionStringOrConfigurationKey);
+
+    public static void UseSqlServerStoreForEvDbStream(
             this EvDbStreamStoreRegistrationContext instance,
+            IEnumerable<IEvDbOutboxTransformer> transformers,
             string connectionStringOrConfigurationKey = "EvDbSqlServerConnection")
     {
         IServiceCollection services = instance.Services;
@@ -39,7 +51,7 @@ public static class EvDbSqlServerStorageAdapterDI
 
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();
-                    IEvDbStorageStreamAdapter adapter = EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, ctx);
+                    IEvDbStorageStreamAdapter adapter = EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, ctx, transformers);
                     return adapter;
                 });
     }

@@ -9,11 +9,10 @@ namespace EvDb.Adapters.Store.SqlServer;
 
 internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
 {
-    public EvDbSqlServerStorageAdapter(
-        ILogger logger,
+    public EvDbSqlServerStorageAdapter(ILogger logger,
         EvDbStorageContext context,
-        IEvDbConnectionFactory factory)
-            : base(logger, factory)
+        IEvDbConnectionFactory factory, IEnumerable<IEvDbOutboxTransformer> transformers)
+            : base(logger, factory, transformers)
     {
         StreamQueries = QueryTemplatesFactory.CreateStreamQueries(context);
         SnapshotQueries = QueryTemplatesFactory.CreateSnapshotQueries(context);
