@@ -246,7 +246,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
                                 return this;
                             }
 
-                            public {{streamName}}TopicDefinition WithTransformation<T>() where T : IEvDbTopicTransformer
+                            public {{streamName}}TopicDefinition WithTransformation<T>() where T : IEvDbOutboxTransformer
                             {
                                 return this;
                             }

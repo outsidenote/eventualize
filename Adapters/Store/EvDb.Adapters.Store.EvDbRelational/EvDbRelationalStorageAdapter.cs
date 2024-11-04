@@ -20,17 +20,18 @@ public abstract class EvDbRelationalStorageAdapter :
 {
     protected readonly ILogger _logger;
     private readonly IEvDbConnectionFactory _factory;
+    private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
     private const int RETRY_COUNT = 4;
     private const int RETRY_COUNT_DELAY_MILLI = 2;
 
     #region Ctor
 
-    protected EvDbRelationalStorageAdapter(
-        ILogger logger,
-        IEvDbConnectionFactory factory)
+    protected EvDbRelationalStorageAdapter(ILogger logger,
+        IEvDbConnectionFactory factory, IEnumerable<IEvDbOutboxTransformer> transformers)
     {
         _logger = logger;
         _factory = factory;
+        _transformers = transformers.ToImmutableList();
     }
 
     async Task<DbConnection> InitAsync()
@@ -160,38 +161,47 @@ public abstract class EvDbRelationalStorageAdapter :
 
         var eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
 
-        using (var transaction = await conn.BeginTransactionAsync())
+
+        foreach (var transformer in _transformers)
         {
-            try
+            messages = messages.Select(m =>
             {
-                int affctedEvents = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
-                StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
-                if (messages.Count != 0)
+                var newPayload = transformer.Transform(m.Topic, m.MessageType, m.EventType, m.Payload);
+
+                return m with { Payload = newPayload };
+            }).ToImmutableList();
+        }
+
+        await using var transaction = await conn.BeginTransactionAsync();
+        try
+        {
+            int affctedEvents = await conn.ExecuteAsync(saveEventsQuery, eventsRecords, transaction);
+            StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
+            if (messages.Count != 0)
+            {
+                var tables = from message in messages
+                             group (EvDbMessageRecord)message by message.TableName;
+                foreach (var table in tables)
                 {
-                    var tables = from message in messages
-                                 group (EvDbMessageRecord)message by message.TableName;
-                    foreach (var table in tables)
-                    {
-                        string query = string.Format(saveToTopicQuery, table.Key);
-                        var items = table.ToArray();
-                        int affctedMessages = await conn.ExecuteAsync(query, items, transaction);
-                        StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, table.Key);
-                    }
+                    string query = string.Format(saveToTopicQuery, table.Key);
+                    var items = table.ToArray();
+                    int affctedMessages = await conn.ExecuteAsync(query, items, transaction);
+                    StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, table.Key);
                 }
-                await transaction.CommitAsync();
-                return affctedEvents;
             }
-            catch (Exception ex) when (IsOccException(ex))
-            {
-                await transaction.RollbackAsync();
-                var cursor = new EvDbStreamCursor(streamStore.StreamAddress);
-                throw new OCCException(cursor);
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+            await transaction.CommitAsync();
+            return affctedEvents;
+        }
+        catch (Exception ex) when (IsOccException(ex))
+        {
+            await transaction.RollbackAsync();
+            var cursor = new EvDbStreamCursor(streamStore.StreamAddress);
+            throw new OCCException(cursor);
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
         }
     }
 
