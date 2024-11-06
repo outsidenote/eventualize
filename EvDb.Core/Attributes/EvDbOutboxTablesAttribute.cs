@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class EvDbTopicTablesAttribute : Attribute
+public class EvDbOutboxTablesAttribute : Attribute
 {
 }

@@ -8,19 +8,22 @@ namespace EvDb.UnitTests;
 [EvDbMessageTypes<AvgMessage>]
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
-[EvDbAttachOutboxTables<TopicTables>] // TODO: merge it into [EvDbOutbox]
+[EvDbAttachOutboxTables<OutboxTables>] // TODO: merge it into [EvDbOutbox]
 [EvDbOutbox<SchoolStreamFactory>]
+[EvDbApplyOutboxSerialization<AvroSerializer>]
+[EvDbApplyOutboxSerialization<PrefixSerializer>]
 public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
 {
-    protected override TopicTablesPreferences[] TopicToTables(EvDbSchoolStreamOutboxOptions topic) =>
-        topic switch
+    protected override OutboxTablesPreferences[] ChannelToTables(EvDbSchoolOutboxChannels outbox) =>
+        outbox switch
         {
-            EvDbSchoolStreamOutboxOptions.Topic1 => [TopicTablesPreferences.Commands],
-            EvDbSchoolStreamOutboxOptions.Topic2 => [
-                                                    TopicTablesPreferences.Messaging],
-            EvDbSchoolStreamOutboxOptions.Topic3 => [
-                                                    TopicTablesPreferences.MessagingVip,
-                                                    TopicTablesPreferences.Messaging],
+            // TODO: change the base name of the enum to use EvDbSchoolOutbox
+            EvDbSchoolOutboxChannels.Channel1 => [OutboxTablesPreferences.Commands],
+            EvDbSchoolOutboxChannels.Channel2 => [
+                                                    OutboxTablesPreferences.Messaging],
+            EvDbSchoolOutboxChannels.Channel3 => [
+                                                    OutboxTablesPreferences.MessagingVip,
+                                                    OutboxTablesPreferences.Messaging],
             _ => []
         };
 
@@ -41,8 +44,8 @@ public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(pass, OutboxOfStudentPassedMessage.Topic2);
-            topics.Add(pass, OutboxOfStudentPassedMessage.Topic3);
+            topics.Add(pass, OutboxOfStudentPassedMessage.Channel2);
+            topics.Add(pass, OutboxOfStudentPassedMessage.Channel3);
         }
         else
         {

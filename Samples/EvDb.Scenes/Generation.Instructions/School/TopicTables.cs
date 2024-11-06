@@ -2,8 +2,8 @@
 
 namespace EvDb.UnitTests;
 
-[EvDbTopicTables]
-public abstract class TopicTables
+[EvDbOutboxTables]
+public abstract class OutboxTables
 {
     public static readonly EvDbTableName MessagingVip = "messaging-vip";
     public static readonly EvDbTableName Messaging = "messaging";

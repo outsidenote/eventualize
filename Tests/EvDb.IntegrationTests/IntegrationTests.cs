@@ -23,9 +23,9 @@ public class IntegrationTests : IAsyncLifetime
         var context = new EvDbTestStorageContext();
         StorageContext = context;
         _storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, storeType, context,
-                                                        TopicTables.MessagingVip,
-                                                        TopicTables.Messaging,
-                                                        TopicTables.Commands,
+                                                        OutboxTables.MessagingVip,
+                                                        OutboxTables.Messaging,
+                                                        OutboxTables.Commands,
                                                         EvDbTableName.Default);
         _connection = StoreAdapterHelper.GetConnection(storeType, context);
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;

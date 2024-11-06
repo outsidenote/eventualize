@@ -11,9 +11,9 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EvDbTopicToTablesGenerator : BaseGenerator
+public partial class EvDbChannelToTablesGenerator : BaseGenerator
 {
-    internal const string ATT = "EvDbTopicTablesAttribute";
+    internal const string ATT = "EvDbOutboxTablesAttribute";
     protected override string EventTargetAttribute { get; } = ATT;
 
     #region OnGenerate

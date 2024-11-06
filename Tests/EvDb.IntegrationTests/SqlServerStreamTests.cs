@@ -43,19 +43,19 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(180, studentStat.Sum);
             Assert.Equal(3, studentStat.Count);
 
-            ICollection<EvDbMessageRecord> messagingCollection = await GetMessagesFromTopicsAsync(TopicTables.Messaging).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> messagingCollection = await GetMessagesFromTopicsAsync(OutboxTables.Messaging).ToEnumerableAsync();
             EvDbMessageRecord[] messaging = messagingCollection!.ToArray();
             Assert.Equal(4, messaging.Length);
             Assert.All(messaging, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(messaging, m => Assert.Equal("student-passed", m.MessageType));
-            Assert.All(messaging, m => Assert.True(m.Topic == "topic-3" || m.Topic == "topic-2"));
+            Assert.All(messaging, m => Assert.True(m.Topic == "channel-3" || m.Topic == "channel-2"));
 
-            ICollection<EvDbMessageRecord> messagingVipCollection = await GetMessagesFromTopicsAsync(TopicTables.MessagingVip).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> messagingVipCollection = await GetMessagesFromTopicsAsync(OutboxTables.MessagingVip).ToEnumerableAsync();
             EvDbMessageRecord[] messagingVip = messagingVipCollection!.ToArray();
             Assert.Equal(2, messagingVip.Length);
             Assert.All(messagingVip, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(messagingVip, m => Assert.Equal("student-passed", m.MessageType));
-            Assert.All(messagingVip, m => Assert.Equal("topic-3", m.Topic));
+            Assert.All(messagingVip, m => Assert.Equal("channel-3", m.Topic));
             Assert.All(messagingVip, msg =>
             {
                 var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload);
@@ -63,12 +63,12 @@ public class SqlServerStreamTests : IntegrationTests
                 Assert.Equal("Lora", pass.Name);
             });
 
-            ICollection<EvDbMessageRecord> commandsCollection = await GetMessagesFromTopicsAsync(TopicTables.Commands).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> commandsCollection = await GetMessagesFromTopicsAsync(OutboxTables.Commands).ToEnumerableAsync();
             EvDbMessageRecord[] commands = commandsCollection!.ToArray();
             Assert.Single(commands);
             Assert.All(commands, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(commands, m => Assert.Equal("student-failed", m.MessageType));
-            Assert.All(commands, m => Assert.Equal("topic-1", m.Topic));
+            Assert.All(commands, m => Assert.Equal("channel-1", m.Topic));
             Assert.All(commands, msg =>
             {
                 var fail = JsonSerializer.Deserialize<StudentFailedMessage>(msg.Payload);
