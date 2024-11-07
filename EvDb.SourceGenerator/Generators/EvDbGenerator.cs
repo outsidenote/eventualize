@@ -309,7 +309,7 @@ public partial class EvDbGenerator : BaseGenerator
 
                         #endregion // Ctor
 
-                        protected override IEvDbTopicProducer? TopicProducer { get; } 
+                        protected override IEvDbOutboxProducer? TopicProducer { get; } 
                     
                         public {{streamName}}Views Views { get; }
                     

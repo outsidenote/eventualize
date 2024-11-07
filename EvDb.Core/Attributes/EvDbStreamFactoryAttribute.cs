@@ -11,7 +11,7 @@ namespace EvDb.Core;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class EvDbStreamFactoryAttribute<TEventType, TTopicProducer> : EvDbStreamFactoryAttribute<TEventType>
     where TEventType : IEvDbEventTypes
-    where TTopicProducer : IEvDbTopicProducer
+    where TTopicProducer : IEvDbOutboxProducer
 {
     public EvDbStreamFactoryAttribute(string domain, string partition) : base(domain, partition)
     {

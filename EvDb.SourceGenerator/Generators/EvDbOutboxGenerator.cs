@@ -15,7 +15,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 {
     internal const string OUTBOX_ATT = "EvDbOutboxAttribute";
     internal const string OUTBOX_TABLES_ATT = "EvDbAttachOutboxTablesAttribute";
-    private const string OUTBOX_SERIALIZER_ATT = "EvDbApplyOutboxSerializationAttribute";
+    private const string OUTBOX_SERIALIZER_ATT = "EvDbAddOutboxSerializationAttribute";
     private const string MESSAGE_TYPES = "EvDbMessageTypes";
     private const string MESSAGE_TYPES_ATT = "EvDbMessageTypesAttribute";
     protected override string EventTargetAttribute { get; } = OUTBOX_ATT;
@@ -183,7 +183,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    public sealed class {{outboxName}}Context : EvDbTopicContextBase
+                    public sealed class {{outboxName}}Context : EvDbOutboxContextBase
                     {
                         private readonly I{{streamName}}ChannelToTables _outboxToTables;
 
@@ -293,7 +293,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         #endregion // Multi Topics Enum
 
-        #region Topic Base
+        #region Outbox Base
 
         #region var addTopicHandlers = ...
 
@@ -365,7 +365,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    public abstract class {{outboxName}}Base : IEvDbTopicProducer, I{{streamName}}ChannelToTables
+                    public abstract class {{outboxName}}Base : IEvDbOutboxProducer, I{{streamName}}ChannelToTables
                     {
                         private readonly {{streamName}} _evDbStream;
                         private readonly JsonSerializerOptions? _serializationOptions;
@@ -379,7 +379,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     
                     {{outboxToTables}}
 
-                        void IEvDbTopicProducer.OnProduceTopicMessages(
+                        void IEvDbOutboxProducer.OnProduceOutboxMessages(
                             EvDbEvent e,
                             IImmutableList<IEvDbViewStore> views)
                         {
@@ -396,7 +396,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     """);
         context.AddSource(typeSymbol.StandardSuffix("Base"), builder.ToString());
 
-        #endregion // Topic Base
+        #endregion // Outbox Base
 
         #region Topic
 

@@ -8,10 +8,9 @@ namespace EvDb.UnitTests;
 [EvDbMessageTypes<AvgMessage>]
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
-[EvDbAttachOutboxTables<OutboxTables>] // TODO: merge it into [EvDbOutbox]
+[EvDbAttachOutboxTables<OutboxTables>] // TODO: merge it into [EvDbOutboxGroups]
 [EvDbOutbox<SchoolStreamFactory>]
-[EvDbApplyOutboxSerialization<AvroSerializer>]
-[EvDbApplyOutboxSerialization<PrefixSerializer>]
+[EvDbAddOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
 public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
 {
     protected override OutboxTablesPreferences[] ChannelToTables(EvDbSchoolOutboxChannels outbox) =>

@@ -77,7 +77,7 @@ public abstract class EvDbStream :
         foreach (IEvDbViewStore folding in _views)
             folding.FoldEvent(e);
 
-        TopicProducer?.OnProduceTopicMessages(e, _views);
+        TopicProducer?.OnProduceOutboxMessages(e, _views);
 
         return e;
 
@@ -98,14 +98,14 @@ public abstract class EvDbStream :
 
     #endregion // AddEventAsync
 
-    #region IEvDbTopicProducer
+    #region IEvDbOutboxProducer
 
     /// <summary>
     /// Produce messages into topics based on an event and states.
     /// </summary>
-    protected virtual IEvDbTopicProducer? TopicProducer { get; }
+    protected virtual IEvDbOutboxProducer? TopicProducer { get; }
 
-    #endregion //  IEvDbTopicProducer
+    #endregion //  IEvDbOutboxProducer
 
     #region AddToTopic
 
