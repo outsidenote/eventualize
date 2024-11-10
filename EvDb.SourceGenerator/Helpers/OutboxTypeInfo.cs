@@ -10,16 +10,16 @@ using System.Collections.Immutable;
 
 namespace EvDb.SourceGenerator;
 
-internal struct TopicTypeInfo
+internal struct OutboxTypeInfo
 {
-    public TopicTypeInfo(
+    public OutboxTypeInfo(
             SourceProductionContext context,
             TypeDeclarationSyntax syntax,
-            AttributeData topicTypeAttribute)
+            AttributeData topicMessageAttribute)
     {
         #region string attachedViewTypeFullName = .., attachedViewTypeName = ..
 
-        ImmutableArray<ITypeSymbol> attachedViewArgs = topicTypeAttribute.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
+        ImmutableArray<ITypeSymbol> attachedViewArgs = topicMessageAttribute.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         ITypeSymbol attachedViewFirstArgSymbol = attachedViewArgs[0];
         string attachedViewTypeFullName = attachedViewFirstArgSymbol.ToDisplayString();
         string attachedViewTypeName = attachedViewFirstArgSymbol.Name;
@@ -38,8 +38,8 @@ internal struct TopicTypeInfo
             context.Throw(EvDbErrorsNumbers.MissingViewName, "message name on store is missing", syntax);
         }
 
-        HasDefaultTopic = attributes.Any(m => m.AttributeClass?.Name == "EvDbAttachToDefaultTopicAttribute");
-        Topics = attributes.Where(m => m.AttributeClass?.Name == "EvDbAttachTopicAttribute")
+        HasDefaultTopic = attributes.Any(m => m.AttributeClass?.Name == "EvDbAttachDefaultChannelAttribute");
+        Topics = attributes.Where(m => m.AttributeClass?.Name == "EvDbAttachChannelAttribute")
                                 .Select(m => m.ConstructorArguments.First().Value?.ToString() ?? "")
                                 .ToArray();
         FullTypeName = attachedViewTypeFullName;

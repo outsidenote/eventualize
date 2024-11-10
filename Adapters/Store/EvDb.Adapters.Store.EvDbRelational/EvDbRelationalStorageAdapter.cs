@@ -166,7 +166,7 @@ public abstract class EvDbRelationalStorageAdapter :
         {
             messages = messages.Select(m =>
             {
-                var newPayload = transformer.Transform(m.Topic, m.MessageType, m.EventType, m.Payload);
+                var newPayload = transformer.Transform(m.Channel, m.MessageType, m.EventType, m.Payload);
 
                 return m with { Payload = newPayload };
             }).ToImmutableList();
@@ -180,7 +180,7 @@ public abstract class EvDbRelationalStorageAdapter :
             if (messages.Count != 0)
             {
                 var tables = from message in messages
-                             group (EvDbMessageRecord)message by message.TableName;
+                             group (EvDbMessageRecord)message by message.ShardName;
                 foreach (var table in tables)
                 {
                     string query = string.Format(saveToTopicQuery, table.Key);

@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Topic
+﻿// Ignore Spelling: Channel
 
 using EvDb.Core;
 
@@ -8,18 +8,18 @@ namespace EvDb.Scenes;
 //[EvDbOutboxTags]
 //public abstract class OutboxTags
 //{
-//    public static readonly EvDbTableName Topic1 = "topic-1";
-//    public static readonly EvDbTableName Topic2 = "topic-2";
-//    public static readonly EvDbTableName Topic3 = "topic-3";
+//    public static readonly EvDbShardName Topic1 = "channel-1";
+//    public static readonly EvDbShardName Topic2 = "channel-2";
+//    public static readonly EvDbShardName Topic3 = "channel-3";
 //}
 
 //[EvDbAttachToOutbox<OutboxTags>(OutboxTags.Topic1, OutboxTags.Topic2, OutboxTags.Topic3)]
 
 
-[EvDbAttachToDefaultTopic]
-[EvDbAttachTopic("topic-1")]
-[EvDbAttachTopic("topic-3")]
-[EvDbAttachTopic("topic-2")]
+[EvDbAttachDefaultChannel]
+[EvDbAttachChannel("channel-1")]
+[EvDbAttachChannel("channel-3")]
+[EvDbAttachChannel("channel-2")]
 [EvDbDefinePayload("student-passed")]
 public partial record StudentPassedMessage(int StudentId, string Name, DateTimeOffset When, double Grade);
 

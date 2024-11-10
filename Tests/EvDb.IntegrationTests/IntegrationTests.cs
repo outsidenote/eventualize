@@ -15,7 +15,7 @@ public class IntegrationTests : IAsyncLifetime
     protected readonly ITestOutputHelper _output;
     protected readonly ILogger _logger = A.Fake<ILogger>();
     protected readonly DbConnection _connection;
-    private readonly string _topicQuery;
+    private readonly string _outboxQuery;
 
     public IntegrationTests(ITestOutputHelper output, StoreType storeType)
     {
@@ -23,14 +23,15 @@ public class IntegrationTests : IAsyncLifetime
         var context = new EvDbTestStorageContext();
         StorageContext = context;
         _storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, storeType, context,
-                                                        TopicTables.MessagingVip,
-                                                        TopicTables.Messaging,
-                                                        TopicTables.Commands,
-                                                        EvDbTableName.Default);
+                                                        OutboxShards.MessagingVip,
+                                                        OutboxShards.Messaging,
+                                                        OutboxShards.Commands,
+                                                        EvDbShardName.Default);
         _connection = StoreAdapterHelper.GetConnection(storeType, context);
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
-        _topicQuery =
+        // TODO: [Bnaya 2024-11-07] Add serialization name
+        _outboxQuery =
             $$"""
                 SELECT
                     {{toSnakeCase(nameof(EvDbMessageRecord.Domain))}} as {{nameof(EvDbMessageRecord.Domain)}},
@@ -38,7 +39,7 @@ public class IntegrationTests : IAsyncLifetime
                     {{toSnakeCase(nameof(EvDbMessageRecord.StreamId))}} as {{nameof(EvDbMessageRecord.StreamId)}},
                     {{toSnakeCase(nameof(EvDbMessageRecord.Offset))}} as {{nameof(EvDbMessageRecord.Offset)}},
                     {{toSnakeCase(nameof(EvDbMessageRecord.EventType))}} as {{nameof(EvDbMessageRecord.EventType)}},
-                    {{toSnakeCase(nameof(EvDbMessageRecord.Topic))}} as {{nameof(EvDbMessageRecord.Topic)}},
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Channel))}} as {{nameof(EvDbMessageRecord.Channel)}},
                     {{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}} as {{nameof(EvDbMessageRecord.MessageType)}},
                     {{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}} as {{nameof(EvDbMessageRecord.CapturedAt)}},
                     {{toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}} as {{nameof(EvDbMessageRecord.CapturedBy)}},
@@ -50,10 +51,10 @@ public class IntegrationTests : IAsyncLifetime
                 """;
     }
 
-    public async IAsyncEnumerable<EvDbMessageRecord> GetMessagesFromTopicsAsync(EvDbTableName table)
+    public async IAsyncEnumerable<EvDbMessageRecord> GetMessagesFromTopicsAsync(EvDbShardName table)
     {
         await _connection.OpenAsync();
-        string query = string.Format(_topicQuery, table);
+        string query = string.Format(_outboxQuery, table);
         DbDataReader reader = await _connection.ExecuteReaderAsync(query);
         var parser = reader.GetRowParser<EvDbMessageRecord>();
         while (await reader.ReadAsync())

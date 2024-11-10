@@ -9,7 +9,7 @@ internal static class QueryTemplatesFactory
 
     public static EvDbMigrationQueryTemplates Create(
                             EvDbStorageContext storageContext,
-                            IEnumerable<EvDbTableName> topicTableNames)
+                            IEnumerable<EvDbShardName> outboxShardNames)
     {
         string tabInitial = storageContext.Id;
         string tabInitialWithoutSchema = $"{storageContext.Schema}_{storageContext.ShortId}";
@@ -18,7 +18,7 @@ internal static class QueryTemplatesFactory
 
         #region string destroyEnvironment = ...
 
-        IEnumerable<string> dropTopicsTables = topicTableNames.Select(t => $"""
+        IEnumerable<string> dropTopicsTables = outboxShardNames.Select(t => $"""
             DROP TABLE {tabInitial}{t};
             """);
 
@@ -85,10 +85,10 @@ internal static class QueryTemplatesFactory
 
         #region string createTopicsTables = ...
 
-        if (!topicTableNames.Any())
-            topicTableNames = [EvDbTableName.Default];
+        if (!outboxShardNames.Any())
+            outboxShardNames = [EvDbShardName.Default];
 
-        IEnumerable<string> createTopicsTables = topicTableNames.Select(t =>
+        IEnumerable<string> createOutbox = outboxShardNames.Select(t =>
             $"""
             CREATE TABLE {tabInitial}{t} (
                 {toSnakeCase(nameof(EvDbMessageRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -96,7 +96,7 @@ internal static class QueryTemplatesFactory
                 {toSnakeCase(nameof(EvDbMessageRecord.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.Offset))} BIGINT NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.EventType))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.Topic))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.Channel))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.MessageType))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.SpanId))} VARCHAR(16) NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.TraceId))} VARCHAR(32) NULL,
@@ -111,21 +111,21 @@ internal static class QueryTemplatesFactory
                         {toSnakeCase(nameof(EvDbMessageRecord.Partition))}, 
                         {toSnakeCase(nameof(EvDbMessageRecord.StreamId))}, 
                         {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.Topic))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
                         {toSnakeCase(nameof(EvDbMessageRecord.MessageType))}),
                 CONSTRAINT CK_{tabInitialWithoutSchema}{t}_domain_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Domain))}) > 0),
                 CONSTRAINT CK_{tabInitialWithoutSchema}{t}_stream_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Partition))}) > 0),
                 CONSTRAINT CK_{tabInitialWithoutSchema}{t}_stream_id_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.StreamId))}) > 0),
                 CONSTRAINT CK_{tabInitialWithoutSchema}{t}_event_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.EventType))}) > 0),
-                CONSTRAINT CK_{tabInitialWithoutSchema}{t}_topic_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Topic))}) > 0),
+                CONSTRAINT CK_{tabInitialWithoutSchema}{t}_outbox_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Channel))}) > 0),
                 CONSTRAINT CK_{tabInitialWithoutSchema}{t}_message_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.MessageType))}) > 0),
                 CONSTRAINT CK_{tabInitialWithoutSchema}{t}_captured_by_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}) > 0),
                 CONSTRAINT CK_{tabInitialWithoutSchema}{t}_json_data_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Payload))}) > 0)
             );
             
-            CREATE INDEX IX_{t}_{toSnakeCase(nameof(EvDbMessageRecord.Topic))}_{tabInitialWithoutSchema}
+            CREATE INDEX IX_{t}_{toSnakeCase(nameof(EvDbMessageRecord.Channel))}_{tabInitialWithoutSchema}
                ON {tabInitial}{t} (
-                     {toSnakeCase(nameof(EvDbMessageRecord.Topic))},
+                     {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
                      {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},  
                      {toSnakeCase(nameof(EvDbMessageRecord.Offset))});
             
@@ -135,7 +135,7 @@ internal static class QueryTemplatesFactory
 
             """);
 
-        #endregion //  string createTopicsTables = ...
+        #endregion //  string createOutbox = ...
 
         #region string createSnapshotTable = ...
 
@@ -185,7 +185,7 @@ internal static class QueryTemplatesFactory
                                 {createEventsTable}
 
                                 ------------------------------------  TOPICS  ----------------------------------------
-                                {string.Join(string.Empty, createTopicsTables)}
+                                {string.Join(string.Empty, createOutbox)}
 
                                 -----------------------------------  SNAPSHOTS  ---------------------------------------
                                 {createSnapshotTable}

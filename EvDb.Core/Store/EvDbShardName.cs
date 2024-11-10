@@ -10,20 +10,20 @@ using System.Text.RegularExpressions;
 namespace EvDb.Core;
 
 [ExcludeFromCodeCoverage]
-[JsonConverter(typeof(EvDbTableNameSystemTextJsonConverter))]
-[TypeConverter(typeof(EvDbTableNameTypeConverter))]
-[DebuggerTypeProxyAttribute(typeof(EvDbTableNameDebugView))]
-[DebuggerDisplayAttribute("Underlying type: string, Value = { _value }")]
-public partial struct EvDbTableName :
-    IEquatable<EvDbTableName>,
+[JsonConverter(typeof(EvDbShardNameSystemTextJsonConverter))]
+[TypeConverter(typeof(EvDbShardNameTypeConverter))]
+[DebuggerTypeProxy(typeof(EvDbShardNameDebugView))]
+[DebuggerDisplay("Underlying type: string, Value = { _value }")]
+public partial struct EvDbShardName :
+    IEquatable<EvDbShardName>,
     IEquatable<string>,
-    IComparable<EvDbTableName>,
+    IComparable<EvDbShardName>,
     IComparable,
-    IParsable<EvDbTableName>
+    IParsable<EvDbShardName>
 {
     private const string DEFAULT_TABLE_NAME = "topics";
 
-    public static readonly EvDbTableName Default = new EvDbTableName(DEFAULT_TABLE_NAME);
+    public static readonly EvDbShardName Default = new EvDbShardName(DEFAULT_TABLE_NAME);
 
     #region Validation
 
@@ -70,7 +70,7 @@ public partial struct EvDbTableName :
 
     [DebuggerStepThroughAttribute]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public EvDbTableName()
+    public EvDbShardName()
     {
 #if DEBUG
         _stackTrace = new StackTrace();
@@ -80,7 +80,7 @@ public partial struct EvDbTableName :
     }
 
     [DebuggerStepThroughAttribute]
-    private EvDbTableName(string value)
+    private EvDbShardName(string value)
     {
         _value = value;
         _isInitialized = true;
@@ -98,16 +98,16 @@ public partial struct EvDbTableName :
     /// <param name = "value">The underlying type.</param>
     /// <returns>An instance of this type.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbTableName From(string value)
+    public static EvDbShardName From(string value)
     {
         value = Format(value);
-        var validation = EvDbTableName.Validate(value);
+        var validation = EvDbShardName.Validate(value);
         if (validation != Validation.Ok)
         {
             ThrowHelper.ThrowWhenValidationFails(validation);
         }
 
-        return new EvDbTableName(value);
+        return new EvDbShardName(value);
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public partial struct EvDbTableName :
                             [NotNullWhen(true)]
                             string? value,
                             [MaybeNullWhen(false)]
-                            out EvDbTableName vo)
+                            out EvDbShardName vo)
     {
         if (value is null)
         {
@@ -130,14 +130,14 @@ public partial struct EvDbTableName :
             return false;
         }
 
-        var validation = EvDbTableName.Validate(value);
+        var validation = EvDbShardName.Validate(value);
         if (validation != Validation.Ok)
         {
             vo = default!;
             return false;
         }
 
-        vo = new EvDbTableName(value);
+        vo = new EvDbShardName(value);
         return true;
     }
 
@@ -148,21 +148,21 @@ public partial struct EvDbTableName :
     /// </summary>
     /// <param name = "value">The primitive value.</param>
     /// <returns>A <see cref = "ValueObjectOrError{T}"/> containing either the value object, or an error.</returns>
-    public static ValueObjectOrError<EvDbTableName> TryFrom(string value)
+    public static ValueObjectOrError<EvDbShardName> TryFrom(string value)
     {
         if (value is null)
         {
-            return new ValueObjectOrError<EvDbTableName>(Validation.Invalid("The value provided was null"));
+            return new ValueObjectOrError<EvDbShardName>(Validation.Invalid("The value provided was null"));
         }
 
         value = Format(value);
-        var validation = EvDbTableName.Validate(value);
+        var validation = EvDbShardName.Validate(value);
         if (validation != Validation.Ok)
         {
-            return new ValueObjectOrError<EvDbTableName>(validation);
+            return new ValueObjectOrError<EvDbShardName>(validation);
         }
 
-        return new ValueObjectOrError<EvDbTableName>(new EvDbTableName(value));
+        return new ValueObjectOrError<EvDbShardName>(new EvDbShardName(value));
     }
 
     #endregion //  TryFrom / From
@@ -193,26 +193,26 @@ public partial struct EvDbTableName :
 
     // only called internally when something has been deserialized into
     // its primitive type.
-    private static EvDbTableName __Deserialize(string value)
+    private static EvDbShardName __Deserialize(string value)
     {
         if (value == Default.Value)
             return Default;
 
         value = Format(value);
-        var validation = EvDbTableName.Validate(value);
+        var validation = EvDbShardName.Validate(value);
         if (validation != Validation.Ok)
         {
             ThrowHelper.ThrowWhenValidationFails(validation);
         }
 
-        return new EvDbTableName(value);
+        return new EvDbShardName(value);
     }
 
     #endregion //  __Deserialize
 
     #region Equals / CompaareTo / GetHashCode
 
-    public readonly bool Equals(EvDbTableName other)
+    public readonly bool Equals(EvDbShardName other)
     {
         // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
         // We treat anything uninitialized as not equal to anything, even obj uninitialized instances of this type.
@@ -221,7 +221,7 @@ public partial struct EvDbTableName :
         return EqualityComparer<string>.Default.Equals(Value, other.Value);
     }
 
-    public bool Equals(EvDbTableName other, IEqualityComparer<EvDbTableName> comparer)
+    public bool Equals(EvDbShardName other, IEqualityComparer<EvDbShardName> comparer)
     {
         return comparer.Equals(this, other);
     }
@@ -238,17 +238,17 @@ public partial struct EvDbTableName :
 
     public readonly override bool Equals(Object? obj)
     {
-        return obj is EvDbTableName && Equals((EvDbTableName)obj);
+        return obj is EvDbShardName && Equals((EvDbShardName)obj);
     }
 
-    public int CompareTo(EvDbTableName other) => Value.CompareTo(other.Value);
+    public int CompareTo(EvDbShardName other) => Value.CompareTo(other.Value);
     public int CompareTo(object? obj)
     {
         if (obj is null)
             return 1;
-        if (obj is EvDbTableName x)
+        if (obj is EvDbShardName x)
             return CompareTo(x);
-        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbTableName", nameof(obj));
+        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbShardName", nameof(obj));
         return 0;
     }
 
@@ -261,35 +261,35 @@ public partial struct EvDbTableName :
 
     #region Operator Overloads
 
-    public static implicit operator string(EvDbTableName vo) => vo._value!;
-    public static implicit operator EvDbTableName(string value)
+    public static implicit operator string(EvDbShardName vo) => vo._value!;
+    public static implicit operator EvDbShardName(string value)
     {
-        return EvDbTableName.From(value);
+        return EvDbShardName.From(value);
     }
 
-    public static bool operator ==(EvDbTableName left, EvDbTableName right) => left.Equals(right);
-    public static bool operator !=(EvDbTableName left, EvDbTableName right) => !(left == right);
-    public static bool operator ==(EvDbTableName left, string? right) => left.Value.Equals(right);
-    public static bool operator ==(string? left, EvDbTableName right) => right.Value.Equals(left);
-    public static bool operator !=(string? left, EvDbTableName right) => !(left == right);
-    public static bool operator !=(EvDbTableName left, string? right) => !(left == right);
+    public static bool operator ==(EvDbShardName left, EvDbShardName right) => left.Equals(right);
+    public static bool operator !=(EvDbShardName left, EvDbShardName right) => !(left == right);
+    public static bool operator ==(EvDbShardName left, string? right) => left.Value.Equals(right);
+    public static bool operator ==(string? left, EvDbShardName right) => right.Value.Equals(left);
+    public static bool operator !=(string? left, EvDbShardName right) => !(left == right);
+    public static bool operator !=(EvDbShardName left, string? right) => !(left == right);
 
-    public static bool operator <(EvDbTableName left, EvDbTableName right)
+    public static bool operator <(EvDbShardName left, EvDbShardName right)
     {
         return left.CompareTo(right) < 0;
     }
 
-    public static bool operator <=(EvDbTableName left, EvDbTableName right)
+    public static bool operator <=(EvDbShardName left, EvDbShardName right)
     {
         return left.CompareTo(right) <= 0;
     }
 
-    public static bool operator >(EvDbTableName left, EvDbTableName right)
+    public static bool operator >(EvDbShardName left, EvDbShardName right)
     {
         return left.CompareTo(right) > 0;
     }
 
-    public static bool operator >=(EvDbTableName left, EvDbTableName right)
+    public static bool operator >=(EvDbShardName left, EvDbShardName right)
     {
         return left.CompareTo(right) >= 0;
     }
@@ -308,7 +308,7 @@ public partial struct EvDbTableName :
         string? s,
         IFormatProvider? provider,
         [MaybeNullWhen(false)]
-        out EvDbTableName result)
+        out EvDbShardName result)
     {
         if (s is null)
         {
@@ -316,14 +316,14 @@ public partial struct EvDbTableName :
             return false;
         }
 
-        var validation = EvDbTableName.Validate(s);
+        var validation = EvDbShardName.Validate(s);
         if (validation != Validation.Ok)
         {
             result = default;
             return false;
         }
 
-        result = new EvDbTableName(s);
+        result = new EvDbShardName(s);
         return true;
     }
 
@@ -332,7 +332,7 @@ public partial struct EvDbTableName :
     /// <returns>
     /// The value created via the <see cref = "From(string)"/> method.
     /// </returns>
-    public static EvDbTableName Parse(string s, IFormatProvider? provider)
+    public static EvDbShardName Parse(string s, IFormatProvider? provider)
     {
         return From(s!);
     }
@@ -343,30 +343,30 @@ public partial struct EvDbTableName :
     public readonly override string ToString() =>
                     IsInitialized() ? Value.ToString() : "[UNINITIALIZED]";
 
-    #region EvDbTableNameSystemTextJsonConverter
+    #region EvDbShardNameSystemTextJsonConverter
 
 #nullable disable
     /// <summary>
-    /// Converts a EvDbTableName to or from JSON.
+    /// Converts a EvDbShardName to or from JSON.
     /// </summary>
-    public class EvDbTableNameSystemTextJsonConverter : JsonConverter<EvDbTableName>
+    public class EvDbShardNameSystemTextJsonConverter : JsonConverter<EvDbShardName>
     {
-        public override EvDbTableName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override EvDbShardName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return EvDbTableName.__Deserialize(reader.GetString());
+            return EvDbShardName.__Deserialize(reader.GetString());
         }
 
-        public override void Write(Utf8JsonWriter writer, EvDbTableName value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, EvDbShardName value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.Value);
         }
 
-        public override EvDbTableName ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override EvDbShardName ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return EvDbTableName.__Deserialize(reader.GetString());
+            return EvDbShardName.__Deserialize(reader.GetString());
         }
 
-        public override void WriteAsPropertyName(Utf8JsonWriter writer, EvDbTableName value, JsonSerializerOptions options)
+        public override void WriteAsPropertyName(Utf8JsonWriter writer, EvDbShardName value, JsonSerializerOptions options)
         {
             writer.WritePropertyName(value.Value);
         }
@@ -374,12 +374,12 @@ public partial struct EvDbTableName :
 
 #nullable restore
 
-    #endregion //  EvDbTableNameSystemTextJsonConverter
+    #endregion //  EvDbShardNameSystemTextJsonConverter
 
 #nullable disable
-    #region EvDbTableNameTypeConverter
+    #region EvDbShardNameTypeConverter
 
-    class EvDbTableNameTypeConverter : TypeConverter
+    class EvDbShardNameTypeConverter : TypeConverter
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
@@ -391,7 +391,7 @@ public partial struct EvDbTableName :
             var stringValue = value as string;
             if (stringValue is not null)
             {
-                return EvDbTableName.__Deserialize(stringValue);
+                return EvDbShardName.__Deserialize(stringValue);
             }
 
             return base.ConvertFrom(context, culture, value);
@@ -404,7 +404,7 @@ public partial struct EvDbTableName :
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, Object value, Type destinationType)
         {
-            if (value is EvDbTableName idValue && destinationType == typeof(string))
+            if (value is EvDbShardName idValue && destinationType == typeof(string))
             {
                 return idValue.Value;
             }
@@ -413,7 +413,7 @@ public partial struct EvDbTableName :
         }
     }
 
-    #endregion //  EvDbTableNameTypeConverter
+    #endregion //  EvDbShardNameTypeConverter
 #nullable restore
 
     #region Validation
@@ -480,7 +480,7 @@ public partial struct EvDbTableName :
 
     #endregion //  ValueObjectValidationException
 
-    #region EvDbTableNameDebugView
+    #region EvDbShardNameDebugView
 
 #nullable restore
 #nullable disable
@@ -488,10 +488,10 @@ public partial struct EvDbTableName :
 #pragma warning disable S2325 // Methods and properties that don't access instance data should be static
 #pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable S1144 // Unused private types or members should be removed
-    internal sealed class EvDbTableNameDebugView
+    internal sealed class EvDbShardNameDebugView
     {
-        private readonly EvDbTableName _t;
-        EvDbTableNameDebugView(EvDbTableName t)
+        private readonly EvDbShardName _t;
+        EvDbShardNameDebugView(EvDbShardName t)
         {
             _t = t;
         }
@@ -509,7 +509,7 @@ public partial struct EvDbTableName :
 #pragma warning restore S1144 // Unused private types or members should be removed
 #pragma warning restore S2325 // Methods and properties that don't access instance data should be static
 
-    #endregion //  EvDbTableNameDebugView
+    #endregion //  EvDbShardNameDebugView
 
     #region ThrowHelper
 

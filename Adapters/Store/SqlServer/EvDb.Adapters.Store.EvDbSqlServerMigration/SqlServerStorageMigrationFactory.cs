@@ -14,14 +14,14 @@ public static class SqlServerStorageMigrationFactory
         ILogger logger,
         IEvDbConnectionFactory factory,
         EvDbStorageContext context,
-        params EvDbTableName[] topicTableNames)
+        params EvDbShardName[] topicShardNames)
     {
         IEvDbStorageMigration result =
             new SqlServerStorageMigration(
                     logger,
                     context,
                     factory,
-                    topicTableNames);
+                    topicShardNames);
         return result;
     }
 
@@ -29,10 +29,10 @@ public static class SqlServerStorageMigrationFactory
         ILogger logger,
         string connectionString,
         EvDbStorageContext context,
-        params EvDbTableName[] topicTableNames)
+        params EvDbShardName[] topicShardNames)
     {
         IEvDbConnectionFactory factory = new EvDbSqlConnectionFactory(connectionString);
-        var result = Create(logger, factory, context, topicTableNames);
+        var result = Create(logger, factory, context, topicShardNames);
         return result;
     }
 }

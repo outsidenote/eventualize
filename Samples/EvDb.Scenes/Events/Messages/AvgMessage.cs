@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Topic
+﻿// Ignore Spelling: Channel
 
 using EvDb.Core;
 

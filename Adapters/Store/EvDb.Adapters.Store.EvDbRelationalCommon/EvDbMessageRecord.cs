@@ -10,7 +10,7 @@ public struct EvDbMessageRecord
     public string StreamId { get; init; }
     public long Offset { get; init; }
     public string EventType { get; init; }
-    public string Topic { get; init; }
+    public string Channel { get; init; }
     public string? TraceId { get; init; }
     public string? SpanId { get; init; }
     public string MessageType { get; init; }
@@ -28,7 +28,7 @@ public struct EvDbMessageRecord
             StreamId = e.StreamCursor.StreamId,
             Offset = e.StreamCursor.Offset,
             EventType = e.EventType,
-            Topic = e.Topic,
+            Channel = e.Channel,
             MessageType = e.MessageType,
             Payload = e.Payload,
             CapturedBy = e.CapturedBy,

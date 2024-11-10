@@ -1,30 +1,32 @@
-﻿// Ignore Spelling: TopicProducer Topic
+﻿// Ignore Spelling: OutboxProducer Channel
 
 using EvDb.Core;
 using EvDb.Scenes;
+using Microsoft.Extensions.Logging;
 
 namespace EvDb.UnitTests;
 
 [EvDbMessageTypes<AvgMessage>]
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
-[EvDbAttachOutboxTables<TopicTables>] // TODO: merge it into [EvDbOutbox]
-[EvDbOutbox<SchoolStreamFactory>]
+[EvDbOutbox<SchoolStreamFactory, OutboxShards>]
+[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
 public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
 {
-    protected override TopicTablesPreferences[] TopicToTables(EvDbSchoolStreamOutboxOptions topic) =>
-        topic switch
+    protected override OutboxShardsPreferences[] ChannelToShards(EvDbSchoolOutboxChannels outbox) =>
+        outbox switch
         {
-            EvDbSchoolStreamOutboxOptions.Topic1 => [TopicTablesPreferences.Commands],
-            EvDbSchoolStreamOutboxOptions.Topic2 => [
-                                                    TopicTablesPreferences.Messaging],
-            EvDbSchoolStreamOutboxOptions.Topic3 => [
-                                                    TopicTablesPreferences.MessagingVip,
-                                                    TopicTablesPreferences.Messaging],
+            // TODO: change the base name of the enum to use EvDbSchoolOutbox
+            EvDbSchoolOutboxChannels.Channel1 => [OutboxShardsPreferences.Commands],
+            EvDbSchoolOutboxChannels.Channel2 => [
+                                                    OutboxShardsPreferences.Messaging],
+            EvDbSchoolOutboxChannels.Channel3 => [
+                                                    OutboxShardsPreferences.MessagingVip,
+                                                    OutboxShardsPreferences.Messaging],
             _ => []
         };
 
-    protected override void ProduceTopicMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
+    protected override void ProduceOutboxMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
                                                  IEvDbEventMeta meta,
                                                  EvDbSchoolStreamViews views,
                                                  EvDbSchoolOutboxContext topics)
@@ -41,8 +43,8 @@ public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(pass, OutboxOfStudentPassedMessage.Topic2);
-            topics.Add(pass, OutboxOfStudentPassedMessage.Topic3);
+            topics.Add(pass, OutboxOfStudentPassedMessage.Channel2);
+            topics.Add(pass, OutboxOfStudentPassedMessage.Channel3);
         }
         else
         {

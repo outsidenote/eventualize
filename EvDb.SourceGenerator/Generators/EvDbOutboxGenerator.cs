@@ -6,18 +6,19 @@
 using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EvDbTopicGenerator : BaseGenerator
+public partial class EvDbOutboxGenerator : BaseGenerator
 {
-    internal const string TOPIC_ATT = "EvDbOutboxAttribute";
-    internal const string TOPIC_TABLES_ATT = "EvDbAttachOutboxTablesAttribute";
+    internal const string OUTBOX_ATT = "EvDbOutboxAttribute";
+    private const string OUTBOX_SERIALIZER_ATT = "EvDbUseOutboxSerializationAttribute";
     private const string MESSAGE_TYPES = "EvDbMessageTypes";
     private const string MESSAGE_TYPES_ATT = "EvDbMessageTypesAttribute";
-    protected override string EventTargetAttribute { get; } = TOPIC_ATT;
+    protected override string EventTargetAttribute { get; } = OUTBOX_ATT;
 
     #region OnGenerate
 
@@ -40,29 +41,28 @@ public partial class EvDbTopicGenerator : BaseGenerator
         context.ThrowIfNotPartial(typeSymbol, syntax);
         StringBuilder builder = new StringBuilder();
 
-        AttributeData? attOfTopicTables = typeSymbol.GetAttributes()
-                          .FirstOrDefault(att => att.AttributeClass?.Name == TOPIC_TABLES_ATT);
+        var allAttributes = typeSymbol.GetAttributes();
+        AttributeData attOfOutbox = allAttributes
+                          .First(att => att.AttributeClass?.Name == OUTBOX_ATT);
+        ImmutableArray<ITypeSymbol> outboxArgs = attOfOutbox.AttributeClass!.TypeArguments;
+        string outboxName = typeSymbol.Name;
 
-        ITypeSymbol? tablesSymbol = attOfTopicTables?.AttributeClass?.TypeArguments.First();
-
-        string? tableEnum = tablesSymbol?.Name;
-        string? tableEnumNs = tablesSymbol?.ContainingNamespace.ToDisplayString();
-
-        AttributeData attOfTopic = typeSymbol.GetAttributes()
-                          .First(att => att.AttributeClass?.Name == TOPIC_ATT);
-
-        string outboxsName = typeSymbol.Name;
-
-        ITypeSymbol? factoryTypeSymbol = attOfTopic.AttributeClass?.TypeArguments.First();
+        ITypeSymbol? factoryTypeSymbol = outboxArgs[0];
         #region Validation
 
         if (factoryTypeSymbol == null)
             context.Throw(
                 EvDbErrorsNumbers.FactoryTypeNotFound,
-                $"The factory type for outbox [{outboxsName}]",
+                $"The factory type for outbox [{outboxName}]",
                 syntax);
 
         #endregion //  Validation
+
+        ITypeSymbol? shardsSymbol = null;
+        if(outboxArgs.Length > 1)
+            shardsSymbol = outboxArgs[1];
+        string? tableEnum = shardsSymbol?.Name;
+        string? tableEnumNs = shardsSymbol?.ContainingNamespace.ToDisplayString();
 
         string factoryOriginName = factoryTypeSymbol!.Name;
         string factoryName = $"EvDb{factoryOriginName}";
@@ -74,9 +74,9 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         IEnumerable<PayloadInfo> eventsPayloads = factoryTypeSymbol.GetPayloadsFromFactory();
 
-        #region TopicTypeInfo[] messageTypes = ..
+        #region OutboxTypeInfo[] messageTypes = ..
 
-        TopicTypeInfo[] messageTypes = typeSymbol.GetAttributes()
+        OutboxTypeInfo[] messageTypes = allAttributes
                                   .Where(att =>
                                   {
                                       string? name = att.AttributeClass?.Name;
@@ -84,15 +84,15 @@ public partial class EvDbTopicGenerator : BaseGenerator
                                       return match;
                                   })
                                   .Select(a =>
-                                        new TopicTypeInfo(context, syntax, a)).ToArray();
-        #endregion // TopicTypeInfo[] messageTypes = ..
+                                        new OutboxTypeInfo(context, syntax, a)).ToArray();
+        #endregion // OutboxTypeInfo[] messageTypes = ..
 
-        var multiTopics = messageTypes
+        var multiChannel = messageTypes
                 .Where(m => m.Topics.Length > 1 || m.Topics.Length == 1 && m.HasDefaultTopic);
 
         bool hasDefaultTopic = Array.Exists(messageTypes, m => m.HasDefaultTopic || m.Topics.Length == 0);
 
-        #region Topic Context
+        #region Outbox Context
 
         #region addMessageTypes = ...
 
@@ -104,10 +104,10 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    var tableNames = _outboxToTables.TopicToTables({{streamName}}OutboxOptions.DEFAULT);
-                    foreach (var tableName in tableNames)
+                    var shardNames = _outboxToShards.ChannelToShards({{outboxName}}Channels.DEFAULT);
+                    foreach (var shardName in shardNames)
                     {
-                        base.Add(payload, EvDbTopic.DEFAULT_TOPIC, tableName); 
+                        base.Add(payload, EvDbOutbox.DEFAULT_OUTBOX, shardName); 
                     }
                 }
             
@@ -125,10 +125,10 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    var tableNames = _outboxToTables.TopicToTables({{streamName}}OutboxOptions.{{info.Topics[0].FixNameForClass()}});
-                    foreach (var tableName in tableNames)
+                    var shardNames = _outboxToShards.ChannelToShards({{outboxName}}Channels.{{info.Topics[0].FixNameForClass()}});
+                    foreach (var shardName in shardNames)
                     {
-                        base.Add(payload, "{{info.Topics[0]}}", tableName); 
+                        base.Add(payload, "{{info.Topics[0]}}", shardName); 
                     }
                 }
             
@@ -138,7 +138,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         #region addMessageTypesMultiTopic = ...
 
-        var addMessageTypesMultiTopic = multiTopics.Select((info, i) =>
+        var addMessageTypesMultiTopic = multiChannel.Select((info, i) =>
             $$"""
 
                 public void Add({{info.FullTypeName}} payload, OutboxOf{{info.TypeName}} outbox)
@@ -153,19 +153,19 @@ public partial class EvDbTopicGenerator : BaseGenerator
                             _ => throw new NotImplementedException()
                         };
             
-                    {{streamName}}OutboxOptions outboxTextEnum = outbox switch
+                    {{outboxName}}Channels outboxTextEnum = outbox switch
                         {
             {{string.Join(",", info.Topics.Select(t =>
             $$"""
 
-                            OutboxOf{{info.TypeName}}.{{t.FixNameForClass()}} => {{streamName}}OutboxOptions.{{t.FixNameForClass()}}
+                            OutboxOf{{info.TypeName}}.{{t.FixNameForClass()}} => {{outboxName}}Channels.{{t.FixNameForClass()}}
             """))}}                
                         };
 
-                    var tableNames = _outboxToTables.TopicToTables(outboxTextEnum);
-                    foreach (var tableName in tableNames)
+                    var shardNames = _outboxToShards.ChannelToShards(outboxTextEnum);
+                    foreach (var shardName in shardNames)
                     {
-                        base.Add(payload, outboxText, tableName);
+                        base.Add(payload, outboxText, shardName);
                     }
                 }
             
@@ -173,23 +173,49 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         #endregion //  addMessageTypesMultiTopic = ...
 
+        AttributeData? attOfOutboxSerialization = allAttributes
+                          .FirstOrDefault(att => att.AttributeClass?.Name == OUTBOX_SERIALIZER_ATT);
+        
+        #region IEnumerable<string> crateSerializers = ...
+
+        ImmutableArray<ITypeSymbol> serializersArgs = attOfOutboxSerialization?.AttributeClass!.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
+        IEnumerable<string> crateSerializers = serializersArgs.Select(m => $"new {m.ToDisplayString()}()");
+
+        #endregion //  IEnumerable<string> crateSerializers = ...
+
+        ImmutableArray<TypedConstant> attOfOutboxSerializationCtorArgs = 
+                                        attOfOutboxSerialization?.ConstructorArguments ?? ImmutableArray<TypedConstant>.Empty;
+        string mode = attOfOutboxSerializationCtorArgs.FirstOrDefault().Value switch
+                            {
+                                0 => "EvDbOutboxSerializationMode.Permissive",
+                                _ => "EvDbOutboxSerializationMode.Strict"
+                            };
+
         builder.ClearAndAppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using EvDb.Core;");
         builder.AppendLine("using EvDb.Core.Internals;");
+        builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
         builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    public sealed class {{outboxsName}}Context : EvDbTopicContextBase
+                    public sealed class {{outboxName}}Context : EvDbOutboxContextBase
                     {
-                        private readonly I{{streamName}}TopicToTables _outboxToTables;
+                        private readonly I{{streamName}}ChannelToShards _outboxToShards;
 
-                        public {{outboxsName}}Context(
+                        protected override IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; } = 
+                                                    ImmutableArray<IEvDbOutboxSerializer>.Empty.AddRange(
+                                                                        (IEnumerable<IEvDbOutboxSerializer>)
+                                                                        [{{string.Join(",", crateSerializers)}}]);
+
+                        public {{outboxName}}Context(
+                            ILogger logger, 
                             EvDbStream evDbStream,
                             IEvDbEventMeta relatedEventMeta,
-                            I{{streamName}}TopicToTables outboxToTables)
-                                    : base(evDbStream, relatedEventMeta)
+                            I{{streamName}}ChannelToShards outboxToShards)
+                                    : base(logger, {{mode}}, evDbStream, relatedEventMeta)
                         {
-                            _outboxToTables = outboxToTables;
+                            _outboxToShards = outboxToShards;
                         }
                     {{string.Join("", addMessageTypes)}}
                     {{string.Join("", addMessageTypesSingleTopic)}}
@@ -198,76 +224,80 @@ public partial class EvDbTopicGenerator : BaseGenerator
                     """);
         context.AddSource(typeSymbol.StandardSuffix("Context"), builder.ToString());
 
-        #endregion // Topic Context
+        #endregion // Outbox Context
 
-        #region AllTopicsEnum
+        #region AllChannelsEnum
 
-        var allTopics = multiTopics.SelectMany(t => t.Topics).Distinct().OrderBy(x => x).ToList();
-        if (hasDefaultTopic) allTopics.Insert(0, "DEFAULT");
+        var allChannels = multiChannel.SelectMany(t => t.Topics).Distinct().OrderBy(x => x).ToList();
+        if (hasDefaultTopic) allChannels.Insert(0, "DEFAULT");
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
         builder.DefaultsOnType(typeSymbol, false);
         builder.AppendLine($$"""
-                    public enum {{streamName}}OutboxOptions
+                    public enum {{outboxName}}Channels
                     {
-                    {{string.Join(",", allTopics.Select(t =>
+                    {{string.Join(",", allChannels.Select(t =>
                     $$"""
 
                             {{t.FixNameForClass()}}   
                         """))}}
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{streamName}OutboxOptions"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{outboxName}Channels"), builder.ToString());
 
-        #endregion // AllTopicsEnum
+        #endregion // AllTopiAllChannelsEnumcsEnum
 
-        #region Stream Topic Extensions
+        #region Stream Outbox Extensions
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine();
         builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    public static class {{streamName}}TopicExtensions
+                    public static class {{streamName}}OutboxExtensions
                     {
 
-                        public static {{streamName}}FactorySnapshotEntry AddTopics(this {{streamName}}FactorySnapshotEntry context, Action<{{streamName}}TopicDefinition> createTopicGroup)
+                        public static {{streamName}}FactorySnapshotEntry AddOutbox(this {{streamName}}FactorySnapshotEntry context, Action<{{streamName}}OutboxDefinition> createOutboxGroup)
                         {
                             return context;
                         }
 
-                        public class {{streamName}}TopicDefinitionContext : {{streamName}}TopicDefinition
+                        public class {{streamName}}OutboxDefinitionContext : {{streamName}}OutboxDefinition
                         {
-                            static internal readonly {{streamName}}TopicDefinitionContext Instance = new();
+                            static internal readonly {{streamName}}OutboxDefinitionContext Instance = new();
 
-                            public {{streamName}}TopicDefinition WithTransformation(Func<byte[], byte[]> transform)
+                            public {{streamName}}OutboxDefinition WithTransformation(Func<byte[], byte[]> transform)
                             {
                                 return this;
                             }
 
-                            public {{streamName}}TopicDefinition WithTransformation<T>() where T : IEvDbOutboxTransformer
+                            public {{streamName}}OutboxDefinition WithTransformation<T>() where T : IEvDbOutboxTransformer
                             {
                                 return this;
                             }
                         }
 
-                        public class {{streamName}}TopicDefinition
+                        public class {{streamName}}OutboxDefinition
                         {
-                            public {{streamName}}TopicDefinitionContext CreateTopicGroup(string groupName, {{streamName}}OutboxOptions outboxs, params {{streamName}}OutboxOptions[] additionalTopics)
+                            /// <summary>
+                            /// Shard is a data splitting, usually for different messaging frameworks (Like Kafka, NATS, SQS, RabbitMQ, etc.)
+                            /// Depending on the storage adapter `shard` might be split into different tables 
+                            /// </summary>
+                            public {{streamName}}OutboxDefinitionContext CreateShard(string groupName, {{outboxName}}Channels outboxs, params {{outboxName}}Channels[] additionalOutboxs)
                             {
-                                return {{streamName}}TopicDefinitionContext.Instance;
+                                return {{streamName}}OutboxDefinitionContext.Instance;
                             }
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{streamName}TopicExtensions"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{streamName}OutboxExtensions"), builder.ToString());
 
-        #endregion Stream Topic Extensions
+        #endregion Stream ourbox Extensions
 
         #region Multi Topics Enum
 
-        foreach (var info in multiTopics)
+        foreach (var info in multiChannel)
         {
             builder.ClearAndAppendHeader(syntax, typeSymbol);
             builder.AppendLine("using EvDb.Core.Internals;");
@@ -289,7 +319,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
 
         #endregion // Multi Topics Enum
 
-        #region Topic Base
+        #region Outbox Base
 
         #region var addTopicHandlers = ...
 
@@ -297,11 +327,11 @@ public partial class EvDbTopicGenerator : BaseGenerator
             eventsPayloads.Select((info, i) =>
             $$"""
 
-                protected virtual void ProduceTopicMessages(
+                protected virtual void ProduceOutboxMessages(
                     {{info.FullTypeName}} payload,
                     IEvDbEventMeta meta,
                     {{streamName}}Views views,
-                    {{outboxsName}}Context outboxs)
+                    {{outboxName}}Context outboxs)
                 {
                 }
             
@@ -318,7 +348,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
                         case "{{info.SnapshotStorageName}}":
                             {
                                 var payload = c.GetData<{{info.FullTypeName}}>(_serializationOptions);
-                                ProduceTopicMessages(payload, e, states, outboxs);
+                                ProduceOutboxMessages(payload, e, states, outboxs);
                                 break;
                             }
                         
@@ -327,18 +357,18 @@ public partial class EvDbTopicGenerator : BaseGenerator
         #endregion //  var addTopicCases = ...
 
         bool hasTables = string.IsNullOrEmpty(tableEnum);
-        #region string outboxToTables = ...
-        string outboxToTables = hasTables
+        #region string outboxToShards = ...
+        string outboxToShards = hasTables
             ? $"""      
-                    IEnumerable<EvDbTableName> I{streamName}TopicToTables.TopicToTables({streamName}OutboxOptions outbox) => [DefaultTableNameForTopic];
+                    IEnumerable<EvDbShardName> I{streamName}ChannelToShards.ChannelToShards({outboxName}Channels outbox) => [DefaultShardNameForTopic];
                 """
             : $$"""
-                    IEnumerable<EvDbTableName> I{{streamName}}TopicToTables.TopicToTables({{streamName}}OutboxOptions outbox) 
+                    IEnumerable<EvDbShardName> I{{streamName}}ChannelToShards.ChannelToShards({{outboxName}}Channels outbox) 
                     {
-                        {{tableEnum}}Preferences[] tbls = TopicToTables(outbox);
+                        {{tableEnum}}Preferences[] tbls = ChannelToShards(outbox);
                         if(tbls.Length == 0)
-                            return [DefaultTableNameForTopic];
-                        IEnumerable<EvDbTableName> result = tbls.ToTablesName();
+                            return [DefaultShardNameForTopic];
+                        IEnumerable<EvDbShardName> result = tbls.ToShardsName();
                         return result;
                     }
                        
@@ -348,39 +378,42 @@ public partial class EvDbTopicGenerator : BaseGenerator
                     /// <param name="outbox"></param>
                     /// <remarks></remarks>
                     /// <returns></returns>
-                    protected virtual {{tableEnum}}Preferences[] TopicToTables({{streamName}}OutboxOptions outbox) => [];
+                    protected virtual {{tableEnum}}Preferences[] ChannelToShards({{outboxName}}Channels outbox) => [];
                 """;
 
-        #endregion //  string outboxToTables = ...
+        #endregion //  string outboxToShards = ...
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
+        builder.AppendLine("using Microsoft.Extensions.Logging;");
         if (hasTables)
             builder.AppendLine($"using {tableEnumNs};");
         builder.AppendLine();
 
         builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    public abstract class {{outboxsName}}Base : IEvDbTopicProducer, I{{streamName}}TopicToTables
+                    public abstract class {{outboxName}}Base : IEvDbOutboxProducer, I{{streamName}}ChannelToShards
                     {
                         private readonly {{streamName}} _evDbStream;
+                        private readonly ILogger _logger;
                         private readonly JsonSerializerOptions? _serializationOptions;
-                        protected static readonly EvDbTableName DefaultTableNameForTopic = EvDbTableName.Default;
+                        protected static readonly EvDbShardName DefaultShardNameForTopic = EvDbShardName.Default;
 
-                        public {{outboxsName}}Base({{streamName}} evDbStream)
+                        public {{outboxName}}Base(ILogger logger, {{streamName}} evDbStream)
                         {
                             _evDbStream = evDbStream;
                             _serializationOptions = _evDbStream.Options;
+                            _logger = logger;
                         }
                     
-                    {{outboxToTables}}
+                    {{outboxToShards}}
 
-                        void IEvDbTopicProducer.OnProduceTopicMessages(
+                        void IEvDbOutboxProducer.OnProduceOutboxMessages(
                             EvDbEvent e,
                             IImmutableList<IEvDbViewStore> views)
                         {
                             {{streamName}}Views states = _evDbStream.Views;
-                            {{outboxsName}}Context outboxs = new(_evDbStream, e, this);
+                            {{outboxName}}Context outboxs = new(_logger, _evDbStream, e, this);
                             IEvDbEventConverter c = e;
                             switch (e.EventType)
                             {
@@ -392,27 +425,28 @@ public partial class EvDbTopicGenerator : BaseGenerator
                     """);
         context.AddSource(typeSymbol.StandardSuffix("Base"), builder.ToString());
 
-        #endregion // Topic Base
+        #endregion // Outbox Base
 
-        #region Topic
+        #region Outbox
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
         builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    partial class {{outboxsName}} : {{outboxsName}}Base
+                    partial class {{outboxName}} : {{outboxName}}Base
                     {
-                        public {{outboxsName}}({{streamName}} evDbStream): base(evDbStream)
+                        public {{outboxName}}(ILogger logger, {{streamName}} evDbStream): base(logger, evDbStream)
                         {
                         }
                     }
                     """);
         context.AddSource(typeSymbol.StandardPath(), builder.ToString());
 
-        #endregion // Topic
+        #endregion // outbox
 
-        #region TopicToTables
+        #region ChannelToShards
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine();
@@ -423,7 +457,7 @@ public partial class EvDbTopicGenerator : BaseGenerator
                     /// Map outbox to tables.
                     /// Keep in mind that the actual table names will be prefixed according to the context specified in the `EvDbStorageContext` 
                     /// </summary>
-                    public interface I{{streamName}}TopicToTables
+                    public interface I{{streamName}}ChannelToShards
                     {
                         /// <summary>
                         /// Map outbox to tables.
@@ -431,13 +465,13 @@ public partial class EvDbTopicGenerator : BaseGenerator
                         /// </summary>
                         /// <param name="outbox">The outbox.</param>
                         /// <returns></returns>
-                        IEnumerable<EvDbTableName> TopicToTables({{streamName}}OutboxOptions outbox);
+                        IEnumerable<EvDbShardName> ChannelToShards({{outboxName}}Channels outbox);
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"I{streamName}TopicToTables"),
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"I{streamName}ChannelToShards"),
                     builder.ToString());
 
-        #endregion // TopicToTables
+        #endregion // ChannelToShards
     }
 
     #endregion // OnGenerate
