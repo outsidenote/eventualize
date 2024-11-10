@@ -38,7 +38,7 @@ internal struct OutboxTypeInfo
             context.Throw(EvDbErrorsNumbers.MissingViewName, "message name on store is missing", syntax);
         }
 
-        HasDefaultTopic = attributes.Any(m => m.AttributeClass?.Name == "EvDbAttachToDefaultChannelAttribute");
+        HasDefaultTopic = attributes.Any(m => m.AttributeClass?.Name == "EvDbAttachDefaultChannelAttribute");
         Topics = attributes.Where(m => m.AttributeClass?.Name == "EvDbAttachChannelAttribute")
                                 .Select(m => m.ConstructorArguments.First().Value?.ToString() ?? "")
                                 .ToArray();

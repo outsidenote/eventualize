@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: TopicProducer Topic
+﻿// Ignore Spelling: OutboxProducer Channel
 
 using EvDb.Core;
 
@@ -8,16 +8,16 @@ internal class AvroSerializer : IEvDbOutboxSerializer
 {
     string IEvDbOutboxSerializer.Name { get; } = "Prefix";
 
-    byte[] IEvDbOutboxSerializer.Serialize<T>(string channel, EvDbTableName tableName, T payload)
+    byte[] IEvDbOutboxSerializer.Serialize<T>(string channel, EvDbShardName shardName, T payload)
     {
         throw new NotImplementedException();
     }
 
-    bool IEvDbOutboxSerializer.ShouldSerialize<T>(string channel, EvDbTableName tableName, T payload)
+    bool IEvDbOutboxSerializer.ShouldSerialize<T>(string channel, EvDbShardName shardName, T payload)
     {
         //return channel switch
         //{
-        //    OutboxTables.Messaging => true,
+        //    OutboxShards.Messaging => true,
         //    _ => false,
         //};
        return false;

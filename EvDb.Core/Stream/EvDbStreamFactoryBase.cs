@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -8,6 +9,7 @@ namespace EvDb.Core;
 public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     where T : IEvDbStreamStore, IEvDbEventTypes
 {
+    protected readonly ILogger _logger;
     protected readonly IEvDbStorageStreamAdapter _storageAdapter;
     private readonly static ActivitySource _trace = Telemetry.Trace;
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
@@ -15,10 +17,12 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     #region Ctor
 
     protected EvDbStreamFactoryBase(
+        ILogger logger,
         IEvDbStorageStreamAdapter storageAdapter,
         TimeProvider? timeProvider = null)
     {
         TimeProvider = timeProvider ?? TimeProvider.System;
+        _logger = logger;
         _storageAdapter = storageAdapter;
     }
 

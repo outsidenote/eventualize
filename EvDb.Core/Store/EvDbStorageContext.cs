@@ -18,10 +18,10 @@ public record EvDbStorageContext
     /// <param name="prefix">Table prefix</param>
     /// <param name="environment">The environment (dev, prod, qa)</param>
     /// <param name="schema">the database schema</param>
-    public EvDbStorageContext(EvDbTableName databaseName,
+    public EvDbStorageContext(EvDbShardName databaseName,
                               Env? environment = null,
-                              EvDbTableName? prefix = null,
-                              EvDbTableName? schema = null)
+                              EvDbShardName? prefix = null,
+                              EvDbShardName? schema = null)
     {
         var builder = new StringBuilder(200);
         if (!string.IsNullOrEmpty(environment))
@@ -63,10 +63,10 @@ public record EvDbStorageContext
     /// <param name="schema">the database schema</param>
     /// <returns></returns>
     public static EvDbStorageContext CreateWithEnvironment(
-                        EvDbTableName databaseName,
-                        EvDbTableName? prefix = null,
+                        EvDbShardName databaseName,
+                        EvDbShardName? prefix = null,
                         string environmentOrKey = "ASPNETCORE_ENVIRONMENT",
-                        EvDbTableName? schema = null)
+                        EvDbShardName? schema = null)
     {
         Env env = System.Environment.GetEnvironmentVariable(environmentOrKey) ?? environmentOrKey;
 
@@ -98,7 +98,7 @@ public record EvDbStorageContext
     /// <summary>
     /// Gets the name of the database.
     /// </summary>
-    public EvDbTableName DatabaseName { get; }
+    public EvDbShardName DatabaseName { get; }
 
     #endregion //  DatabaseName
 
@@ -116,7 +116,7 @@ public record EvDbStorageContext
     /// <summary>
     /// Gets a prefix for the tables names.
     /// </summary>
-    public EvDbTableName? Prefix { get; }
+    public EvDbShardName? Prefix { get; }
 
     #endregion //  Prefix
 
@@ -125,7 +125,7 @@ public record EvDbStorageContext
     /// <summary>
     /// Gets the table's schema.
     /// </summary>
-    public EvDbTableName? Schema { get; }
+    public EvDbShardName? Schema { get; }
 
     #endregion //  Schema
 

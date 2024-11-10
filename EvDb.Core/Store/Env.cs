@@ -16,7 +16,7 @@ public partial struct Env
 {
     private readonly string _value;
 
-    public Env(EvDbTableName value)
+    public Env(EvDbShardName value)
     {
         _value = Env.Format(value);
     }

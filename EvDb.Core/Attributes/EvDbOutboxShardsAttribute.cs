@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class EvDbOutboxTablesAttribute : Attribute
+public class EvDbOutboxShardsAttribute : Attribute
 {
 }

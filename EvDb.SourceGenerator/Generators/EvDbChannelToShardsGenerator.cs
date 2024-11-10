@@ -11,9 +11,9 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EvDbChannelToTablesGenerator : BaseGenerator
+public partial class EvDbChannelToShardsGenerator : BaseGenerator
 {
-    internal const string ATT = "EvDbOutboxTablesAttribute";
+    internal const string ATT = "EvDbOutboxShardsAttribute";
     protected override string EventTargetAttribute { get; } = ATT;
 
     #region OnGenerate
@@ -71,9 +71,9 @@ public partial class EvDbChannelToTablesGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public static class {{clsName}}ChoisesExtensions
                     { 
-                        public static IEnumerable<EvDbTableName> ToTablesName(this {{clsName}}Preferences[] options) => options.Select(m => m.ToTableName());
+                        public static IEnumerable<EvDbShardName> ToShardsName(this {{clsName}}Preferences[] options) => options.Select(m => m.ToShardName());
 
-                        public static EvDbTableName ToTableName(this {{clsName}}Preferences option)
+                        public static EvDbShardName ToShardName(this {{clsName}}Preferences option)
                         {
                             string table = option switch
                             {

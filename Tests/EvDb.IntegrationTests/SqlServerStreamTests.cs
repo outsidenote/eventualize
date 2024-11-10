@@ -43,45 +43,47 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.Equal(180, studentStat.Sum);
             Assert.Equal(3, studentStat.Count);
 
-            ICollection<EvDbMessageRecord> messagingCollection = await GetMessagesFromTopicsAsync(OutboxTables.Messaging).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> messagingCollection = await GetMessagesFromTopicsAsync(OutboxShards.Messaging).ToEnumerableAsync();
             EvDbMessageRecord[] messaging = messagingCollection!.ToArray();
             Assert.Equal(4, messaging.Length);
             Assert.All(messaging, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(messaging, m => Assert.Equal("student-passed", m.MessageType));
-            Assert.All(messaging, m => Assert.True(m.Topic == "channel-3" || m.Topic == "channel-2"));
+            Assert.All(messaging, m => Assert.True(m.Channel == "channel-3" || m.Channel == "channel-2"));
 
-            ICollection<EvDbMessageRecord> messagingVipCollection = await GetMessagesFromTopicsAsync(OutboxTables.MessagingVip).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> messagingVipCollection = await GetMessagesFromTopicsAsync(OutboxShards.MessagingVip).ToEnumerableAsync();
             EvDbMessageRecord[] messagingVip = messagingVipCollection!.ToArray();
             Assert.Equal(2, messagingVip.Length);
             Assert.All(messagingVip, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(messagingVip, m => Assert.Equal("student-passed", m.MessageType));
-            Assert.All(messagingVip, m => Assert.Equal("channel-3", m.Topic));
+            Assert.All(messagingVip, m => Assert.Equal("channel-3", m.Channel));
             Assert.All(messagingVip, msg =>
             {
-                var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload);
+                Assert.Equal(42, msg.Payload[0]);
+                var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload[1..]);
                 Assert.Equal(2202, pass!.StudentId);
                 Assert.Equal("Lora", pass.Name);
             });
 
-            ICollection<EvDbMessageRecord> commandsCollection = await GetMessagesFromTopicsAsync(OutboxTables.Commands).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> commandsCollection = await GetMessagesFromTopicsAsync(OutboxShards.Commands).ToEnumerableAsync();
             EvDbMessageRecord[] commands = commandsCollection!.ToArray();
             Assert.Single(commands);
             Assert.All(commands, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(commands, m => Assert.Equal("student-failed", m.MessageType));
-            Assert.All(commands, m => Assert.Equal("channel-1", m.Topic));
+            Assert.All(commands, m => Assert.Equal("channel-1", m.Channel));
             Assert.All(commands, msg =>
             {
-                var fail = JsonSerializer.Deserialize<StudentFailedMessage>(msg.Payload);
+                Assert.Equal(42, msg.Payload[0]);
+                var fail = JsonSerializer.Deserialize<StudentFailedMessage>(msg.Payload[1..]);
                 Assert.Equal(2202, fail!.StudentId);
                 Assert.Equal("Lora", fail.Name);
             });
 
-            ICollection<EvDbMessageRecord> defaultscommandsCollection = await GetMessagesFromTopicsAsync(EvDbTableName.Default).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> defaultscommandsCollection = await GetMessagesFromTopicsAsync(EvDbShardName.Default).ToEnumerableAsync();
             EvDbMessageRecord[] defaults = defaultscommandsCollection!.ToArray();
             Assert.Equal(3, defaults.Length);
             Assert.All(defaults, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(defaults, m => Assert.Equal("avg", m.MessageType));
-            Assert.All(defaults, m => Assert.Equal(EvDbTopic.DEFAULT_TOPIC, m.Topic));
+            Assert.All(defaults, m => Assert.Equal(EvDbOutbox.DEFAULT_OUTBOX, m.Channel));
 
 
 

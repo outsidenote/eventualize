@@ -12,14 +12,14 @@ internal static partial class Logs
     [LoggerMessage(LogLevel.Debug, """
                     EvDb find multiple Outbox serialization per context.
                     Channel: {channel}
-                    Table Name: {tableName}
+                    Table Name: {shardName}
                     Payload Type {payloadType}
                     Serializers matched for this context are:
                     {serializers}
                     """)]
     public static partial void LogMultiOutboxSerializers(this ILogger logger,
                                                          string channel,
-                                                         string tableName,
+                                                         string shardName,
                                                          string? payloadType,
                                                          string serializers);
 }

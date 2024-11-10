@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: TopicProducer Topic
+﻿// Ignore Spelling: OutboxProducer Channel
 
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
@@ -26,12 +26,12 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
         _evDbStream = evDbStream;
         _relatedEventMeta = relatedEventMeta;
         _timeProvider = _evDbStream.TimeProvider;
-        _options = _evDbStream.Options;
+        _options = _evDbStream.Options;     
     }
 
     protected abstract IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; }
 
-    public void Add<T>(T payload, string channel, EvDbTableName tableName)
+    public void Add<T>(T payload, string channel, EvDbShardName shardName)
         where T : IEvDbPayload
     {
         if(payload == null)
@@ -40,7 +40,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
         IEvDbOutboxSerializer? serializer = null;
         IEvDbOutboxSerializer[] serializers = OutboxSerializers.Where(m =>
                                                     m.ShouldSerialize(channel,
-                                                                tableName,
+                                                                shardName,
                                                                 payload))
                                                     .ToArray();
         #region Validation
@@ -53,7 +53,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
                     EvDb Outbox serialization in strict mode expect 
                     a single serializer per context.
                     Channel: {channel}
-                    Table Name: {tableName}
+                    Table Name: {shardName}
                     Payload Type {payload?.GetType().Name}
                     Serializers matched for this context are:
                     {string.Join(", ", serializers.Select(m => m.Name))}
@@ -63,7 +63,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
         }
         else
         {
-            _logger.LogMultiOutboxSerializers(channel, tableName, payload?.GetType().Name,
+            _logger.LogMultiOutboxSerializers(channel, shardName, payload?.GetType().Name,
                 string.Join(", ", serializers.Select(m => m.Name)));
         }
 
@@ -81,7 +81,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
                 buffer = JsonSerializer.SerializeToUtf8Bytes(payload, _options);
 
             else
-                buffer = serializer.Serialize(channel, tableName, payload);
+                buffer = serializer.Serialize(channel, shardName, payload);
         }
 
         #endregion //  byte[] buffer =  serializer?.Serialize(...) ?? JsonSerializer.SerializeToUtf8Bytes(...)
@@ -89,13 +89,13 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
         EvDbMessage e = new EvDbMessage(
                                     _relatedEventMeta.EventType,
                                     channel,
-                                    tableName,
+                                    shardName,
                                     payload.PayloadType,
                                     _timeProvider.GetUtcNow(),
                                     _relatedEventMeta.CapturedBy,
                                     _relatedEventMeta.StreamCursor,
                                     buffer);
 
-        _evDbStream.AddToTopic(e);
+        _evDbStream.AddToOutbox(e);
     }
 }

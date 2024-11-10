@@ -2,9 +2,9 @@
 namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]
-public class EvDbAttachToDefaultChannelAttribute : EvDbAttachChannelAttribute
+public class EvDbAttachDefaultChannelAttribute : EvDbAttachChannelAttribute
 {
-    public EvDbAttachToDefaultChannelAttribute() : base(EvDbTopic.DEFAULT_TOPIC)
+    public EvDbAttachDefaultChannelAttribute() : base(EvDbOutbox.DEFAULT_OUTBOX)
     {
     }
 }

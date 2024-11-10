@@ -1,32 +1,32 @@
-﻿// Ignore Spelling: TopicProducer Topic
+﻿// Ignore Spelling: OutboxProducer Channel
 
 using EvDb.Core;
 using EvDb.Scenes;
+using Microsoft.Extensions.Logging;
 
 namespace EvDb.UnitTests;
 
 [EvDbMessageTypes<AvgMessage>]
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
-[EvDbAttachOutboxTables<OutboxTables>] // TODO: merge it into [EvDbOutboxGroups]
-[EvDbOutbox<SchoolStreamFactory>]
-[EvDbAddOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
+[EvDbOutbox<SchoolStreamFactory, OutboxShards>]
+[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
 public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
 {
-    protected override OutboxTablesPreferences[] ChannelToTables(EvDbSchoolOutboxChannels outbox) =>
+    protected override OutboxShardsPreferences[] ChannelToShards(EvDbSchoolOutboxChannels outbox) =>
         outbox switch
         {
             // TODO: change the base name of the enum to use EvDbSchoolOutbox
-            EvDbSchoolOutboxChannels.Channel1 => [OutboxTablesPreferences.Commands],
+            EvDbSchoolOutboxChannels.Channel1 => [OutboxShardsPreferences.Commands],
             EvDbSchoolOutboxChannels.Channel2 => [
-                                                    OutboxTablesPreferences.Messaging],
+                                                    OutboxShardsPreferences.Messaging],
             EvDbSchoolOutboxChannels.Channel3 => [
-                                                    OutboxTablesPreferences.MessagingVip,
-                                                    OutboxTablesPreferences.Messaging],
+                                                    OutboxShardsPreferences.MessagingVip,
+                                                    OutboxShardsPreferences.Messaging],
             _ => []
         };
 
-    protected override void ProduceTopicMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
+    protected override void ProduceOutboxMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
                                                  IEvDbEventMeta meta,
                                                  EvDbSchoolStreamViews views,
                                                  EvDbSchoolOutboxContext topics)

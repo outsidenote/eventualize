@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: TopicProducer
+﻿// Ignore Spelling: OutboxProducer
 
 using System.Collections.Immutable;
 

@@ -1,5 +1,6 @@
-﻿// Ignore Spelling: TopicProducer Topic
+﻿// Ignore Spelling: OutboxProducer Channel
 
+using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
@@ -18,6 +19,7 @@ public abstract class EvDbStream :
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
     private readonly AsyncLock _sync = new AsyncLock();
 
+    protected readonly ILogger _logger;
 
     // [bnaya 2023-12-11] Consider what is the right data type (thread safe)
     protected internal IImmutableList<EvDbEvent> _pendingEvents = ImmutableList<EvDbEvent>.Empty;
@@ -33,12 +35,14 @@ public abstract class EvDbStream :
     #region Ctor
 
     public EvDbStream(
+        ILogger logger,
         IEvDbStreamConfig streamConfiguration,
         IImmutableList<IEvDbViewStore> views,
         IEvDbStorageStreamAdapter storageAdapter,
         string streamId,
         long lastStoredOffset)
     {
+        _logger = logger;
         _views = views;
         _storageAdapter = storageAdapter;
         StreamAddress = new EvDbStreamAddress(streamConfiguration.PartitionAddress, streamId);
@@ -77,7 +81,7 @@ public abstract class EvDbStream :
         foreach (IEvDbViewStore folding in _views)
             folding.FoldEvent(e);
 
-        TopicProducer?.OnProduceOutboxMessages(e, _views);
+        OutboxProducer?.OnProduceOutboxMessages(e, _views);
 
         return e;
 
@@ -103,22 +107,22 @@ public abstract class EvDbStream :
     /// <summary>
     /// Produce messages into topics based on an event and states.
     /// </summary>
-    protected virtual IEvDbOutboxProducer? TopicProducer { get; }
+    protected virtual IEvDbOutboxProducer? OutboxProducer { get; }
 
     #endregion //  IEvDbOutboxProducer
 
-    #region AddToTopic
+    #region AddToOutbox
 
     /// <summary>
     /// Put a row into the publication (out-box pattern).
     /// </summary>
     /// <param name="e">The e.</param>
-    public void AddToTopic(EvDbMessage e)
+    public void AddToOutbox(EvDbMessage e)
     {
         _pendingOutput = _pendingOutput.Add(e);
     }
 
-    #endregion //  AddToTopic
+    #endregion //  AddToOutbox
 
     #region StoreAsync
 

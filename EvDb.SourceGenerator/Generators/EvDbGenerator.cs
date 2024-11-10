@@ -154,8 +154,8 @@ public partial class EvDbGenerator : BaseGenerator
                         public {{factoryOriginName}}(
                                 [FromKeyedServices("{{domain}}:{{partition}}")]IEvDbStorageStreamAdapter storageAdapter,                    
                     {{string.Join("", viewFactoriesCtorInjection)}}       
-                                ILogger<{{factoryOriginName}}> logger,
-                                TimeProvider? timeProvider = null) : base(storageAdapter, timeProvider ?? TimeProvider.System)
+                                ILogger<{{streamName}}> logger,
+                                TimeProvider? timeProvider = null) : base(logger, storageAdapter, timeProvider ?? TimeProvider.System)
                         {
                             ViewFactories = new IEvDbViewFactory[] 
                             {{{string.Join(",", viewFactoriesYield)}}       
@@ -181,6 +181,7 @@ public partial class EvDbGenerator : BaseGenerator
                         {
                             {{streamName}} stream =
                                 new(
+                                    _logger,
                                     this,
                                     views,
                                     _storageAdapter,
@@ -269,10 +270,11 @@ public partial class EvDbGenerator : BaseGenerator
         #region Stream
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
+        builder.AppendLine("using Microsoft.Extensions.Logging;");
         builder.AppendLine();
 
-        string setTopic = relatedTopicTypesFullName != null
-                        ? $"TopicProducer = new {relatedTopicTypesFullName}(this);"
+        string setOutbox = relatedTopicTypesFullName != null
+                        ? $"OutboxProducer = new {relatedTopicTypesFullName}(logger, this);"
                         : string.Empty;
 
         var adds = eventsPayloads.Select(ep =>
@@ -296,20 +298,21 @@ public partial class EvDbGenerator : BaseGenerator
                         #region Ctor
 
                         public {{streamName}}(
+                            ILogger logger,
                             IEvDbStreamConfig stramConfiguration,
                             IImmutableList<IEvDbViewStore> views,
                             IEvDbStorageStreamAdapter storageAdapter,
                             string streamId,
                             long lastStoredOffset) : 
-                                base(stramConfiguration, views, storageAdapter, streamId, lastStoredOffset)
+                                base(logger, stramConfiguration, views, storageAdapter, streamId, lastStoredOffset)
                         {
                             Views = new {{streamName}}Views(views);
-                            {{setTopic}}
+                            {{setOutbox}}
                         }
 
                         #endregion // Ctor
 
-                        protected override IEvDbOutboxProducer? TopicProducer { get; } 
+                        protected override IEvDbOutboxProducer? OutboxProducer { get; } 
                     
                         public {{streamName}}Views Views { get; }
                     
