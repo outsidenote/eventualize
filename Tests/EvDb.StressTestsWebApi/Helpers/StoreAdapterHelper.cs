@@ -1,5 +1,6 @@
 ﻿using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
+using EvDb.StressTestsWebApi.Outbox;
 
 namespace EvDb.StressTestsWebApi;
 
@@ -62,7 +63,7 @@ public static class StoreAdapterHelper
         IEvDbStorageMigration result = storeType switch
         {
             StoreType.SqlServer =>
-                SqlServerStorageMigrationFactory.Create(logger, connectionString, context),
+                SqlServerStorageMigrationFactory.Create(logger, connectionString, context, OutboxShards.Table1, OutboxShards.Table2),
             //StoreType.Posgres => ,
             //    PosgresStorageAdapterFactory.Create(_logger, connectionString, context),
             _ => throw new NotImplementedException()
