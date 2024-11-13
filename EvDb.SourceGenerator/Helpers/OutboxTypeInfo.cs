@@ -31,7 +31,7 @@ internal struct OutboxTypeInfo
 
         var attributes = attachedViewFirstArgSymbol.GetAttributes();
         var messageTypeAtt = attributes
-                                .First(m => m.AttributeClass?.Name == "EvDbDefinePayloadAttribute");
+                                .FirstOrDefault(m => m.AttributeClass?.Name == MessagePayloadGenerator.MESSAGE_PAYLOAD_ATTRIBUTE);
         string? storageName = messageTypeAtt?.ConstructorArguments.First().Value?.ToString();
         if (storageName == null)
         {

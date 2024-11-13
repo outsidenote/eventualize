@@ -13,6 +13,8 @@ public partial class PayloadGenerator : BaseGenerator
 {
     protected override string EventTargetAttribute { get; } = "EvDbDefinePayloadAttribute";
 
+    protected virtual string StartWith { get; } = "EvDbDefinePayload";
+
     #region OnGenerate
 
     protected override void OnGenerate(
@@ -31,7 +33,7 @@ public partial class PayloadGenerator : BaseGenerator
         var payloadName = from atts in syntax.AttributeLists
                           from att in atts.Attributes
                           let fn = att.Name.ToFullString()
-                          where fn.StartsWith("EvDbDefinePayload")
+                          where fn.StartsWith(StartWith)
                           select att.ArgumentList?.Arguments[0].ToString();
         var key = payloadName.FirstOrDefault();
         if (key == null)
