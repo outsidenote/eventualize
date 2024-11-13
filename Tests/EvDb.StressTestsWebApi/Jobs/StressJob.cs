@@ -82,8 +82,8 @@ public class StressJob : BackgroundService
         (int writeCycleCount,
         int streamsCount,
         int degreeOfParallelismPerStream,
-        int batchSize,
-        string streamPrefix) = options;
+        int batchSize) = options;
+        string streamPrefix = options.StreamPrefix;
 
         int counter = 0, lastCount = 0;
         int occCounter = 0;

@@ -19,7 +19,7 @@ internal static partial class Logs
                     """)]
     public static partial void LogMultiOutboxSerializers(this ILogger logger,
                                                          string channel,
-                                                         string shardName,
+                                                         EvDbShardName shardName,
                                                          string? payloadType,
                                                          string serializers);
 }

@@ -9,8 +9,13 @@ namespace EvDb.StressTests;
 internal static class OtelExtensions
 {
     private const string APP_NAME = "evdb:stress";
+    private const string OTEL_ENC_KEY = "EVDB_OTEL_EXPORTER_HOST";
+
     public static WebApplicationBuilder AddOtel(this WebApplicationBuilder builder)
     {
+        string otelExporterServer = Environment.GetEnvironmentVariable(OTEL_ENC_KEY) ?? "localhost";
+        string otelHost = $"http://{otelExporterServer}";
+
         #region Logging
 
         ILoggingBuilder loggingBuilder = builder.Logging;
@@ -21,10 +26,10 @@ internal static class OtelExtensions
                             APP_NAME));  // builder.Environment.ApplicationName
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
-            logging.AddOtlpExporter()
-                   .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
-                   .AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
-                   .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"));
+            logging.AddOtlpExporter(o => o.Endpoint = new Uri($"{otelHost}:4317"))
+                   .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri($"{otelHost}:4327/"))
+                   .AddOtlpExporter("alloy", o => o.Endpoint = new Uri($"{otelHost}:12345/"))
+                   .AddOtlpExporter("aspire", o => o.Endpoint = new Uri($"{otelHost}:18889"));
         });
 
         loggingBuilder.Configure(x =>
@@ -52,11 +57,11 @@ internal static class OtelExtensions
                             o.SetDbStatementForStoredProcedure = true;
                         })
                         .SetSampler<AlwaysOnSampler>()
-                        .AddOtlpExporter()
-                        .AddOtlpExporter("grafana", o => o.Endpoint = new Uri("http://localhost:4337"))
-                        //.AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
-                        //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
-                        .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"));
+                        .AddOtlpExporter(o => o.Endpoint = new Uri($"{otelHost}:4317"))
+                        .AddOtlpExporter("grafana", o => o.Endpoint = new Uri($"{otelHost}:4337"))
+                        //.AddOtlpExporter("jaeger", o => o.Endpoint = new Uri($"{otelHost}:4327/"))
+                        //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri($"{otelHost}:12345/"))
+                        .AddOtlpExporter("aspire", o => o.Endpoint = new Uri($"{otelHost}:18889"));
             })
             .WithMetrics(meterBuilder =>
                     meterBuilder.AddEvDbInstrumentation()
@@ -66,10 +71,10 @@ internal static class OtelExtensions
                                 .AddAspNetCoreInstrumentation()
 
                                 .AddPrometheusExporter()
-                                .AddOtlpExporter()
-                                //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
-                                .AddOtlpExporter("grafana", o => o.Endpoint = new Uri("http://localhost:4337"))
-                                .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889")));
+                                .AddOtlpExporter(o => o.Endpoint = new Uri($"{otelHost}:4317"))
+                                //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri($"{otelHost}:12345"))
+                                .AddOtlpExporter("grafana", o => o.Endpoint = new Uri($"{otelHost}:4337"))
+                                .AddOtlpExporter("aspire", o => o.Endpoint = new Uri($"{otelHost}:18889")));
 
         return builder;
     }

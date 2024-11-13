@@ -18,7 +18,7 @@ public record EvDbStorageContext
     /// <param name="prefix">Table prefix</param>
     /// <param name="environment">The environment (dev, prod, qa)</param>
     /// <param name="schema">the database schema</param>
-    public EvDbStorageContext(EvDbShardName databaseName,
+    public EvDbStorageContext(EvDbDatabaseName databaseName,
                               Env? environment = null,
                               EvDbShardName? prefix = null,
                               EvDbShardName? schema = null)
@@ -63,7 +63,7 @@ public record EvDbStorageContext
     /// <param name="schema">the database schema</param>
     /// <returns></returns>
     public static EvDbStorageContext CreateWithEnvironment(
-                        EvDbShardName databaseName,
+                        EvDbDatabaseName databaseName,
                         EvDbShardName? prefix = null,
                         string environmentOrKey = "ASPNETCORE_ENVIRONMENT",
                         EvDbShardName? schema = null)
@@ -98,7 +98,7 @@ public record EvDbStorageContext
     /// <summary>
     /// Gets the name of the database.
     /// </summary>
-    public EvDbShardName DatabaseName { get; }
+    public EvDbDatabaseName DatabaseName { get; }
 
     #endregion //  DatabaseName
 

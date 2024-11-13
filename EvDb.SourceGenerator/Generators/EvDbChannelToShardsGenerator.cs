@@ -69,7 +69,7 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
         builder.AppendLine();
         builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    public static class {{clsName}}ChoisesExtensions
+                    public static class {{clsName}}ChoicesExtensions
                     { 
                         public static IEnumerable<EvDbShardName> ToShardsName(this {{clsName}}Preferences[] options) => options.Select(m => m.ToShardName());
 
@@ -80,7 +80,7 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
                     {{string.Join("", tableConstants.Select(t =>
                     $$"""
 
-                                    {{clsName}}Preferences.{{t.Name}} => {{clsName}}.{{t.Name}},
+                                    {{clsName}}Preferences.{{t.Name}} => (string){{clsName}}.{{t.Name}},
                         """))}}
                                 _ => throw new NotSupportedException(),
                             };
@@ -88,7 +88,7 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{clsName}ChoisesExtensions"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{clsName}ChoicesExtensions"), builder.ToString());
 
         #endregion // Extensions
     }
