@@ -29,11 +29,11 @@ public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
     protected override void ProduceOutboxMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
                                                  IEvDbEventMeta meta,
                                                  EvDbSchoolStreamViews views,
-                                                 EvDbSchoolOutboxContext topics)
+                                                 EvDbSchoolOutboxContext outbox)
     {
         Stats state = views.ALL;
         AvgMessage avg = new(state.Sum / (double)state.Count);
-        topics.Add(avg);
+        outbox.Add(avg);
         var studentName = views.StudentStats.Students
             .First(m => m.StudentId == payload.StudentId)
             .StudentName;
@@ -43,8 +43,8 @@ public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(pass, OutboxOfStudentPassedMessage.Channel2);
-            topics.Add(pass, OutboxOfStudentPassedMessage.Channel3);
+            outbox.Add(pass, OutboxOfStudentPassedMessage.Channel2);
+            outbox.Add(pass, OutboxOfStudentPassedMessage.Channel3);
         }
         else
         {
@@ -52,7 +52,7 @@ public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            topics.Add(fail);
+            outbox.Add(fail);
         }
     }
 }

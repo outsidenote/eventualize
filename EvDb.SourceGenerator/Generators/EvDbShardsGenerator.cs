@@ -11,7 +11,7 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EvDbChannelToShardsGenerator : BaseGenerator
+public partial class EvDbShardsGenerator : BaseGenerator
 {
     internal const string ATT = "EvDbOutboxShardsAttribute";
     protected override string EventTargetAttribute { get; } = ATT;
@@ -41,7 +41,7 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
         var tableConstants = typeSymbol.GetMembers()
                              .Where(m => m.Kind == SymbolKind.Field)
                              .Select(m => (IFieldSymbol)m)
-                             .Select(m => new TopicTableInfo(m))
+                             .Select(m => new ShardInfo(m))
                              .ToArray();
 
         #region Enum
@@ -95,11 +95,11 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
 
     #endregion // OnGenerate
 
-    #region TopicTableInfo
+    #region ShardInfo
 
-    public struct TopicTableInfo
+    public struct ShardInfo
     {
-        public TopicTableInfo(IFieldSymbol field)
+        public ShardInfo(IFieldSymbol field)
         {
             Name = field.Name;
             Value = field.ConstantValue?.ToString()!;
@@ -108,5 +108,5 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
         public string Value { get; }
     }
 
-    #endregion //  TopicTableInfo
+    #endregion //  ShardInfo
 }

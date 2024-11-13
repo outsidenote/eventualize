@@ -2,7 +2,7 @@
 
 namespace EvDb.Scenes;
 
-[EvDbDefinePayload("student-applied-to-course")]
+[EvDbDefineEventPayload("student-applied-to-course")]
 public partial record StudentAppliedToCourseEvent(int CourseId, StudentEntity Student);
 
 

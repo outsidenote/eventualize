@@ -15,11 +15,11 @@ internal struct OutboxTypeInfo
     public OutboxTypeInfo(
             SourceProductionContext context,
             TypeDeclarationSyntax syntax,
-            AttributeData topicMessageAttribute)
+            AttributeData outboxMessageAttribute)
     {
         #region string attachedViewTypeFullName = .., attachedViewTypeName = ..
 
-        ImmutableArray<ITypeSymbol> attachedViewArgs = topicMessageAttribute.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
+        ImmutableArray<ITypeSymbol> attachedViewArgs = outboxMessageAttribute.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         ITypeSymbol attachedViewFirstArgSymbol = attachedViewArgs[0];
         string attachedViewTypeFullName = attachedViewFirstArgSymbol.ToDisplayString();
         string attachedViewTypeName = attachedViewFirstArgSymbol.Name;
@@ -31,15 +31,15 @@ internal struct OutboxTypeInfo
 
         var attributes = attachedViewFirstArgSymbol.GetAttributes();
         var messageTypeAtt = attributes
-                                .First(m => m.AttributeClass?.Name == "EvDbDefinePayloadAttribute");
+                                .FirstOrDefault(m => m.AttributeClass?.Name == MessagePayloadGenerator.MESSAGE_PAYLOAD_ATTRIBUTE);
         string? storageName = messageTypeAtt?.ConstructorArguments.First().Value?.ToString();
         if (storageName == null)
         {
             context.Throw(EvDbErrorsNumbers.MissingViewName, "message name on store is missing", syntax);
         }
 
-        HasDefaultTopic = attributes.Any(m => m.AttributeClass?.Name == "EvDbAttachDefaultChannelAttribute");
-        Topics = attributes.Where(m => m.AttributeClass?.Name == "EvDbAttachChannelAttribute")
+        HasDefaultChannel = attributes.Any(m => m.AttributeClass?.Name == "EvDbAttachDefaultChannelAttribute");
+        Channels = attributes.Where(m => m.AttributeClass?.Name == "EvDbAttachChannelAttribute")
                                 .Select(m => m.ConstructorArguments.First().Value?.ToString() ?? "")
                                 .ToArray();
         FullTypeName = attachedViewTypeFullName;
@@ -70,12 +70,12 @@ internal struct OutboxTypeInfo
     public string StorageName { get; }
 
     /// <summary>
-    /// Gets the attached topics.
+    /// Gets the attached channels.
     /// </summary>
-    public string[] Topics { get; }
+    public string[] Channels { get; }
 
     /// <summary>
-    /// Gets a value indicating whether it has a default topic.
+    /// Gets a value indicating whether it has a default channel.
     /// </summary>
-    public bool HasDefaultTopic { get; }
+    public bool HasDefaultChannel { get; }
 }

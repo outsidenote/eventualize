@@ -31,7 +31,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 
     protected abstract IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; }
 
-    public void Add<T>(T payload, string channel, EvDbShardName shardName)
+    public void Add<T>(T payload, EvDbChannelName channel, EvDbShardName shardName)
         where T : IEvDbPayload
     {
         if(payload == null)

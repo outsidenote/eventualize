@@ -14,7 +14,7 @@ public interface IEvDbOutboxSerializer
     /// <param name="shardName">Table name routing of the message</param>
     /// <param name="payload">Payload of the message</param>
     /// <returns></returns>
-    bool ShouldSerialize<T>(string channel, EvDbShardName shardName, T payload)
+    bool ShouldSerialize<T>(EvDbChannelName channel, EvDbShardName shardName, T payload)
         where T : IEvDbPayload;
 
     /// <summary>
@@ -24,6 +24,6 @@ public interface IEvDbOutboxSerializer
     /// <param name="shardName">Table name routing of the message</param>
     /// <param name="payload">Payload of the message</param>
     /// <returns></returns>
-    byte[] Serialize<T>(string channel, EvDbShardName shardName, T payload)
+    byte[] Serialize<T>(EvDbChannelName channel, EvDbShardName shardName, T payload)
         where T : IEvDbPayload;
 }

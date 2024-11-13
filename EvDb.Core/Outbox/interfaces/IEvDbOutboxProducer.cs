@@ -7,7 +7,7 @@ namespace EvDb.Core;
 public interface IEvDbOutboxProducer
 {
     /// <summary>
-    /// Gets the state transform abstraction into a topic.
+    /// Gets the state transform abstraction into the outbox.
     /// </summary>
     void OnProduceOutboxMessages(
             EvDbEvent e,

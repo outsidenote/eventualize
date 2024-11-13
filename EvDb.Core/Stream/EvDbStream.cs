@@ -105,7 +105,7 @@ public abstract class EvDbStream :
     #region IEvDbOutboxProducer
 
     /// <summary>
-    /// Produce messages into topics based on an event and states.
+    /// Produce messages into outbox based on an event and states.
     /// </summary>
     protected virtual IEvDbOutboxProducer? OutboxProducer { get; }
 
@@ -139,7 +139,7 @@ public abstract class EvDbStream :
 
         using var @lock = await _sync.AcquireAsync();
         var events = _pendingEvents;
-        var topic = _pendingOutput;
+        var outbox = _pendingOutput;
         if (events.Count == 0)
         {
             await Task.FromResult(true);
@@ -147,7 +147,7 @@ public abstract class EvDbStream :
         }
         try
         {
-            int affected = await _storageAdapter.StoreStreamAsync(events, topic, this, cancellation);
+            int affected = await _storageAdapter.StoreStreamAsync(events, outbox, this, cancellation);
             _sysMeters.EventsStored.Add(affected, tags);
 
             EvDbEvent ev = events[^1];
