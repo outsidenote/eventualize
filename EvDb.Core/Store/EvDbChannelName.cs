@@ -21,20 +21,20 @@ public partial struct EvDbChannelName :
     IComparable,
     IParsable<EvDbChannelName>
 {
-    private const string DEFAULT_TABLE_NAME = "topics";
+    private const string DEFAULT_CHANNEL_NAME = "DEFAULT";
 
-    public static readonly EvDbChannelName Default = new EvDbChannelName(DEFAULT_TABLE_NAME);
+    public static readonly EvDbChannelName Default = new EvDbChannelName(DEFAULT_CHANNEL_NAME);
 
     #region Validation
 
-    [GeneratedRegex(@"^[A-Za-z]*[A-Za-z0-9_]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
+    [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_\-@#]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
     private static partial Regex Validator();
 
     private static Validation Validate(string value) => Validator().IsMatch(value) switch
     {
 
         true => Validation.Ok,
-        _ => Validation.Invalid("The table name must only contain uppercase letters (A-Z), lowercase letters (a-z), digits (0-9), and underscores (_).")
+        _ => Validation.Invalid("The channel name must start with letters (A-Z) or (a-z), follow by alphabets, numbers, or the characters `-`, `_`, `@`, or `#`     .")
     };
 
     #endregion //  Validation
@@ -88,7 +88,7 @@ public partial struct EvDbChannelName :
 
     #endregion //  Ctor
 
-    private static string Format(string value) => value.Replace('-', '_');
+    private static string Format(string value) => value;
 
     #region TryFrom / From
 

@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 
 namespace EvDb.Core.Adapters;
-
-[DebuggerDisplay("MessageType: {MessageType} ,EventType:{EventType}, Offset:{Offset}, StreamId:{StreamId}")]
+   
+[DebuggerDisplay("MessageType: {MessageType} ,EventType:{EventType}, Channel:{Channel} Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbMessageRecord
 {
     public string Domain { get; init; }

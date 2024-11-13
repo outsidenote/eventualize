@@ -12,10 +12,10 @@ internal class SqlServerStorageMigration : EvDbRelationalStorageMigration
         ILogger logger,
         EvDbStorageContext context,
         IEvDbConnectionFactory factory,
-        IEnumerable<EvDbShardName> topicShardNames)
+        IEnumerable<EvDbShardName> shardNames)
             : base(logger, factory)
     {
-        Queries = QueryTemplatesFactory.Create(context, topicShardNames);
+        Queries = QueryTemplatesFactory.Create(context, shardNames);
     }
 
     protected override EvDbMigrationQueryTemplates Queries { get; }

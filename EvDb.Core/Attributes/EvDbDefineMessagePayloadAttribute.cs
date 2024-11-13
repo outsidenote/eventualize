@@ -1,7 +1,8 @@
 ﻿namespace EvDb.Core;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Assembly, AllowMultiple = true)]
-public class EvDbDefineMessagePayloadAttribute : EvDbDefinePayloadAttribute
+public class EvDbDefineMessagePayloadAttribute : EvDbDefineEventPayloadAttribute
 {
-    public EvDbDefineMessagePayloadAttribute(string payloadType): base(payloadType) { }
+    public EvDbDefineMessagePayloadAttribute(
+        string payloadType): base(payloadType) { }
 }

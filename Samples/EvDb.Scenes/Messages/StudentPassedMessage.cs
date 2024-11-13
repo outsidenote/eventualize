@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: Channel
 
 using EvDb.Core;
+using EvDb.UnitTests;
 
 namespace EvDb.Scenes;
 
@@ -9,9 +10,9 @@ namespace EvDb.Scenes;
 
 
 [EvDbAttachDefaultChannel]
-[EvDbAttachChannel("channel-1")]
-[EvDbAttachChannel("channel-3")]
-[EvDbAttachChannel("channel-2")]
+[EvDbAttachChannel(OutboxChannels.Channel1)]
+[EvDbAttachChannel(OutboxChannels.Channel3)]
+[EvDbAttachChannel(OutboxChannels.Channel2)]
 [EvDbDefineMessagePayload("student-passed")]
 public partial record StudentPassedMessage(int StudentId, string Name, DateTimeOffset When, double Grade);
 

@@ -9,11 +9,11 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class PayloadGenerator : BaseGenerator
+public partial class EventPayloadGenerator : BaseGenerator
 {
-    protected override string EventTargetAttribute { get; } = "EvDbDefinePayloadAttribute";
+    protected override string EventTargetAttribute { get; } = "EvDbDefineEventPayloadAttribute";
 
-    protected virtual string StartWith { get; } = "EvDbDefinePayload";
+    protected virtual string StartWith { get; } = "EvDbDefineEventPayload";
 
     #region OnGenerate
 

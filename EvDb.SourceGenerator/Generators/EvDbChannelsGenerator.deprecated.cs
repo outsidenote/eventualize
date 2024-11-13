@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Topic
+﻿/*// Ignore Spelling: Topic
 
 #pragma warning disable HAA0301 // Closure Allocation Source
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
@@ -110,3 +110,4 @@ public partial class EvDbChannelsGenerator : BaseGenerator
 
     #endregion //  ShardInfo
 }
+*/

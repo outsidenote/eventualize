@@ -9,7 +9,7 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class MessagePayloadGenerator: PayloadGenerator 
+public partial class MessagePayloadGenerator: EventPayloadGenerator 
 {
     private const string MESSAGE_PAYLOAD = "EvDbDefineMessagePayload";
     public const string MESSAGE_PAYLOAD_ATTRIBUTE = MESSAGE_PAYLOAD + "Attribute";

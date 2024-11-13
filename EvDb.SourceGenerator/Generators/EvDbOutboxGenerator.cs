@@ -88,9 +88,9 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         #endregion // OutboxTypeInfo[] messageTypes = ..
 
         var multiChannel = messageTypes
-                .Where(m => m.Topics.Length > 1 || m.Topics.Length == 1 && m.HasDefaultTopic);
+                .Where(m => m.Channels.Length > 1 || m.Channels.Length == 1 && m.HasDefaultChannel);
 
-        bool hasDefaultTopic = Array.Exists(messageTypes, m => m.HasDefaultTopic || m.Topics.Length == 0);
+        bool hasDefaultTopic = Array.Exists(messageTypes, m => m.HasDefaultChannel || m.Channels.Length == 0);
 
         #region Outbox Context
 
@@ -98,7 +98,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         var addMessageTypes =
             messageTypes
-                .Where(m => m.Topics.Length == 0 || m.HasDefaultTopic)
+                .Where(m => m.Channels.Length == 0 || m.HasDefaultChannel)
                 .Select((info, i) =>
             $$"""
 
@@ -119,16 +119,16 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         var addMessageTypesSingleTopic =
             messageTypes
-                .Where(m => m.Topics.Length == 1 && !m.HasDefaultTopic)
+                .Where(m => m.Channels.Length == 1 && !m.HasDefaultChannel)
                 .Select((info, i) =>
             $$"""
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    var shardNames = _outboxToShards.ChannelToShards({{outboxName}}Channels.{{info.Topics[0].FixNameForClass()}});
+                    var shardNames = _outboxToShards.ChannelToShards({{outboxName}}Channels.{{info.Channels[0].FixNameForClass()}});
                     foreach (var shardName in shardNames)
                     {
-                        base.Add(payload, "{{info.Topics[0]}}", shardName); 
+                        base.Add(payload, "{{info.Channels[0]}}", shardName); 
                     }
                 }
             
@@ -145,7 +145,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                 {
                     string outboxText = outbox switch
                         {
-            {{string.Join(",", info.Topics.Select(t =>
+            {{string.Join(",", info.Channels.Select(t =>
             $$"""
 
                             OutboxOf{{info.TypeName}}.{{t.FixNameForClass()}} => "{{t}}"
@@ -155,7 +155,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             
                     {{outboxName}}Channels outboxTextEnum = outbox switch
                         {
-            {{string.Join(",", info.Topics.Select(t =>
+            {{string.Join(",", info.Channels.Select(t =>
             $$"""
 
                             OutboxOf{{info.TypeName}}.{{t.FixNameForClass()}} => {{outboxName}}Channels.{{t.FixNameForClass()}}
@@ -228,7 +228,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         #region AllChannelsEnum
 
-        var allChannels = multiChannel.SelectMany(t => t.Topics).Distinct().OrderBy(x => x).ToList();
+        var allChannels = multiChannel.SelectMany(t => t.Channels).Distinct().OrderBy(x => x).ToList();
         if (hasDefaultTopic) allChannels.Insert(0, "DEFAULT");
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
@@ -307,7 +307,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             builder.AppendLine($$"""
                     public enum OutboxOf{{info.TypeName}}
                     {
-                    {{string.Join(",", info.Topics.Select(t =>
+                    {{string.Join(",", info.Channels.Select(t =>
                         $$"""
 
                             {{t.FixNameForClass()}}   
@@ -317,7 +317,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"OutboxOf{info.TypeName}"), builder.ToString());
         }
 
-        #endregion // Multi Topics Enum
+        #endregion // Multi Channels Enum
 
         #region Outbox Base
 

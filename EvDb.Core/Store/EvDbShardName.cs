@@ -21,7 +21,7 @@ public partial struct EvDbShardName :
     IComparable,
     IParsable<EvDbShardName>
 {
-    private const string DEFAULT_TABLE_NAME = "topics";
+    private const string DEFAULT_TABLE_NAME = "outbox";
 
     public static readonly EvDbShardName Default = new EvDbShardName(DEFAULT_TABLE_NAME);
 
@@ -34,7 +34,7 @@ public partial struct EvDbShardName :
     {
 
         true => Validation.Ok,
-        _ => Validation.Invalid("The table name must only contain uppercase letters (A-Z), lowercase letters (a-z), digits (0-9), and underscores (_).")
+        _ => Validation.Invalid("The shard name must only contain uppercase letters (A-Z), lowercase letters (a-z), digits (0-9), and underscores (_).")
     };
 
     #endregion //  Validation

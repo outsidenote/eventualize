@@ -11,7 +11,7 @@ namespace EvDb.UnitTests;
 [EvDbOutboxChannels]
 public abstract class OutboxChannels
 {
-    public static readonly EvDbChannelName Channel1 = "channel-1";
-    public static readonly EvDbChannelName Channel2 = "channel-2";
-    public static readonly EvDbChannelName Channel3 = "channel-3";
+    public const string Channel1 = "channel-1";
+    public const string Channel2 = "channel-2";
+    public const string Channel3 = "channel-3";
 }

@@ -3,6 +3,6 @@ using System.Text.Json;
 
 namespace EvDb.Scenes;
 
-[EvDbDefinePayload("student-test-submitted")]
+[EvDbDefineEventPayload("student-test-submitted")]
 public partial record StudentTestSubmittedEvent(int TestId, JsonElement data);
 
