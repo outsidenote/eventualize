@@ -2,7 +2,7 @@
   "profiles": {
     "EvDb.StressTestsConsole": {
       "commandName": "Project",
-      "commandLineArgs": "-w 30000 -p 20",
+      "commandLineArgs": "-w 30000 -p 1 -s 1",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

@@ -26,7 +26,7 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
             "Count of messages stored into the storage");
         _messagesStored = counterMeter.CreateCounter<int>("evdb_store_notification_stored",
             "{messages}",
-            "Count of messages stored into topics ");
+            "Count of messages stored into outbox");
     }
 
     /// <summary>
@@ -35,7 +35,7 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
     private readonly Counter<int> _eventsStored;
 
     /// <summary>
-    /// Number of Notification stored (into topics)
+    /// Number of Notification stored (into outbox)
     /// </summary>
     private readonly Counter<int> _messagesStored;
 
@@ -62,6 +62,6 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
         _eventsStored.Add(count, tags => tags.Add("evdb_store_db", dbType)
                                                       .Add("evdb_store_domain", adr.Domain)
                                                       .Add("evdb_store_partition", adr.Partition)
-                                                      .Add("evdb_store_topic_table", shardName));
+                                                      .Add("evdb_store_shard", shardName));
     }
 }

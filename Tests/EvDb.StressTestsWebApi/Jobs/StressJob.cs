@@ -82,8 +82,8 @@ public class StressJob : BackgroundService
         (int writeCycleCount,
         int streamsCount,
         int degreeOfParallelismPerStream,
-        int batchSize,
-        string streamPrefix) = options;
+        int batchSize) = options;
+        string streamPrefix = options.StreamPrefix;
 
         int counter = 0, lastCount = 0;
         int occCounter = 0;
@@ -123,7 +123,7 @@ public class StressJob : BackgroundService
                         try
                         {
                             var offset0 = stream.StoredOffset;
-                            int affected = await stream.StoreAsync(stoppingToken);
+                            StreamStoreAffected affected = await stream.StoreAsync(stoppingToken);
                             var offset1 = stream.StoredOffset;
                             success = true;
                         }

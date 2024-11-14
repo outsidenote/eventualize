@@ -58,16 +58,18 @@ internal static class OtelExtensions
                         })
                         .SetSampler<AlwaysOnSampler>()
                         //.AddOtlpExporter()
-                        .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
+                        //.AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
                         //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
-                        .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"));
-            })
-            .WithMetrics(meterBuilder =>
-                    meterBuilder.AddEvDbInstrumentation()
-                                .AddProcessInstrumentation()
-                                //.AddOtlpExporter()
-                                //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
-                                .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889")));
+                        .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"))
+                        ;
+            });
+            //.WithMetrics(meterBuilder =>
+            //        meterBuilder.AddEvDbInstrumentation()
+            //                    .AddProcessInstrumentation()
+            //                    //.AddOtlpExporter()
+            //                    //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
+            //                    .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"))
+                                //);
 
         return builder;
     }

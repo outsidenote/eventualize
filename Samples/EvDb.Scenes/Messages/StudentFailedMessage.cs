@@ -1,11 +1,12 @@
 ﻿// Ignore Spelling: Channel
 
 using EvDb.Core;
+using EvDb.UnitTests;
 
 namespace EvDb.Scenes;
 
-[EvDbAttachChannel("channel-1")]
-[EvDbDefinePayload("student-failed")]
+[EvDbAttachChannel(OutboxChannels.Channel1)]
+[EvDbDefineMessagePayload("student-failed")]
 public partial record StudentFailedMessage(int StudentId, string Name, DateTimeOffset When, double Grade);
 
 

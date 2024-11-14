@@ -2,13 +2,14 @@ using EvDb.Core;
 using EvDb.StressTests;
 using EvDb.StressTestsWebApi;
 using EvDb.StressTestsWebApi.Controllers;
+using EvDb.StressTestsWebApi.Outbox;
 using System.Threading.Channels;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 services.AddScoped<EvDbStorageContext>(_ => new EvDbTestStorageContext());
-services.AddEvDbSqlServerStoreMigration();
+services.AddEvDbSqlServerStoreMigration(OutboxShards.Table1, OutboxShards.Table2);
 services.AddEvDb()
         .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
         .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());

@@ -4,9 +4,9 @@ namespace EvDb.Core;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true)]
 public class EvDbAttachChannelAttribute : Attribute
 {
-    public EvDbAttachChannelAttribute(string topic)
+    public EvDbAttachChannelAttribute(string channel)
     {
-        Topic = topic;
+        Channel = channel;
     }
-    public string? Topic { get; }
+    public string? Channel { get; }
 }

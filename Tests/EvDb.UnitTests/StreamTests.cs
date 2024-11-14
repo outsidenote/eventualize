@@ -3,6 +3,7 @@ namespace EvDb.Core.Tests;
 using EvDb.Scenes;
 using EvDb.UnitTests;
 using FakeItEasy;
+using System.Collections.Immutable;
 using System.Threading.Tasks.Dataflow;
 using Xunit.Abstractions;
 
@@ -14,6 +15,9 @@ public class StreamTests
     public StreamTests(ITestOutputHelper output)
     {
         _output = output;
+        A.CallTo(() => _storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IImmutableList<EvDbMessage>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
+        .Returns(StreamStoreAffected.Empty);
+
     }
 
     [Fact]

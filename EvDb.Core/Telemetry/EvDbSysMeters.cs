@@ -32,6 +32,9 @@ internal class EvDbSysMeters : IEvDbSysMeters
         EventsStored = counterMeter.CreateCounter<int>("evdb_events_stored",
             "{event}",
             "Events stored into the storage database");
+        MessagesStored = counterMeter.CreateCounter<int>("evdb_outbox_messagess_stored",
+            "{messages}",
+            "Outbox messages stored into the storage database");
         SnapshotStored = counterMeter.CreateCounter<int>(
             "evdb_snapshot_stored",
             "{snapshot}", "Snapshot stored into the storage database");
@@ -60,6 +63,12 @@ internal class EvDbSysMeters : IEvDbSysMeters
     /// Events stored into the storage database
     /// </summary>
     public Counter<int> EventsStored { get; }
+
+    /// <summary>
+    /// Outbox messages stored into the storage database
+    /// </summary>
+    public Counter<int> MessagesStored { get; }
+
     /// <summary>
     /// Snapshot stored into the storage database
     /// </summary>

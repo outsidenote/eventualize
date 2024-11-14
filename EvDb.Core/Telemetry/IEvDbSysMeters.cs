@@ -10,6 +10,11 @@ internal interface IEvDbSysMeters
     Counter<int> EventsStored { get; }
 
     /// <summary>
+    /// Outbox messages stored into the storage database
+    /// </summary>
+    Counter<int> MessagesStored { get; }
+
+    /// <summary>
     /// Optimistic Concurrency Collisions
     /// </summary>
     Counter<int> OCC { get; }

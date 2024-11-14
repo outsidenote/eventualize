@@ -9,9 +9,11 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class PayloadGenerator : BaseGenerator
+public partial class EventPayloadGenerator : BaseGenerator
 {
-    protected override string EventTargetAttribute { get; } = "EvDbDefinePayloadAttribute";
+    protected override string EventTargetAttribute { get; } = "EvDbDefineEventPayloadAttribute";
+
+    protected virtual string StartWith { get; } = "EvDbDefineEventPayload";
 
     #region OnGenerate
 
@@ -31,7 +33,7 @@ public partial class PayloadGenerator : BaseGenerator
         var payloadName = from atts in syntax.AttributeLists
                           from att in atts.Attributes
                           let fn = att.Name.ToFullString()
-                          where fn.StartsWith("EvDbDefinePayload")
+                          where fn.StartsWith(StartWith)
                           select att.ArgumentList?.Arguments[0].ToString();
         var key = payloadName.FirstOrDefault();
         if (key == null)

@@ -22,5 +22,5 @@ public interface IEvDbStreamStore : IDisposable
     /// </summary>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns>Count of added events</returns>
-    Task<int> StoreAsync(CancellationToken cancellation = default);
+    Task<StreamStoreAffected> StoreAsync(CancellationToken cancellation = default);
 }

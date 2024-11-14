@@ -12,17 +12,31 @@ public static class EvDbSqlServerStorageMigrationDI
 {
     public static IServiceCollection AddEvDbSqlServerStoreMigration(
             this IServiceCollection services,
-            string connectionStringOrKey)
+            string connectionStringOrKey,
+            params EvDbShardName[] shardNames)
     {
         return services.AddEvDbSqlServerStoreMigration(
                             null,
-                            connectionStringOrKey);
+                            connectionStringOrKey,
+                            shardNames);
     }
 
     public static IServiceCollection AddEvDbSqlServerStoreMigration(
             this IServiceCollection services,
+            params EvDbShardName[] shardNames)
+    {
+        return services.AddEvDbSqlServerStoreMigration(
+                            null,
+                            "EvDbSqlServerConnection",
+                            shardNames);
+    }
+
+
+    public static IServiceCollection AddEvDbSqlServerStoreMigration(
+            this IServiceCollection services,
             EvDbStorageContext? context = null,
-            string connectionStringOrKey = "EvDbSqlServerConnection")
+            string connectionStringOrKey = "EvDbSqlServerConnection",
+            params EvDbShardName[] shardNames)
     {
         services.AddScoped(sp =>
         {
@@ -40,7 +54,7 @@ public static class EvDbSqlServerStorageMigrationDI
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<EvDbRelationalStorageMigration>();
-            IEvDbStorageMigration adapter = SqlServerStorageMigrationFactory.Create(logger, connectionString, ctx);
+            IEvDbStorageMigration adapter = SqlServerStorageMigrationFactory.Create(logger, connectionString, ctx, shardNames);
             return adapter;
         });
 

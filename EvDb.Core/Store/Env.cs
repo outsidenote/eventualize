@@ -18,7 +18,7 @@ public partial struct Env
 
     public Env(EvDbShardName value)
     {
-        _value = Env.Format(value);
+        _value = Env.Format((string)value);
     }
 
     /// <summary>

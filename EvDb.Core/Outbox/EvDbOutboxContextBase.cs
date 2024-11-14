@@ -31,7 +31,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 
     protected abstract IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; }
 
-    public void Add<T>(T payload, string channel, EvDbShardName shardName)
+    public void Add<T>(T payload, EvDbChannelName channel, EvDbShardName shardName)
         where T : IEvDbPayload
     {
         if(payload == null)
@@ -60,16 +60,14 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
                     """
                     );
             }
-        }
-        else
-        {
+
             _logger.LogMultiOutboxSerializers(channel, shardName, payload?.GetType().Name,
                 string.Join(", ", serializers.Select(m => m.Name)));
         }
 
         #endregion //  Validation
 
-        if (serializers.Length == 1)
+        if (serializers.Length > 0)
             serializer = serializers[0];
 
         #region byte[] buffer =  serializer?.Serialize(...) ?? JsonSerializer.SerializeToUtf8Bytes(...)

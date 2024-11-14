@@ -4,5 +4,7 @@ public readonly record struct StressOptions(
         int WriteCycleCount,
         int StreamsCount,
         int DegreeOfParallelismPerStream,
-        int BatchSize,
-        string StreamPrefix = "stream");
+        int BatchSize)
+{
+    public string StreamPrefix { get; init; } = $"{DateTime.UtcNow}:yyyy_MM_dd_HH_mm";
+}

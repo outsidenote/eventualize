@@ -105,7 +105,7 @@ public abstract class EvDbStream :
     #region IEvDbOutboxProducer
 
     /// <summary>
-    /// Produce messages into topics based on an event and states.
+    /// Produce messages into outbox based on an event and states.
     /// </summary>
     protected virtual IEvDbOutboxProducer? OutboxProducer { get; }
 
@@ -126,7 +126,7 @@ public abstract class EvDbStream :
 
     #region StoreAsync
 
-    async Task<int> IEvDbStreamStore.StoreAsync(CancellationToken cancellation)
+    async Task<StreamStoreAffected> IEvDbStreamStore.StoreAsync(CancellationToken cancellation)
     {
         #region Telemetry
 
@@ -139,16 +139,26 @@ public abstract class EvDbStream :
 
         using var @lock = await _sync.AcquireAsync();
         var events = _pendingEvents;
-        var topic = _pendingOutput;
+        var outbox = _pendingOutput;
         if (events.Count == 0)
         {
             await Task.FromResult(true);
-            return 0;
+            return StreamStoreAffected.Empty;
         }
         try
         {
-            int affected = await _storageAdapter.StoreStreamAsync(events, topic, this, cancellation);
-            _sysMeters.EventsStored.Add(affected, tags);
+            StreamStoreAffected affected = await _storageAdapter.StoreStreamAsync(events, outbox, this, cancellation);
+
+            #region Telemetry
+
+            _sysMeters.EventsStored.Add(affected.Events, tags);
+            foreach (var outboxAffected in affected.Messages)
+            {
+                var tgs = tags.Add("shard", outboxAffected.Key);
+                _sysMeters.MessagesStored.Add(outboxAffected.Value, tgs);
+            }
+
+            #endregion //  Telemetry
 
             EvDbEvent ev = events[^1];
             StoredOffset = ev.StreamCursor.Offset;

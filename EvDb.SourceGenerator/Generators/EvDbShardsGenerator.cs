@@ -11,7 +11,7 @@ using System.Text;
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class EvDbChannelToShardsGenerator : BaseGenerator
+public partial class EvDbShardsGenerator : BaseGenerator
 {
     internal const string ATT = "EvDbOutboxShardsAttribute";
     protected override string EventTargetAttribute { get; } = ATT;
@@ -41,7 +41,7 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
         var tableConstants = typeSymbol.GetMembers()
                              .Where(m => m.Kind == SymbolKind.Field)
                              .Select(m => (IFieldSymbol)m)
-                             .Select(m => new TopicTableInfo(m))
+                             .Select(m => new ShardInfo(m))
                              .ToArray();
 
         #region Enum
@@ -69,7 +69,7 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
         builder.AppendLine();
         builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    public static class {{clsName}}ChoisesExtensions
+                    public static class {{clsName}}ChoicesExtensions
                     { 
                         public static IEnumerable<EvDbShardName> ToShardsName(this {{clsName}}Preferences[] options) => options.Select(m => m.ToShardName());
 
@@ -80,7 +80,7 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
                     {{string.Join("", tableConstants.Select(t =>
                     $$"""
 
-                                    {{clsName}}Preferences.{{t.Name}} => {{clsName}}.{{t.Name}},
+                                    {{clsName}}Preferences.{{t.Name}} => (string){{clsName}}.{{t.Name}},
                         """))}}
                                 _ => throw new NotSupportedException(),
                             };
@@ -88,18 +88,18 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
                         }
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{clsName}ChoisesExtensions"), builder.ToString());
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{clsName}ChoicesExtensions"), builder.ToString());
 
         #endregion // Extensions
     }
 
     #endregion // OnGenerate
 
-    #region TopicTableInfo
+    #region ShardInfo
 
-    public struct TopicTableInfo
+    public struct ShardInfo
     {
-        public TopicTableInfo(IFieldSymbol field)
+        public ShardInfo(IFieldSymbol field)
         {
             Name = field.Name;
             Value = field.ConstantValue?.ToString()!;
@@ -108,5 +108,5 @@ public partial class EvDbChannelToShardsGenerator : BaseGenerator
         public string Value { get; }
     }
 
-    #endregion //  TopicTableInfo
+    #endregion //  ShardInfo
 }
