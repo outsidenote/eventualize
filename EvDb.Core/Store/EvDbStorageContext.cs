@@ -6,7 +6,7 @@ namespace EvDb.Core;
 /// <summary>
 /// Via the context you can differentiate the naming of the table prefix
 /// </summary>
-[DebuggerDisplay("{databaseName}: {Id}")]
+[DebuggerDisplay("{DatabaseName}: {Id}")]
 public record EvDbStorageContext
 {
     #region Ctor

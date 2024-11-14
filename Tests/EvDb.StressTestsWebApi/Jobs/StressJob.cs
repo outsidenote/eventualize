@@ -123,7 +123,7 @@ public class StressJob : BackgroundService
                         try
                         {
                             var offset0 = stream.StoredOffset;
-                            int affected = await stream.StoreAsync(stoppingToken);
+                            StreamStoreAffected affected = await stream.StoreAsync(stoppingToken);
                             var offset1 = stream.StoredOffset;
                             success = true;
                         }

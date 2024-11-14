@@ -6,6 +6,7 @@ using EvDb.StressTests;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.Threading.Tasks.Dataflow;
 
 var context = new EvDbTestStorageContext();
@@ -19,25 +20,27 @@ builder.Configuration
             .AddJsonFile($"appsettings.json", true, true)
             .AddJsonFile($"appsettings.{environmentName}.json", true, true);
 var services = builder.Services;
+services.AddScoped<EvDbStorageContext>(_ => context);
 services.AddEvDb()
       .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
       .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
-services.AddEvDbSqlServerStoreMigration((EvDbStorageContext)context);
+services.AddEvDbSqlServerStoreMigration();
 builder.AddOtel();
 
 var app = builder.Build();
-
+const int REPORT_CYCLE = 50;
 await app.RunAsync(async (
         ILogger<Program> logger,
         IEvDbDemoStreamFactory factory,
         IEvDbStorageMigration storageMigration,
         [Option('w', Description = "Number of saving on the same stream (each save is saving a batch of events)")] int writeCycleCount = 3000,
         [Option('s', Description = "Number of independent streams, different streams doesn't collide with each other")] int streamsCount = 1,
-        [Option('p', Description = "The degree of parallelism, this is what's cause the collision")] int degreeOfParallelismPerStream = 10,
-        [Option('b', Description = "Number of events to add in each batch")] int batchSize = 5) =>
+        [Option('p', Description = "The degree of parallelism, this is what's cause the collision")] int degreeOfParallelismPerStream = 1,
+        [Option('b', Description = "Number of events to add in each batch")] int batchSize = 100) =>
 {
     await storageMigration.CreateEnvironmentAsync();
-
+    logger.LogInformation("Starting...");
+    var sw = Stopwatch.StartNew();
     int counter = 0;
     int occCounter = 0;
     var tasks = Enumerable.Range(0, streamsCount)
@@ -47,7 +50,7 @@ await app.RunAsync(async (
 
             var ab = new ActionBlock<int>(async j =>
             {
-                Interlocked.Increment(ref counter);
+                var count = Interlocked.Increment(ref counter);
                 bool success = false;
                 IEnumerable<Event1> events = CreateEvents(streamId, batchSize, j * batchSize);
                 do
@@ -63,7 +66,7 @@ await app.RunAsync(async (
                     try
                     {
                         var offset0 = stream.StoredOffset;
-                        int affected = await stream.StoreAsync();
+                        StreamStoreAffected affected = await stream.StoreAsync();
                         var offset1 = stream.StoredOffset;
                         success = true;
                     }
@@ -72,8 +75,15 @@ await app.RunAsync(async (
                         Interlocked.Increment(ref occCounter);
                     }
                 } while (!success);
-                if (counter % 200 == 0)
-                    logger.LogInformation($"{counter}...");
+                if (count % REPORT_CYCLE == 0)
+                {
+                    sw.Stop();
+                    double secound = sw.Elapsed.TotalSeconds;
+                    double perSeconds = REPORT_CYCLE / secound;
+                    logger.LogInformation($"{count}...{perSeconds} per seconds");
+                    sw.Reset();
+                    sw.Start();
+                }
             }, new ExecutionDataflowBlockOptions
             {
                 MaxDegreeOfParallelism = degreeOfParallelismPerStream,

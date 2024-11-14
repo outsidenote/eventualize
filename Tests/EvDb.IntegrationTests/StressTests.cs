@@ -132,8 +132,8 @@ public sealed class StressTests : IntegrationTests
                         try
                         {
                             var offset0 = stream!.StoredOffset;
-                            int affected = await stream!.StoreAsync();
-                            Assert.Equal(batchSize, affected);
+                            StreamStoreAffected affected = await stream!.StoreAsync();
+                            Assert.Equal(batchSize, affected.Events);
                             var offset1 = stream.StoredOffset;
                             //Assert.Equal(batchSize, offset1 - offset0);
                             //Assert.Equal(0 ,(offset1 + 1) % batchSize);

@@ -5,5 +5,5 @@ namespace EvDb.StressTests;
 public record EvDbTestStorageContext() : EvDbStorageContext(
     "master",
     "test",
-    $"_eventualize_{Guid.NewGuid():N}",
+    $"stress_{DateTime.Now:HH_mm_ss}",
     "dbo");

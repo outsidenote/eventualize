@@ -49,7 +49,7 @@ internal static class QueryTemplatesFactory
                         @{nameof(EvDbEventRecord.CapturedBy)},
                         @{nameof(EvDbEventRecord.CapturedAt)})
                     """,
-            SaveToTopics = $$"""
+            SaveToOutbox = $$"""
                     INSERT INTO {{tabInitial}}{0} (
                         {{toSnakeCase(nameof(EvDbMessageRecord.Domain))}},
                         {{toSnakeCase(nameof(EvDbMessageRecord.Partition))}}, 

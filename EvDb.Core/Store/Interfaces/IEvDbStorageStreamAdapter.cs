@@ -24,7 +24,7 @@ public interface IEvDbStorageStreamAdapter
     /// <returns>
     /// Count of added events
     /// </returns>
-    Task<int> StoreStreamAsync(
+    Task<StreamStoreAffected> StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
         IImmutableList<EvDbMessage> messages,
         IEvDbStreamStoreData streamStore,

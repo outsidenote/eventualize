@@ -19,5 +19,5 @@ public readonly partial record struct EvDbStreamAdapterQueryTemplates
     /// <summary>
     /// Save into the outbox table.
     /// </summary>
-    public string SaveToTopics { get; init; }
+    public string SaveToOutbox { get; init; }
 }
