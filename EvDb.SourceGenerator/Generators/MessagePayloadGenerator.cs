@@ -13,20 +13,45 @@ public partial class MessagePayloadGenerator: EventPayloadGenerator
 {
     private const string MESSAGE_PAYLOAD = "EvDbDefineMessagePayload";
     public const string MESSAGE_PAYLOAD_ATTRIBUTE = MESSAGE_PAYLOAD + "Attribute";
+    private const string CHANNEL_ATT = "EvDbAttachChannelAttribute";
     protected override string EventTargetAttribute { get; } = MESSAGE_PAYLOAD_ATTRIBUTE;
     protected override string StartWith { get; } = MESSAGE_PAYLOAD;
 
-    #region OnGenerate
+    #region BeforeClassDeclaration
 
-    protected override void OnGenerate(
-            SourceProductionContext context,
-            Compilation compilation,
-            INamedTypeSymbol typeSymbol,
-            TypeDeclarationSyntax syntax,
-            CancellationToken cancellationToken)
+    protected override void BeforeClassDeclaration(StringBuilder builder)
     {
-        base.OnGenerate(context, compilation, typeSymbol, syntax, cancellationToken);
+        builder.AppendLine("using EvDb.Core.Internals;");
     }
 
-    #endregion // OnGenerate
+    #endregion //  BeforeClassDeclaration
+
+    #region GetAdditions
+
+    protected override string GetAdditions(INamedTypeSymbol typeSymbol, string type, string name)
+    {
+        var allAttributes = typeSymbol.GetAttributes();
+        string[] channels = allAttributes
+                          .Where(att => att.AttributeClass?.Name == CHANNEL_ATT)
+                          .Select(m => m.ConstructorArguments.First().Value?.ToString() ?? "")
+                                .OrderBy(m => m)
+                                .ToArray();
+
+
+        string channelEnums = string.Join(",", channels.Select(t =>
+                    $$"""
+
+                                {{t.FixNameForClass()}}   
+                        """));
+
+        string result = ($$"""
+                        public enum Channels
+                        {
+                    {{channelEnums}}
+                        }
+                    """);
+        return result;
+    }
+
+    #endregion //  GetAdditions
 }

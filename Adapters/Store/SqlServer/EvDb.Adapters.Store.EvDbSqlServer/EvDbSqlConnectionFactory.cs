@@ -4,8 +4,6 @@ using System.Data.SqlClient;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-// TODO: [bnaya 2024-02-13] Unify with the migration
-
 public sealed class EvDbSqlConnectionFactory : EvDbConnectionFactory
 {
     private readonly string _connectionString;

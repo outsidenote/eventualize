@@ -41,6 +41,7 @@ internal struct OutboxTypeInfo
         HasDefaultChannel = attributes.Any(m => m.AttributeClass?.Name == "EvDbAttachDefaultChannelAttribute");
         Channels = attributes.Where(m => m.AttributeClass?.Name == "EvDbAttachChannelAttribute")
                                 .Select(m => m.ConstructorArguments.First().Value?.ToString() ?? "")
+                                .OrderBy(m => m)
                                 .ToArray();
         FullTypeName = attachedViewTypeFullName;
         TypeName = attachedViewTypeName;

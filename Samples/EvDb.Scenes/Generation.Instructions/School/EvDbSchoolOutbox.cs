@@ -13,14 +13,14 @@ namespace EvDb.UnitTests;
 [EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
 public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
 {
-    protected override OutboxShardsPreferences[] ChannelToShards(EvDbSchoolOutboxChannels outbox) =>
+    protected override OutboxShardsPreferences[] ChannelToShards(Channels outbox) =>
         outbox switch
         {
-            // TODO: change the base name of the enum to use EvDbSchoolOutbox
-            EvDbSchoolOutboxChannels.Channel1 => [OutboxShardsPreferences.Commands],
-            EvDbSchoolOutboxChannels.Channel2 => [
+            // TODO: [bnaya 2024-11-16] OutboxShardsPreferences -> EvDbSchoolOutbox.Shards -> Shards
+            Channels.Channel1 => [OutboxShardsPreferences.Commands],
+            Channels.Channel2 => [
                                                     OutboxShardsPreferences.Messaging],
-            EvDbSchoolOutboxChannels.Channel3 => [
+            Channels.Channel3 => [
                                                     OutboxShardsPreferences.MessagingVip,
                                                     OutboxShardsPreferences.Messaging],
             _ => []
@@ -43,8 +43,8 @@ public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            outbox.Add(pass, OutboxOfStudentPassedMessage.Channel2);
-            outbox.Add(pass, OutboxOfStudentPassedMessage.Channel3);
+            outbox.Add(pass, StudentPassedMessage.Channels.Channel2);
+            outbox.Add(pass, StudentPassedMessage.Channels.Channel3);
         }
         else
         {

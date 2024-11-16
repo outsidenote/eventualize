@@ -61,7 +61,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         ITypeSymbol? shardsSymbol = null;
         if(outboxArgs.Length > 1)
             shardsSymbol = outboxArgs[1];
-        string? tableEnum = shardsSymbol?.Name;
+        string? shardEnum = shardsSymbol?.Name;
         string? tableEnumNs = shardsSymbol?.ContainingNamespace.ToDisplayString();
 
         string factoryOriginName = factoryTypeSymbol!.Name;
@@ -104,7 +104,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    var shardNames = _outboxToShards.ChannelToShards({{outboxName}}Channels.DEFAULT);
+                    var shardNames = _outboxToShards.ChannelToShards({{outboxName}}.Channels.DEFAULT);
                     foreach (var shardName in shardNames)
                     {
                         base.Add(payload, EvDbOutbox.DEFAULT_OUTBOX, shardName); 
@@ -125,7 +125,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
                 public void Add({{info.FullTypeName}} payload)
                 {
-                    var shardNames = _outboxToShards.ChannelToShards({{outboxName}}Channels.{{info.Channels[0].FixNameForClass()}});
+                    var shardNames = _outboxToShards.ChannelToShards({{outboxName}}.Channels.{{info.Channels[0].FixNameForClass()}});
                     foreach (var shardName in shardNames)
                     {
                         base.Add(payload, "{{info.Channels[0]}}", shardName); 
@@ -141,24 +141,24 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         var addMessageTypesMultiTopic = multiChannel.Select((info, i) =>
             $$"""
 
-                public void Add({{info.FullTypeName}} payload, OutboxOf{{info.TypeName}} outbox)
+                public void Add({{info.FullTypeName}} payload, {{info.TypeName}}.Channels outbox)
                 {
                     string outboxText = outbox switch
                         {
             {{string.Join(",", info.Channels.Select(t =>
             $$"""
 
-                            OutboxOf{{info.TypeName}}.{{t.FixNameForClass()}} => "{{t}}"
+                            {{info.TypeName}}.Channels.{{t.FixNameForClass()}} => "{{t}}"
             """))}},
                             _ => throw new NotImplementedException()
                         };
             
-                    {{outboxName}}Channels outboxTextEnum = outbox switch
+                    {{outboxName}}.Channels outboxTextEnum = outbox switch
                         {
             {{string.Join(",", info.Channels.Select(t =>
             $$"""
 
-                            OutboxOf{{info.TypeName}}.{{t.FixNameForClass()}} => {{outboxName}}Channels.{{t.FixNameForClass()}}
+                            {{info.TypeName}}.Channels.{{t.FixNameForClass()}} => {{outboxName}}.Channels.{{t.FixNameForClass()}}
             """))}}                
                         };
 
@@ -201,7 +201,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public sealed class {{outboxName}}Context : EvDbOutboxContextBase
                     {
-                        private readonly I{{streamName}}ChannelToShards _outboxToShards;
+                        private readonly I{{outboxName}}ChannelToShards _outboxToShards;
 
                         protected override IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; } = 
                                                     ImmutableArray<IEvDbOutboxSerializer>.Empty.AddRange(
@@ -212,7 +212,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             ILogger logger, 
                             EvDbStream evDbStream,
                             IEvDbEventMeta relatedEventMeta,
-                            I{{streamName}}ChannelToShards outboxToShards)
+                            I{{outboxName}}ChannelToShards outboxToShards)
                                     : base(logger, {{mode}}, evDbStream, relatedEventMeta)
                         {
                             _outboxToShards = outboxToShards;
@@ -225,28 +225,6 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         context.AddSource(typeSymbol.StandardSuffix("Context"), builder.ToString());
 
         #endregion // Outbox Context
-
-        #region AllChannelsEnum
-
-        var allChannels = multiChannel.SelectMany(t => t.Channels).Distinct().OrderBy(x => x).ToList();
-        if (hasDefaultTopic) allChannels.Insert(0, "DEFAULT");
-        builder.ClearAndAppendHeader(syntax, typeSymbol);
-        builder.AppendLine("using EvDb.Core.Internals;");
-        builder.AppendLine();
-        builder.DefaultsOnType(typeSymbol, false);
-        builder.AppendLine($$"""
-                    public enum {{outboxName}}Channels
-                    {
-                    {{string.Join(",", allChannels.Select(t =>
-                    $$"""
-
-                            {{t.FixNameForClass()}}   
-                        """))}}
-                    }
-                    """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{outboxName}Channels"), builder.ToString());
-
-        #endregion // AllTopiAllChannelsEnumcsEnum
 
         #region Stream Outbox Extensions
 
@@ -284,7 +262,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             /// Shard is a data splitting, usually for different messaging frameworks (Like Kafka, NATS, SQS, RabbitMQ, etc.)
                             /// Depending on the storage adapter `shard` might be split into different tables 
                             /// </summary>
-                            public {{streamName}}OutboxDefinitionContext CreateShard(string groupName, {{outboxName}}Channels outboxs, params {{outboxName}}Channels[] additionalOutboxs)
+                            public {{streamName}}OutboxDefinitionContext CreateShard(string groupName, {{outboxName}}.Channels outboxs, params {{outboxName}}.Channels[] additionalOutboxs)
                             {
                                 return {{streamName}}OutboxDefinitionContext.Instance;
                             }
@@ -293,31 +271,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     """);
         context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{streamName}OutboxExtensions"), builder.ToString());
 
-        #endregion Stream ourbox Extensions
-
-        #region Multi Topics Enum
-
-        foreach (var info in multiChannel)
-        {
-            builder.ClearAndAppendHeader(syntax, typeSymbol);
-            builder.AppendLine("using EvDb.Core.Internals;");
-            builder.AppendLine();
-
-            builder.DefaultsOnType(typeSymbol, false);
-            builder.AppendLine($$"""
-                    public enum OutboxOf{{info.TypeName}}
-                    {
-                    {{string.Join(",", info.Channels.Select(t =>
-                        $$"""
-
-                            {{t.FixNameForClass()}}   
-                        """))}}
-                    }
-                    """);
-            context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"OutboxOf{info.TypeName}"), builder.ToString());
-        }
-
-        #endregion // Multi Channels Enum
+        #endregion Stream Outbox Extensions
 
         #region Outbox Base
 
@@ -356,19 +310,19 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         #endregion //  var addTopicCases = ...
 
-        bool hasTables = string.IsNullOrEmpty(tableEnum);
+        bool hasTables = string.IsNullOrEmpty(shardEnum);
         #region string outboxToShards = ...
         string outboxToShards = hasTables
             ? $"""      
-                    IEnumerable<EvDbShardName> I{streamName}ChannelToShards.ChannelToShards({outboxName}Channels outbox) => [DefaultShardNameForTopic];
+                    IEnumerable<EvDbShardName> I{outboxName}ChannelToShards.ChannelToShards({outboxName}Channels outbox) => [DefaultShardNameForTopic];
                 """
             : $$"""
-                    IEnumerable<EvDbShardName> I{{streamName}}ChannelToShards.ChannelToShards({{outboxName}}Channels outbox) 
+                    IEnumerable<EvDbShardName> I{{outboxName}}ChannelToShards.ChannelToShards(Channels outbox) 
                     {
-                        {{tableEnum}}Preferences[] tbls = ChannelToShards(outbox);
-                        if(tbls.Length == 0)
+                        {{shardEnum}}Preferences[] shards = ChannelToShards(outbox);
+                        if(shards.Length == 0)
                             return [DefaultShardNameForTopic];
-                        IEnumerable<EvDbShardName> result = tbls.ToShardsName();
+                        IEnumerable<EvDbShardName> result = shards.ToShardsName();
                         return result;
                     }
                        
@@ -378,10 +332,23 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     /// <param name="outbox"></param>
                     /// <remarks></remarks>
                     /// <returns></returns>
-                    protected virtual {{tableEnum}}Preferences[] ChannelToShards({{outboxName}}Channels outbox) => [];
+                    protected virtual {{shardEnum}}Preferences[] ChannelToShards(Channels outbox) => [];
                 """;
 
         #endregion //  string outboxToShards = ...
+
+
+        #region AllChannelsEnum
+
+        var allChannels = multiChannel.SelectMany(t => t.Channels).Distinct().OrderBy(x => x).ToList();
+        if (hasDefaultTopic) allChannels.Insert(0, "DEFAULT");
+        string channelsEnum = string.Join(",", allChannels.Select(t =>
+                    $$"""
+
+                                {{t.FixNameForClass()}}   
+                        """));
+
+        #endregion // AllTopiAllChannelsEnumcsEnum
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
@@ -392,7 +359,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         builder.DefaultsOnType(typeSymbol);
         builder.AppendLine($$"""
-                    public abstract class {{outboxName}}Base : IEvDbOutboxProducer, I{{streamName}}ChannelToShards
+                    public abstract class {{outboxName}}Base : IEvDbOutboxProducer, I{{outboxName}}ChannelToShards
                     {
                         private readonly {{streamName}} _evDbStream;
                         private readonly ILogger _logger;
@@ -421,8 +388,14 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             }
                         }
                     {{string.Join("", addTopicHandlers)}}
+
+                        public enum Channels
+                        {
+                    {{channelsEnum}}
+                        }
                     }
                     """);
+
         context.AddSource(typeSymbol.StandardSuffix("Base"), builder.ToString());
 
         #endregion // Outbox Base
@@ -457,7 +430,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     /// Map outbox to tables.
                     /// Keep in mind that the actual table names will be prefixed according to the context specified in the `EvDbStorageContext` 
                     /// </summary>
-                    public interface I{{streamName}}ChannelToShards
+                    public interface I{{outboxName}}ChannelToShards
                     {
                         /// <summary>
                         /// Map outbox to tables.
@@ -465,10 +438,10 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                         /// </summary>
                         /// <param name="outbox">The outbox.</param>
                         /// <returns></returns>
-                        IEnumerable<EvDbShardName> ChannelToShards({{outboxName}}Channels outbox);
+                        IEnumerable<EvDbShardName> ChannelToShards({{outboxName}}.Channels outbox);
                     }
                     """);
-        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"I{streamName}ChannelToShards"),
+        context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"I{outboxName}ChannelToShards"),
                     builder.ToString());
 
         #endregion // ChannelToShards
