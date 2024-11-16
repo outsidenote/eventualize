@@ -26,7 +26,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
         _evDbStream = evDbStream;
         _relatedEventMeta = relatedEventMeta;
         _timeProvider = _evDbStream.TimeProvider;
-        _options = _evDbStream.Options;     
+        _options = _evDbStream.Options;
     }
 
     protected abstract IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; }
@@ -34,7 +34,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
     public void Add<T>(T payload, EvDbChannelName channel, EvDbShardName shardName)
         where T : IEvDbPayload
     {
-        if(payload == null)
+        if (payload == null)
             throw new ArgumentNullException(nameof(payload));
 
         IEvDbOutboxSerializer? serializer = null;

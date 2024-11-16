@@ -15,6 +15,10 @@ public partial class EventPayloadGenerator : BaseGenerator
 
     protected virtual string StartWith { get; } = "EvDbDefineEventPayload";
 
+    protected virtual string GetAdditions(INamedTypeSymbol typeSymbol, string type, string name) => string.Empty;
+
+    protected virtual void BeforeClassDeclaration(StringBuilder builder) { }
+
     #region OnGenerate
 
     protected override void OnGenerate(
@@ -30,6 +34,7 @@ public partial class EventPayloadGenerator : BaseGenerator
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
         string name = typeSymbol.Name;
+
         var payloadName = from atts in syntax.AttributeLists
                           from att in atts.Attributes
                           let fn = att.Name.ToFullString()
@@ -41,6 +46,7 @@ public partial class EventPayloadGenerator : BaseGenerator
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("#pragma warning disable SYSLIB1037 // Deserialization of init-only properties is currently not supported in source generation mode.");
+        BeforeClassDeclaration(builder);
         builder.AppendLine();
 
         builder.DefaultsOnType(typeSymbol);
@@ -49,6 +55,8 @@ public partial class EventPayloadGenerator : BaseGenerator
                     {
                         [System.Text.Json.Serialization.JsonIgnore]
                         string IEvDbPayload.PayloadType { get; } = {{key}};
+
+                    {{GetAdditions(typeSymbol, type, name)}}
                     }                
                     """);
 

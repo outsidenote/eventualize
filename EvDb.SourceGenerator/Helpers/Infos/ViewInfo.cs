@@ -102,3 +102,4 @@ internal struct ViewInfo
     /// </summary>
     public ITypeSymbol RelatedEventsSymbol { get; }
 }
+

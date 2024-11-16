@@ -20,6 +20,6 @@ internal class AvroSerializer : IEvDbOutboxSerializer
         //    OutboxShards.Messaging => true,
         //    _ => false,
         //};
-       return false;
+        return false;
     }
 }

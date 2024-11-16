@@ -2,7 +2,6 @@
 
 using EvDb.Core;
 using EvDb.Scenes;
-using Microsoft.Extensions.Logging;
 
 namespace EvDb.UnitTests;
 
@@ -10,19 +9,15 @@ namespace EvDb.UnitTests;
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
 [EvDbOutbox<SchoolStreamFactory, OutboxShards>]
-[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
-public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
+[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)]
+public partial class EvDbSchoolOutbox 
 {
-    protected override OutboxShardsPreferences[] ChannelToShards(EvDbSchoolOutboxChannels outbox) =>
+    protected override Shards[] ChannelToShards(Channels outbox) =>
         outbox switch
         {
-            // TODO: change the base name of the enum to use EvDbSchoolOutbox
-            EvDbSchoolOutboxChannels.Channel1 => [OutboxShardsPreferences.Commands],
-            EvDbSchoolOutboxChannels.Channel2 => [
-                                                    OutboxShardsPreferences.Messaging],
-            EvDbSchoolOutboxChannels.Channel3 => [
-                                                    OutboxShardsPreferences.MessagingVip,
-                                                    OutboxShardsPreferences.Messaging],
+            Channels.Channel1 => [Shards.Commands],
+            Channels.Channel2 => [ Shards.Messaging],
+            Channels.Channel3 => [Shards.MessagingVip, Shards.Messaging],
             _ => []
         };
 
@@ -43,8 +38,8 @@ public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            outbox.Add(pass, OutboxOfStudentPassedMessage.Channel2);
-            outbox.Add(pass, OutboxOfStudentPassedMessage.Channel3);
+            outbox.Add(pass, StudentPassedMessage.Channels.Channel2);
+            outbox.Add(pass, StudentPassedMessage.Channels.Channel3);
         }
         else
         {

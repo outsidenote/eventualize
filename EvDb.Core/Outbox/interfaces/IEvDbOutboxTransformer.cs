@@ -10,5 +10,5 @@ public interface IEvDbOutboxTransformer
     /// <param name="originalEventType">Event that triggered the message creation</param>
     /// <param name="payload">Payload of the message</param>
     /// <returns></returns>
-    byte[] Transform(EvDbChannelName channel,string messageType, string originalEventType, byte[] payload);
+    byte[] Transform(EvDbChannelName channel, string messageType, string originalEventType, byte[] payload);
 }

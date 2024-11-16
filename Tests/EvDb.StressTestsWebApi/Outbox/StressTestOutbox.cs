@@ -8,15 +8,15 @@ namespace EvDb.StressTestsWebApi.Outbox;
 [EvDbMessageTypes<Message2>]
 [EvDbOutbox<DemoStreamFactory, OutboxShards>]
 //[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
-public partial class StressTestOutbox // TODO: MessageRouter / Outbox
+public partial class StressTestOutbox 
 {
-    protected override OutboxShardsPreferences[] ChannelToShards(StressTestOutboxChannels outbox) =>
+    protected override Shards[] ChannelToShards(Channels outbox) =>
 
         outbox switch
         {
-            StressTestOutboxChannels.Channel1 => [OutboxShardsPreferences.Table1],
-            StressTestOutboxChannels.Channel2 => [OutboxShardsPreferences.Table2],
-            _ => [OutboxShardsPreferences.Table1, OutboxShardsPreferences.Table2]
+            Channels.Channel1 => [Shards.Table1],
+            Channels.Channel2 => [Shards.Table2],
+            _ => [Shards.Table1, Shards.Table2]
         };
 
     protected override void ProduceOutboxMessages(FaultOccurred payload, IEvDbEventMeta meta, EvDbDemoStreamViews views,
@@ -24,11 +24,11 @@ public partial class StressTestOutbox // TODO: MessageRouter / Outbox
     {
         if (views.Count % 2 == 0)
         {
-            outboxs.Add(new Message1(views.Count), OutboxOfMessage1.Channel1);
+            outboxs.Add(new Message1(views.Count), Message1.Channels.Channel1);
         }
         else
         {
-            outboxs.Add(new Message2(views.Count), OutboxOfMessage2.Channel3);
+            outboxs.Add(new Message2(views.Count), Message2.Channels.Channel3);
         }
     }
 }

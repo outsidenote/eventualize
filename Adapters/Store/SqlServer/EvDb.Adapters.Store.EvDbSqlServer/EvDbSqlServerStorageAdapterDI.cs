@@ -30,7 +30,6 @@ public static class EvDbSqlServerStorageAdapterDI
             string connectionStringOrConfigurationKey = "EvDbSqlServerConnection")
     {
         IServiceCollection services = instance.Services;
-        services.UseRelationalStore();
         EvDbPartitionAddress key = instance.Address;
         var context = instance.Context;
         services.AddKeyedScoped(
@@ -61,7 +60,6 @@ public static class EvDbSqlServerStorageAdapterDI
             string connectionStringOrConfigurationKey = "EvDbSqlServerConnection")
     {
         IServiceCollection services = instance.Services;
-        services.UseRelationalStore();
         EvDbViewBasicAddress key = instance.Address;
         var context = instance.Context;
         services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(

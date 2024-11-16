@@ -6,15 +6,6 @@ using System.Runtime.CompilerServices;
 
 namespace EvDb.Core;
 
-[Flags]
-public enum EvDbMeters
-{
-    None,
-    SystemCounters = 1,
-    SystemDuration = SystemCounters * 2,
-    All = SystemCounters | SystemDuration,
-}
-
 public static class TelemetryExtensions
 {
     public static TracerProviderBuilder AddEvDbInstrumentation(this TracerProviderBuilder builder)

@@ -1,7 +1,6 @@
 ﻿// Ignore Spelling: Channel
 
 using EvDb.Core;
-using EvDb.UnitTests;
 
 namespace EvDb.Scenes;
 

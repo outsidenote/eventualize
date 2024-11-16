@@ -4,5 +4,5 @@
 public class EvDbDefineMessagePayloadAttribute : EvDbDefineEventPayloadAttribute
 {
     public EvDbDefineMessagePayloadAttribute(
-        string payloadType): base(payloadType) { }
+        string payloadType) : base(payloadType) { }
 }

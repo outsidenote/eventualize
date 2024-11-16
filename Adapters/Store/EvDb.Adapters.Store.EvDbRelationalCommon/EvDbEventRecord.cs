@@ -6,7 +6,7 @@ namespace EvDb.Core.Adapters;
 
 [DebuggerDisplay("EventType:{EventType}, Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbEventRecord
-{    
+{
     public string Domain { get; init; }
     public string Partition { get; init; }
     public string StreamId { get; init; }
