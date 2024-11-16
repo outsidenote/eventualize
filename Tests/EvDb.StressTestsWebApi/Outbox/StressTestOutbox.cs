@@ -8,7 +8,7 @@ namespace EvDb.StressTestsWebApi.Outbox;
 [EvDbMessageTypes<Message2>]
 [EvDbOutbox<DemoStreamFactory, OutboxShards>]
 //[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
-public partial class StressTestOutbox // TODO: MessageRouter / Outbox
+public partial class StressTestOutbox 
 {
     protected override Shards[] ChannelToShards(Channels outbox) =>
 

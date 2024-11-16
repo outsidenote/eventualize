@@ -10,18 +10,14 @@ namespace EvDb.UnitTests;
 [EvDbMessageTypes<StudentFailedMessage>]
 [EvDbOutbox<SchoolStreamFactory, OutboxShards>]
 [EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)]
-public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
+public partial class EvDbSchoolOutbox 
 {
     protected override Shards[] ChannelToShards(Channels outbox) =>
         outbox switch
         {
-            // TODO: [bnaya 2024-11-16] OutboxShardsPreferences -> EvDbSchoolOutbox.Shards -> Shards
             Channels.Channel1 => [Shards.Commands],
-            Channels.Channel2 => [
-                                                    Shards.Messaging],
-            Channels.Channel3 => [
-                                                    Shards.MessagingVip,
-                                                    Shards.Messaging],
+            Channels.Channel2 => [ Shards.Messaging],
+            Channels.Channel3 => [Shards.MessagingVip, Shards.Messaging],
             _ => []
         };
 
