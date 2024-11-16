@@ -41,7 +41,7 @@ public static class EvDbSqlServerStorageAdapterFactory
         IEvDbStorageSnapshotAdapter result = new EvDbSqlServerStorageAdapter(
                     logger,
                     context,
-                    factory, 
+                    factory,
                     /*Snapshots don't need transformation*/[]);
         return result;
     }

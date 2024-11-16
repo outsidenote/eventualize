@@ -3,13 +3,12 @@
 #pragma warning disable HAA0401 // Possible allocation of reference type enumerator
 using EvDb.SourceGenerator.Helpers;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text;
 
 namespace EvDb.SourceGenerator;
 
 [Generator]
-public partial class MessagePayloadGenerator: EventPayloadGenerator 
+public partial class MessagePayloadGenerator : EventPayloadGenerator
 {
     private const string MESSAGE_PAYLOAD = "EvDbDefineMessagePayload";
     public const string MESSAGE_PAYLOAD_ATTRIBUTE = MESSAGE_PAYLOAD + "Attribute";

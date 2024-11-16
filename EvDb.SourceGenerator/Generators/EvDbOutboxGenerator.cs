@@ -318,7 +318,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         bool hasShards = shardsSymbol != null;
         if (hasShards)
         {
-            string shardName = shardsSymbol!.Name;    
+            string shardName = shardsSymbol!.Name;
             ShardInfo[] shardsConstants = shardsSymbol.GetMembers()
                          .Where(m => m.Kind == SymbolKind.Field)
                          .Select(m => (IFieldSymbol)m)

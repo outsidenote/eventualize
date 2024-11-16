@@ -2,7 +2,6 @@
 
 using EvDb.Core;
 using EvDb.Scenes;
-using Microsoft.Extensions.Logging;
 
 namespace EvDb.UnitTests;
 
@@ -10,7 +9,7 @@ namespace EvDb.UnitTests;
 [EvDbMessageTypes<StudentPassedMessage>]
 [EvDbMessageTypes<StudentFailedMessage>]
 [EvDbOutbox<SchoolStreamFactory, OutboxShards>]
-[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
+[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)]
 public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
 {
     protected override Shards[] ChannelToShards(Channels outbox) =>
