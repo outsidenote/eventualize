@@ -10,13 +10,13 @@ namespace EvDb.StressTestsWebApi.Outbox;
 //[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
 public partial class StressTestOutbox // TODO: MessageRouter / Outbox
 {
-    protected override OutboxShardsPreferences[] ChannelToShards(Channels outbox) =>
+    protected override Shards[] ChannelToShards(Channels outbox) =>
 
         outbox switch
         {
-            Channels.Channel1 => [OutboxShardsPreferences.Table1],
-            Channels.Channel2 => [OutboxShardsPreferences.Table2],
-            _ => [OutboxShardsPreferences.Table1, OutboxShardsPreferences.Table2]
+            Channels.Channel1 => [Shards.Table1],
+            Channels.Channel2 => [Shards.Table2],
+            _ => [Shards.Table1, Shards.Table2]
         };
 
     protected override void ProduceOutboxMessages(FaultOccurred payload, IEvDbEventMeta meta, EvDbDemoStreamViews views,

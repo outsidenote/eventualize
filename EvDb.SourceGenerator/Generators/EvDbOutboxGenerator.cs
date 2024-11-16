@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Text;
+//using static EvDb.SourceGenerator.EvDbShardsGenerator;
 
 namespace EvDb.SourceGenerator;
 
@@ -59,10 +60,9 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         #endregion //  Validation
 
         ITypeSymbol? shardsSymbol = null;
-        if(outboxArgs.Length > 1)
+        if (outboxArgs.Length > 1)
             shardsSymbol = outboxArgs[1];
-        string? shardEnum = shardsSymbol?.Name;
-        string? tableEnumNs = shardsSymbol?.ContainingNamespace.ToDisplayString();
+        string? shardEnumNs = shardsSymbol?.ContainingNamespace.ToDisplayString();
 
         string factoryOriginName = factoryTypeSymbol!.Name;
         string factoryName = $"EvDb{factoryOriginName}";
@@ -87,10 +87,11 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                                         new OutboxTypeInfo(context, syntax, a)).ToArray();
         #endregion // OutboxTypeInfo[] messageTypes = ..
 
-        var multiChannel = messageTypes
-                .Where(m => m.Channels.Length > 1 || m.Channels.Length == 1 && m.HasDefaultChannel);
+        OutboxTypeInfo[] multiChannel = messageTypes
+                .Where(m => m.Channels.Length > 1 || m.Channels.Length == 1 && m.HasDefaultChannel)
+                .ToArray();
 
-        bool hasDefaultTopic = Array.Exists(messageTypes, m => m.HasDefaultChannel || m.Channels.Length == 0);
+        bool hasDefaultChannel = Array.Exists(messageTypes, m => m.HasDefaultChannel || m.Channels.Length == 0);
 
         #region Outbox Context
 
@@ -175,7 +176,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         AttributeData? attOfOutboxSerialization = allAttributes
                           .FirstOrDefault(att => att.AttributeClass?.Name == OUTBOX_SERIALIZER_ATT);
-        
+
         #region IEnumerable<string> crateSerializers = ...
 
         ImmutableArray<ITypeSymbol> serializersArgs = attOfOutboxSerialization?.AttributeClass!.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
@@ -183,13 +184,13 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         #endregion //  IEnumerable<string> crateSerializers = ...
 
-        ImmutableArray<TypedConstant> attOfOutboxSerializationCtorArgs = 
+        ImmutableArray<TypedConstant> attOfOutboxSerializationCtorArgs =
                                         attOfOutboxSerialization?.ConstructorArguments ?? ImmutableArray<TypedConstant>.Empty;
         string mode = attOfOutboxSerializationCtorArgs.FirstOrDefault().Value switch
-                            {
-                                0 => "EvDbOutboxSerializationMode.Permissive",
-                                _ => "EvDbOutboxSerializationMode.Strict"
-                            };
+        {
+            0 => "EvDbOutboxSerializationMode.Permissive",
+            _ => "EvDbOutboxSerializationMode.Strict"
+        };
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core;");
@@ -275,9 +276,9 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         #region Outbox Base
 
-        #region var addTopicHandlers = ...
+        #region var addProduceOutboxMessages = ...
 
-        var addTopicHandlers =
+        var addProduceOutboxMessages =
             eventsPayloads.Select((info, i) =>
             $$"""
 
@@ -291,11 +292,11 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             
             """);
 
-        #endregion //  var addTopicHandlers = ...
+        #endregion //  var addProduceOutboxMessages = ...
 
-        #region var addTopicCases = ...
+        #region var addChannelsCases = ...
 
-        var addTopicCases =
+        var addChannelsCases =
             eventsPayloads.Select((info, i) =>
             $$"""
 
@@ -308,21 +309,69 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                         
             """);
 
-        #endregion //  var addTopicCases = ...
+        #endregion //  var addChannelsCases = ...
 
-        bool hasTables = string.IsNullOrEmpty(shardEnum);
+        #region string shardEnum = ..., shardConvert = ...
+
+        string shardEnum = string.Empty;
+        string shardConvert = string.Empty;
+        bool hasShards = shardsSymbol != null;
+        if (hasShards)
+        {
+            string shardName = shardsSymbol!.Name;    
+            ShardInfo[] shardsConstants = shardsSymbol.GetMembers()
+                         .Where(m => m.Kind == SymbolKind.Field)
+                         .Select(m => (IFieldSymbol)m)
+                         .Select(m => new ShardInfo(m))
+                         .ToArray();
+
+            shardEnum = $$"""
+                        public enum Shards
+                        {
+                    {{string.Join(",", shardsConstants.Select(t =>
+                        $$"""
+
+                                {{t.Name}}   
+                        """))}}
+                        }
+                    """;
+
+            string shardConvertSwitch = string.Join("", shardsConstants.Select(t =>
+                    $$"""
+
+                                    Shards.{{t.Name}} => (string){{shardName}}.{{t.Name}},
+                        """));
+
+            shardConvert = $$"""
+                        private IEnumerable<EvDbShardName> ToShardsName(Shards[] options) => options.Select(m => ToShardName(m));
+
+                        private EvDbShardName ToShardName(Shards option)
+                        {
+                            string table = option switch
+                            {
+                    {{shardConvertSwitch}}
+                                _ => throw new NotSupportedException(),
+                            };
+                            return table;
+                        }
+                    """;
+        }
+
+        #endregion // string shardEnum = , shardConvert = ...
+
         #region string outboxToShards = ...
-        string outboxToShards = hasTables
+
+        string outboxToShards = !hasShards
             ? $"""      
                     IEnumerable<EvDbShardName> I{outboxName}ChannelToShards.ChannelToShards({outboxName}Channels outbox) => [DefaultShardNameForTopic];
                 """
             : $$"""
                     IEnumerable<EvDbShardName> I{{outboxName}}ChannelToShards.ChannelToShards(Channels outbox) 
                     {
-                        {{shardEnum}}Preferences[] shards = ChannelToShards(outbox);
+                        Shards[] shards = ChannelToShards(outbox);
                         if(shards.Length == 0)
                             return [DefaultShardNameForTopic];
-                        IEnumerable<EvDbShardName> result = shards.ToShardsName();
+                        IEnumerable<EvDbShardName> result = ToShardsName(shards);
                         return result;
                     }
                        
@@ -332,29 +381,39 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     /// <param name="outbox"></param>
                     /// <remarks></remarks>
                     /// <returns></returns>
-                    protected virtual {{shardEnum}}Preferences[] ChannelToShards(Channels outbox) => [];
+                    protected virtual Shards[] ChannelToShards(Channels outbox) => [];
                 """;
 
         #endregion //  string outboxToShards = ...
 
-
         #region AllChannelsEnum
 
-        var allChannels = multiChannel.SelectMany(t => t.Channels).Distinct().OrderBy(x => x).ToList();
-        if (hasDefaultTopic) allChannels.Insert(0, "DEFAULT");
-        string channelsEnum = string.Join(",", allChannels.Select(t =>
-                    $$"""
+        List<string> allChannels = multiChannel.SelectMany(t => t.Channels).Distinct().OrderBy(x => x).ToList();
+        if (hasDefaultChannel) allChannels.Insert(0, "DEFAULT");
+        string channelsEnum = string.Empty;
+        if (allChannels.Count != 0)
+        {
+            string channelsEnumItems = string.Join(",", allChannels.Select(t =>
+                        $$"""
 
                                 {{t.FixNameForClass()}}   
                         """));
+            channelsEnum = $$"""
+                            public enum Channels
+                            {
+                        {{channelsEnumItems}}
+                            }
+                        
+                        """;
+        }
 
         #endregion // AllTopiAllChannelsEnumcsEnum
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
         builder.AppendLine("using Microsoft.Extensions.Logging;");
-        if (hasTables)
-            builder.AppendLine($"using {tableEnumNs};");
+        if (hasShards)
+            builder.AppendLine($"using {shardEnumNs};");
         builder.AppendLine();
 
         builder.DefaultsOnType(typeSymbol);
@@ -384,15 +443,15 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             IEvDbEventConverter c = e;
                             switch (e.EventType)
                             {
-                    {{string.Join("", addTopicCases)}}
+                    {{string.Join("", addChannelsCases)}}
                             }
                         }
-                    {{string.Join("", addTopicHandlers)}}
+                    {{string.Join("", addProduceOutboxMessages)}}
 
-                        public enum Channels
-                        {
+                    {{shardConvert}}
                     {{channelsEnum}}
-                        }
+
+                    {{shardEnum}}
                     }
                     """);
 

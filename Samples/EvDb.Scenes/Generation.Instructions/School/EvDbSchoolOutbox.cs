@@ -13,16 +13,16 @@ namespace EvDb.UnitTests;
 [EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
 public partial class EvDbSchoolOutbox // TODO: MessageRouter / Outbox
 {
-    protected override OutboxShardsPreferences[] ChannelToShards(Channels outbox) =>
+    protected override Shards[] ChannelToShards(Channels outbox) =>
         outbox switch
         {
             // TODO: [bnaya 2024-11-16] OutboxShardsPreferences -> EvDbSchoolOutbox.Shards -> Shards
-            Channels.Channel1 => [OutboxShardsPreferences.Commands],
+            Channels.Channel1 => [Shards.Commands],
             Channels.Channel2 => [
-                                                    OutboxShardsPreferences.Messaging],
+                                                    Shards.Messaging],
             Channels.Channel3 => [
-                                                    OutboxShardsPreferences.MessagingVip,
-                                                    OutboxShardsPreferences.Messaging],
+                                                    Shards.MessagingVip,
+                                                    Shards.Messaging],
             _ => []
         };
 
