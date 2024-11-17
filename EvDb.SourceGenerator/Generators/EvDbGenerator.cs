@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace EvDb.SourceGenerator;
 
@@ -40,19 +41,15 @@ public partial class EvDbGenerator : BaseGenerator
         StringBuilder builder = new StringBuilder();
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
-
-        AttributeData attOfFactory = typeSymbol.GetAttributes()
+        var allAttributes = typeSymbol.GetAttributes();
+        AttributeData attOfFactory = allAttributes
                           .First(att => att.AttributeClass?.Name == STREAM_FACTORY_ATT);
-
-        string factoryOriginName = typeSymbol.Name;
-        string factoryName = $"EvDb{factoryOriginName}";
-        string streamName = factoryName;
-        if (factoryName.EndsWith("Factory"))
-            streamName = factoryName.Substring(0, factoryName.Length - 7);
-        if (streamName == factoryOriginName)
-            streamName = $"{streamName}1";
-        string streamInterface = $"I{streamName}";
-        string factoryInterface = $"{streamInterface}Factory";
+        (string streamName, 
+        string streamInterface, 
+        string factoryOriginName, 
+        string factoryName,
+        string factoryInterface) = 
+                        GetStreamName(typeSymbol, attOfFactory);
 
         ImmutableArray<ITypeSymbol> args = attOfFactory.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
         ITypeSymbol relatedEventsTypeSymbol = args[0];
@@ -83,7 +80,7 @@ public partial class EvDbGenerator : BaseGenerator
 
         #region ViewInfo[] viewsInfo = ..
 
-        ViewInfo[] viewsInfo = typeSymbol.GetAttributes()
+        ViewInfo[] viewsInfo = allAttributes
                                   .Where(att =>
                                   {
                                       string? name = att.AttributeClass?.Name;
@@ -586,5 +583,47 @@ public partial class EvDbGenerator : BaseGenerator
 
         #endregion //  DI
     }
+
     #endregion // OnGenerate
+
+    #region GetStreamName
+
+    internal static (string StreamName,
+        string streamInterface, 
+        string FactoryOriginName,
+        string factoryName,
+        string factoryInterface) GetStreamName(
+                            ITypeSymbol typeSymbol, 
+                            AttributeData? attOfFactory = null)
+    {
+        if (attOfFactory == null)
+        {
+            attOfFactory = typeSymbol.GetAttributes()
+                      .First(att => att.AttributeClass?.Name == STREAM_FACTORY_ATT);
+        }
+        string? customStreamName = attOfFactory.NamedArguments
+            .FirstOrDefault(m => m.Key == "Name").Value.Value as string;
+        string factoryOriginName = typeSymbol.Name;
+        string streamName = customStreamName ?? factoryOriginName;
+        if (customStreamName == null)
+        {
+            if (!streamName.StartsWith("EvDb", StringComparison.OrdinalIgnoreCase))
+                streamName = $"EvDb{streamName}";
+            if (streamName.EndsWith("Factory"))
+                streamName = streamName.Substring(0, streamName.Length - 7);
+            if (streamName == factoryOriginName)
+                streamName = $"{streamName}1";
+        }
+
+        string factoryName = factoryOriginName.StartsWith("EvDb", StringComparison.OrdinalIgnoreCase) 
+            ? factoryOriginName
+            : $"EvDb{factoryOriginName}";
+        string streamInterface = $"I{streamName}";
+        string factoryInterface = $"I{factoryName}";
+
+
+        return (streamName, streamInterface, factoryOriginName, factoryName, factoryInterface);
+    }
+
+    #endregion //  GetStreamName
 }

@@ -64,15 +64,14 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             shardsSymbol = outboxArgs[1];
         string? shardEnumNs = shardsSymbol?.ContainingNamespace.ToDisplayString();
 
-        string factoryOriginName = factoryTypeSymbol!.Name;
-        string factoryName = $"EvDb{factoryOriginName}";
-        string streamName = factoryName;
-        if (factoryName.EndsWith("Factory"))
-            streamName = factoryName.Substring(0, factoryName.Length - 7);
-        if (streamName == factoryOriginName)
-            streamName = $"{streamName}1";
+        (string streamName,
+        string streamInterface,
+        string factoryOriginName,
+        string factoryName,
+        string factoryInterface) =
+                EvDbGenerator.GetStreamName(factoryTypeSymbol!);
 
-        IEnumerable<PayloadInfo> eventsPayloads = factoryTypeSymbol.GetPayloadsFromFactory();
+        IEnumerable<PayloadInfo> eventsPayloads = factoryTypeSymbol!.GetPayloadsFromFactory();
 
         #region OutboxTypeInfo[] messageTypes = ..
 
