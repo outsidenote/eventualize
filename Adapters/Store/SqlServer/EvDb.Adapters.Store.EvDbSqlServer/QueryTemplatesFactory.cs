@@ -52,7 +52,7 @@ internal static class QueryTemplatesFactory
                         @{nameof(EvDbEventRecord.CapturedBy)},
                         @{nameof(EvDbEventRecord.CapturedAt)})
                     """,
-            SaveToOutbox = $$"""{{tblInitial}}InsertBatch{0}"""
+            SaveToOutbox = $$"""{{tblInitial}}InsertBatch_{0}"""
         };
     }
 

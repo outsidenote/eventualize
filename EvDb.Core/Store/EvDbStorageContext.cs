@@ -14,14 +14,14 @@ public record EvDbStorageContext
     /// <summary>
     /// Create instance
     /// </summary>
-    /// <param name="databaseName">Name of the database</param>
+    /// <param name="databaseName">SerializerType of the database</param>
     /// <param name="prefix">Table prefix</param>
     /// <param name="environment">The environment (dev, prod, qa)</param>
     /// <param name="schema">the database schema</param>
     public EvDbStorageContext(EvDbDatabaseName databaseName,
                               Env? environment = null,
                               EvDbShardName? prefix = null,
-                              EvDbShardName? schema = null)
+                              EvDbSchemaName? schema = null)
     {
         var builder = new StringBuilder(200);
         if (!string.IsNullOrEmpty(environment))
@@ -66,7 +66,7 @@ public record EvDbStorageContext
                         EvDbDatabaseName databaseName,
                         EvDbShardName? prefix = null,
                         string environmentOrKey = "ASPNETCORE_ENVIRONMENT",
-                        EvDbShardName? schema = null)
+                        EvDbSchemaName? schema = null)
     {
         Env env = System.Environment.GetEnvironmentVariable(environmentOrKey) ?? environmentOrKey;
 

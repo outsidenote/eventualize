@@ -11,7 +11,7 @@ public readonly partial record struct EvDbMigrationQueryTemplates
     /// <summary>
     /// Create environment query.
     /// </summary>
-    public string CreateEnvironment { get; init; }
+    public string[] CreateEnvironment { get; init; }
     /// <summary>
     /// Destroy environment query.
     /// </summary>

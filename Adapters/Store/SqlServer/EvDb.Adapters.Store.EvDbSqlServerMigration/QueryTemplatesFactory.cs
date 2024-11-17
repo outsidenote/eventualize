@@ -22,14 +22,16 @@ internal static class QueryTemplatesFactory
         #region string destroyEnvironment = ...
 
         IEnumerable<string> dropTopicsTables = outboxShardNames.Select(t => $"""
-            DROP TABLE {tblInitial}{t};
+            DROP TABLE IF EXISTS  {tblInitial}{t};
+            DROP PROCEDURE IF EXISTS  {tblInitial}InsertBatch_{t};
             """);
 
         string destroyEnvironment = $"""            
             USE {db}
-            DROP TABLE {tblInitial}event;
+            DROP TABLE IF EXISTS  {tblInitial}event;
+            DROP TYPE IF EXISTS {tblInitial}OutboxTableType;
             {string.Join(string.Empty, dropTopicsTables)}            
-            DROP TABLE {tblInitial}snapshot;            
+            DROP TABLE IF EXISTS  {tblInitial}snapshot;            
             """;
 
         #endregion //  string destroyEnvironment = ...
@@ -115,40 +117,6 @@ internal static class QueryTemplatesFactory
 
         IEnumerable<string> createOutbox = outboxShardNames.Select(t =>
             $"""
-            CREATE PROCEDURE {tblInitial}InsertBatch{t}
-                        @Records {tblInitial}OutboxTableType READONLY
-                AS
-                BEGIN
-                    INSERT INTO MyTable (                           
-                        {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.Partition))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.EventType))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.MessageType))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.SerializeType))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.SpanId))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.TraceId))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.Payload))}
-                    )
-                    SELECT  {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.Partition))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.EventType))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.MessageType))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.SerializeType))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.SpanId))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.TraceId))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
-                            {toSnakeCase(nameof(EvDbMessageRecord.Payload))}
-                        FROM @Records
-                END  
 
             CREATE TABLE {tblInitial}{t} (
                 {toSnakeCase(nameof(EvDbMessageRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -196,6 +164,45 @@ internal static class QueryTemplatesFactory
 
             """);
 
+        IEnumerable<string> createOutboxSP = outboxShardNames.Select(t =>
+            $"""
+            CREATE PROCEDURE {tblInitial}InsertBatch_{t}
+                        @{t}Records {tblInitial}OutboxTableType READONLY
+                AS
+                BEGIN
+                    INSERT INTO {tblInitial}{t} (                           
+                        {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Partition))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.EventType))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.MessageType))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.SerializeType))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.SpanId))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.TraceId))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
+                        {toSnakeCase(nameof(EvDbMessageRecord.Payload))}
+                    )
+                    SELECT  {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.Partition))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.EventType))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.MessageType))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.SerializeType))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.SpanId))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.TraceId))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.Payload))}
+                        FROM @{t}Records
+                END;
+
+            """);
+
         #endregion //  string createOutbox = ...
 
         #region string createSnapshotTable = ...
@@ -237,10 +244,9 @@ internal static class QueryTemplatesFactory
 
         #endregion //  string createSnapshotTable = ...
 
-        var result = new EvDbMigrationQueryTemplates
+        IEnumerable<string> GetCreateQueries()
         {
-            DestroyEnvironment = destroyEnvironment,
-            CreateEnvironment = $"""
+            yield return $"""
                                 USE {db}
                                 ------------------------------------  EVENTS  ------------------------------------------ Create the event table
                                 {createEventsTable}
@@ -252,7 +258,19 @@ internal static class QueryTemplatesFactory
 
                                 -----------------------------------  SNAPSHOTS  ---------------------------------------
                                 {createSnapshotTable}
-                                """
+                                """;
+            foreach (string sp in createOutboxSP)
+            {
+                yield return $"""
+                                    {sp}
+                                    """;
+            }
+        }
+
+        var result = new EvDbMigrationQueryTemplates
+        {
+            DestroyEnvironment = destroyEnvironment,
+            CreateEnvironment = GetCreateQueries().ToArray(),
         };
 
         return result;

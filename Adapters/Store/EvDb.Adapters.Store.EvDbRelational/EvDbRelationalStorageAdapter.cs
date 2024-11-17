@@ -115,12 +115,14 @@ public abstract class EvDbRelationalStorageAdapter :
     /// <param name="query"></param>
     /// <param name="records"></param>
     /// <param name="transaction"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     protected virtual async Task<int> OnStoreStreamEventsAsync(
         DbConnection connection,
         string query,
         EvDbEventRecord[] records,
-        DbTransaction transaction)
+        DbTransaction transaction,
+        CancellationToken cancellationToken)
     {
         int affctedEvents = await connection.ExecuteAsync(query, records, transaction);
         return affctedEvents;
@@ -134,16 +136,19 @@ public abstract class EvDbRelationalStorageAdapter :
     /// Store outbox messages
     /// </summary>
     /// <param name="connection"></param>
+    /// <param name="shardName"></param>
     /// <param name="query"></param>
     /// <param name="records"></param>
     /// <param name="transaction"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     protected virtual async Task<int> OnStoreOutboxMessagesAsync(
         DbConnection connection,
         EvDbShardName shardName,
         string query,
         EvDbMessageRecord[] records,
-        DbTransaction transaction)
+        DbTransaction transaction,
+        CancellationToken cancellationToken)
     {
         int affctedMessages = await connection.ExecuteAsync(query, records, transaction);
         return affctedMessages;
@@ -153,7 +158,12 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #region StoreOutboxAsync
 
-    private async Task<IImmutableDictionary<EvDbShardName, int>> StoreOutboxAsync(IImmutableList<EvDbMessage> messages, IEvDbStreamStoreData streamStore, DbConnection conn, DbTransaction transaction)
+    private async Task<IImmutableDictionary<EvDbShardName, int>> StoreOutboxAsync(
+        IImmutableList<EvDbMessage> messages,
+        IEvDbStreamStoreData streamStore,
+        DbConnection conn,
+        DbTransaction transaction,
+        CancellationToken cancellationToken)
     {
         #region messages = _transformers.Transform(...)
 
@@ -161,7 +171,10 @@ public abstract class EvDbRelationalStorageAdapter :
         {
             messages = messages.Select(m =>
             {
-                var newPayload = transformer.Transform(m.Channel, m.MessageType, m.EventType, m.Payload);
+                var newPayload = transformer.Transform(m.Channel,
+                                                       m.MessageType,
+                                                       m.EventType,
+                                                       m.Payload);
 
                 return m with { Payload = newPayload };
             }).ToImmutableList();
@@ -182,7 +195,12 @@ public abstract class EvDbRelationalStorageAdapter :
             OtelTags tags = OtelTags.Empty.Add("shard", shardName);
             using var activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
 
-            int affctedMessages = await OnStoreOutboxMessagesAsync(conn, shardName, query, items, transaction);
+            int affctedMessages = await OnStoreOutboxMessagesAsync(conn,
+                                                                   shardName,
+                                                                   query,
+                                                                   items,
+                                                                   transaction,
+                                                                   cancellationToken);
             StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, shard.Key);
             return KeyValuePair.Create(shardName, affctedMessages);
         });
@@ -255,14 +273,22 @@ public abstract class EvDbRelationalStorageAdapter :
             int affctedEvents;
             using (_trace.StartActivity("EvDb.StoreEventsAsync"))
             {
-                affctedEvents = await OnStoreStreamEventsAsync(conn, saveEventsQuery, eventsRecords, transaction);
+                affctedEvents = await OnStoreStreamEventsAsync(conn,
+                                                               saveEventsQuery,
+                                                               eventsRecords,
+                                                               transaction,
+                                                               cancellation);
                 StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
             }
             IImmutableDictionary<EvDbShardName, int> affectedOnOutbox =
                                     ImmutableDictionary<EvDbShardName, int>.Empty;
             if (messages.Count != 0)
             {
-                affectedOnOutbox = await StoreOutboxAsync(messages, streamStore, conn, transaction);
+                affectedOnOutbox = await StoreOutboxAsync(messages,
+                                                          streamStore,
+                                                          conn,
+                                                          transaction,
+                                                          cancellation);
             }
             await transaction.CommitAsync();
             return new StreamStoreAffected(affctedEvents, affectedOnOutbox);
