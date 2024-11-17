@@ -12,6 +12,8 @@ public struct EvDbEventRecord
     public string StreamId { get; init; }
     public long Offset { get; init; }
     public string EventType { get; init; }
+    public string? TraceId { get; init; }
+    public string? SpanId { get; init; }
     public byte[] Payload { get; init; }
     public string CapturedBy { get; init; }
     public DateTimeOffset CapturedAt { get; init; }
@@ -33,6 +35,7 @@ public struct EvDbEventRecord
 
     public static implicit operator EvDbEventRecord(EvDbEvent e)
     {
+        Activity? activity = Activity.Current;
         return new EvDbEventRecord
         {
             Domain = e.StreamCursor.Domain,
@@ -43,6 +46,8 @@ public struct EvDbEventRecord
             Payload = e.Payload,
             CapturedBy = e.CapturedBy,
             CapturedAt = e.CapturedAt,
+            SpanId = activity?.SpanId.ToHexString(),
+            TraceId = activity?.TraceId.ToHexString()
         };
     }
 }

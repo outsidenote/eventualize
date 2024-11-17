@@ -28,7 +28,7 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
     }
 
     #endregion // Ctor
-
+        
     protected abstract EvDbMigrationQueryTemplates Queries { get; }
 
     #region IEvDbStorageMigration Members

@@ -23,12 +23,14 @@ internal static class QueryTemplatesFactory
 
         IEnumerable<string> dropTopicsTables = outboxShardNames.Select(t => $"""
             DROP TABLE IF EXISTS  {tblInitial}{t};
-            DROP PROCEDURE IF EXISTS  {tblInitial}InsertBatch_{t};
+            DROP PROCEDURE IF EXISTS  {tblInitial}InsertOutboxBatch_{t};
             """);
 
         string destroyEnvironment = $"""            
             USE {db}
-            DROP TABLE IF EXISTS  {tblInitial}event;
+            DROP TABLE IF EXISTS  {tblInitial}events;
+            DROP TYPE IF EXISTS {tblInitial}EventsTableType;
+            DROP TYPE IF EXISTS {tblInitial}InsertOutboxBatch_Events;
             DROP TYPE IF EXISTS {tblInitial}OutboxTableType;
             {string.Join(string.Empty, dropTopicsTables)}            
             DROP TABLE IF EXISTS  {tblInitial}snapshot;            
@@ -36,15 +38,73 @@ internal static class QueryTemplatesFactory
 
         #endregion //  string destroyEnvironment = ...
 
+        #region string eventsTableType = ...
+
+        string eventsTableType = $$"""
+        CREATE TYPE {{tblInitial}}EventsTableType AS TABLE (        
+                {{toSnakeCase(nameof(EvDbEventRecord.Domain))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
+                {{toSnakeCase(nameof(EvDbEventRecord.Partition))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
+                {{toSnakeCase(nameof(EvDbEventRecord.StreamId))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
+                {{toSnakeCase(nameof(EvDbEventRecord.Offset))}} BIGINT NOT NULL,
+                {{toSnakeCase(nameof(EvDbEventRecord.EventType))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
+                {{toSnakeCase(nameof(EvDbEventRecord.SpanId))}} VARCHAR(16) NULL,
+                {{toSnakeCase(nameof(EvDbEventRecord.TraceId))}} VARCHAR(32) NULL,
+                {{toSnakeCase(nameof(EvDbEventRecord.CapturedBy))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
+                {{toSnakeCase(nameof(EvDbEventRecord.CapturedAt))}} datetimeoffset NOT NULL,
+                {{toSnakeCase(nameof(EvDbEventRecord.Payload))}} VARBINARY(4000) NOT NULL
+            );
+        """;
+
+        #endregion //  string eventsTableType = ...
+
+        #region string createEventsBatchSP = ...
+
+        string createEventsBatchSP =
+    $"""
+            CREATE PROCEDURE {tblInitial}InsertEventsBatch_Events
+                        @Records {tblInitial}EventsTableType READONLY
+                AS
+                BEGIN
+                    INSERT INTO {tblInitial}events (                           
+                        {toSnakeCase(nameof(EvDbEventRecord.Domain))},
+                        {toSnakeCase(nameof(EvDbEventRecord.Partition))},
+                        {toSnakeCase(nameof(EvDbEventRecord.StreamId))},
+                        {toSnakeCase(nameof(EvDbEventRecord.Offset))},
+                        {toSnakeCase(nameof(EvDbEventRecord.EventType))},
+                        {toSnakeCase(nameof(EvDbEventRecord.SpanId))},
+                        {toSnakeCase(nameof(EvDbEventRecord.TraceId))},
+                        {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))},
+                        {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))},
+                        {toSnakeCase(nameof(EvDbEventRecord.Payload))}
+                    )
+                    SELECT  {toSnakeCase(nameof(EvDbEventRecord.Domain))},
+                            {toSnakeCase(nameof(EvDbEventRecord.Partition))},
+                            {toSnakeCase(nameof(EvDbEventRecord.StreamId))},
+                            {toSnakeCase(nameof(EvDbEventRecord.Offset))},
+                            {toSnakeCase(nameof(EvDbEventRecord.EventType))},
+                            {toSnakeCase(nameof(EvDbEventRecord.SpanId))},
+                            {toSnakeCase(nameof(EvDbEventRecord.TraceId))},
+                            {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))},
+                            {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))},
+                            {toSnakeCase(nameof(EvDbEventRecord.Payload))}
+                        FROM @Records
+                END;
+
+            """;
+
+        #endregion //  string createEventsBatchSP = ...
+
         #region string createEventsTable = ...
 
         string createEventsTable = $"""
-            CREATE TABLE {tblInitial}event (
+            CREATE TABLE {tblInitial}events (
                 {toSnakeCase(nameof(EvDbEventRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.Offset))} BIGINT NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.EventType))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.SpanId))} VARCHAR(16) NULL,
+                {toSnakeCase(nameof(EvDbEventRecord.TraceId))} VARCHAR(32) NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} datetimeoffset NOT NULL,
                 stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
@@ -65,24 +125,24 @@ internal static class QueryTemplatesFactory
 
             -- Index for getting distinct values for each column domain
             CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.Domain))}_{tblInitialWithoutSchema}
-            ON {tblInitial}event ({toSnakeCase(nameof(EvDbEventRecord.Domain))});
+            ON {tblInitial}events ({toSnakeCase(nameof(EvDbEventRecord.Domain))});
 
             -- Index for getting distinct values for columns domain and stream_type together
             CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.Domain))}_{toSnakeCase(nameof(EvDbEventRecord.Partition))}_{tblInitialWithoutSchema}
-            ON {tblInitial}event (
+            ON {tblInitial}events (
                     {toSnakeCase(nameof(EvDbEventRecord.Domain))},
                     {toSnakeCase(nameof(EvDbEventRecord.Partition))});
 
             -- Index for getting distinct values for columns domain, stream_type, and stream_id together
             CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.Domain))}_{toSnakeCase(nameof(EvDbEventRecord.Partition))}_{toSnakeCase(nameof(EvDbEventRecord.EventType))}_{tblInitialWithoutSchema}
-            ON {tblInitial}event (
+            ON {tblInitial}events (
                     {toSnakeCase(nameof(EvDbEventRecord.Domain))}, 
                     {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
                     {toSnakeCase(nameof(EvDbEventRecord.EventType))});
 
             -- Index for getting records with a specific value in column event_type and a value of captured_at within a given time range, sorted by captured_at
             CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.EventType))}_{toSnakeCase(nameof(EvDbEventRecord.CapturedAt))}_{tblInitialWithoutSchema}
-            ON {tblInitial}event ({toSnakeCase(nameof(EvDbEventRecord.EventType))}, {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))});
+            ON {tblInitial}events ({toSnakeCase(nameof(EvDbEventRecord.EventType))}, {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))});
 
             """;
 
@@ -166,7 +226,7 @@ internal static class QueryTemplatesFactory
 
         IEnumerable<string> createOutboxSP = outboxShardNames.Select(t =>
             $"""
-            CREATE PROCEDURE {tblInitial}InsertBatch_{t}
+            CREATE PROCEDURE {tblInitial}InsertOutboxBatch_{t}
                         @{t}Records {tblInitial}OutboxTableType READONLY
                 AS
                 BEGIN
@@ -249,6 +309,8 @@ internal static class QueryTemplatesFactory
             yield return $"""
                                 USE {db}
                                 ------------------------------------  EVENTS  ------------------------------------------ Create the event table
+                                {eventsTableType}
+                                
                                 {createEventsTable}
 
                                 ------------------------------------  OUTBOX  ----------------------------------------
@@ -259,6 +321,9 @@ internal static class QueryTemplatesFactory
                                 -----------------------------------  SNAPSHOTS  ---------------------------------------
                                 {createSnapshotTable}
                                 """;
+
+            yield return createEventsBatchSP;
+
             foreach (string sp in createOutboxSP)
             {
                 yield return $"""
