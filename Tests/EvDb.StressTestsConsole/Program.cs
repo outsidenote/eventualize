@@ -28,7 +28,7 @@ services.AddEvDbSqlServerStoreMigration();
 builder.AddOtel();
 
 var app = builder.Build();
-const int REPORT_CYCLE = 50;
+const int REPORT_CYCLE = 500;
 await app.RunAsync(async (
         ILogger<Program> logger,
         IEvDbDemoStreamFactory factory,
@@ -39,7 +39,7 @@ await app.RunAsync(async (
         [Option('b', Description = "Number of events to add in each batch")] int batchSize = 100) =>
 {
     await storageMigration.CreateEnvironmentAsync();
-    logger.LogInformation("Starting...");
+    logger.LogInformation($"Total: {writeCycleCount * streamsCount}, Batch: {batchSize}, Parallel: {degreeOfParallelismPerStream}, Streams Count: {streamsCount}");
     var sw = Stopwatch.StartNew();
     int counter = 0;
     int occCounter = 0;
