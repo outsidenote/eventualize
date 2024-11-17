@@ -54,14 +54,14 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
                     a single serializer per context.
                     Channel: {channel}
                     Table Name: {shardName}
-                    Payload Type {payload?.GetType().Name}
+                    Payload Type {payload?.PayloadType}
                     Serializers matched for this context are:
                     {string.Join(", ", serializers.Select(m => m.Name))}
                     """
                     );
             }
 
-            _logger.LogMultiOutboxSerializers(channel, shardName, payload?.GetType().Name,
+            _logger.LogMultiOutboxSerializers(channel, shardName, payload?.PayloadType,
                 string.Join(", ", serializers.Select(m => m.Name)));
         }
 
