@@ -8,7 +8,10 @@ internal static class QueryTemplatesFactory
     public static EvDbStreamAdapterQueryTemplates CreateStreamQueries(EvDbStorageContext storageContext)
     {
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
-        string tabInitial = storageContext.Id;
+        string schema = storageContext.Schema.HasValue
+            ? string.Empty
+            : $"{storageContext.Schema}.";
+        string tblInitial = $"{schema}{storageContext.Id}";
 
         return new EvDbStreamAdapterQueryTemplates
         {
@@ -22,7 +25,7 @@ internal static class QueryTemplatesFactory
                     {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} as {nameof(EvDbEventRecord.CapturedAt)},
                     {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} as {nameof(EvDbEventRecord.CapturedBy)},
                     {toSnakeCase(nameof(EvDbEventRecord.Payload))} as {nameof(EvDbEventRecord.Payload)}                  
-                FROM {tabInitial}event WITH (READCOMMITTEDLOCK)
+                FROM {tblInitial}event WITH (READCOMMITTEDLOCK)
                 WHERE {toSnakeCase(nameof(EvDbStreamCursor.Domain))} = @{nameof(EvDbStreamCursor.Domain)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.Partition))} = @{nameof(EvDbStreamCursor.Partition)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.StreamId))} = @{nameof(EvDbStreamCursor.StreamId)}
@@ -30,7 +33,7 @@ internal static class QueryTemplatesFactory
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"""
-                    INSERT INTO {tabInitial}event (
+                    INSERT INTO {tblInitial}event (
                         {toSnakeCase(nameof(EvDbEventRecord.Domain))},
                         {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
                         {toSnakeCase(nameof(EvDbEventRecord.StreamId))},
@@ -49,34 +52,7 @@ internal static class QueryTemplatesFactory
                         @{nameof(EvDbEventRecord.CapturedBy)},
                         @{nameof(EvDbEventRecord.CapturedAt)})
                     """,
-            SaveToOutbox = $$"""
-                    INSERT INTO {{tabInitial}}{0} (
-                        {{toSnakeCase(nameof(EvDbMessageRecord.Domain))}},
-                        {{toSnakeCase(nameof(EvDbMessageRecord.Partition))}}, 
-                        {{toSnakeCase(nameof(EvDbMessageRecord.StreamId))}},
-                        {{toSnakeCase(nameof(EvDbMessageRecord.Offset))}},
-                        {{toSnakeCase(nameof(EvDbMessageRecord.EventType))}}, 
-                        {{toSnakeCase(nameof(EvDbMessageRecord.Channel))}}, 
-                        {{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}}, 
-                        {{toSnakeCase(nameof(EvDbMessageRecord.Payload))}},
-                        {{toSnakeCase(nameof(EvDbMessageRecord.SpanId))}},
-                        {{toSnakeCase(nameof(EvDbMessageRecord.TraceId))}},
-                        {{toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}},
-                        {{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}}) 
-                    VALUES (
-                        @{{nameof(EvDbMessageRecord.Domain)}}, 
-                        @{{nameof(EvDbMessageRecord.Partition)}}, 
-                        @{{nameof(EvDbMessageRecord.StreamId)}}, 
-                        @{{nameof(EvDbMessageRecord.Offset)}}, 
-                        @{{nameof(EvDbMessageRecord.EventType)}}, 
-                        @{{nameof(EvDbMessageRecord.Channel)}}, 
-                        @{{nameof(EvDbMessageRecord.MessageType)}}, 
-                        @{{nameof(EvDbMessageRecord.Payload)}},
-                        @{{nameof(EvDbMessageRecord.SpanId)}},
-                        @{{nameof(EvDbMessageRecord.TraceId)}},
-                        @{{nameof(EvDbMessageRecord.CapturedBy)}},
-                        @{{nameof(EvDbMessageRecord.CapturedAt)}})
-                    """,
+            SaveToOutbox = $$"""{{tblInitial}}InsertBatch{0}"""
         };
     }
 

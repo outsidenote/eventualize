@@ -125,7 +125,7 @@ public record EvDbStorageContext
     /// <summary>
     /// Gets the table's schema.
     /// </summary>
-    public EvDbShardName? Schema { get; }
+    public EvDbSchemaName? Schema { get; }
 
     #endregion //  Schema
 

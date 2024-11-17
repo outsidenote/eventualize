@@ -122,8 +122,6 @@ public abstract class EvDbRelationalStorageAdapter :
         EvDbEventRecord[] records,
         DbTransaction transaction)
     {
-        using var activity = _trace.StartActivity("EvDb.StoreEventsAsync");
-
         int affctedEvents = await connection.ExecuteAsync(query, records, transaction);
         return affctedEvents;
     }
@@ -147,9 +145,6 @@ public abstract class EvDbRelationalStorageAdapter :
         EvDbMessageRecord[] records,
         DbTransaction transaction)
     {
-        OtelTags tags = OtelTags.Empty.Add("shard", shardName);
-        using var activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
-
         int affctedMessages = await connection.ExecuteAsync(query, records, transaction);
         return affctedMessages;
     }
@@ -183,7 +178,11 @@ public abstract class EvDbRelationalStorageAdapter :
             EvDbShardName shardName = shard.Key;
             string query = string.Format(saveToTopicQuery, shardName);
             EvDbMessageRecord[] items = shard.ToArray();
-            int affctedMessages = await conn.ExecuteAsync(query, items, transaction);
+
+            OtelTags tags = OtelTags.Empty.Add("shard", shardName);
+            using var activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
+
+            int affctedMessages = await OnStoreOutboxMessagesAsync(conn, shardName, query, items, transaction);
             StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, shard.Key);
             return KeyValuePair.Create(shardName, affctedMessages);
         });
@@ -253,8 +252,12 @@ public abstract class EvDbRelationalStorageAdapter :
         await using DbTransaction transaction = await conn.BeginTransactionAsync();
         try
         {
-            int affctedEvents = await OnStoreStreamEventsAsync(conn, saveEventsQuery, eventsRecords, transaction);
-            StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
+            int affctedEvents;
+            using (_trace.StartActivity("EvDb.StoreEventsAsync"))
+            {
+                affctedEvents = await OnStoreStreamEventsAsync(conn, saveEventsQuery, eventsRecords, transaction);
+                StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
+            }
             IImmutableDictionary<EvDbShardName, int> affectedOnOutbox =
                                     ImmutableDictionary<EvDbShardName, int>.Empty;
             if (messages.Count != 0)
