@@ -1,7 +1,6 @@
 ﻿using Avro.File;
 using Avro.Generic;
 using Avro.Specific;
-using System.Runtime.Intrinsics.Arm;
 using EvDb.Core;
 
 namespace EvDb.StressTestsWebApi.Outbox
@@ -9,11 +8,10 @@ namespace EvDb.StressTestsWebApi.Outbox
     public class EmbeddedSchemaSerializer : IEvDbOutboxSerializer
     {
         private const int maxResultCapacity = 1024 * 5;
-        string IEvDbOutboxSerializer.Name => throw new NotImplementedException();
+        string IEvDbOutboxSerializer.Name => nameof(EmbeddedSchemaSerializer);
 
         byte[] IEvDbOutboxSerializer.Serialize<T>(EvDbChannelName channel, EvDbShardName shardName, T payload)
         {
-            //   private async Task<byte[]> ToBytesAsync<TPayload>(TPayload payLoad) where TPayload : AvroBase
 
             if (payload is not ISpecificRecord record)
             { 
@@ -33,9 +31,7 @@ namespace EvDb.StressTestsWebApi.Outbox
             return result;
         }
 
-        bool IEvDbOutboxSerializer.ShouldSerialize<T>(EvDbChannelName channel, EvDbShardName shardName, T payload)
-        {
-            throw new NotImplementedException();
-        }
+        bool IEvDbOutboxSerializer.ShouldSerialize<T>(EvDbChannelName channel, EvDbShardName shardName, T payload) => 
+            shardName == OutboxShards.Table1;
     }
 }
