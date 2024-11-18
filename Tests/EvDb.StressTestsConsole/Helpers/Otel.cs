@@ -51,25 +51,28 @@ internal static class OtelExtensions
             {
                 tracing
                         .AddEvDbInstrumentation()
+                        .AddEvDbStoreInstrumentation()
                         .AddSqlClientInstrumentation(o =>
                         {
                             o.SetDbStatementForText = true;
                             o.SetDbStatementForStoredProcedure = true;
                         })
                         .SetSampler<AlwaysOnSampler>()
-                        //.AddOtlpExporter()
+                        .AddOtlpExporter()
                         //.AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
                         //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
                         .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"))
                         ;
-            });
-        //.WithMetrics(meterBuilder =>
-        //        meterBuilder.AddEvDbInstrumentation()
-        //                    .AddProcessInstrumentation()
-        //                    //.AddOtlpExporter()
-        //                    //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
-        //                    .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"))
-        //);
+            })
+            .WithMetrics(meterBuilder =>
+                    meterBuilder.AddEvDbInstrumentation()
+                                .AddEvDbStoreInstrumentation()
+                                .AddProcessInstrumentation()
+                                //.AddOtlpExporter()
+                                //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
+                                .AddOtlpExporter("grafana", o => o.Endpoint = new Uri($"http://localhost:4337"))
+                                .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"))
+            );
 
         return builder;
     }

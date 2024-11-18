@@ -28,7 +28,7 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
     }
 
     #endregion // Ctor
-
+        
     protected abstract EvDbMigrationQueryTemplates Queries { get; }
 
     #region IEvDbStorageMigration Members
@@ -37,9 +37,11 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
     {
         var conn = await _commandsTask;
 
-        string query = Queries.CreateEnvironment;
-        await conn.ExecuteAsync(query);
-    }
+        foreach (string query in Queries.CreateEnvironment)
+        {
+            await conn.ExecuteAsync(query);
+        }
+    }   
 
     async Task IEvDbStorageMigration.DestroyEnvironmentAsync(CancellationToken cancellation)
     {

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Data;
+using System.Diagnostics;
 
 namespace EvDb.Core.Adapters;
 
@@ -14,9 +15,12 @@ public struct EvDbMessageRecord
     public string? TraceId { get; init; }
     public string? SpanId { get; init; }
     public string MessageType { get; init; }
+    public string SerializeType { get; init; }
     public byte[] Payload { get; init; }
     public string CapturedBy { get; init; }
     public DateTimeOffset CapturedAt { get; init; }
+
+    #region static implicit operator EvDbMessageRecord(EvDbMessage e) ...
 
     public static implicit operator EvDbMessageRecord(EvDbMessage e)
     {
@@ -30,6 +34,7 @@ public struct EvDbMessageRecord
             EventType = e.EventType,
             Channel = e.Channel,
             MessageType = e.MessageType,
+            SerializeType = e.SerializeType,
             Payload = e.Payload,
             CapturedBy = e.CapturedBy,
             CapturedAt = e.CapturedAt,
@@ -38,4 +43,6 @@ public struct EvDbMessageRecord
         };
         return result;
     }
+
+    #endregion //  static implicit operator EvDbMessageRecord(EvDbMessage e) ...
 }
