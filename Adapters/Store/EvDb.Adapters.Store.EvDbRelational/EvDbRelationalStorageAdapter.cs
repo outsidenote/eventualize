@@ -270,26 +270,10 @@ public abstract class EvDbRelationalStorageAdapter :
         await using DbTransaction transaction = await conn.BeginTransactionAsync();
         try
         {
-            int affctedEvents;
-            using (_trace.StartActivity("EvDb.StoreEventsAsync"))
-            {
-                affctedEvents = await OnStoreStreamEventsAsync(conn,
-                                                               saveEventsQuery,
-                                                               eventsRecords,
-                                                               transaction,
-                                                               cancellation);
-                StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
-            }
-            IImmutableDictionary<EvDbShardName, int> affectedOnOutbox =
-                                    ImmutableDictionary<EvDbShardName, int>.Empty;
-            if (messages.Count != 0)
-            {
-                affectedOnOutbox = await StoreOutboxAsync(messages,
-                                                          streamStore,
-                                                          conn,
-                                                          transaction,
-                                                          cancellation);
-            }
+            Task<int> affctedEventsTask = StoreEventsAsync();
+            IImmutableDictionary<EvDbShardName, int> affectedOnOutbox = await StoreOutboxAsync();
+            int affctedEvents = await affctedEventsTask;
+
             await transaction.CommitAsync();
             return new StreamStoreAffected(affctedEvents, affectedOnOutbox);
         }
@@ -304,6 +288,46 @@ public abstract class EvDbRelationalStorageAdapter :
             await transaction.RollbackAsync();
             throw;
         }
+
+        #region StoreEventsAsync
+
+        async Task<int> StoreEventsAsync()
+        {
+            int affctedEvents;
+            using (_trace.StartActivity("EvDb.StoreEventsAsync"))
+            {
+                affctedEvents = await OnStoreStreamEventsAsync(conn,
+                                                               saveEventsQuery,
+                                                               eventsRecords,
+                                                               transaction,
+                                                               cancellation);
+                StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
+            }
+
+            return affctedEvents;
+        }
+
+        #region StoreOutboxAsync
+
+        async Task<IImmutableDictionary<EvDbShardName, int>> StoreOutboxAsync()
+        {
+            IImmutableDictionary<EvDbShardName, int> affectedOnOutbox =
+                                    ImmutableDictionary<EvDbShardName, int>.Empty;
+            if (messages.Count != 0)
+            {
+                affectedOnOutbox = await this.StoreOutboxAsync(messages,
+                                                          streamStore,
+                                                          conn,
+                                                          transaction,
+                                                          cancellation);
+            }
+
+            return affectedOnOutbox;
+        }
+
+        #endregion //  StoreOutboxAsync
+
+        #endregion //  StoreEventsAsync
     }
 
     async Task IEvDbStorageSnapshotAdapter.StoreViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)

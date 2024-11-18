@@ -1,8 +1,8 @@
 ﻿using Cocona;
 using Cocona.Builder;
 using EvDb.Core;
-using EvDb.MinimalStructure;
 using EvDb.StressTests;
+using EvDb.StressTests.Outbox;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -24,11 +24,10 @@ services.AddScoped<EvDbStorageContext>(_ => context);
 services.AddEvDb()
       .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
       .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
-services.AddEvDbSqlServerStoreMigration();
+services.AddEvDbSqlServerStoreMigration(OutboxShards.Table1, OutboxShards.Table2);
 builder.AddOtel();
 
 var app = builder.Build();
-const int REPORT_CYCLE = 500;
 await app.RunAsync(async (
         ILogger<Program> logger,
         IEvDbDemoStreamFactory factory,
@@ -36,6 +35,8 @@ await app.RunAsync(async (
         [Option('w', Description = "Number of saving on the same stream (each save is saving a batch of events)")] int writeCycleCount = 3000,
         [Option('s', Description = "Number of independent streams, different streams doesn't collide with each other")] int streamsCount = 1,
         [Option('p', Description = "The degree of parallelism, this is what's cause the collision")] int degreeOfParallelismPerStream = 1,
+        [Option('r', Description = "Report cycle")] int reportCycle = 200,
+        [Option('o', Description = "Event % of producing outbox")] int outboxPercent = 200,
         [Option('b', Description = "Number of events to add in each batch")] int batchSize = 100) =>
 {
     await storageMigration.CreateEnvironmentAsync();
@@ -43,44 +44,68 @@ await app.RunAsync(async (
     var sw = Stopwatch.StartNew();
     int counter = 0;
     int occCounter = 0;
+    int totalAffectedEvents = 0;
+    int totalAffectedOutbox = 0;
     var tasks = Enumerable.Range(0, streamsCount)
         .Select(async i =>
         {
             var streamId = $"stream-{i}";
 
+            int streamAffectedEvents = 0;
+            int streamAffectedOutbox = 0;
+            int occ = 0;
+
             var ab = new ActionBlock<int>(async j =>
             {
                 var count = Interlocked.Increment(ref counter);
                 bool success = false;
-                IEnumerable<Event1> events = CreateEvents(streamId, batchSize, j * batchSize);
+                IEnumerable<SomethingHappened> events = CreateEvents(streamId, batchSize, j * batchSize);
+                IEnumerable<FaultOccurred> faultEvents = CreateFaultEvents(streamId, batchSize, j * batchSize);
+                
                 do
                 {
                     IEvDbDemoStream stream = await factory.GetAsync(streamId);
                     var tasks = events.Select(async e => await stream.AddAsync(e));
-                    IEvDbEventMeta[] es = await Task.WhenAll(tasks);
-                    for (int q = 0; q < es.Length; q++)
-                    {
-                        var e = es[q];
-                    }
+                    await Task.WhenAll(tasks);
+                    tasks = faultEvents.Select(async e => await stream.AddAsync(e));
+                    await Task.WhenAll(tasks);
 
                     try
                     {
-                        var offset0 = stream.StoredOffset;
-                        StreamStoreAffected affected = await stream.StoreAsync();
-                        var offset1 = stream.StoredOffset;
+                        (int affectedEvents, var affectedOutbox) = await stream.StoreAsync();
+                        Interlocked.Add(ref totalAffectedEvents, affectedEvents);
+                        Interlocked.Add(ref totalAffectedOutbox, affectedOutbox.Values.Sum());
+                        Interlocked.Add(ref streamAffectedEvents, affectedEvents);
+                        Interlocked.Add(ref streamAffectedOutbox, affectedOutbox.Values.Sum());
                         success = true;
                     }
                     catch (OCCException)
                     {
                         Interlocked.Increment(ref occCounter);
+                        Interlocked.Increment(ref occ);
                     }
                 } while (!success);
-                if (count % REPORT_CYCLE == 0)
+                if (count % reportCycle == 0)
                 {
                     sw.Stop();
                     double secound = sw.Elapsed.TotalSeconds;
-                    double perSeconds = REPORT_CYCLE / secound;
-                    logger.LogInformation($"{count}...{perSeconds} per seconds");
+                    double cyclePerSeconds = reportCycle / secound;
+                    double eventsSeconds = streamAffectedEvents / secound;
+                    double outboxSeconds = streamAffectedOutbox / secound;
+                    double occSeconds = occ / secound;
+                    Interlocked.Exchange(ref streamAffectedEvents, 0);
+                    Interlocked.Exchange(ref streamAffectedOutbox, 0);
+                    Interlocked.Exchange(ref occ, 0);
+                    double perSeconds = reportCycle * batchSize / secound;
+                    logger.LogInformation($"""
+                                ------------------------------------------
+                                Total Cycles: {count}
+                                    events: {eventsSeconds:N0} per second, {totalAffectedEvents} total
+                                    outbox: {outboxSeconds:N0} per second, {totalAffectedOutbox} total
+                                    {cyclePerSeconds:N0} cycle per second
+                                    {occSeconds:N0} OCC per seconds
+                                    Validation!!: {perSeconds:N0} cycle * batch per seconds
+                                """);
                     sw.Reset();
                     sw.Start();
                 }
@@ -114,14 +139,33 @@ await app.RunAsync(async (
     }
 });
 
-static IEnumerable<Event1> CreateEvents(string streamId, int batchSize, int baseId)
+#region CreateEvents
+
+static IEnumerable<SomethingHappened> CreateEvents(
+    string streamId, int batchSize, int baseId)
 {
-    return Enumerable.Range(0, batchSize)
-                     .Select(k =>
-                     {
-                         int id = baseId + k;
-                         var e = new Event1(id, $"Person {id}", baseId / batchSize);
-                         return e;
-                     });
+    yield break;
+    foreach (var k in Enumerable.Range(0, batchSize - 5))
+    {
+        int id = baseId + k;
+        var e = new SomethingHappened(id, $"Person {id}");
+        yield return e;
+    }
 }
+
+#endregion //  CreateEvents
+
+#region CreateFaultEvents
+
+static IEnumerable<FaultOccurred> CreateFaultEvents(string streamId, int batchSize, int baseId)
+{
+    for (int i = 0; i < batchSize ; i++)
+    {
+        int id = baseId + i;
+        var e = new FaultOccurred(id, $"Person {id}", Environment.TickCount % 100);
+        yield return e;
+    }
+}
+
+#endregion //  CreateFaultEvents
 

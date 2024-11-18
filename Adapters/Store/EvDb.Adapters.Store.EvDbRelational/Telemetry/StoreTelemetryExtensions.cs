@@ -1,7 +1,8 @@
-﻿using OpenTelemetry.Metrics;
+﻿using EvDb.Core.Adapters;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
-namespace EvDb.Core.Adapters;
+namespace EvDb.Core;
 
 public static class StoreTelemetryExtensions
 {

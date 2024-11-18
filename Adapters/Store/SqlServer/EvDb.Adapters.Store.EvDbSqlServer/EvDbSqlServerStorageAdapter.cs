@@ -38,7 +38,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         CancellationToken cancellationToken)
     {
         var dataRecords = ToEventsTvp(records);
-        SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection, (SqlTransaction)transaction);
+        using SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection, (SqlTransaction)transaction);
         insertCommand.CommandType = CommandType.StoredProcedure;
         SqlParameter tvpParam = insertCommand.Parameters.AddWithValue(
                                                             "@Records",
@@ -104,17 +104,17 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         // Define the schema for the TVP with correct sizes
         var metaData = new[]
         {
-        new SqlMetaData("Domain", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("Partition", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("StreamId", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("Offset", SqlDbType.BigInt),
-        new SqlMetaData("EventType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("SpanId", SqlDbType.VarChar, 16),
-        new SqlMetaData("TraceId", SqlDbType.VarChar, 32),
-        new SqlMetaData("CapturedBy", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("CapturedAt", SqlDbType.DateTimeOffset),
-        new SqlMetaData("Payload", SqlDbType.VarBinary, 4000)
-    };
+            new SqlMetaData("Domain", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData("Partition", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData("StreamId", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData("Offset", SqlDbType.BigInt),
+            new SqlMetaData("EventType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData("SpanId", SqlDbType.VarChar, 16),
+            new SqlMetaData("TraceId", SqlDbType.VarChar, 32),
+            new SqlMetaData("CapturedBy", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData("CapturedAt", SqlDbType.DateTimeOffset),
+            new SqlMetaData("Payload", SqlDbType.VarBinary, 4000)
+        };
 
         // Populate the TVP
         foreach (var message in events)

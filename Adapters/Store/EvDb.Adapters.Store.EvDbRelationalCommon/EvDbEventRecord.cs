@@ -3,7 +3,6 @@
 namespace EvDb.Core.Adapters;
 
 
-
 [DebuggerDisplay("EventType:{EventType}, Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbEventRecord
 {
