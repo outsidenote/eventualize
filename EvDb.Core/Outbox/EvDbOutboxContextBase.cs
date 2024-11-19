@@ -62,7 +62,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
             }
 
             _logger.LogMultiOutboxSerializers(channel, shardName, payload?.PayloadType,
-                string.Join(", ", serializers.Select(m => m.Name)));
+                string.Join(", ", serializers.Select(m => m.SerializerType)));
         }
 
         #endregion //  Validation
