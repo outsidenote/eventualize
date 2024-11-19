@@ -21,14 +21,14 @@ public class SampleController : ControllerBase
     [HttpGet]
     public async Task<CourseCreatedEvent[]> GetAsync()
     {
-        IEvDbIssueStream stream = await _factory.GetAsync("demo");
+        IProblems stream = await _factory.GetAsync("demo");
         return stream.Views.Courses.ToArray();
     }
 
     [HttpPost]
     public async Task PostAsync([FromBody] int i)
     {
-        IEvDbIssueStream stream = await _factory.GetAsync("demo");
+        IProblems stream = await _factory.GetAsync("demo");
         var e1 = new CourseCreatedEvent(i, $"name {i}", i + 10);
         await stream.AddAsync(e1);
         var e2 = new ScheduleTestEvent(i * 100, new TestEntity(i * 30 + 4, "bla bla", DateTimeOffset.Now.AddDays(i)));

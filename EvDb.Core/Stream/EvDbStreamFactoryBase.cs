@@ -42,15 +42,16 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     #region Create
 
-    public T Create(string streamId)
+    T IEvDbStreamFactory<T>.Create<TId>(in TId streamId)
     {
-        var address = new EvDbStreamAddress(PartitionAddress, streamId);
+        string id = streamId.ToString()!;
+        var address = new EvDbStreamAddress(PartitionAddress, id);
         var views = CreateEmptyViews(address);
 
         OtelTags tags = address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.CreateAsync");
 
-        var result = OnCreate(streamId, views, -1);
+        var result = OnCreate(id, views, -1);
         return result;
     }
 
@@ -58,11 +59,10 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     #region GetAsync
 
-    async Task<T> IEvDbStreamFactory<T>.GetAsync(
-        string streamId,
-        CancellationToken cancellationToken)
+    async Task<T> IEvDbStreamFactory<T>.GetAsync<TId>(TId streamId, CancellationToken cancellationToken)
     {
-        var address = new EvDbStreamAddress(PartitionAddress, streamId);
+        string id = streamId.ToString()!;
+        var address = new EvDbStreamAddress(PartitionAddress, id);
 
         OtelTags tags = address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.GetAsync");
@@ -95,7 +95,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         IEvDbViewStore[] views = await Task.WhenAll(tasks);
         var immutableViews = views.ToImmutableList();
 
-        var cursor = new EvDbStreamCursor(PartitionAddress, streamId, minSnapshotOffset + 1);
+        var cursor = new EvDbStreamCursor(PartitionAddress, id, minSnapshotOffset + 1);
         IAsyncEnumerable<EvDbEvent> events =
             _storageAdapter.GetEventsAsync(cursor, cancellationToken);
 
@@ -113,7 +113,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
             }
             streamOffset = e.StreamCursor.Offset;
         }
-        T stream = OnCreate(streamId, immutableViews, streamOffset);
+        T stream = OnCreate(id, immutableViews, streamOffset);
 
         return stream;
     }
