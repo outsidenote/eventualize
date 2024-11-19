@@ -1,4 +1,5 @@
 using EvDb.Core;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Channels;
@@ -11,7 +12,7 @@ public class StressJob : BackgroundService
     private readonly ILogger<StressJob> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly Channel<StressOptions> _channel;
-    private const int REPORT_INTERVAL = 300;
+    private const int REPORT_CYCLE = 300;
 
     public StressJob(
         ILogger<StressJob> logger,
@@ -103,43 +104,68 @@ public class StressJob : BackgroundService
             Console.ResetColor();
         }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
 
+        int totalAffectedEvents = 0;
+        int totalAffectedOutbox = 0;
+
         var tasks = Enumerable.Range(0, streamsCount)
             .Select(async stream_i =>
             {
+                int streamAffectedEvents = 0;
+                int streamAffectedOutbox = 0;
+                int occ = 0;
+
                 var streamId = $"{streamPrefix}-{stream_i}";
                 var sw = Stopwatch.StartNew();
 
                 var ab = new ActionBlock<int>(async j =>
                 {
-                    Interlocked.Increment(ref counter);
+                    var count = Interlocked.Increment(ref counter);
                     bool success = false;
-                    IEnumerable<FaultOccurred> events = CreateEvents(streamId, batchSize, j * batchSize);
+                    IEnumerable<SomethingHappened> events = CreateEvents(streamId, batchSize, j * batchSize);
+                    IEnumerable<FaultOccurred> faultEvents = CreateFaultEvents(streamId, batchSize, j * batchSize);
                     do
                     {
                         IEvDbDemoStream stream = await factory.GetAsync(streamId, stoppingToken);
                         var tasks = events.Select(async e => await stream.AddAsync(e));
-                        IEvDbEventMeta[] es = await Task.WhenAll(tasks);
+                        await Task.WhenAll(tasks);
+                        tasks = faultEvents.Select(async e => await stream.AddAsync(e));
+                        await Task.WhenAll(tasks);
 
                         try
                         {
-                            var offset0 = stream.StoredOffset;
-                            StreamStoreAffected affected = await stream.StoreAsync(stoppingToken);
-                            var offset1 = stream.StoredOffset;
+                            (int affectedEvents, var affectedOutbox) = await stream.StoreAsync();
+                            Interlocked.Add(ref totalAffectedEvents, affectedEvents);
+                            Interlocked.Add(ref totalAffectedOutbox, affectedOutbox.Values.Sum());
+                            Interlocked.Add(ref streamAffectedEvents, affectedEvents);
+                            Interlocked.Add(ref streamAffectedOutbox, affectedOutbox.Values.Sum());
                             success = true;
                         }
                         catch (OCCException)
                         {
                             Interlocked.Increment(ref occCounter);
+                            Interlocked.Increment(ref occ);
                         }
                     } while (!success);
-                    if (counter % REPORT_INTERVAL == 0)
+                    if (counter % REPORT_CYCLE == 0)
                     {
                         sw.Stop();
-                        int count = counter;
-                        double reportPerSecond = REPORT_INTERVAL / sw.Elapsed.TotalSeconds;
+                        double secound = sw.Elapsed.TotalSeconds;
+                        double perSeconds = REPORT_CYCLE * batchSize / secound;
+                        double cyclePerSeconds = REPORT_CYCLE / secound;
+                        double eventsSeconds = streamAffectedEvents / secound;
+                        double outboxSeconds = streamAffectedOutbox / secound;
+                        double occSeconds = occ / secound;
+                        Interlocked.Exchange(ref streamAffectedEvents, 0);
+                        Interlocked.Exchange(ref streamAffectedOutbox, 0);
+                        Interlocked.Exchange(ref occ, 0);
                         queue.Enqueue($"""
-                                Count:              {counter:N0}
-                                Avg Duration (sec): {sw.ElapsedMilliseconds / REPORT_INTERVAL / 1000.0:N3}
+                                ------------------------------------------
+                                Total Cycles: {count}
+                                    events: {eventsSeconds:N0} per second, {totalAffectedEvents} total
+                                    outbox: {outboxSeconds:N0} per second, {totalAffectedOutbox} total
+                                    {cyclePerSeconds:N0} cycle per second
+                                    {occSeconds:N0} OCC per seconds
+                                    Validation!!: {perSeconds:N0} cycle * batch per seconds
                                 """);
                         sw = Stopwatch.StartNew();
                     }
@@ -175,18 +201,32 @@ public class StressJob : BackgroundService
 
     #endregion //  RunAsync
 
+
     #region CreateEvents
 
-    static IEnumerable<FaultOccurred> CreateEvents(string streamId, int batchSize, int baseId)
+    static IEnumerable<SomethingHappened> CreateEvents(string streamId, int batchSize, int baseId)
     {
-        return Enumerable.Range(0, batchSize)
-                         .Select(k =>
-                         {
-                             int id = baseId + k;
-                             var e = new FaultOccurred(id, $"Person {id}", baseId / batchSize);
-                             return e;
-                         });
+        foreach (var k in Enumerable.Range(0, batchSize - 5))
+        {
+            int id = baseId + k;
+            var e = new SomethingHappened(id, $"Person {id}");
+            yield return e;
+        }
     }
 
     #endregion //  CreateEvents
+
+    #region CreateFaultEvents
+
+    static IEnumerable<FaultOccurred> CreateFaultEvents(string streamId, int batchSize, int baseId)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            int id = baseId + i;
+            var e = new FaultOccurred(id, $"Person {id}", Environment.TickCount % 100);
+            yield return e;
+        }
+    }
+
+    #endregion //  CreateFaultEvents
 }

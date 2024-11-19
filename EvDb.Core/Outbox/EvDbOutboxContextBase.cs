@@ -32,7 +32,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
     protected abstract IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; }
 
     public void Add<T>(T payload, EvDbChannelName channel, EvDbShardName shardName)
-        where T : IEvDbPayload
+        where T : notnull, IEvDbPayload
     {
         if (payload == null)
             throw new ArgumentNullException(nameof(payload));
@@ -53,10 +53,10 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
                     EvDb Outbox serialization in strict mode expect 
                     a single serializer per context.
                     Channel: {channel}
-                    Table Name: {shardName}
+                    SerializerType: {shardName}
                     Payload Type {payload?.PayloadType}
                     Serializers matched for this context are:
-                    {string.Join(", ", serializers.Select(m => m.Name))}
+                    {string.Join(", ", serializers.Select(m => m.SerializerType))}
                     """
                     );
             }
@@ -69,18 +69,16 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 
         if (serializers.Length > 0)
             serializer = serializers[0];
+        string serializerType = serializer?.SerializerType ?? "json-default";
 
         #region byte[] buffer =  serializer?.Serialize(...) ?? JsonSerializer.SerializeToUtf8Bytes(...)
 
         byte[] buffer = Array.Empty<byte>();
-        if (payload != null)
-        {
-            if (serializer == null)
-                buffer = JsonSerializer.SerializeToUtf8Bytes(payload, _options);
+        if (serializer == null)
+            buffer = JsonSerializer.SerializeToUtf8Bytes(payload!, _options);
 
-            else
-                buffer = serializer.Serialize(channel, shardName, payload);
-        }
+        else
+            buffer = serializer.Serialize(channel, shardName, payload!);
 
         #endregion //  byte[] buffer =  serializer?.Serialize(...) ?? JsonSerializer.SerializeToUtf8Bytes(...)
 
@@ -88,7 +86,8 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
                                     _relatedEventMeta.EventType,
                                     channel,
                                     shardName,
-                                    payload.PayloadType,
+                                    payload!.PayloadType,
+                                    serializerType,
                                     _timeProvider.GetUtcNow(),
                                     _relatedEventMeta.CapturedBy,
                                     _relatedEventMeta.StreamCursor,

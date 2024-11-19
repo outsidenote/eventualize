@@ -11,7 +11,8 @@ public partial record struct EvDbMessage(
                                 EvDbChannelName Channel,
                                 EvDbShardName ShardName,
                                 string MessageType,
-                                [property: IgnoreEquality] DateTimeOffset CapturedAt,
+                                string SerializeType,
+                                [property: IgnoreEquality]DateTimeOffset CapturedAt,
                                 string CapturedBy,
                                 EvDbStreamCursor StreamCursor,
                                 byte[] Payload) :

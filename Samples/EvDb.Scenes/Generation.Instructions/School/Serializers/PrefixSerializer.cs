@@ -8,7 +8,7 @@ namespace EvDb.UnitTests;
 
 internal class PrefixSerializer : IEvDbOutboxSerializer
 {
-    string IEvDbOutboxSerializer.Name { get; } = "Prefix";
+    string IEvDbOutboxSerializer.SerializerType { get; } = "Prefix";
 
     byte[] IEvDbOutboxSerializer.Serialize<T>(EvDbChannelName channel, EvDbShardName shardName, T payload)
     {
