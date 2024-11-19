@@ -8,7 +8,7 @@ namespace EvDb.StressTestsWebApi.Outbox
     public class EmbeddedSchemaSerializer : IEvDbOutboxSerializer
     {
         private const int maxResultCapacity = 1024 * 5;
-        string IEvDbOutboxSerializer.Name => nameof(EmbeddedSchemaSerializer);
+        string IEvDbOutboxSerializer.SerializerType => nameof(EmbeddedSchemaSerializer);
 
         byte[] IEvDbOutboxSerializer.Serialize<T>(EvDbChannelName channel, EvDbShardName shardName, T payload)
         {
