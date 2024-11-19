@@ -51,6 +51,7 @@ internal static class OtelExtensions
             {
                 tracing
                         .AddEvDbInstrumentation()
+                        .AddEvDbStoreInstrumentation()
                         .AddSqlClientInstrumentation(o =>
                         {
                             o.SetDbStatementForText = true;
@@ -65,6 +66,7 @@ internal static class OtelExtensions
             })
             .WithMetrics(meterBuilder =>
                     meterBuilder.AddEvDbInstrumentation()
+                                .AddEvDbStoreInstrumentation()
                                 .AddHttpClientInstrumentation()
                                 .AddProcessInstrumentation()
                                 .AddRuntimeInstrumentation()

@@ -5,7 +5,7 @@ public interface IEvDbOutboxSerializer
     /// <summary>
     /// Gets the serializer name.
     /// </summary>
-    string Name { get; }
+    string SerializerType { get; }
 
     /// <summary>
     /// Serializes the message payload to a different format (Ex: avro, protobuf, etc)
