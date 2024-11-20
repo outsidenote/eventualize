@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<PackageId>EvDb.Core</PackageId>
+		<PackageVersion>1.0.0.0</PackageVersion>
+		<Authors>bnayaes</Authors>
+		<PackageProjectUrl>https://github.com/outsidenote/eventualize</PackageProjectUrl>
+		<PackageIconUrl>https://github.com/outsidenote/eventualize/blob/main/EvDb.Core/icon-light.png</PackageIconUrl>
+		<RepositoryUrl>https://github.com/outsidenote/eventualize</RepositoryUrl>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<Description>EvDb.Core</Description>
+		<PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
+		<Copyright>Copyright</Copyright>
+		<PackageTags>EventualizeDB, EvDb, analyzers</PackageTags>
+		<DevelopmentDependency>true</DevelopmentDependency>
+		<NoPackageAnalysis>true</NoPackageAnalysis>
+
+		<TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\docs\README.md" Link="README.md">
+	    <PackagePath>\</PackagePath>
+	    <Pack>True</Pack>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<!--<ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />-->
+		<ProjectReference Include="..\..\StaticAnalysis\EvDb.Core.Analyzer\EvDb.Core.Analyzer.csproj" />
+		<ProjectReference Include="..\..\StaticAnalysis\EvDb.Core.CodeFixes\EvDb.Core.CodeFixes.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="tools\*.ps1" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="icon-light.png">
+			<PackagePath></PackagePath>
+			<Pack>True</Pack>
+		</None>
+	</ItemGroup>
+
+	<Target Name="_AddAnalyzersToOutput">
+		<ItemGroup>
+			<TfmSpecificPackageFile Include="$(OutputPath)\EvDb.Core.Analyzer.dll" PackagePath="analyzers/dotnet/cs" />
+			<TfmSpecificPackageFile Include="$(OutputPath)\EvDb.Core.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
+			<!--<TfmSpecificPackageFile Include="$(OutputPath)\EvDb.Core.dll" PackagePath="dotnet/cs" />-->
+		</ItemGroup>
+	</Target>
+
+</Project>

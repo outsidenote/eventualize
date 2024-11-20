@@ -90,15 +90,25 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EvDb", "EvDb", "{F898B3E3-4
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StructuresValidation", "StructuresValidation", "{4D9BC5CF-DAE6-4001-8A1C-4D517718CEC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.StructuresValidation.Abstractions", "Tests\StructuresValidation\EvDb.StructuresValidation.Abstractions\EvDb.StructuresValidation.Abstractions.csproj", "{F67AC4F3-C512-48FE-8653-7CB56EC67299}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StructuresValidation.Abstractions", "Tests\StructuresValidation\EvDb.StructuresValidation.Abstractions\EvDb.StructuresValidation.Abstractions.csproj", "{F67AC4F3-C512-48FE-8653-7CB56EC67299}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.StructuresValidation.Repositories", "Tests\StructuresValidation\EvDb.StructuresValidation.Repositories\EvDb.StructuresValidation.Repositories.csproj", "{DC6328A3-6F7F-45C5-92E8-244BA2C59553}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StructuresValidation.Repositories", "Tests\StructuresValidation\EvDb.StructuresValidation.Repositories\EvDb.StructuresValidation.Repositories.csproj", "{DC6328A3-6F7F-45C5-92E8-244BA2C59553}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.StructuresValidation.Services", "Tests\StructuresValidation\EvDb.StructuresValidation.Services\EvDb.StructuresValidation.Services.csproj", "{F25233E5-E086-4661-89F2-274469EC3035}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StructuresValidation.Services", "Tests\StructuresValidation\EvDb.StructuresValidation.Services\EvDb.StructuresValidation.Services.csproj", "{F25233E5-E086-4661-89F2-274469EC3035}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.StructuresValidation.WebApi", "Tests\StructuresValidation\EvDb.StructuresValidation.WebApi\EvDb.StructuresValidation.WebApi.csproj", "{F8A9C3DC-38A6-4E4F-A253-2C08278FFFB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StructuresValidation.WebApi", "Tests\StructuresValidation\EvDb.StructuresValidation.WebApi\EvDb.StructuresValidation.WebApi.csproj", "{F8A9C3DC-38A6-4E4F-A253-2C08278FFFB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.StructuresValidation.Migration", "Tests\StructuresValidation\EvDb.StructuresValidation.Migration\EvDb.StructuresValidation.Migration.csproj", "{912C3FDC-42B1-4918-AC43-8612DBECB9CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StructuresValidation.Migration", "Tests\StructuresValidation\EvDb.StructuresValidation.Migration\EvDb.StructuresValidation.Migration.csproj", "{912C3FDC-42B1-4918-AC43-8612DBECB9CC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packaging", "Packaging", "{E32ECE21-9483-4D63-88F2-94F81D02989E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StaticAnalysis", "StaticAnalysis", "{E73AE862-1C51-4558-BBCA-BA1A85501519}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.Core.CodeFixes", "StaticAnalysis\EvDb.Core.CodeFixes\EvDb.Core.CodeFixes.csproj", "{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.Core.Analyzer", "StaticAnalysis\EvDb.Core.Analyzer\EvDb.Core.Analyzer.csproj", "{F8CDE68E-4834-439E-93A7-A5C00F26E418}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.Core.Analyzer.Package", "Packaging\EvDb.Core.Analyzer.Package\EvDb.Core.Analyzer.Package.csproj", "{4591D842-8015-4B19-8397-308173041301}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -527,6 +537,60 @@ Global
 		{912C3FDC-42B1-4918-AC43-8612DBECB9CC}.Release|x64.Build.0 = Release|Any CPU
 		{912C3FDC-42B1-4918-AC43-8612DBECB9CC}.Release|x86.ActiveCfg = Release|Any CPU
 		{912C3FDC-42B1-4918-AC43-8612DBECB9CC}.Release|x86.Build.0 = Release|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Debug|x64.Build.0 = Debug|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Debug|x86.Build.0 = Debug|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Gen|Any CPU.ActiveCfg = Gen|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Gen|Any CPU.Build.0 = Gen|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Gen|x64.ActiveCfg = Gen|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Gen|x64.Build.0 = Gen|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Gen|x86.ActiveCfg = Gen|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Gen|x86.Build.0 = Gen|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Release|x64.ActiveCfg = Release|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Release|x64.Build.0 = Release|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Release|x86.ActiveCfg = Release|Any CPU
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}.Release|x86.Build.0 = Release|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Debug|x64.Build.0 = Debug|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Debug|x86.Build.0 = Debug|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Gen|Any CPU.ActiveCfg = Gen|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Gen|Any CPU.Build.0 = Gen|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Gen|x64.ActiveCfg = Gen|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Gen|x64.Build.0 = Gen|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Gen|x86.ActiveCfg = Gen|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Gen|x86.Build.0 = Gen|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Release|x64.ActiveCfg = Release|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Release|x64.Build.0 = Release|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Release|x86.ActiveCfg = Release|Any CPU
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418}.Release|x86.Build.0 = Release|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Debug|x64.Build.0 = Debug|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Debug|x86.Build.0 = Debug|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Gen|Any CPU.ActiveCfg = Gen|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Gen|Any CPU.Build.0 = Gen|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Gen|x64.ActiveCfg = Gen|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Gen|x64.Build.0 = Gen|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Gen|x86.ActiveCfg = Gen|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Gen|x86.Build.0 = Gen|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Release|x64.ActiveCfg = Release|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Release|x64.Build.0 = Release|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Release|x86.ActiveCfg = Release|Any CPU
+		{4591D842-8015-4B19-8397-308173041301}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -561,6 +625,9 @@ Global
 		{F25233E5-E086-4661-89F2-274469EC3035} = {4D9BC5CF-DAE6-4001-8A1C-4D517718CEC4}
 		{F8A9C3DC-38A6-4E4F-A253-2C08278FFFB8} = {4D9BC5CF-DAE6-4001-8A1C-4D517718CEC4}
 		{912C3FDC-42B1-4918-AC43-8612DBECB9CC} = {4D9BC5CF-DAE6-4001-8A1C-4D517718CEC4}
+		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C} = {E73AE862-1C51-4558-BBCA-BA1A85501519}
+		{F8CDE68E-4834-439E-93A7-A5C00F26E418} = {E73AE862-1C51-4558-BBCA-BA1A85501519}
+		{4591D842-8015-4B19-8397-308173041301} = {E32ECE21-9483-4D63-88F2-94F81D02989E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CF849979-7A01-419B-A9C7-8EA947DCD0C2}
