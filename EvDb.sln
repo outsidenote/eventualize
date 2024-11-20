@@ -102,7 +102,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StructuresValidation.M
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packaging", "Packaging", "{E32ECE21-9483-4D63-88F2-94F81D02989E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StaticAnalysis", "StaticAnalysis", "{E73AE862-1C51-4558-BBCA-BA1A85501519}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzers", "Analyzers", "{E73AE862-1C51-4558-BBCA-BA1A85501519}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.Core.CodeFixes", "StaticAnalysis\EvDb.Core.CodeFixes\EvDb.Core.CodeFixes.csproj", "{9EAD706A-80A4-418C-9B7E-C4EDDC49663C}"
 EndProject

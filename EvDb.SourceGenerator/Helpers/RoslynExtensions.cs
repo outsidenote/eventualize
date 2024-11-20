@@ -299,6 +299,15 @@ internal static class RoslynExtensions
     public static bool IsPartial(this TypeDeclarationSyntax syntax) =>
         syntax.Modifiers.Any(SyntaxKind.PartialKeyword);
 
+    public static bool IsPartial(this INamedTypeSymbol symbol)
+    {
+        bool isPartial = symbol.DeclaringSyntaxReferences
+              .Select(syntaxRef => syntaxRef.GetSyntax())
+              .OfType<TypeDeclarationSyntax>()
+              .Any(declaration => declaration.IsPartial());
+        return isPartial;
+    }
+
     #endregion // IsPartial
 
     #region ToType
