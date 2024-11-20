@@ -39,7 +39,9 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             TypeDeclarationSyntax syntax,
             CancellationToken cancellationToken)
     {
-        context.ThrowIfNotPartial(typeSymbol, syntax);
+        if (!typeSymbol.IsPartial())
+            return;
+
         StringBuilder builder = new StringBuilder();
 
         var allAttributes = typeSymbol.GetAttributes();

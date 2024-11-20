@@ -28,7 +28,8 @@ public partial class EventPayloadGenerator : BaseGenerator
             TypeDeclarationSyntax syntax,
             CancellationToken cancellationToken)
     {
-        context.ThrowIfNotPartial(typeSymbol, syntax);
+        if (!typeSymbol.IsPartial())
+            return;
 
         StringBuilder builder = new StringBuilder();
 

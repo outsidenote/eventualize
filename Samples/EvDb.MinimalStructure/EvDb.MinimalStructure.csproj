@@ -1,24 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <IsPackable>false</IsPackable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
 
-  <PropertyGroup>
-	  <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
-  </PropertyGroup>
+	<PropertyGroup>
+		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />
-	<ProjectReference Include="..\..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />
+		<ProjectReference Include="..\..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\..\StaticAnalysis\EvDb.Core.Analyzer\EvDb.Core.Analyzer.csproj"  ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
+		<ProjectReference Include="..\..\StaticAnalysis\EvDb.Core.CodeFixes\EvDb.Core.CodeFixes.csproj"  ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="icon-light.png">
-      <PackagePath></PackagePath>
-      <Pack>True</Pack>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="icon-light.png">
+			<PackagePath></PackagePath>
+			<Pack>True</Pack>
+		</None>
+	</ItemGroup>
 
 
 </Project>
