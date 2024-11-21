@@ -6,7 +6,8 @@
 
 	<PropertyGroup>
 		<!-- <PackageId>EvDb</PackageId> -->
-		<Version>1.1.137</Version>
+		<Version>1.1.138</Version>
+		<PackageVersion>1.1.138</PackageVersion>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EvDbDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -18,8 +19,7 @@
 		<IsPackable>true</IsPackable>
 		<Configurations>Debug;Release;Gen</Configurations>
 		<PackageTags>
-			event-source, event-driven, event-sourcing, producer, consumer, pub, sub,
-			pub-sub, eventualize, reliable, redis, bnaya, roma, sql, sql-server, postgress, my-sql, maria-db, dynamo-db
+			event-source, event-driven, event-sourcing, producer, consumer, pub, sub, evdb, pub-sub, eventualize, eventualizedb, reliable, redis, bnaya, roma, sql, sql-server, postgress, my-sql, maria-db, dynamo-db
 		</PackageTags>
 	</PropertyGroup>
 	<PropertyGroup>
