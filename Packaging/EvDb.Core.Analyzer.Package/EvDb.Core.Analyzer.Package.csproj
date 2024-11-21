@@ -7,8 +7,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackageId>EvDb.Core</PackageId>
-		<PackageVersion>1.0.0.0</PackageVersion>
+		<PackageId>EvDb.Core.Analyzer</PackageId>
 		<Authors>bnayaes</Authors>
 		<PackageProjectUrl>https://github.com/outsidenote/eventualize</PackageProjectUrl>
 		<PackageIconUrl>https://github.com/outsidenote/eventualize/blob/main/EvDb.Core/icon-light.png</PackageIconUrl>
@@ -17,7 +16,7 @@
 		<Description>EvDb.Core</Description>
 		<PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
 		<Copyright>Copyright</Copyright>
-		<PackageTags>EventualizeDB, EvDb, analyzers</PackageTags>
+		<PackageTags>Eventualize, EventualizeDB, EvDb, analyzers</PackageTags>
 		<DevelopmentDependency>true</DevelopmentDependency>
 		<NoPackageAnalysis>true</NoPackageAnalysis>
 
