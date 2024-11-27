@@ -4,11 +4,11 @@ using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
 
-namespace EvDb.Adapters.Store.SqlServer;
+namespace EvDb.Adapters.Store.Postgres;
 
-internal class SqlServerStorageMigration : EvDbRelationalStorageMigration
+internal class PostgresStorageMigration : EvDbRelationalStorageMigration
 {
-    public SqlServerStorageMigration(
+    public PostgresStorageMigration(
         ILogger logger,
         EvDbStorageContext context,
         IEvDbConnectionFactory factory,
