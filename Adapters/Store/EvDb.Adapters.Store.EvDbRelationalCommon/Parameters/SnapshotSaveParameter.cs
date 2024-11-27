@@ -4,6 +4,7 @@ namespace EvDb.Core;
 
 [DebuggerDisplay("{StreamAddress}, {PartitionAddress}, {Offset}")]
 public readonly record struct SnapshotSaveParameter(
+                    Guid Id,
                     string Domain,
                     string Partition,
                     string StreamId,
@@ -13,6 +14,7 @@ public readonly record struct SnapshotSaveParameter(
 {
     public SnapshotSaveParameter(EvDbViewAddress viewAddress, EvDbStoredSnapshot storedSnapshot)
         : this(
+              Guid.NewGuid(),   
               viewAddress.Domain,
               viewAddress.Partition,
               viewAddress.StreamId,

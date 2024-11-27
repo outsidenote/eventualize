@@ -104,6 +104,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         // Define the schema for the TVP with correct sizes
         var metaData = new[]
         {
+            new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
             new SqlMetaData("Domain", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData("Partition", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData("StreamId", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
@@ -121,25 +122,26 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         {
             var record = new SqlDataRecord(metaData);
 
-            record.SetString(0, message.Domain);
-            record.SetString(1, message.Partition);
-            record.SetString(2, message.StreamId);
-            record.SetInt64(3, message.Offset);
-            record.SetString(4, message.EventType);
+            record.SetGuid(0, message.Id);
+            record.SetString(1, message.Domain);
+            record.SetString(2, message.Partition);
+            record.SetString(3, message.StreamId);
+            record.SetInt64(4, message.Offset);
+            record.SetString(5, message.EventType);
 
             if (message.SpanId is null)
-                record.SetDBNull(5);
-            else
-                record.SetString(5, message.SpanId);
-
-            if (message.TraceId is null)
                 record.SetDBNull(6);
             else
-                record.SetString(6, message.TraceId);
+                record.SetString(6, message.SpanId);
 
-            record.SetString(7, message.CapturedBy);
-            record.SetDateTimeOffset(8, message.CapturedAt);
-            record.SetBytes(9, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
+            if (message.TraceId is null)
+                record.SetDBNull(7);
+            else
+                record.SetString(7, message.TraceId);
+
+            record.SetString(8, message.CapturedBy);
+            record.SetDateTimeOffset(9, message.CapturedAt);
+            record.SetBytes(10, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
 
             yield return record;
         }
@@ -157,6 +159,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         // Define the schema for the TVP with correct sizes
         var metaData = new[]
         {
+        new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
         new SqlMetaData("Domain", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
         new SqlMetaData("Partition", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
         new SqlMetaData("StreamId", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
@@ -177,28 +180,29 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         {
             var record = new SqlDataRecord(metaData);
 
-            record.SetString(0, message.Domain);
-            record.SetString(1, message.Partition);
-            record.SetString(2, message.StreamId);
-            record.SetInt64(3, message.Offset);
-            record.SetString(4, message.EventType);
-            record.SetString(5, message.Channel);
-            record.SetString(6, message.MessageType);
-            record.SetString(7, message.SerializeType);
+            record.SetGuid(0, message.Id);
+            record.SetString(1, message.Domain);
+            record.SetString(2, message.Partition);
+            record.SetString(3, message.StreamId);
+            record.SetInt64(4, message.Offset);
+            record.SetString(5, message.EventType);
+            record.SetString(6, message.Channel);
+            record.SetString(7, message.MessageType);
+            record.SetString(8, message.SerializeType);
 
             if (message.SpanId is null)
-                record.SetDBNull(8);
-            else
-                record.SetString(8, message.SpanId);
-
-            if (message.TraceId is null)
                 record.SetDBNull(9);
             else
-                record.SetString(9, message.TraceId);
+                record.SetString(9, message.SpanId);
 
-            record.SetString(10, message.CapturedBy);
-            record.SetDateTimeOffset(11, message.CapturedAt);
-            record.SetBytes(12, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
+            if (message.TraceId is null)
+                record.SetDBNull(10);
+            else
+                record.SetString(10, message.TraceId);
+
+            record.SetString(11, message.CapturedBy);
+            record.SetDateTimeOffset(12, message.CapturedAt);
+            record.SetBytes(13, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
 
             yield return record;
         }

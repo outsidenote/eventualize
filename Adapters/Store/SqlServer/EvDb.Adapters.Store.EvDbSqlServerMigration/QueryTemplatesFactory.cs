@@ -65,6 +65,7 @@ internal static class QueryTemplatesFactory
             ? string.Empty
             : $$"""
         CREATE TYPE {{tblInitial}}EventsTableType AS TABLE (        
+                {{toSnakeCase(nameof(EvDbEventRecord.Id))}} UNIQUEIDENTIFIER NOT NULL,
                 {{toSnakeCase(nameof(EvDbEventRecord.Domain))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{toSnakeCase(nameof(EvDbEventRecord.Partition))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{toSnakeCase(nameof(EvDbEventRecord.StreamId))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
@@ -91,6 +92,7 @@ internal static class QueryTemplatesFactory
                 AS
                 BEGIN
                     INSERT INTO {tblInitial}events (                           
+                        {toSnakeCase(nameof(EvDbEventRecord.Id))},
                         {toSnakeCase(nameof(EvDbEventRecord.Domain))},
                         {toSnakeCase(nameof(EvDbEventRecord.Partition))},
                         {toSnakeCase(nameof(EvDbEventRecord.StreamId))},
@@ -102,7 +104,8 @@ internal static class QueryTemplatesFactory
                         {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))},
                         {toSnakeCase(nameof(EvDbEventRecord.Payload))}
                     )
-                    SELECT  {toSnakeCase(nameof(EvDbEventRecord.Domain))},
+                    SELECT  {toSnakeCase(nameof(EvDbEventRecord.Id))},
+                            {toSnakeCase(nameof(EvDbEventRecord.Domain))},
                             {toSnakeCase(nameof(EvDbEventRecord.Partition))},
                             {toSnakeCase(nameof(EvDbEventRecord.StreamId))},
                             {toSnakeCase(nameof(EvDbEventRecord.Offset))},
@@ -125,6 +128,7 @@ internal static class QueryTemplatesFactory
             ? string.Empty
             : $"""
             CREATE TABLE {tblInitial}events (
+                {toSnakeCase(nameof(EvDbEventRecord.Id))} UNIQUEIDENTIFIER NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -180,7 +184,8 @@ internal static class QueryTemplatesFactory
         string outboxTableType = (features & StorageFeatures.Outbox) == StorageFeatures.None
             ? string.Empty
             : $$"""
-        CREATE TYPE {{tblInitial}}OutboxTableType AS TABLE (        
+        CREATE TYPE {{tblInitial}}OutboxTableType AS TABLE (   
+                {{toSnakeCase(nameof(EvDbMessageRecord.Id))}} UNIQUEIDENTIFIER  NOT NULL,     
                 {{toSnakeCase(nameof(EvDbMessageRecord.Domain))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{toSnakeCase(nameof(EvDbMessageRecord.Partition))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{toSnakeCase(nameof(EvDbMessageRecord.StreamId))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
@@ -207,6 +212,7 @@ internal static class QueryTemplatesFactory
             $"""
 
             CREATE TABLE {tblInitial}{t} (
+                {toSnakeCase(nameof(EvDbMessageRecord.Id))} UNIQUEIDENTIFIER  NOT NULL, 
                 {toSnakeCase(nameof(EvDbMessageRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -252,6 +258,10 @@ internal static class QueryTemplatesFactory
 
             """);
 
+        #endregion //  string createOutbox = ...
+
+        #region IEnumerable<string> createOutboxSP = ...
+
         IEnumerable<string> createOutboxSP = outboxShardNames.Select(t =>
             $"""
             ------------------ Insert Outbox Batch SP --------------------
@@ -260,6 +270,7 @@ internal static class QueryTemplatesFactory
                 AS
                 BEGIN
                     INSERT INTO {tblInitial}{t} (                           
+                        {toSnakeCase(nameof(EvDbMessageRecord.Id))},
                         {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
                         {toSnakeCase(nameof(EvDbMessageRecord.Partition))},
                         {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
@@ -274,7 +285,8 @@ internal static class QueryTemplatesFactory
                         {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
                         {toSnakeCase(nameof(EvDbMessageRecord.Payload))}
                     )
-                    SELECT  {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
+                    SELECT  {toSnakeCase(nameof(EvDbMessageRecord.Id))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
                             {toSnakeCase(nameof(EvDbMessageRecord.Partition))},
                             {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
                             {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
@@ -292,7 +304,7 @@ internal static class QueryTemplatesFactory
 
             """);
 
-        #endregion //  string createOutbox = ...
+        #endregion //  IEnumerable<string> createOutboxSP = ...
 
         #region string createSnapshotTable = ...
 
@@ -300,6 +312,7 @@ internal static class QueryTemplatesFactory
             ? string.Empty
             : $"""
             CREATE TABLE {tblInitial}snapshot (
+                {toSnakeCase(nameof(EvDbStoredSnapshotData.Id))} UNIQUEIDENTIFIER  NOT NULL,
                 {toSnakeCase(nameof(EvDbViewAddress.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbViewAddress.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbViewAddress.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,

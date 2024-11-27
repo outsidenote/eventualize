@@ -330,7 +330,9 @@ public abstract class EvDbRelationalStorageAdapter :
         #endregion //  StoreEventsAsync
     }
 
-    async Task IEvDbStorageSnapshotAdapter.StoreViewAsync(IEvDbViewStore viewStore, CancellationToken cancellation)
+    async Task IEvDbStorageSnapshotAdapter.StoreViewAsync(
+        IEvDbViewStore viewStore,
+        CancellationToken cancellation)
     {
         if (!viewStore.ShouldStoreSnapshot)
         {
