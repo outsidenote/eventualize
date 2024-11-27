@@ -1,16 +1,16 @@
 ﻿using EvDb.Core;
 using EvDb.Core.Adapters;
 
-namespace EvDb.Adapters.Store.SqlServer;
+namespace EvDb.Adapters.Store.Postgres;
 
-internal static class QueryTemplatesFactory
+internal static class QueryProvider
 {
     public static EvDbStreamAdapterQueryTemplates CreateStreamQueries(EvDbStorageContext storageContext)
     {
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
         string schema = storageContext.Schema.HasValue
-            ? string.Empty
-            : $"{storageContext.Schema}.";
+            ? $"{storageContext.Schema}."
+            : string.Empty;
         string tblInitial = $"{schema}{storageContext.Id}";
 
         return new EvDbStreamAdapterQueryTemplates
@@ -25,13 +25,12 @@ internal static class QueryTemplatesFactory
                     {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} as {nameof(EvDbEventRecord.CapturedAt)},
                     {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} as {nameof(EvDbEventRecord.CapturedBy)},
                     {toSnakeCase(nameof(EvDbEventRecord.Payload))} as {nameof(EvDbEventRecord.Payload)}                  
-                FROM {tblInitial}events WITH (READCOMMITTEDLOCK)
+                FROM {tblInitial}events
                 WHERE {toSnakeCase(nameof(EvDbStreamCursor.Domain))} = @{nameof(EvDbStreamCursor.Domain)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.Partition))} = @{nameof(EvDbStreamCursor.Partition)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.StreamId))} = @{nameof(EvDbStreamCursor.StreamId)}
-                    and {toSnakeCase(nameof(EvDbStreamCursor.Offset))} >= @{nameof(EvDbStreamCursor.Offset)};
+                    AND {toSnakeCase(nameof(EvDbStreamCursor.Offset))} >= @{nameof(EvDbStreamCursor.Offset)};
                 """,
-            // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"{tblInitial}InsertEventsBatch_Events",
             SaveToOutbox = $$"""{{tblInitial}}InsertOutboxBatch_{0}"""
         };
@@ -40,7 +39,7 @@ internal static class QueryTemplatesFactory
     public static EvDbSnapshotAdapterQueryTemplates CreateSnapshotQueries(EvDbStorageContext storageContext)
     {
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
-        string tabInitial = storageContext.Id;
+        string tabInitial = $"{storageContext.Schema}.{storageContext.Id}";
 
         return new EvDbSnapshotAdapterQueryTemplates
         {
@@ -52,8 +51,8 @@ internal static class QueryTemplatesFactory
                     AND {toSnakeCase(nameof(EvDbViewAddress.Partition))} = @{nameof(EvDbViewAddress.Partition)}
                     AND {toSnakeCase(nameof(EvDbViewAddress.StreamId))} = @{nameof(EvDbViewAddress.StreamId)}
                     AND {toSnakeCase(nameof(EvDbViewAddress.ViewName))} = @{nameof(EvDbViewAddress.ViewName)}
-                ORDER BY offset DESC
-                OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
+                ORDER BY {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} DESC
+                LIMIT 1;
                 """,
             SaveSnapshot = $"""
             INSERT INTO {tabInitial}snapshot (

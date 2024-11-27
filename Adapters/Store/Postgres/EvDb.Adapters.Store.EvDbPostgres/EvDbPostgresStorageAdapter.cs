@@ -6,18 +6,18 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SqlServer.Server;
 using System.Data;
 using System.Data.Common;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Dapper;
 using System.Threading;
 using Microsoft.Data.SqlClient.Server;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
+internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter
 {
     #region Ctor
 
-    public EvDbSqlServerStorageAdapter(ILogger logger,
+    public EvDbPostgresStorageAdapter(ILogger logger,
         EvDbStorageContext context,
         IEvDbConnectionFactory factory, IEnumerable<IEvDbOutboxTransformer> transformers)
             : base(logger, factory, transformers)

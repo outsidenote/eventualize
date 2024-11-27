@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-internal static class QueryTemplatesFactory
+internal static class QueryProvider
 {
     private const int DEFAULT_TEXT_LIMIT = 100;
 
