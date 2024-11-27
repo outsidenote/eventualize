@@ -1,56 +1,86 @@
-﻿using EvDb.Adapters.Store.SqlServer;
+﻿using Cocona;
+using Cocona.Builder;
+using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
+using System.Diagnostics;
+using System.Threading.Tasks.Dataflow;
 
-var logger = new LoggerFactory()
-    .CreateLogger<Program>();
 
-int storeIndex = Array.FindIndex(args, m => m == "--store");
-int indexSonnectionString = Array.FindIndex(args, m => m == "--connection-string");
-int indexnv = Array.FindIndex(args, m => m == "--environment" || m == "-e");
-Env? env = indexnv == -1
-    ? null
-    : args[indexnv + 1];
-string? connectionString = indexSonnectionString == -1
-    ? Environment.GetEnvironmentVariable("EVDB_CONNECTION")
-    : Environment.GetEnvironmentVariable(args[indexSonnectionString + 1]) ?? args[indexSonnectionString + 1];
+var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-if (string.IsNullOrEmpty(connectionString))
-    Console.WriteLine("Connection string is missing!");
+CoconaAppBuilder builder = CoconaApp.CreateBuilder();
+builder.Logging.AddConsole();
+builder.Configuration
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile($"appsettings.json", true, true)
+            .AddJsonFile($"appsettings.{environmentName}.json", true, true);
+var services = builder.Services;
 
-if (string.IsNullOrEmpty(connectionString) || storeIndex == -1 || args.Length % 2 == 0 || args.Length < storeIndex + 2)
+var app = builder.Build();
+await app.RunAsync(async (
+        ILogger<Program> logger,
+        [Option("action", ['a'],
+                ValueName = "Enum",
+                Description = "Action (`Create`, `Drop`)")]
+        Operation operation,
+        [Option("database", ['d'],
+                Description = "Database type (`sql-server` | `posgres`, etc.)")]
+        string db,
+        [Option("name", ['n'],
+                ValueName = "String",
+                Description = "Database/Collection name")]
+        EvDbDatabaseName name,
+        [Option("connection-string", ['c'],
+                Description = "Connection string")]
+        string connectionString,
+        [Option("environment", ['e'],
+                Description = "Environment (Development, Production, QA, etc.)")]
+        string? env = null,
+        [Option("prefix", ['p'],
+                ValueName = "String",
+                Description = "Table prefix")]
+        EvDbShardName? prefix = null,
+        [Option("schema", ['s'],
+                ValueName = "String",
+                Description = "Schema of the tables")]
+        EvDbSchemaName? schema = null,
+        [Option("outbox", ['o'],
+                Description = "Comma separator of outbox tables names")]
+        string? outbox = null,
+        [Option("target", ['t'],
+                ValueName = "Enum",
+                Description = "Target type (`stream`, `snapshot`, `outbox`, `all`)")]
+        TargetTypes targets = TargetTypes.All
+        ) =>
 {
-    var versionString = Assembly.GetEntryAssembly()?
-                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                            .InformationalVersion
-                            .ToString();
+    var context = EvDbStorageContext.CreateWithEnvironment(name, prefix, env, schema);
 
-    Console.WriteLine($"""
-                EvDb v{versionString}  
-                    Switches:
-                      --connection-string: Environment variable name, if missing use `EVDB_CONNECTION`
-                      --environment, -e: The environment
-                      --store: one of [`sql-server` | `posgres] (mandatory)
-                    Usage:
-                      evdb --store <sql-server|posgres> -e <environment> --connection-string <environment variable key> <prefix>
-                      evdb --store sql-server -e dev --connection-string MY_CONN MY_PREFIX
-                """
-    );
-    return;
-}
+    EvDbShardName[] outboxNames = outbox == null 
+    ? Array.Empty<EvDbShardName>() 
+    : outbox.Split(",", StringSplitOptions.RemoveEmptyEntries)
+            .Select(m => (EvDbShardName)m.Trim())
+            .ToArray();
 
+    connectionString = Environment.GetEnvironmentVariable(connectionString) ?? connectionString;
+    IEvDbStorageMigration migration = db switch
+    {
+        "sql-server" => SqlServerStorageMigrationFactory.Create(logger, connectionString, context, outboxNames),
+        //"posgres" => PostgresStorageMigrationFactory.Create(logger, connectionString, context, outboxNames),
+        _ => throw new NotImplementedException()
+    };
 
-
-var context = EvDbStorageContext.CreateWithEnvironment("master", args[^1], env);
-
-IEvDbStorageMigration store = args[storeIndex + 1] switch
-{
-    "sql-server" => SqlServerStorageMigrationFactory.Create(logger, connectionString, context),
-    //"posgres" => PostgresStorageMigrationFactory.Create(logger, connectionString, context),
-    _ => throw new NotImplementedException()
-};
-
-await store.CreateEnvironmentAsync();
-
-Console.WriteLine("Environment is ready");
+    if (operation == Operation.Create)
+    {
+        logger.LogInformation("Creating...");
+        await migration.CreateEnvironmentAsync();
+    }
+    else if (operation == Operation.Drop)
+    {
+        logger.LogInformation("Dropping...");
+        await migration.DestroyEnvironmentAsync();
+    }
+    logger.LogInformation("Complete");
+});
