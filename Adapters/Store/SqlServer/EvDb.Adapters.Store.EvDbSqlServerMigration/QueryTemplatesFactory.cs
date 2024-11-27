@@ -19,9 +19,12 @@ internal static class QueryTemplatesFactory
         string db = storageContext.DatabaseName;
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
+        if (!outboxShardNames.Any())
+            outboxShardNames = [EvDbShardName.Default];
+
         #region string destroyEnvironment = ...
 
-        IEnumerable<string> dropTopicsTables = outboxShardNames.Select(t => $"""
+        IEnumerable<string> dropOutboxTablesAndSP = outboxShardNames.Select(t => $"""
             DROP TABLE IF EXISTS  {tblInitial}{t};
             DROP PROCEDURE IF EXISTS  {tblInitial}InsertOutboxBatch_{t};
             """);
@@ -29,10 +32,11 @@ internal static class QueryTemplatesFactory
         string destroyEnvironment = $"""            
             USE {db}
             DROP TABLE IF EXISTS  {tblInitial}events;
+            DROP PROCEDURE IF EXISTS {tblInitial}InsertOutboxBatch_Events;
+            DROP PROCEDURE IF EXISTS {tblInitial}InsertEventsBatch_Events
             DROP TYPE IF EXISTS {tblInitial}EventsTableType;
-            DROP TYPE IF EXISTS {tblInitial}InsertOutboxBatch_Events;
+            {string.Join(string.Empty, dropOutboxTablesAndSP)}            
             DROP TYPE IF EXISTS {tblInitial}OutboxTableType;
-            {string.Join(string.Empty, dropTopicsTables)}            
             DROP TABLE IF EXISTS  {tblInitial}snapshot;            
             """;
 
@@ -171,9 +175,6 @@ internal static class QueryTemplatesFactory
         #endregion //  string outboxTableType = ...
 
         #region string createOutbox = ...
-
-        if (!outboxShardNames.Any())
-            outboxShardNames = [EvDbShardName.Default];
 
         IEnumerable<string> createOutbox = outboxShardNames.Select(t =>
             $"""
