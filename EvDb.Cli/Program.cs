@@ -48,27 +48,31 @@ await app.RunAsync(async (
                 Description = "Schema of the tables")]
         EvDbSchemaName? schema = null,
         [Option("outbox", ['o'],
-                Description = "Comma separator of outbox tables names")]
-        string? outbox = null,
-        [Option("target", ['t'],
+                Description = "outbox tables names (ALLOW MULTIPLE)")]
+        EvDbShardName[]? outbox = null,
+        [Option("features", ['f'],
                 ValueName = "Enum",
-                Description = "Target type (`stream`, `snapshot`, `outbox`, `all`)")]
-        TargetTypes targets = TargetTypes.All
+                Description = "Storage features like: `stream`, `snapshot`, `outbox`, `all`")]
+        StorageFeatures[]? features = null
         ) =>
 {
-    var context = EvDbStorageContext.CreateWithEnvironment(name, prefix, env, schema);
+    StorageFeatures storageFeatures = features == null || features.Length == 0
+                                        ? StorageFeatures.All
+                                        : StorageFeatures.None;
+    foreach (var f in features ?? Array.Empty<StorageFeatures>())
+    {
+        storageFeatures |= f;
+    }
 
-    EvDbShardName[] outboxNames = outbox == null 
-    ? Array.Empty<EvDbShardName>() 
-    : outbox.Split(",", StringSplitOptions.RemoveEmptyEntries)
-            .Select(m => (EvDbShardName)m.Trim())
-            .ToArray();
+    var context = new EvDbStorageContext(name, env, prefix, schema);
+
+    EvDbShardName[] outboxNames = outbox ?? Array.Empty<EvDbShardName>();
 
     connectionString = Environment.GetEnvironmentVariable(connectionString) ?? connectionString;
     IEvDbStorageMigration migration = db switch
     {
-        "sql-server" => SqlServerStorageMigrationFactory.Create(logger, connectionString, context, outboxNames),
-        //"posgres" => PostgresStorageMigrationFactory.Create(logger, connectionString, context, outboxNames),
+        "sql-server" => SqlServerStorageMigrationFactory.Create(logger, connectionString, context, storageFeatures, outboxNames),
+        //"posgres" => PostgresStorageMigrationFactory.Create(logger, connectionString, context, storageFeatures, outboxNames),
         _ => throw new NotImplementedException()
     };
 

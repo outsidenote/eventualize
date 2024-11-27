@@ -14,6 +14,48 @@
         "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;Connect Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true;"
       }
     },
+    "EvDb.Cli.Create.Stream": {
+      "commandName": "Project",
+      "commandLineArgs": "-a create -f stream -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo",
+      "environmentVariables": {
+        "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;Connect Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true;"
+      }
+    },
+    "EvDb.Cli.Drop.Stream": {
+      "commandName": "Project",
+      "commandLineArgs": "-a drop -f stream -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo",
+      "environmentVariables": {
+        "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;Connect Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true;"
+      }
+    },
+    "EvDb.Cli.Create.StreamSnapshot": {
+      "commandName": "Project",
+      "commandLineArgs": "-a create -f stream -f snapshot -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo",
+      "environmentVariables": {
+        "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;Connect Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true;"
+      }
+    },
+    "EvDb.Cli.Drop.StreamSnapshot": {
+      "commandName": "Project",
+      "commandLineArgs": "-a drop -f stream -f snapshot -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo",
+      "environmentVariables": {
+        "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;Connect Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true;"
+      }
+    },
+    "EvDb.Cli.Create.StreamOutbox": {
+      "commandName": "Project",
+      "commandLineArgs": "-a create -f streamandoutbox -o kafka -o rabbitmq -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo",
+      "environmentVariables": {
+        "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;Connect Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true;"
+      }
+    },
+    "EvDb.Cli.Drop.StreamOutbox": {
+      "commandName": "Project",
+      "commandLineArgs": "-a drop -f streamandoutbox -o kafka -o rabbitmq -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo",
+      "environmentVariables": {
+        "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;Connect Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true;"
+      }
+    },
     "EvDb.Cli.Help": {
       "commandName": "Project",
       "commandLineArgs": "--help",

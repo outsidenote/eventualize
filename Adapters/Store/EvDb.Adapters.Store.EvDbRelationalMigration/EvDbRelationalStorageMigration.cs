@@ -11,6 +11,7 @@ namespace EvDb.Core.Adapters;
 public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
 {
     private readonly Task<DbConnection> _commandsTask;
+    private readonly ILogger _logger;
 
     #region Ctor
 
@@ -25,11 +26,14 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
             await connection.OpenAsync();
             return connection;
         }
+
+        _logger = logger;
     }
 
     #endregion // Ctor
         
     protected abstract EvDbMigrationQueryTemplates Queries { get; }
+
 
     #region IEvDbStorageMigration Members
 
@@ -39,16 +43,32 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
 
         foreach (string query in Queries.CreateEnvironment)
         {
+            _logger.LogInformation(query);
             await conn.ExecuteAsync(query);
         }
     }   
+
+    string IEvDbStorageMigration.CreateEnvironmentScript(CancellationToken cancellation) 
+    {
+        string query = string.Join("""
+
+            """, Queries.CreateEnvironment);
+        return query;
+    }
 
     async Task IEvDbStorageMigration.DestroyEnvironmentAsync(CancellationToken cancellation)
     {
         var conn = await _commandsTask;
         string query = Queries.DestroyEnvironment;
+        _logger.LogInformation(query);
 
         await conn.ExecuteAsync(query);
+    }
+
+    string IEvDbStorageMigration.DestroyEnvironmentScript(CancellationToken cancellation)
+    { 
+        string query = Queries.DestroyEnvironment;
+        return query;
     }
 
     #endregion // IEvDbStorageMigration Members
