@@ -339,7 +339,7 @@ internal static class QueryTemplatesFactory
         {
             yield return $"""
                                 USE {db}
-                                ------------------------------------  EVENTS  ------------------------------------------ Create the event table
+                                ------------------------------------  EVENTS  ----------------------------------------
                                 {eventsTableType}
                                 
                                 {createEventsTable}

@@ -48,14 +48,6 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
         }
     }   
 
-    string IEvDbStorageMigration.CreateEnvironmentScript(CancellationToken cancellation) 
-    {
-        string query = string.Join("""
-
-            """, Queries.CreateEnvironment);
-        return query;
-    }
-
     async Task IEvDbStorageMigration.DestroyEnvironmentAsync(CancellationToken cancellation)
     {
         var conn = await _commandsTask;
@@ -63,12 +55,6 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
         _logger.LogInformation(query);
 
         await conn.ExecuteAsync(query);
-    }
-
-    string IEvDbStorageMigration.DestroyEnvironmentScript(CancellationToken cancellation)
-    { 
-        string query = Queries.DestroyEnvironment;
-        return query;
     }
 
     #endregion // IEvDbStorageMigration Members

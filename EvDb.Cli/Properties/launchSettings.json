@@ -14,6 +14,18 @@
         "MY_CONN": "Data Source=localhost;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;TrustServerCertificate=true;MultipleActiveResultSets=true;Connect Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true;"
       }
     },
+    "EvDb.Cli.CreateScript": {
+      "commandName": "Project",
+      "commandLineArgs": "-a create -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo create.sql"
+    },
+    "EvDb.Cli.DropScript": {
+      "commandName": "Project",
+      "commandLineArgs": "-a drop -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo drop.sql"
+    },
+    "EvDb.Cli.Create,Dry": {
+      "commandName": "Project",
+      "commandLineArgs": "-a create --dry-run -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo"
+    },
     "EvDb.Cli.Create.Stream": {
       "commandName": "Project",
       "commandLineArgs": "-a create -f stream -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo",
