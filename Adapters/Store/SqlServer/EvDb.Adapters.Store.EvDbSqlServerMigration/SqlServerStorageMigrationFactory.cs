@@ -21,6 +21,24 @@ public static class SqlServerStorageMigrationFactory
                     logger,
                     context,
                     factory,
+                    StorageFeatures.All,
+                    shardNames);
+        return result;
+    }
+
+    public static IEvDbStorageMigration Create(
+        ILogger logger,
+        IEvDbConnectionFactory factory,
+        EvDbStorageContext context,
+        StorageFeatures features,
+        params EvDbShardName[] shardNames)
+    {
+        IEvDbStorageMigration result =
+            new SqlServerStorageMigration(
+                    logger,
+                    context,
+                    factory,
+                    features,
                     shardNames);
         return result;
     }
@@ -34,6 +52,28 @@ public static class SqlServerStorageMigrationFactory
         IEvDbConnectionFactory factory = new EvDbSqlConnectionFactory(connectionString);
         var result = Create(logger, factory, context, shardNames);
         return result;
+    }
+
+    public static IEvDbStorageMigration Create(
+        ILogger logger,
+        string connectionString,
+        EvDbStorageContext context,
+        StorageFeatures features,
+        params EvDbShardName[] shardNames)
+    {
+        IEvDbConnectionFactory factory = new EvDbSqlConnectionFactory(connectionString);
+        var result = Create(logger, factory, context, features, shardNames);
+        return result;
+    }
+
+    public static EvDbMigrationQueryTemplates CreateScripts(
+    ILogger logger,
+    EvDbStorageContext context,
+    StorageFeatures features,
+    params EvDbShardName[] shardNames)
+    {
+        EvDbMigrationQueryTemplates scripts = QueryTemplatesFactory.Create(context, features, shardNames);
+        return scripts;
     }
 }
 

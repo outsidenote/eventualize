@@ -1,5 +1,6 @@
 ﻿using EvDb.Core;
 using EvDb.Core.Adapters;
+using System.Text;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
@@ -9,9 +10,10 @@ internal static class QueryTemplatesFactory
 
     public static EvDbMigrationQueryTemplates Create(
                             EvDbStorageContext storageContext,
+                            StorageFeatures features,
                             IEnumerable<EvDbShardName> outboxShardNames)
     {
-        string schema = storageContext.Schema.HasValue 
+        string schema = storageContext.Schema.HasValue
             ? string.Empty
             : $"{storageContext.Schema}.";
         string tblInitial = $"{schema}{storageContext.Id}";
@@ -19,29 +21,51 @@ internal static class QueryTemplatesFactory
         string db = storageContext.DatabaseName;
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
+        if (!outboxShardNames.Any())
+            outboxShardNames = [EvDbShardName.Default];
+
         #region string destroyEnvironment = ...
 
-        IEnumerable<string> dropTopicsTables = outboxShardNames.Select(t => $"""
-            DROP TABLE IF EXISTS  {tblInitial}{t};
-            DROP PROCEDURE IF EXISTS  {tblInitial}InsertOutboxBatch_{t};
+        IEnumerable<string> dropOutboxTablesAndSP = outboxShardNames.Select(t => $"""
+            DROP TABLE IF EXISTS {tblInitial}{t};
+            DROP PROCEDURE IF EXISTS {tblInitial}InsertOutboxBatch_{t};
             """);
 
-        string destroyEnvironment = $"""            
-            USE {db}
-            DROP TABLE IF EXISTS  {tblInitial}events;
-            DROP TYPE IF EXISTS {tblInitial}EventsTableType;
-            DROP TYPE IF EXISTS {tblInitial}InsertOutboxBatch_Events;
-            DROP TYPE IF EXISTS {tblInitial}OutboxTableType;
-            {string.Join(string.Empty, dropTopicsTables)}            
-            DROP TABLE IF EXISTS  {tblInitial}snapshot;            
-            """;
+        StringBuilder destroyEnvironmentBuilder = new();
+        destroyEnvironmentBuilder.AppendLine($"USE {db}");
+        if ((features & StorageFeatures.Stream) != StorageFeatures.None)
+        {
+            destroyEnvironmentBuilder.AppendLine($"""            
+                DROP TABLE IF EXISTS  {tblInitial}events;
+                DROP PROCEDURE IF EXISTS {tblInitial}InsertEventsBatch_Events
+                DROP TYPE IF EXISTS {tblInitial}EventsTableType;
+                """);
+        }
+        if ((features & StorageFeatures.Snapshot) != StorageFeatures.None)
+        {
+            destroyEnvironmentBuilder.AppendLine($"""            
+                DROP TABLE IF EXISTS  {tblInitial}snapshot;            
+                """);
+        }
+        if ((features & StorageFeatures.Outbox) != StorageFeatures.None)
+        {
+            destroyEnvironmentBuilder.AppendLine($"""            
+                {string.Join(string.Empty, dropOutboxTablesAndSP)}            
+                DROP TYPE IF EXISTS {tblInitial}OutboxTableType;
+                """);
+        }
+
+        string destroyEnvironment = destroyEnvironmentBuilder.ToString();
 
         #endregion //  string destroyEnvironment = ...
 
         #region string eventsTableType = ...
 
-        string eventsTableType = $$"""
+        string eventsTableType = (features & StorageFeatures.Stream) == StorageFeatures.None
+            ? string.Empty
+            : $$"""
         CREATE TYPE {{tblInitial}}EventsTableType AS TABLE (        
+                {{toSnakeCase(nameof(EvDbEventRecord.Id))}} UNIQUEIDENTIFIER NOT NULL,
                 {{toSnakeCase(nameof(EvDbEventRecord.Domain))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{toSnakeCase(nameof(EvDbEventRecord.Partition))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{toSnakeCase(nameof(EvDbEventRecord.StreamId))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
@@ -59,13 +83,16 @@ internal static class QueryTemplatesFactory
 
         #region string createEventsBatchSP = ...
 
-        string createEventsBatchSP =
-    $"""
+        string createEventsBatchSP = (features & StorageFeatures.Stream) == StorageFeatures.None
+            ? string.Empty
+            : $"""
+            -------------------------- Insert Event Batch SP --------------------------------
             CREATE PROCEDURE {tblInitial}InsertEventsBatch_Events
                         @Records {tblInitial}EventsTableType READONLY
                 AS
                 BEGIN
                     INSERT INTO {tblInitial}events (                           
+                        {toSnakeCase(nameof(EvDbEventRecord.Id))},
                         {toSnakeCase(nameof(EvDbEventRecord.Domain))},
                         {toSnakeCase(nameof(EvDbEventRecord.Partition))},
                         {toSnakeCase(nameof(EvDbEventRecord.StreamId))},
@@ -77,7 +104,8 @@ internal static class QueryTemplatesFactory
                         {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))},
                         {toSnakeCase(nameof(EvDbEventRecord.Payload))}
                     )
-                    SELECT  {toSnakeCase(nameof(EvDbEventRecord.Domain))},
+                    SELECT  {toSnakeCase(nameof(EvDbEventRecord.Id))},
+                            {toSnakeCase(nameof(EvDbEventRecord.Domain))},
                             {toSnakeCase(nameof(EvDbEventRecord.Partition))},
                             {toSnakeCase(nameof(EvDbEventRecord.StreamId))},
                             {toSnakeCase(nameof(EvDbEventRecord.Offset))},
@@ -96,8 +124,11 @@ internal static class QueryTemplatesFactory
 
         #region string createEventsTable = ...
 
-        string createEventsTable = $"""
+        string createEventsTable = (features & StorageFeatures.Stream) == StorageFeatures.None
+            ? string.Empty
+            : $"""
             CREATE TABLE {tblInitial}events (
+                {toSnakeCase(nameof(EvDbEventRecord.Id))} UNIQUEIDENTIFIER NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbEventRecord.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -150,8 +181,11 @@ internal static class QueryTemplatesFactory
 
         #region string outboxTableType = ...
 
-        string outboxTableType = $$"""
-        CREATE TYPE {{tblInitial}}OutboxTableType AS TABLE (        
+        string outboxTableType = (features & StorageFeatures.Outbox) == StorageFeatures.None
+            ? string.Empty
+            : $$"""
+        CREATE TYPE {{tblInitial}}OutboxTableType AS TABLE (   
+                {{toSnakeCase(nameof(EvDbMessageRecord.Id))}} UNIQUEIDENTIFIER  NOT NULL,     
                 {{toSnakeCase(nameof(EvDbMessageRecord.Domain))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{toSnakeCase(nameof(EvDbMessageRecord.Partition))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{toSnakeCase(nameof(EvDbMessageRecord.StreamId))}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
@@ -172,13 +206,13 @@ internal static class QueryTemplatesFactory
 
         #region string createOutbox = ...
 
-        if (!outboxShardNames.Any())
-            outboxShardNames = [EvDbShardName.Default];
-
-        IEnumerable<string> createOutbox = outboxShardNames.Select(t =>
+        IEnumerable<string> createOutbox = (features & StorageFeatures.Outbox) == StorageFeatures.None
+            ? Array.Empty<string>()
+            : outboxShardNames.Select(t =>
             $"""
 
             CREATE TABLE {tblInitial}{t} (
+                {toSnakeCase(nameof(EvDbMessageRecord.Id))} UNIQUEIDENTIFIER  NOT NULL, 
                 {toSnakeCase(nameof(EvDbMessageRecord.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -224,13 +258,19 @@ internal static class QueryTemplatesFactory
 
             """);
 
+        #endregion //  string createOutbox = ...
+
+        #region IEnumerable<string> createOutboxSP = ...
+
         IEnumerable<string> createOutboxSP = outboxShardNames.Select(t =>
             $"""
+            ------------------ Insert Outbox Batch SP --------------------
             CREATE PROCEDURE {tblInitial}InsertOutboxBatch_{t}
                         @{t}Records {tblInitial}OutboxTableType READONLY
                 AS
                 BEGIN
                     INSERT INTO {tblInitial}{t} (                           
+                        {toSnakeCase(nameof(EvDbMessageRecord.Id))},
                         {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
                         {toSnakeCase(nameof(EvDbMessageRecord.Partition))},
                         {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
@@ -245,7 +285,8 @@ internal static class QueryTemplatesFactory
                         {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
                         {toSnakeCase(nameof(EvDbMessageRecord.Payload))}
                     )
-                    SELECT  {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
+                    SELECT  {toSnakeCase(nameof(EvDbMessageRecord.Id))},
+                            {toSnakeCase(nameof(EvDbMessageRecord.Domain))},
                             {toSnakeCase(nameof(EvDbMessageRecord.Partition))},
                             {toSnakeCase(nameof(EvDbMessageRecord.StreamId))},
                             {toSnakeCase(nameof(EvDbMessageRecord.Offset))},
@@ -263,12 +304,15 @@ internal static class QueryTemplatesFactory
 
             """);
 
-        #endregion //  string createOutbox = ...
+        #endregion //  IEnumerable<string> createOutboxSP = ...
 
         #region string createSnapshotTable = ...
 
-        string createSnapshotTable = $"""
+        string createSnapshotTable = (features & StorageFeatures.Snapshot) == StorageFeatures.None
+            ? string.Empty
+            : $"""
             CREATE TABLE {tblInitial}snapshot (
+                {toSnakeCase(nameof(EvDbStoredSnapshotData.Id))} UNIQUEIDENTIFIER  NOT NULL,
                 {toSnakeCase(nameof(EvDbViewAddress.Domain))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbViewAddress.Partition))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbViewAddress.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -308,27 +352,37 @@ internal static class QueryTemplatesFactory
         {
             yield return $"""
                                 USE {db}
-                                ------------------------------------  EVENTS  ------------------------------------------ Create the event table
+                                ------------------------------------  EVENTS  ----------------------------------------
                                 {eventsTableType}
                                 
                                 {createEventsTable}
+                                """;
+            if ((features & StorageFeatures.Stream) != StorageFeatures.None)
+                yield return createEventsBatchSP;
 
+            if ((features & StorageFeatures.Outbox) != StorageFeatures.None)
+            {
+                yield return $"""
+                                USE {db}
                                 ------------------------------------  OUTBOX  ----------------------------------------
                                 {outboxTableType}
 
                                 {string.Join(string.Empty, createOutbox)}
-
+                                """;
+                foreach (string sp in createOutboxSP)
+                {
+                    yield return $"""
+                                    {sp}
+                                    """;
+                }
+            }
+            if ((features & StorageFeatures.Snapshot) != StorageFeatures.None)
+            {
+                yield return $"""
+                                USE {db}
                                 -----------------------------------  SNAPSHOTS  ---------------------------------------
                                 {createSnapshotTable}
                                 """;
-
-            yield return createEventsBatchSP;
-
-            foreach (string sp in createOutboxSP)
-            {
-                yield return $"""
-                                    {sp}
-                                    """;
             }
         }
 

@@ -5,7 +5,8 @@ namespace EvDb.Core.Adapters;
 
 [DebuggerDisplay("MessageType: {MessageType} ,EventType:{EventType}, Channel:{Channel} Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbMessageRecord
-{
+{   
+    public Guid Id { get; init; }
     public string Domain { get; init; }
     public string Partition { get; init; }
     public string StreamId { get; init; }
@@ -27,6 +28,7 @@ public struct EvDbMessageRecord
         Activity? activity = Activity.Current;
         var result = new EvDbMessageRecord
         {
+            Id = Guid.NewGuid(), // TODO: GuidV7
             Domain = e.StreamCursor.Domain,
             Partition = e.StreamCursor.Partition,
             StreamId = e.StreamCursor.StreamId,

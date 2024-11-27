@@ -57,6 +57,7 @@ internal static class QueryTemplatesFactory
                 """,
             SaveSnapshot = $"""
             INSERT INTO {tabInitial}snapshot (
+                        {toSnakeCase(nameof(SnapshotSaveParameter.Id))},
                         {toSnakeCase(nameof(SnapshotSaveParameter.Domain))},
                         {toSnakeCase(nameof(SnapshotSaveParameter.Partition))},
                         {toSnakeCase(nameof(SnapshotSaveParameter.StreamId))},
@@ -64,6 +65,7 @@ internal static class QueryTemplatesFactory
                         {toSnakeCase(nameof(SnapshotSaveParameter.Offset))},
                         {toSnakeCase(nameof(SnapshotSaveParameter.State))})
             VALUES (
+                        @{nameof(SnapshotSaveParameter.Id)},
                         @{nameof(SnapshotSaveParameter.Domain)},
                         @{nameof(SnapshotSaveParameter.Partition)},
                         @{nameof(SnapshotSaveParameter.StreamId)},

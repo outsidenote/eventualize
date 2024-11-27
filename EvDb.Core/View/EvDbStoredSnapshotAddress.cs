@@ -6,6 +6,7 @@ namespace EvDb.Core;
 [Equatable]
 [DebuggerDisplay("{State}, Offset:{Offset}")]
 public readonly partial record struct EvDbStoredSnapshotData(
+            Guid Id,
             string Domain,
             string Partition,
             string StreamId,
@@ -17,7 +18,7 @@ public readonly partial record struct EvDbStoredSnapshotData(
             EvDbViewAddress address,
             long offset,
             string state)
-                : this(address.Domain, address.Partition, address.StreamId, address.ViewName, offset, state)
+                : this(Guid.NewGuid(), address.Domain, address.Partition, address.StreamId, address.ViewName, offset, state)
     {
     }
 
