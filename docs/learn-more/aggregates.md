@@ -38,7 +38,7 @@ Another important advantage of this approach is the it provides [strong consiste
 
 ## Capturing Events in an Aggregate
 Throughout the application's execution, it'll capture or create one or more events.<br>
-Captured events are not stored directly into the Stream, because it can heart performance.
+Captured events are not stored directly into the Stream, because it can hurt performance.
 Those events will be appended to the ordered collection of **Pending Events** in the Aggregate.<br>
 **Pending Events** are events that were captured locally and not yet stored in the Stream.<br>
 The Folding Logic will also execute the relevant Folding Function, based on the Event's type. This will update the Aggregate's State.<br>
@@ -52,7 +52,7 @@ As you can see, the Event was added to the Pending Events collection, and the St
 The application code captured some Events and appeneded them to the Aggregate's Pending Events.<br>
 The state of Aggregate also have been updated.
 Now we'd like to store those Pending Events into to the respective Stream.
-It is really simply actually:
+It is really simple actually:
 1. The Pending Events are added to the Stream and removed from the Aggregate (as they are no longer pending).
 2. If a Snapshot should be created, the current State of the Aggregate is stored as a Snapshot and assigned with the Offset of the latest stored Event.
 Here is an illustration of that:
