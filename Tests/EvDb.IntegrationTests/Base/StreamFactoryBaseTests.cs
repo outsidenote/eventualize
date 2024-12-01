@@ -4,9 +4,9 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
-public sealed class StreamFactoryTests : IntegrationTests
+public abstract class StreamFactoryBaseTests : IntegrationTests
 {
-    public StreamFactoryTests(ITestOutputHelper output) : base(output, StoreType.SqlServer)
+    public StreamFactoryBaseTests(ITestOutputHelper output, StoreType storeType) : base(output, storeType)
     {
     }
 
@@ -15,7 +15,7 @@ public sealed class StreamFactoryTests : IntegrationTests
     {
 
         var stream = await StorageContext
-                        .GivenFactoryForStoredStreamWithEvents(_output)
+                        .GivenFactoryForStoredStreamWithEvents(_output, _storeType)
                         .WhenGetStreamAsync();
 
         ThenStoredEventsAddedSuccessfully();
@@ -34,14 +34,14 @@ public sealed class StreamFactoryTests : IntegrationTests
     [Fact]
     public async Task StreamFactory_WhenGettingDifferent_Succeed()
     {
-        IEvDbSchoolStreamFactory f = StorageContext.CreateFactory();
+        IEvDbSchoolStreamFactory f = StorageContext.CreateFactory(_storeType);
         var (_, streamId) = await StorageContext
-                        .GivenFactoryForStoredStreamWithEvents(_output);
+                        .GivenFactoryForStoredStreamWithEvents(_output, _storeType);
 
         string stream1Id = streamId + "-a";
         string stream2Id = streamId + "-b";
-        await StorageContext.GivenSavedEventsAsync(_output, stream1Id);
-        await StorageContext.GivenSavedEventsAsync(_output, stream2Id);
+        await StorageContext.GivenSavedEventsAsync(_output, _storeType, stream1Id);
+        await StorageContext.GivenSavedEventsAsync(_output, _storeType, stream2Id);
 
 
         IEvDbSchoolStream stream1 = await f.WhenGetStreamAsync(stream1Id);
@@ -73,7 +73,7 @@ public sealed class StreamFactoryTests : IntegrationTests
     public async Task StreamFactory_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
     {
         var stream = await StorageContext
-                        .GivenFactoryForStoredStreamWithEvents(_output, numOfGrades: 6)
+                        .GivenFactoryForStoredStreamWithEvents(_output, _storeType, numOfGrades: 6)
                         .WhenGetStreamAsync();
 
         ThenStoredEventsAddedSuccessfully();
@@ -99,7 +99,7 @@ public sealed class StreamFactoryTests : IntegrationTests
     [Fact]
     public async Task StreamFactory_WhenInstantiatingWithSnapshotOnDifferentOffsetAndEvents_Succeed()
     {
-        var stream = await StorageContext.GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset(_output);
+        var stream = await StorageContext.GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset(_output, _storeType);
 
         ThenStoredEventsAddedSuccessfully();
 

@@ -7,20 +7,37 @@ using EvDb.UnitTests;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
+using System.Diagnostics;
 using Xunit.Abstractions;
 
+[DebuggerDisplay("{_storeType}")]
 public class IntegrationTests : IAsyncLifetime
 {
     protected readonly IEvDbStorageMigration _storageMigration;
     protected readonly ITestOutputHelper _output;
+    protected readonly StoreType _storeType;
     protected readonly ILogger _logger = A.Fake<ILogger>();
     protected readonly DbConnection _connection;
     private readonly string _outboxQuery;
 
+
     public IntegrationTests(ITestOutputHelper output, StoreType storeType)
     {
         _output = output;
-        var context = new EvDbTestStorageContext();
+        _storeType = storeType;
+        EvDbSchemaName schema = storeType switch
+        {
+            StoreType.SqlServer => "dbo",
+            StoreType.Postgres => "public",
+            _ => EvDbSchemaName.Empty
+        };
+        EvDbDatabaseName dbName = storeType switch
+        {
+            StoreType.SqlServer => "master",
+            StoreType.Postgres => "tests",
+            _ => EvDbDatabaseName.Empty
+        };
+        var context = new EvDbTestStorageContext(schema, dbName);
         StorageContext = context;
         _storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, storeType, context,
                                                         OutboxShards.MessagingVip,

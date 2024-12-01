@@ -9,9 +9,9 @@ internal static class QueryProvider
     {
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
         string schema = storageContext.Schema.HasValue
-            ? string.Empty
-            : $"{storageContext.Schema}.";
-        string tblInitial = $"{schema}{storageContext.Id}";
+            ? $"{storageContext.Schema}."
+            : string.Empty;
+        string tblInitial = $"{schema}{storageContext.ShortId}";
 
         return new EvDbStreamAdapterQueryTemplates
         {
@@ -29,7 +29,7 @@ internal static class QueryProvider
                 WHERE {toSnakeCase(nameof(EvDbStreamCursor.Domain))} = @{nameof(EvDbStreamCursor.Domain)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.Partition))} = @{nameof(EvDbStreamCursor.Partition)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.StreamId))} = @{nameof(EvDbStreamCursor.StreamId)}
-                    and {toSnakeCase(nameof(EvDbStreamCursor.Offset))} >= @{nameof(EvDbStreamCursor.Offset)};
+                    AND {toSnakeCase(nameof(EvDbStreamCursor.Offset))} >= @{nameof(EvDbStreamCursor.Offset)};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"{tblInitial}InsertEventsBatch_Events",

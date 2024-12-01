@@ -9,9 +9,10 @@ using System.Data.Common;
 using Npgsql;
 using Dapper;
 using System.Threading;
-using Microsoft.Data.SqlClient.Server;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
-namespace EvDb.Adapters.Store.SqlServer;
+namespace EvDb.Adapters.Store.Postgres;
 
 internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter
 {
@@ -37,15 +38,51 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter
         DbTransaction transaction,
         CancellationToken cancellationToken)
     {
-        var dataRecords = ToEventsTvp(records);
-        using SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection, (SqlTransaction)transaction);
-        insertCommand.CommandType = CommandType.StoredProcedure;
-        SqlParameter tvpParam = insertCommand.Parameters.AddWithValue(
-                                                            "@Records",
-                                                            dataRecords);
-        tvpParam.SqlDbType = SqlDbType.Structured;
+        Guid[] ids = new Guid[records.Length];
+        string[] domains = new string[records.Length];
+        string[] partitions = new string[records.Length];
+        string[] streamIds = new string[records.Length];
+        long[] offsets = new long[records.Length];
+        string[] eventTypes = new string[records.Length];
+        DateTimeOffset[] capturedAts = new DateTimeOffset[records.Length];
+        string[] capturedBys = new string[records.Length];
+        string?[] traceIds = new string[records.Length];
+        string?[] spanIds = new string[records.Length];
+        List<byte[]> payloads = new ();
 
-        int affected = await insertCommand.ExecuteNonQueryAsync(cancellationToken);
+        var traceId = Activity.Current?.TraceId.ToHexString();
+        var spanId = Activity.Current?.SpanId.ToHexString();
+
+        for (int i = 0; i < records.Length; i++)
+        {
+            EvDbEventRecord record = records[i];
+            ids[i] = record.Id;
+            domains[i] = record.Domain;
+            partitions[i] = record.Partition;
+            streamIds[i] = record.StreamId;
+            offsets[i] = record.Offset;
+            eventTypes[i] = record.EventType;
+            capturedBys[i] = record.CapturedBy;
+            capturedAts[i] = record.CapturedAt;
+            traceIds[i] = traceId;
+            spanIds[i] = spanId;
+            payloads.Add(record.Payload);
+        }
+
+        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection, (NpgsqlTransaction)transaction);
+        command.Parameters.AddWithValue("@Id", NpgsqlTypes.NpgsqlDbType.Uuid | NpgsqlTypes.NpgsqlDbType.Array, ids);
+        command.Parameters.AddWithValue("@Domain", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, domains);
+        command.Parameters.AddWithValue("@Partition", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, partitions);
+        command.Parameters.AddWithValue("@StreamId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, streamIds);
+        command.Parameters.AddWithValue("@Offset", NpgsqlTypes.NpgsqlDbType.Bigint | NpgsqlTypes.NpgsqlDbType.Array, offsets);
+        command.Parameters.AddWithValue("@EventType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
+        command.Parameters.AddWithValue("@CapturedAt", NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
+        command.Parameters.AddWithValue("@CapturedBy", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
+        command.Parameters.AddWithValue("@TraceId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, traceIds);
+        command.Parameters.AddWithValue("@SpanId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, spanIds);
+        command.Parameters.AddWithValue("@Payload", NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, payloads);
+
+        int affected = await command.ExecuteNonQueryAsync(cancellationToken);
 
         return affected;
     }
@@ -62,16 +99,63 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter
         DbTransaction transaction, 
         CancellationToken cancellationToken)
     {
-        var dataRecords = ToOutboxTvp(records);
         query = string.Format(query, shardName);
-        SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection, (SqlTransaction)transaction);
-        insertCommand.CommandType = CommandType.StoredProcedure;
-        SqlParameter tvpParam = insertCommand.Parameters.AddWithValue(
-                                                            $"@{shardName}Records",
-                                                            dataRecords);
-        tvpParam.SqlDbType = SqlDbType.Structured;
 
-        int affected = await insertCommand.ExecuteNonQueryAsync(cancellationToken);
+        Guid[] ids = new Guid[records.Length];
+        string[] domains = new string[records.Length];
+        string[] partitions = new string[records.Length];
+        string[] streamIds = new string[records.Length];
+        long[] offsets = new long[records.Length];
+        string[] eventTypes = new string[records.Length];
+        string[] messageTypes = new string[records.Length];
+        string[] channels = new string[records.Length];
+        string[] serializationTypes = new string[records.Length];
+        DateTimeOffset[] capturedAts = new DateTimeOffset[records.Length];
+        string[] capturedBys = new string[records.Length];
+        string?[] traceIds = new string[records.Length];
+        string?[] spanIds = new string[records.Length];
+        List<byte[]> payloads = new();
+
+        var traceId = Activity.Current?.TraceId.ToHexString();
+        var spanId = Activity.Current?.SpanId.ToHexString();
+
+        for (int i = 0; i < records.Length; i++)
+        {
+            EvDbMessageRecord record = records[i];
+            ids[i] = record.Id;
+            domains[i] = record.Domain;
+            partitions[i] = record.Partition;
+            streamIds[i] = record.StreamId;
+            offsets[i] = record.Offset;
+            eventTypes[i] = record.EventType;
+            capturedBys[i] = record.CapturedBy;
+            capturedAts[i] = record.CapturedAt;
+            messageTypes[i] = record.MessageType;
+            serializationTypes[i] = record.SerializeType;
+            channels[i] = record.Channel;
+            traceIds[i] = traceId;
+            spanIds[i] = spanId;
+            payloads.Add(record.Payload);
+        }
+
+        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection, (NpgsqlTransaction)transaction);
+
+        command.Parameters.AddWithValue("@Id", NpgsqlTypes.NpgsqlDbType.Uuid | NpgsqlTypes.NpgsqlDbType.Array, ids);
+        command.Parameters.AddWithValue("@Domain", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, domains);
+        command.Parameters.AddWithValue("@Partition", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, partitions);
+        command.Parameters.AddWithValue("@StreamId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, streamIds);
+        command.Parameters.AddWithValue("@Offset", NpgsqlTypes.NpgsqlDbType.Bigint | NpgsqlTypes.NpgsqlDbType.Array, offsets);
+        command.Parameters.AddWithValue("@Channel", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
+        command.Parameters.AddWithValue("@MessageType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
+        command.Parameters.AddWithValue("@SerializeType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
+        command.Parameters.AddWithValue("@EventType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
+        command.Parameters.AddWithValue("@CapturedAt", NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
+        command.Parameters.AddWithValue("@CapturedBy", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
+        command.Parameters.AddWithValue("@TraceId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, traceIds);
+        command.Parameters.AddWithValue("@SpanId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, spanIds);
+        command.Parameters.AddWithValue("@Payload", NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, payloads);
+
+        int affected = await command.ExecuteNonQueryAsync(cancellationToken);
 
         return affected;
     }
@@ -88,126 +172,10 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter
 
     protected override bool IsOccException(Exception exception)
     {
-        bool result = exception is SqlException &&
-                      exception.Message.StartsWith("Violation of PRIMARY KEY constraint");
+        bool result = exception is PostgresException postgresException &&
+                 postgresException.SqlState == PostgresErrorCodes.UniqueViolation;
         return result;
     }
 
     #endregion //  IsOccException
-
-    #region ToEventsTvp
-
-    private static IEnumerable<SqlDataRecord> ToEventsTvp(EvDbEventRecord[] events)
-    {
-        const int DEFAULT_TEXT_LIMIT = 255; // Replace with actual value if different
-
-        // Define the schema for the TVP with correct sizes
-        var metaData = new[]
-        {
-            new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-            new SqlMetaData("Domain", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("Partition", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("StreamId", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("Offset", SqlDbType.BigInt),
-            new SqlMetaData("EventType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("SpanId", SqlDbType.VarChar, 16),
-            new SqlMetaData("TraceId", SqlDbType.VarChar, 32),
-            new SqlMetaData("CapturedBy", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("CapturedAt", SqlDbType.DateTimeOffset),
-            new SqlMetaData("Payload", SqlDbType.VarBinary, 4000)
-        };
-
-        // Populate the TVP
-        foreach (var message in events)
-        {
-            var record = new SqlDataRecord(metaData);
-
-            record.SetGuid(0, message.Id);
-            record.SetString(1, message.Domain);
-            record.SetString(2, message.Partition);
-            record.SetString(3, message.StreamId);
-            record.SetInt64(4, message.Offset);
-            record.SetString(5, message.EventType);
-
-            if (message.SpanId is null)
-                record.SetDBNull(6);
-            else
-                record.SetString(6, message.SpanId);
-
-            if (message.TraceId is null)
-                record.SetDBNull(7);
-            else
-                record.SetString(7, message.TraceId);
-
-            record.SetString(8, message.CapturedBy);
-            record.SetDateTimeOffset(9, message.CapturedAt);
-            record.SetBytes(10, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
-
-            yield return record;
-        }
-    }
-
-
-    #endregion //  ToEventsTvp
-
-    #region ToOutboxTvp
-
-    private static IEnumerable<SqlDataRecord> ToOutboxTvp(EvDbMessageRecord[] messages)
-    {
-        const int DEFAULT_TEXT_LIMIT = 255; // Replace with actual value if different
-
-        // Define the schema for the TVP with correct sizes
-        var metaData = new[]
-        {
-        new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-        new SqlMetaData("Domain", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("Partition", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("StreamId", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("Offset", SqlDbType.BigInt),
-        new SqlMetaData("EventType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("Channel", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("MessageType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("SerializeType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("SpanId", SqlDbType.VarChar, 16),
-        new SqlMetaData("TraceId", SqlDbType.VarChar, 32),
-        new SqlMetaData("CapturedBy", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("CapturedAt", SqlDbType.DateTimeOffset),
-        new SqlMetaData("Payload", SqlDbType.VarBinary, 4000)
-    };
-
-        // Populate the TVP
-        foreach (var message in messages)
-        {
-            var record = new SqlDataRecord(metaData);
-
-            record.SetGuid(0, message.Id);
-            record.SetString(1, message.Domain);
-            record.SetString(2, message.Partition);
-            record.SetString(3, message.StreamId);
-            record.SetInt64(4, message.Offset);
-            record.SetString(5, message.EventType);
-            record.SetString(6, message.Channel);
-            record.SetString(7, message.MessageType);
-            record.SetString(8, message.SerializeType);
-
-            if (message.SpanId is null)
-                record.SetDBNull(9);
-            else
-                record.SetString(9, message.SpanId);
-
-            if (message.TraceId is null)
-                record.SetDBNull(10);
-            else
-                record.SetString(10, message.TraceId);
-
-            record.SetString(11, message.CapturedBy);
-            record.SetDateTimeOffset(12, message.CapturedAt);
-            record.SetBytes(13, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
-
-            yield return record;
-        }
-    }
-
-
-    #endregion //  ToOutboxTvp
 }

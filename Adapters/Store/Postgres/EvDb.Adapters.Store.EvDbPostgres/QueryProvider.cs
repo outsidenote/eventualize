@@ -11,7 +11,7 @@ internal static class QueryProvider
         string schema = storageContext.Schema.HasValue
             ? $"{storageContext.Schema}."
             : string.Empty;
-        string tblInitial = $"{schema}{storageContext.Id}";
+        string tblInitial = $"{schema}{storageContext.ShortId}";
 
         return new EvDbStreamAdapterQueryTemplates
         {
@@ -20,7 +20,7 @@ internal static class QueryProvider
                     {toSnakeCase(nameof(EvDbEventRecord.Domain))} as {nameof(EvDbEventRecord.Domain)},
                     {toSnakeCase(nameof(EvDbEventRecord.Partition))} as {nameof(EvDbEventRecord.Partition)},
                     {toSnakeCase(nameof(EvDbEventRecord.StreamId))} as {nameof(EvDbEventRecord.StreamId)},
-                    {toSnakeCase(nameof(EvDbEventRecord.Offset))} as {nameof(EvDbEventRecord.Offset)},
+                    "{toSnakeCase(nameof(EvDbEventRecord.Offset))}" as {nameof(EvDbEventRecord.Offset)},
                     {toSnakeCase(nameof(EvDbEventRecord.EventType))} as {nameof(EvDbEventRecord.EventType)},
                     {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} as {nameof(EvDbEventRecord.CapturedAt)},
                     {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} as {nameof(EvDbEventRecord.CapturedBy)},
@@ -31,8 +31,64 @@ internal static class QueryProvider
                     AND {toSnakeCase(nameof(EvDbStreamCursor.StreamId))} = @{nameof(EvDbStreamCursor.StreamId)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.Offset))} >= @{nameof(EvDbStreamCursor.Offset)};
                 """,
-            SaveEvents = $"{tblInitial}InsertEventsBatch_Events",
-            SaveToOutbox = $$"""{{tblInitial}}InsertOutboxBatch_{0}"""
+            SaveEvents = $$"""
+             INSERT INTO {{tblInitial}}events 
+                    ({{toSnakeCase(nameof(EvDbEventRecord.Id))}}, 
+                    {{toSnakeCase(nameof(EvDbEventRecord.Domain))}}, 
+                    {{toSnakeCase(nameof(EvDbEventRecord.Partition))}}, 
+                    {{toSnakeCase(nameof(EvDbEventRecord.StreamId))}}, 
+                    "{{toSnakeCase(nameof(EvDbEventRecord.Offset))}}", 
+                    {{toSnakeCase(nameof(EvDbEventRecord.EventType))}}, 
+                    {{toSnakeCase(nameof(EvDbEventRecord.CapturedAt))}}, 
+                    {{toSnakeCase(nameof(EvDbEventRecord.CapturedBy))}}, 
+                    {{toSnakeCase(nameof(EvDbEventRecord.TraceId))}}, 
+                    {{toSnakeCase(nameof(EvDbEventRecord.SpanId))}}, 
+                    {{toSnakeCase(nameof(EvDbEventRecord.Payload))}})
+                SELECT 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.Id))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.Domain))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.Partition))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.StreamId))}}), 
+                    UNNEST("{{toSnakeCase(nameof(EvDbEventRecord.Offset))}}"), 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.EventType))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.CapturedAt))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.CapturedBy))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.TraceId))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.SpanId))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.Payload))}})
+            """,
+            SaveToOutbox = $$"""
+             INSERT INTO {{tblInitial}}{0} 
+                    ({{toSnakeCase(nameof(EvDbMessageRecord.Id))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Domain))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Partition))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.StreamId))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Offset))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Channel))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.SerializeType))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.EventType))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.TraceId))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.SpanId))}}, 
+                    {{toSnakeCase(nameof(EvDbMessageRecord.Payload))}})
+                SELECT 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Id))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Domain))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Partition))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.StreamId))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Offset))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Channel))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.SerializeType))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.EventType))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.TraceId))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.SpanId))}}), 
+                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Payload))}})
+            """
         };
     }
 

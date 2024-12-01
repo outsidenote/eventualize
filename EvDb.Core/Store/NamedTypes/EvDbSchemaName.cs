@@ -21,9 +21,7 @@ public partial struct EvDbSchemaName :
     IComparable,
     IParsable<EvDbSchemaName>
 {
-    private const string DEFAULT_TABLE_NAME = "topics";
-
-    public static readonly EvDbSchemaName Default = new EvDbSchemaName(DEFAULT_TABLE_NAME);
+    public static readonly EvDbSchemaName Empty = new EvDbSchemaName(string.Empty);
 
     #region Validation
 
@@ -195,8 +193,8 @@ public partial struct EvDbSchemaName :
     // its primitive type.
     private static EvDbSchemaName __Deserialize(string value)
     {
-        if (value == Default.Value)
-            return Default;
+        if (value == Empty.Value)
+            return Empty;
 
         value = Format(value);
         var validation = EvDbSchemaName.Validate(value);

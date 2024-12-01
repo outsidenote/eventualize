@@ -19,7 +19,7 @@
 		<IsPackable>true</IsPackable>
 		<Configurations>Debug;Release;Gen</Configurations>
 		<PackageTags>
-			event-source, event-driven, event-sourcing, producer, consumer, pub, sub, evdb, pub-sub, eventualize, eventualizedb, reliable, redis, bnaya, roma, sql, sql-server, postgress, my-sql, maria-db, dynamo-db
+			event-source, event-driven, event-sourcing, producer, consumer, pub, sub, evdb, pub-sub, eventualize, eventualizedb, reliable, redis, bnaya, roma, sql, sql-server, postgres, my-sql, maria-db, dynamo-db
 		</PackageTags>
 	</PropertyGroup>
 	<PropertyGroup>

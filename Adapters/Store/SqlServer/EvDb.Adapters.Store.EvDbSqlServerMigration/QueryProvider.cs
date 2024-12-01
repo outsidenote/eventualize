@@ -14,9 +14,9 @@ internal static class QueryProvider
                             IEnumerable<EvDbShardName> outboxShardNames)
     {
         string schema = storageContext.Schema.HasValue
-            ? string.Empty
-            : $"{storageContext.Schema}.";
-        string tblInitial = $"{schema}{storageContext.Id}";
+            ? $"{storageContext.Schema}."
+            : string.Empty;
+        string tblInitial = $"{schema}{storageContext.ShortId}";
         string tblInitialWithoutSchema = $"{storageContext.Schema}_{storageContext.ShortId}";
         string db = storageContext.DatabaseName;
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
@@ -154,26 +154,16 @@ internal static class QueryProvider
                 CONSTRAINT CK_{tblInitialWithoutSchema}event_json_data_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbEventRecord.Payload))}) > 0)
             );
 
-            -- Index for getting distinct values for each column domain
-            CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.Domain))}_{tblInitialWithoutSchema}
-            ON {tblInitial}events ({toSnakeCase(nameof(EvDbEventRecord.Domain))});
-
-            -- Index for getting distinct values for columns domain and stream_type together
-            CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.Domain))}_{toSnakeCase(nameof(EvDbEventRecord.Partition))}_{tblInitialWithoutSchema}
-            ON {tblInitial}events (
-                    {toSnakeCase(nameof(EvDbEventRecord.Domain))},
-                    {toSnakeCase(nameof(EvDbEventRecord.Partition))});
-
             -- Index for getting distinct values for columns domain, stream_type, and stream_id together
-            CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.Domain))}_{toSnakeCase(nameof(EvDbEventRecord.Partition))}_{toSnakeCase(nameof(EvDbEventRecord.EventType))}_{tblInitialWithoutSchema}
+            CREATE INDEX IX_event_{tblInitialWithoutSchema}
             ON {tblInitial}events (
                     {toSnakeCase(nameof(EvDbEventRecord.Domain))}, 
                     {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
-                    {toSnakeCase(nameof(EvDbEventRecord.EventType))});
+                    {toSnakeCase(nameof(EvDbEventRecord.Offset))});
 
             -- Index for getting records with a specific value in column event_type and a value of captured_at within a given time range, sorted by captured_at
-            CREATE INDEX IX_event_{toSnakeCase(nameof(EvDbEventRecord.EventType))}_{toSnakeCase(nameof(EvDbEventRecord.CapturedAt))}_{tblInitialWithoutSchema}
-            ON {tblInitial}events ({toSnakeCase(nameof(EvDbEventRecord.EventType))}, {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))});
+            CREATE INDEX IX_event_stored_at_{tblInitialWithoutSchema}
+            ON  {tblInitial}events (stored_at);
 
             """;
 
@@ -252,9 +242,9 @@ internal static class QueryProvider
                      {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},  
                      {toSnakeCase(nameof(EvDbMessageRecord.Offset))});
             
-            CREATE INDEX IX_{t}_{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}_{tblInitialWithoutSchema}
+            CREATE INDEX IX_{t}_stored_at_{tblInitialWithoutSchema}
             ON {tblInitial}{t} (
-                    {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))});
+                    stored_at);
 
             """);
 

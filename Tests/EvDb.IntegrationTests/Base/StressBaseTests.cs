@@ -11,13 +11,13 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
-public sealed class StressTests : IntegrationTests
+public abstract class StressBaseTests : IntegrationTests
 {
     private readonly IEvDbDemoStreamFactory _factory;
 
     #region Ctor
 
-    public StressTests(ITestOutputHelper output) : base(output, StoreType.SqlServer)
+    public StressBaseTests(ITestOutputHelper output, StoreType storeType) : base(output, storeType)
     {
         CoconaAppBuilder builder = CoconaApp.CreateBuilder();
         var services = builder.Services;

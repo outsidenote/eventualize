@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
 using Microsoft.Data.SqlClient;
+using EvDb.Adapters.Store.Postgres;
+using Npgsql;
 
 namespace EvDb.Core.Tests;
 
@@ -23,7 +25,7 @@ public static class StoreAdapterHelper
         string connectionKey = storeType switch
         {
             StoreType.SqlServer => "EvDbSqlServerConnection",
-            StoreType.Posgres => "EvDbPosgresConnection",
+            StoreType.Postgres => "EvDbPostgresConnection",
             _ => throw new NotImplementedException()
         };
 
@@ -34,8 +36,8 @@ public static class StoreAdapterHelper
         {
             StoreType.SqlServer =>
                 EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []),
-            //StoreType.Posgres => ,
-            //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
+            StoreType.Postgres =>
+                EvDbPostgresStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []),
             _ => throw new NotImplementedException()
         };
 
@@ -43,8 +45,8 @@ public static class StoreAdapterHelper
         {
             StoreType.SqlServer =>
                 EvDbSqlServerStorageAdapterFactory.CreateSnapshotAdapter(logger, connectionString, context),
-            //StoreType.Posgres => ,
-            //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
+            StoreType.Postgres =>
+                EvDbPostgresStorageAdapterFactory.CreateSnapshotAdapter(logger, connectionString, context),
             _ => throw new NotImplementedException()
         };
         return new StoreAdapters(streamStoreAdapter, snapshotStoreAdapter);
@@ -57,7 +59,7 @@ public static class StoreAdapterHelper
         DbConnection conn = storeType switch
         {
             StoreType.SqlServer => new SqlConnection(connectionString),
-            //StoreType.Posgres => ,
+            StoreType.Postgres => new NpgsqlConnection(connectionString),
             _ => throw new NotImplementedException()
         };
 
@@ -70,15 +72,27 @@ public static class StoreAdapterHelper
         EvDbTestStorageContext? context = null,
         params EvDbShardName[] shardNames)
     {
-        context = context ?? new EvDbTestStorageContext();
+        EvDbSchemaName schema = storeType switch
+        {
+            StoreType.SqlServer => "dbo",
+            StoreType.Postgres => "public",
+            _ => EvDbSchemaName.Empty
+        };
+        EvDbDatabaseName dbName = storeType switch
+        {
+            StoreType.SqlServer => "master",
+            StoreType.Postgres => "tests",
+            _ => EvDbDatabaseName.Empty
+        };
+        context = context ?? new EvDbTestStorageContext(schema, dbName);
         string connectionString = GetConnectionString(storeType);
 
         IEvDbStorageMigration result = storeType switch
         {
             StoreType.SqlServer =>
                 SqlServerStorageMigrationFactory.Create(logger, connectionString, context, shardNames),
-            //StoreType.Posgres => ,
-            //    PosgresStorageAdapterFactory.Create(logger, connectionString, context),
+            StoreType.Postgres =>
+                PostgresStorageMigrationFactory.Create(logger, connectionString, context, shardNames),
             _ => throw new NotImplementedException()
         };
 
@@ -95,7 +109,7 @@ public static class StoreAdapterHelper
         string connectionKey = storeType switch
         {
             StoreType.SqlServer => "EvDbSqlServerConnection",
-            StoreType.Posgres => "EvDbPosgresConnection",
+            StoreType.Postgres => "EvDbPostgresConnection",
             _ => throw new NotImplementedException()
         };
 

@@ -2,17 +2,20 @@
 
 namespace EvDb.Core.Tests;
 
+using EvDb.Adapters.Store.Postgres;
+using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
 using System.Text.Json;
 using Xunit.Abstractions;
-using static EvDb.Adapters.Store.SqlServer.EvDbSqlServerStorageAdapterFactory;
 
-public class SqlServerStreamTests : IntegrationTests
+public abstract class StreamBaseTests : IntegrationTests
 {
-    public SqlServerStreamTests(ITestOutputHelper output) :
-        base(output, StoreType.SqlServer)
+    //protected abstract IEvDbStorageStreamAdapter GetStorageAdapter
+
+    public StreamBaseTests(ITestOutputHelper output, StoreType storeType) :
+        base(output, storeType)
     {
     }
 
@@ -21,7 +24,7 @@ public class SqlServerStreamTests : IntegrationTests
     {
         var streamId = Steps.GenerateStreamId();
         IEvDbSchoolStream stream = await StorageContext
-                            .GivenLocalStreamWithPendingEvents(streamId: streamId)
+                            .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId)
                             .WhenStreamIsSavedAsync();
 
         await ThenStreamSavedWithoutSnapshot();
@@ -85,10 +88,15 @@ public class SqlServerStreamTests : IntegrationTests
             Assert.All(defaults, m => Assert.Equal("avg", m.MessageType));
             Assert.All(defaults, m => Assert.Equal(EvDbOutbox.DEFAULT_OUTBOX, m.Channel));
 
+         
 
-
-            string connectionString = StoreAdapterHelper.GetConnectionString(StoreType.SqlServer);
-            IEvDbStorageStreamAdapter adapter = CreateStreamAdapter(_logger, connectionString, StorageContext, []);
+            string connectionString = StoreAdapterHelper.GetConnectionString(_storeType);
+            IEvDbStorageStreamAdapter adapter = _storeType switch
+            {
+                StoreType.SqlServer => EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(_logger, connectionString, StorageContext, []),
+                StoreType.Postgres => EvDbPostgresStorageAdapterFactory.CreateStreamAdapter(_logger, connectionString, StorageContext, []),
+                _ => throw new NotImplementedException()
+            };
             var address = new EvDbStreamCursor(stream.StreamAddress);
             var eventsCollection = await adapter.GetEventsAsync(address).ToEnumerableAsync();
             var events = eventsCollection.ToArray();
@@ -117,7 +125,7 @@ public class SqlServerStreamTests : IntegrationTests
     public async Task Stream_WhenStoringWithSnapshotting_Succeed()
     {
         IEvDbSchoolStream stream = await StorageContext
-                            .GivenLocalStreamWithPendingEvents(6)
+                            .GivenLocalStreamWithPendingEvents(_storeType, 6)
                             .WhenStreamIsSavedAsync();
 
         ThenStreamSavedWithSnapshot();
@@ -145,7 +153,7 @@ public class SqlServerStreamTests : IntegrationTests
     public async Task Stream_WhenStoringWithSnapshottingWhenStoringTwice_Succeed()
     {
         IEvDbSchoolStream stream = await StorageContext
-                            .GivenLocalStreamWithPendingEvents()
+                            .GivenLocalStreamWithPendingEvents(_storeType)
                             .GivenStreamIsSavedAsync()
                             .GivenAddingPendingEventsAsync()
                             .WhenStreamIsSavedAsync();
@@ -178,9 +186,9 @@ public class SqlServerStreamTests : IntegrationTests
         string streamId = $"occ-{Guid.NewGuid():N}";
 
         IEvDbSchoolStream stream1 = await StorageContext
-                    .GivenLocalStreamWithPendingEvents(streamId: streamId);
+                    .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId);
         IEvDbSchoolStream stream2 = await StorageContext
-                    .GivenLocalStreamWithPendingEvents(streamId: streamId);
+                    .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId);
 
         await Assert.ThrowsAsync<OCCException>(() =>
             Task.WhenAll(
