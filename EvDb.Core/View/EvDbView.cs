@@ -15,7 +15,7 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
         JsonSerializerOptions? options) :
         base(address, storageAdapter, timeProvider, logger, options, snapshot.Offset)
     {
-        if (snapshot == EvDbStoredSnapshot.Empty || string.IsNullOrEmpty(snapshot.State))
+        if (snapshot == EvDbStoredSnapshot.Empty || snapshot.State.Length == 0)
             State = DefaultState;
         else
         {
@@ -33,7 +33,7 @@ public abstract class EvDbView<T> : EvDbView, IEvDbViewStore<T>
     /// <returns></returns>
     public override EvDbStoredSnapshotData GetSnapshotData()
     {
-        string state = JsonSerializer.Serialize<T>(State, _options);
+        byte[] state = JsonSerializer.SerializeToUtf8Bytes(State, _options);
         var snapshot = new EvDbStoredSnapshotData(Address, FoldOffset, state);
         return snapshot;
     }

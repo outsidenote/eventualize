@@ -156,6 +156,26 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #endregion //  OnStoreOutboxMessagesAsync
 
+    #region OnStoreSnapshotAsync
+
+    /// <summary>
+    /// Store a snapshot.
+    /// </summary>
+    /// <param name="connecion">The connection.</param>
+    /// <param name="query">The save snapshot query.</param>
+    /// <param name="snapshot">The snapshot data.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    protected virtual Task<int> OnStoreSnapshotAsync(DbConnection connecion,
+                                              string query,
+                                              EvDbStoredSnapshotData snapshot,
+                                              CancellationToken cancellationToken)
+    {
+        return connecion.ExecuteAsync(query, snapshot);
+    }
+
+    #endregion //  OnStoreSnapshotAsync
+
     #region StoreOutboxAsync
 
     private async Task<IImmutableDictionary<EvDbShardName, int>> StoreOutboxAsync(
@@ -186,27 +206,74 @@ public abstract class EvDbRelationalStorageAdapter :
 
         var shards = from message in messages
                      group (EvDbMessageRecord)message by message.ShardName;
-        var tasks = shards.Select(async shard =>
+        KeyValuePair<EvDbShardName, int>[] affctedCollection = IsSupportConcurrentCommands switch
         {
-            EvDbShardName shardName = shard.Key;
+            true => await ExecuteInParallelAsync(),
+            false => await ExecuteSequentialAsync(),
+        };
+        return affctedCollection.ToImmutableDictionary();
+
+        #region ExecuteInParallelAsync
+
+        async Task<KeyValuePair<EvDbShardName, int>[]> ExecuteInParallelAsync()
+        {
+            var tasks = shards.Select(async shard =>
+            {
+                EvDbShardName shardName = shard.Key;
+                int affctedMessages = await ExecuteAsync(streamStore, conn, transaction, saveToTopicQuery, shard, shardName, cancellationToken);
+                StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, shard.Key);
+                return KeyValuePair.Create(shardName, affctedMessages);
+            });
+
+            var affctedCollection = await Task.WhenAll(tasks);
+            return affctedCollection;
+        }
+
+        #endregion //  ExecuteInParallelAsync
+
+        #region ExecuteSequentialAsync
+
+        async Task<KeyValuePair<EvDbShardName, int>[]> ExecuteSequentialAsync()
+        {
+            List<KeyValuePair<EvDbShardName, int>> results = new(); 
+            foreach (var shard in shards)
+            {
+                EvDbShardName shardName = shard.Key;
+                int affctedMessages = await ExecuteAsync(streamStore, conn, transaction, saveToTopicQuery, shard, shardName, cancellationToken);
+                results.Add(KeyValuePair.Create(shardName, affctedMessages));
+            }
+
+            return results.ToArray();
+        }
+
+        #endregion //  ExecuteSequentialAsync
+
+        #region ExecuteAsync
+
+        async Task<int> ExecuteAsync(IEvDbStreamStoreData streamStore,
+                                DbConnection conn,
+                                DbTransaction transaction,
+                                string saveToTopicQuery,
+                                IGrouping<EvDbShardName, EvDbMessageRecord> shard,
+                                EvDbShardName shardName,
+                                CancellationToken cancellationToken)
+        {
             string query = string.Format(saveToTopicQuery, shardName);
             EvDbMessageRecord[] items = shard.ToArray();
 
             OtelTags tags = OtelTags.Empty.Add("shard", shardName);
-            using var activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
-
-            int affctedMessages = await OnStoreOutboxMessagesAsync(conn,
-                                                                   shardName,
-                                                                   query,
-                                                                   items,
-                                                                   transaction,
-                                                                   cancellationToken);
+            using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
+            int  affctedMessages = await OnStoreOutboxMessagesAsync(conn,
+                                                                    shardName,
+                                                                    query,
+                                                                    items,
+                                                                    transaction,
+                                                                    cancellationToken);
             StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, shard.Key);
-            return KeyValuePair.Create(shardName, affctedMessages);
-        });
+            return affctedMessages;
+        }
 
-        var affctedCollection = await Task.WhenAll(tasks);
-        return affctedCollection.ToImmutableDictionary();
+        #endregion //  ExecuteAsync
     }
 
     #endregion //  StoreOutboxAsync
@@ -270,13 +337,26 @@ public abstract class EvDbRelationalStorageAdapter :
         await using DbTransaction transaction = await conn.BeginTransactionAsync();
         try
         {
-            Task<int> affctedEventsTask = StoreEventsAsync();
-            IImmutableDictionary<EvDbShardName, int> affectedOnOutbox = await StoreOutboxAsync();
-            int affctedEvents = await affctedEventsTask;
+            int affctedEvents;
+            IImmutableDictionary<EvDbShardName, int> affectedOnOutbox;
+
+            if (IsSupportConcurrentCommands)
+            {
+                Task<int> affctedEventsTask = StoreEventsAsync();
+                affectedOnOutbox = await StoreOutboxAsync();
+                affctedEvents = await affctedEventsTask;
+            }
+            else
+            { 
+                affctedEvents = await StoreEventsAsync();
+                affectedOnOutbox = await StoreOutboxAsync();
+            }
 
             await transaction.CommitAsync();
             return new StreamStoreAffected(affctedEvents, affectedOnOutbox);
         }
+        #region Exception Handling
+
         catch (Exception ex) when (IsOccException(ex))
         {
             await transaction.RollbackAsync();
@@ -288,6 +368,8 @@ public abstract class EvDbRelationalStorageAdapter :
             await transaction.RollbackAsync();
             throw;
         }
+
+        #endregion //  Exception Handling
 
         #region StoreEventsAsync
 
@@ -346,10 +428,15 @@ public abstract class EvDbRelationalStorageAdapter :
 
         EvDbStoredSnapshotData snapshot = viewStore.GetSnapshotData();
 
-        await ExecuteSafe(conn => conn.ExecuteAsync(saveSnapshotQuery, snapshot));
+        await ExecuteSafe(conn => OnStoreSnapshotAsync(conn, saveSnapshotQuery, snapshot, cancellation));
     }
 
     #endregion // IEvDbStorageAdapter Members
+
+    /// <summary>
+    /// Gets a value indicating whether this instance is support concurrent commands.
+    /// </summary>
+    protected virtual bool IsSupportConcurrentCommands { get; } = true; 
 
     #region IsOccException
 

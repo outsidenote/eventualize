@@ -13,6 +13,7 @@ internal static class QueryProvider
                             StorageFeatures features,
                             IEnumerable<EvDbShardName> outboxShardNames)
     {
+        Guid unique = Guid.NewGuid();
         string schema = storageContext.Schema.HasValue
             ? $"{storageContext.Schema}."
             : string.Empty;
@@ -83,14 +84,14 @@ internal static class QueryProvider
             );
 
             -- Index for getting distinct values for columns domain, partition, and event_type together
-            CREATE INDEX ix_event_{tblInitialWithoutSchema}
+            CREATE INDEX ix_event_{unique:N}
             ON {tblInitial}events (
                     {toSnakeCase(nameof(EvDbEventRecord.Domain))}, 
                     {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
                     {toSnakeCase(nameof(EvDbEventRecord.StreamId))}, 
                     "{toSnakeCase(nameof(EvDbEventRecord.Offset))}" 
             );
-            CREATE INDEX ix_event_stored_at_{tblInitialWithoutSchema}
+            CREATE INDEX ix_event_stored_at_{unique:N}
             ON {tblInitial}events (
                     stored_at 
             );
@@ -100,8 +101,8 @@ internal static class QueryProvider
         #endregion
 
         #region string createOutboxTable = ...
-
-        IEnumerable<string> createOutboxTable = (features & StorageFeatures.Outbox) == StorageFeatures.None
+        
+        IEnumerable<string> createOutbox = (features & StorageFeatures.Outbox) == StorageFeatures.None
             ? Array.Empty<string>()
             : outboxShardNames.Select(t =>
             $"""
@@ -118,12 +119,12 @@ internal static class QueryProvider
                 {toSnakeCase(nameof(EvDbMessageRecord.SerializeType))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.SpanId))} VARCHAR(16) NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.TraceId))} VARCHAR(32) NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))} TIMESTAMPTZ NOT NULL,
                 stored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.Payload))} JSON NOT NULL,
+                {toSnakeCase(nameof(EvDbMessageRecord.Payload))} BYTEA NOT NULL CHECK (octet_length({toSnakeCase(nameof(EvDbMessageRecord.Payload))}) > 0 AND octet_length({toSnakeCase(nameof(EvDbMessageRecord.Payload))}) <= 4000),
             
-                CONSTRAINT PK_{t} PRIMARY KEY (
+                PRIMARY KEY (
                         {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
                         {toSnakeCase(nameof(EvDbMessageRecord.Domain))}, 
                         {toSnakeCase(nameof(EvDbMessageRecord.Partition))}, 
@@ -131,30 +132,30 @@ internal static class QueryProvider
                         "{toSnakeCase(nameof(EvDbMessageRecord.Offset))}",
                         {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
                         {toSnakeCase(nameof(EvDbMessageRecord.MessageType))}),
-                CONSTRAINT CK_{t}_domain_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Domain))}) > 0),
-                CONSTRAINT CK_{t}_stream_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Partition))}) > 0),
-                CONSTRAINT CK_{t}_stream_id_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.StreamId))}) > 0),
-                CONSTRAINT CK_{t}_event_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.EventType))}) > 0),
-                CONSTRAINT CK_{t}_outbox_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.Channel))}) > 0),
-                CONSTRAINT CK_{t}_message_type_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.MessageType))}) > 0),
-                CONSTRAINT CK_{t}_captured_by_not_empty CHECK (LEN({toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}) > 0)
+                CONSTRAINT CK_{t}_domain_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.Domain))}) > 0),
+                CONSTRAINT CK_{t}_stream_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.Partition))}) > 0),
+                CONSTRAINT CK_{t}_stream_id_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.StreamId))}) > 0),
+                CONSTRAINT CK_{t}_event_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.EventType))}) > 0),
+                CONSTRAINT CK_{t}_outbox_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.Channel))}) > 0),
+                CONSTRAINT CK_{t}_message_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.MessageType))}) > 0),
+                CONSTRAINT CK_{t}_captured_by_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}) > 0)
             );
             
-            CREATE INDEX ix_{t}_{tblInitialWithoutSchema}
+            CREATE INDEX ix_{t}_{unique:N}
             ON {tblInitial}{t} (
                 {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
                 {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
                 "{toSnakeCase(nameof(EvDbEventRecord.Offset))}"
             );
                         
-            CREATE INDEX ix_StoredAt_{t}_{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}_{tblInitialWithoutSchema}
+            CREATE INDEX ix_StoredAt_{t}_{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}_{unique:N}
             ON {tblInitial}{t} (
                     stored_at,
                     "{toSnakeCase(nameof(EvDbEventRecord.Offset))}");
 
             """);
 
-        #endregion //  string createOutboxTable = ...
+        #endregion //  string createOutbox = ...
 
         #region string createSnapshotTable = ...
 
@@ -183,7 +184,7 @@ internal static class QueryProvider
                 CONSTRAINT CK_snapshot_aggregate_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbViewAddress.ViewName))}) > 0)
             );
 
-            CREATE INDEX ix_snapshot_earlier_stored_at_{tblInitialWithoutSchema}
+            CREATE INDEX ix_snapshot_earlier_stored_at_{unique:N}
             ON {tblInitial}snapshot (
                 {toSnakeCase(nameof(EvDbViewAddress.Domain))}, 
                 {toSnakeCase(nameof(EvDbViewAddress.Partition))}, 
@@ -199,6 +200,13 @@ internal static class QueryProvider
                 ------------------------------------  EVENTS  ----------------------------------------
                 {createEventsTable}
                 """;
+
+            if ((features & StorageFeatures.Outbox) != StorageFeatures.None)
+            {
+                yield return $"""
+                                {string.Join(string.Empty, createOutbox)}
+                                """;
+            }
 
             if ((features & StorageFeatures.Snapshot) != StorageFeatures.None)
             {

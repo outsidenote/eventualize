@@ -8,7 +8,7 @@ namespace EvDb.Core;
 [DebuggerDisplay("{State}, Offset:{Offset}")]
 public readonly partial record struct EvDbStoredSnapshot(
             long Offset,
-            string State)
+            byte[] State)
 {
-    public static readonly EvDbStoredSnapshot Empty = new EvDbStoredSnapshot(-1, string.Empty);
+    public static readonly EvDbStoredSnapshot Empty = new EvDbStoredSnapshot(-1, Array.Empty<byte>());
 }

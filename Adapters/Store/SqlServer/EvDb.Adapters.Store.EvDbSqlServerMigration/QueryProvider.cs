@@ -308,7 +308,7 @@ internal static class QueryProvider
                 {toSnakeCase(nameof(EvDbViewAddress.StreamId))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbViewAddress.ViewName))} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} BIGINT NOT NULL,
-                {toSnakeCase(nameof(EvDbStoredSnapshot.State))} NVARCHAR(MAX) NOT NULL,
+                {toSnakeCase(nameof(EvDbStoredSnapshot.State))} VARBINARY(8000) NOT NULL,
                 stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
     
                 CONSTRAINT PK_{tblInitialWithoutSchema}snapshot PRIMARY KEY (

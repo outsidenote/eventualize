@@ -12,12 +12,12 @@ public readonly partial record struct EvDbStoredSnapshotData(
             string StreamId,
             string ViewName,
             long Offset,
-            string State)
+            byte[] State)
 {
     public EvDbStoredSnapshotData(
             EvDbViewAddress address,
             long offset,
-            string state)
+            byte[] state)
                 : this(Guid.NewGuid(), address.Domain, address.Partition, address.StreamId, address.ViewName, offset, state)
     {
     }

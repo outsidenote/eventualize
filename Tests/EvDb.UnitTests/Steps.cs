@@ -306,7 +306,7 @@ internal static class Steps
         var stat = new StudentStats(student.Id, student.Name, 70, 20);
 
         STATE_TYPE state = new STATE_TYPE() { Students = [stat] };
-        string json = JsonSerializer.Serialize(state, options);
+        byte[] json = JsonSerializer.SerializeToUtf8Bytes(state, options);
         EvDbStoredSnapshot snp =
             new EvDbStoredSnapshot(offset, json);
         return snp;
@@ -320,7 +320,7 @@ internal static class Steps
     {
         var state = new Stats(200, 100);
 
-        string json = JsonSerializer.Serialize(state, options);
+        byte[] json = JsonSerializer.SerializeToUtf8Bytes(state, options);
         EvDbStoredSnapshot snp =
             new EvDbStoredSnapshot(offset, json);
         return snp;

@@ -29,7 +29,7 @@ internal static class QueryProvider
                 WHERE {toSnakeCase(nameof(EvDbStreamCursor.Domain))} = @{nameof(EvDbStreamCursor.Domain)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.Partition))} = @{nameof(EvDbStreamCursor.Partition)}
                     AND {toSnakeCase(nameof(EvDbStreamCursor.StreamId))} = @{nameof(EvDbStreamCursor.StreamId)}
-                    AND {toSnakeCase(nameof(EvDbStreamCursor.Offset))} >= @{nameof(EvDbStreamCursor.Offset)};
+                    AND "{toSnakeCase(nameof(EvDbStreamCursor.Offset))}" >= @{nameof(EvDbStreamCursor.Offset)};
                 """,
             SaveEvents = $$"""
              INSERT INTO {{tblInitial}}events 
@@ -45,25 +45,25 @@ internal static class QueryProvider
                     {{toSnakeCase(nameof(EvDbEventRecord.SpanId))}}, 
                     {{toSnakeCase(nameof(EvDbEventRecord.Payload))}})
                 SELECT 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.Id))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.Domain))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.Partition))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.StreamId))}}), 
-                    UNNEST("{{toSnakeCase(nameof(EvDbEventRecord.Offset))}}"), 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.EventType))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.CapturedAt))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.CapturedBy))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.TraceId))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.SpanId))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbEventRecord.Payload))}})
+                    UNNEST(@{{nameof(EvDbEventRecord.Id)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.Domain)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.Partition)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.StreamId)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.Offset)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.EventType)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.CapturedAt)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.CapturedBy)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.TraceId)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.SpanId)}}), 
+                    UNNEST(@{{nameof(EvDbEventRecord.Payload)}})
             """,
             SaveToOutbox = $$"""
-             INSERT INTO {{tblInitial}}{0} 
+             INSERT INTO {{tblInitial}}{0}
                     ({{toSnakeCase(nameof(EvDbMessageRecord.Id))}}, 
                     {{toSnakeCase(nameof(EvDbMessageRecord.Domain))}}, 
                     {{toSnakeCase(nameof(EvDbMessageRecord.Partition))}}, 
                     {{toSnakeCase(nameof(EvDbMessageRecord.StreamId))}}, 
-                    {{toSnakeCase(nameof(EvDbMessageRecord.Offset))}}, 
+                    "{{toSnakeCase(nameof(EvDbMessageRecord.Offset))}}", 
                     {{toSnakeCase(nameof(EvDbMessageRecord.Channel))}}, 
                     {{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}}, 
                     {{toSnakeCase(nameof(EvDbMessageRecord.SerializeType))}}, 
@@ -74,20 +74,20 @@ internal static class QueryProvider
                     {{toSnakeCase(nameof(EvDbMessageRecord.SpanId))}}, 
                     {{toSnakeCase(nameof(EvDbMessageRecord.Payload))}})
                 SELECT 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Id))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Domain))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Partition))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.StreamId))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Offset))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Channel))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.SerializeType))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.EventType))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.TraceId))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.SpanId))}}), 
-                    UNNEST({{toSnakeCase(nameof(EvDbMessageRecord.Payload))}})
+                    UNNEST(@{{nameof(EvDbMessageRecord.Id)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.Domain)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.Partition)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.StreamId)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.Offset)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.Channel)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.MessageType)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.SerializeType)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.EventType)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.CapturedAt)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.CapturedBy)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.TraceId)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.SpanId)}}), 
+                    UNNEST(@{{nameof(EvDbMessageRecord.Payload)}})
             """
         };
     }
@@ -95,19 +95,19 @@ internal static class QueryProvider
     public static EvDbSnapshotAdapterQueryTemplates CreateSnapshotQueries(EvDbStorageContext storageContext)
     {
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
-        string tabInitial = $"{storageContext.Schema}.{storageContext.Id}";
+        string tabInitial = $"{storageContext.Schema}.{storageContext.ShortId}";
 
         return new EvDbSnapshotAdapterQueryTemplates
         {
             GetSnapshot = $"""
                 SELECT {toSnakeCase(nameof(EvDbStoredSnapshot.State))} as {nameof(EvDbStoredSnapshot.State)}, 
-                        {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} as {nameof(EvDbStoredSnapshot.Offset)}
+                        "{toSnakeCase(nameof(EvDbStoredSnapshot.Offset))}" as {nameof(EvDbStoredSnapshot.Offset)}
                 FROM {tabInitial}snapshot
                 WHERE {toSnakeCase(nameof(EvDbViewAddress.Domain))} = @{nameof(EvDbViewAddress.Domain)}
                     AND {toSnakeCase(nameof(EvDbViewAddress.Partition))} = @{nameof(EvDbViewAddress.Partition)}
                     AND {toSnakeCase(nameof(EvDbViewAddress.StreamId))} = @{nameof(EvDbViewAddress.StreamId)}
                     AND {toSnakeCase(nameof(EvDbViewAddress.ViewName))} = @{nameof(EvDbViewAddress.ViewName)}
-                ORDER BY {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} DESC
+                ORDER BY "{toSnakeCase(nameof(EvDbStoredSnapshot.Offset))}" DESC
                 LIMIT 1;
                 """,
             SaveSnapshot = $"""
@@ -117,7 +117,7 @@ internal static class QueryProvider
                         {toSnakeCase(nameof(SnapshotSaveParameter.Partition))},
                         {toSnakeCase(nameof(SnapshotSaveParameter.StreamId))},
                         {toSnakeCase(nameof(SnapshotSaveParameter.ViewName))},
-                        {toSnakeCase(nameof(SnapshotSaveParameter.Offset))},
+                        "{toSnakeCase(nameof(SnapshotSaveParameter.Offset))}",
                         {toSnakeCase(nameof(SnapshotSaveParameter.State))})
             VALUES (
                         @{nameof(SnapshotSaveParameter.Id)},

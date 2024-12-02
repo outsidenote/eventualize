@@ -10,7 +10,7 @@ public readonly record struct SnapshotSaveParameter(
                     string StreamId,
                     string ViewName,
                     long Offset,
-                    string State)
+                    byte[] State)
 {
     public SnapshotSaveParameter(EvDbViewAddress viewAddress, EvDbStoredSnapshot storedSnapshot)
         : this(

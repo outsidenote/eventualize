@@ -20,7 +20,7 @@ public abstract class StreamBaseTests : IntegrationTests
     }
 
     [Fact]
-    public async Task Stream_WhenStoringWithoutSnapshotting_AndOutbox_Succeed()
+    public async Task Stream_Outbox_Succeed()
     {
         var streamId = Steps.GenerateStreamId();
         IEvDbSchoolStream stream = await StorageContext
