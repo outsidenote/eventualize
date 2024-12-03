@@ -17,13 +17,13 @@ public abstract class StressBaseTests : IntegrationTests
 
     #region Ctor
 
-    public StressBaseTests(ITestOutputHelper output, StoreType storeType) : base(output, storeType)
+    protected StressBaseTests(ITestOutputHelper output, StoreType storeType) : base(output, storeType)
     {
         CoconaAppBuilder builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-            .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream(), StorageContext)
-            .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
+            .AddDemoStreamFactory(c =>c.ChooseStoreAdapter(storeType), StorageContext)
+            .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType));
         Otel(builder);
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();

@@ -5,6 +5,8 @@ using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using EvDb.Adapters.Store.Postgres;
 using Npgsql;
+using Microsoft.Extensions.DependencyInjection;
+using EvDb.Core.Store.Internals;
 
 namespace EvDb.Core.Tests;
 
@@ -12,8 +14,45 @@ public record StoreAdapters(IEvDbStorageStreamAdapter Stream, IEvDbStorageSnapsh
 
 public static class StoreAdapterHelper
 {
+    public static EvDbStreamStoreRegistrationContext ChooseStoreAdapter(
+                                        this EvDbStreamStoreRegistrationContext context,
+                                        StoreType storeType)
+    {
+        switch (storeType)
+        {
+            case StoreType.SqlServer:
+                context.UseSqlServerStoreForEvDbStream();
+                break;
+            case StoreType.Postgres:
+                context.UsePostgresStoreForEvDbStream();
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+        return context;
+    }
+
+    public static EvDbSnapshotStoreRegistrationContext ChooseSnapshotAdapter(
+        this EvDbSnapshotStoreRegistrationContext context,
+        StoreType storeType)
+    {
+        switch (storeType)
+        {
+            case StoreType.SqlServer:
+                context.UseSqlServerForEvDbSnapshot();
+                break;
+            case StoreType.Postgres:
+                context.UsePostgresForEvDbSnapshot();
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+        return context;
+    }
+
+
     public static StoreAdapters CreateStoreAdapter(
-        ILogger logger,
+        this ILogger logger,
         StoreType storeType,
         EvDbTestStorageContext context)
     {

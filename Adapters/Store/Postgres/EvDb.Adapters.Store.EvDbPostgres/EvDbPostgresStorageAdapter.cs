@@ -12,10 +12,14 @@ using System.Threading;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Transactions;
+using System.Text.Json;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace EvDb.Adapters.Store.Postgres;
 
-internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter
+internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
+                                            IEvDbRecordParserFactory
 {
     #region Ctor
 
@@ -161,9 +165,9 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter
         command.Parameters.AddWithValue("@Partition", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, partitions);
         command.Parameters.AddWithValue("@StreamId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, streamIds);
         command.Parameters.AddWithValue("@Offset", NpgsqlTypes.NpgsqlDbType.Bigint | NpgsqlTypes.NpgsqlDbType.Array, offsets);
-        command.Parameters.AddWithValue("@Channel", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
-        command.Parameters.AddWithValue("@MessageType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
-        command.Parameters.AddWithValue("@SerializeType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
+        command.Parameters.AddWithValue("@Channel", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, channels);
+        command.Parameters.AddWithValue("@MessageType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, messageTypes);
+        command.Parameters.AddWithValue("@SerializeType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, serializationTypes);
         command.Parameters.AddWithValue("@EventType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
         command.Parameters.AddWithValue("@CapturedAt", NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
         command.Parameters.AddWithValue("@CapturedBy", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
@@ -207,6 +211,89 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter
     }
 
     #endregion //  OnStoreSnapshotAsync
+
+    #region OnGetSnapshotAsync
+
+    protected async override Task<EvDbStoredSnapshot> OnGetSnapshotAsync(
+                                                            EvDbViewAddress viewAddress,
+                                                            DbConnection conn,
+                                                            string query,
+                                                            CancellationToken cancellation)
+    {
+        var command = new NpgsqlCommand(query, (NpgsqlConnection)conn);
+        command.Parameters.AddWithValue(nameof(EvDbViewAddress.Domain), viewAddress.Domain);
+        command.Parameters.AddWithValue(nameof(EvDbViewAddress.Partition), viewAddress.Partition);
+        command.Parameters.AddWithValue(nameof(EvDbViewAddress.StreamId), viewAddress.StreamId);
+        command.Parameters.AddWithValue(nameof(EvDbViewAddress.ViewName), viewAddress.ViewName);
+
+        NpgsqlDataReader reader = 
+            await command.ExecuteReaderAsync(CommandBehavior.SingleRow, cancellation);
+        if(!await reader.ReadAsync())
+            return EvDbStoredSnapshot.Empty;
+
+        var stateIndex = reader.GetOrdinal(nameof(EvDbStoredSnapshot.State));
+        var record = new EvDbStoredSnapshot
+        {
+            Offset = reader.GetInt64(reader.GetOrdinal(nameof(EvDbStoredSnapshot.Offset))), // Non-nullable
+            State = Encoding.UTF8.GetBytes(reader.GetString(stateIndex))
+        };
+        return record;
+
+    }
+
+    #endregion //  OnGetSnapshotAsync
+
+    #region RecordParserFactory
+
+    /// <summary>
+    /// Gets the record parser factory.
+    /// </summary>
+    protected virtual IEvDbRecordParserFactory RecordParserFactory => this;
+
+    #endregion //  RecordParserFactory
+
+    #region IEvDbRecordParserFactory members
+
+    /// <summary>
+    /// Creates the specified reader.
+    /// </summary>
+    /// <param name="reader">The reader.</param>
+    /// <returns></returns>
+    IEvDbRecordParser IEvDbRecordParserFactory.Create(DbDataReader reader) => new RecordParser(reader);
+
+    #endregion //  IEvDbRecordParserFactory members
+
+    #region class RecordParser
+
+    private class RecordParser : IEvDbRecordParser
+    {
+        private readonly DbDataReader _reader;
+
+        public RecordParser(DbDataReader reader)
+        {
+            _reader = reader;
+        }
+
+        EvDbEventRecord IEvDbRecordParser.ParseEvent()
+        {
+            var payloadIndex = _reader.GetOrdinal(nameof(EvDbEventRecord.Payload));
+            // TODO: [bnaya 2024-12-03] use static naming from nameof
+            var record = new EvDbEventRecord
+            {
+                Domain = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.Domain))), // Non-nullable
+                Partition = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.Partition))), // Non-nullable
+                StreamId = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.StreamId))), // Non-nullable
+                Offset = _reader.GetInt64(_reader.GetOrdinal(nameof(EvDbEventRecord.Offset))), // Non-nullable
+                EventType = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.EventType))), // Non-nullable
+                CapturedBy = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.CapturedBy))), // Non-nullable
+                CapturedAt = _reader.GetDateTime(_reader.GetOrdinal(nameof(EvDbEventRecord.CapturedAt))), // Non-nullable
+                Payload = Encoding.UTF8.GetBytes(_reader.GetString(payloadIndex))
+            };
+            return record;
+        }
+    }
+
+    #endregion //  class RecordParser
 
     protected override string DatabaseType { get; } = "sql-server";
 

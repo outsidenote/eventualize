@@ -1,6 +1,7 @@
 ﻿namespace EvDb.Core.Tests;
 
 using Cocona;
+using EvDb.Core.Store.Internals;
 using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using Scenes;
@@ -22,39 +23,14 @@ internal static class Steps
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-                .AddSchoolStreamFactory(c =>
-                        {
-                            switch (storeType)
-                            {
-                                case StoreType.SqlServer:
-                                    c.UseSqlServerStoreForEvDbStream();
-                                    break;
-                                case StoreType.Postgres:
-                                    c.UsePostgresStoreForEvDbStream();
-                                    break;
-                                default:
-                                    throw new NotImplementedException();
-                            }
-
-                        }, storageContext)
-                .DefaultSnapshotConfiguration(c =>
-                    {
-                            switch (storeType)
-                            {
-                                case StoreType.SqlServer:
-                                    c.UseSqlServerForEvDbSnapshot();
-                                    break;
-                                case StoreType.Postgres:
-                                    c.UsePostgresForEvDbSnapshot();
-                                    break;
-                                default:
-                                    throw new NotImplementedException();
-                            }
-                    });
+                .AddSchoolStreamFactory(c => c.ChooseStoreAdapter(storeType), storageContext)
+                .DefaultSnapshotConfiguration(c =>c.ChooseSnapshotAdapter(storeType));
         var sp = services.BuildServiceProvider();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
         return factory;
     }
+
+
 
     #endregion // CreateFactory
 

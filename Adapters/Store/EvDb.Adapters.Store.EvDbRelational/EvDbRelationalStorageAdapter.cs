@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using static EvDb.Core.Adapters.StoreTelemetry;
 
@@ -17,7 +18,8 @@ namespace EvDb.Core.Adapters;
 /// <seealso cref="EvDb.Core.IEvDbStorageAdapter" />
 public abstract class EvDbRelationalStorageAdapter :
     IEvDbStorageStreamAdapter,
-    IEvDbStorageSnapshotAdapter
+    IEvDbStorageSnapshotAdapter,
+    IEvDbRecordParserFactory    
 {
     private readonly static ActivitySource _trace = StoreTelemetry.Trace;
     protected readonly ILogger _logger;
@@ -156,6 +158,30 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #endregion //  OnStoreOutboxMessagesAsync
 
+    #region OnGetSnapshotAsync
+
+    /// <summary>
+    /// Gets the snapshot.
+    /// </summary>
+    /// <param name="viewAddress">The view uniqueness.</param>
+    /// <param name="conn">The connection.</param>
+    /// <param name="query">The query.</param>
+    /// <returns></returns>
+    protected virtual async Task<EvDbStoredSnapshot> OnGetSnapshotAsync(
+        EvDbViewAddress viewAddress,
+        DbConnection conn,
+        string query,
+        CancellationToken cancellation)
+    {
+        EvDbStoredSnapshot result =
+                       await conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshot>(
+                                                query,
+                                                viewAddress);
+        return result;
+    }
+
+    #endregion //  OnGetSnapshotAsync
+
     #region OnStoreSnapshotAsync
 
     /// <summary>
@@ -278,6 +304,53 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #endregion //  StoreOutboxAsync
 
+    #region IsSupportConcurrentCommands
+
+    /// <summary>
+    /// Gets a value indicating whether this instance is support concurrent commands.
+    /// </summary>
+    protected virtual bool IsSupportConcurrentCommands { get; } = true; 
+
+    #endregion //  IsSupportConcurrentCommands
+
+    #region RecordParserFactory
+
+    /// <summary>
+    /// Gets the record parser factory.
+    /// </summary>
+    protected virtual IEvDbRecordParserFactory RecordParserFactory => this;
+
+    #endregion //  RecordParserFactory
+
+    #region IEvDbRecordParserFactory members
+
+    /// <summary>
+    /// Creates the specified reader.
+    /// </summary>
+    /// <param name="reader">The reader.</param>
+    /// <returns></returns>
+    IEvDbRecordParser IEvDbRecordParserFactory.Create(DbDataReader reader) => new RecordParser(reader);
+
+    #endregion //  IEvDbRecordParserFactory members
+
+    #region class RecordParser
+
+    private class RecordParser : IEvDbRecordParser
+    {
+        private readonly Func<DbDataReader, EvDbEventRecord> _parser;
+        private readonly DbDataReader _reader;
+
+        public RecordParser(DbDataReader reader)
+        {
+            _parser = reader.GetRowParser<EvDbEventRecord>();
+            _reader = reader;
+        }
+
+        EvDbEventRecord IEvDbRecordParser.ParseEvent() => _parser(_reader);
+    }
+
+    #endregion //  class RecordParser
+
     #region IEvDbStorageAdapter Members
 
     /// <summary>
@@ -296,8 +369,7 @@ public abstract class EvDbRelationalStorageAdapter :
         string query = SnapshotQueries.GetSnapshot;
         _logger.LogQuery(query);
 
-        var snapshot = await ExecuteSafe(conn =>
-                                conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshot>(query, viewAddress));
+        EvDbStoredSnapshot snapshot = await ExecuteSafe(conn => OnGetSnapshotAsync(viewAddress, conn, query, cancellation));
         if (snapshot == default)
             snapshot = EvDbStoredSnapshot.Empty;
         return snapshot;
@@ -313,10 +385,10 @@ public abstract class EvDbRelationalStorageAdapter :
 
         using DbConnection conn = await InitAsync();
         DbDataReader reader = await conn.ExecuteReaderAsync(query, streamCursor);
-        var parser = reader.GetRowParser<EvDbEventRecord>();
+        var parser = RecordParserFactory.Create(reader);
         while (await reader.ReadAsync())
         {
-            EvDbEvent e = parser(reader);
+            EvDbEvent e = parser.ParseEvent();
             yield return e;
         }
     }
@@ -432,11 +504,6 @@ public abstract class EvDbRelationalStorageAdapter :
     }
 
     #endregion // IEvDbStorageAdapter Members
-
-    /// <summary>
-    /// Gets a value indicating whether this instance is support concurrent commands.
-    /// </summary>
-    protected virtual bool IsSupportConcurrentCommands { get; } = true; 
 
     #region IsOccException
 

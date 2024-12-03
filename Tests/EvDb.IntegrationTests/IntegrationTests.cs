@@ -98,7 +98,7 @@ public class IntegrationTests : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await _storageMigration.DisposeAsync();
+        //await _storageMigration.DisposeAsync();
         await _connection.CloseAsync();
     }
 }
