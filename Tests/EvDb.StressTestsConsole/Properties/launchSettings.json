@@ -1,8 +1,15 @@
 {
   "profiles": {
-    "EvDb.StressTestsConsole": {
+    "EvDb.StressTestsConsole.SqlServer": {
       "commandName": "Project",
-      "commandLineArgs": "-w 3000 -p 1 -s 1 -b 250 -r 150 -o 20",
+      "commandLineArgs": "-w 3000 -p 1 -s 1 -b 250 -r 150 -o 20 -d SqlServer",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "EvDb.StressTestsConsole.Postgres": {
+      "commandName": "Project",
+      "commandLineArgs": "-w 3000 -p 1 -s 1 -b 250 -r 150 -o 20 -d Posgres",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
