@@ -61,6 +61,14 @@ jobs:
           SA_PASSWORD: MasadNetunim12!@
         ports:
           - 1433:1433
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: MasadNetunim12!@
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
 
     steps:
     - name: Checkout
