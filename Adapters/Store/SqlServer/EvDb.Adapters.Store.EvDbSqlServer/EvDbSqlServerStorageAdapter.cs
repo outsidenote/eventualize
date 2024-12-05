@@ -22,8 +22,8 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         IEvDbConnectionFactory factory, IEnumerable<IEvDbOutboxTransformer> transformers)
             : base(logger, factory, transformers)
     {
-        StreamQueries = QueryTemplatesFactory.CreateStreamQueries(context);
-        SnapshotQueries = QueryTemplatesFactory.CreateSnapshotQueries(context);
+        StreamQueries = QueryProvider.CreateStreamQueries(context);
+        SnapshotQueries = QueryProvider.CreateSnapshotQueries(context);
     }
 
     #endregion //  Ctor
@@ -37,7 +37,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         DbTransaction transaction,
         CancellationToken cancellationToken)
     {
-        var dataRecords = ToEventsTvp(records);
+        IEnumerable<SqlDataRecord> dataRecords = ToEventsTvp(records);
         using SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection, (SqlTransaction)transaction);
         insertCommand.CommandType = CommandType.StoredProcedure;
         SqlParameter tvpParam = insertCommand.Parameters.AddWithValue(

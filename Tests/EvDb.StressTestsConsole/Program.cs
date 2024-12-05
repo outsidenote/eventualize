@@ -9,9 +9,19 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Threading.Tasks.Dataflow;
 
-var context = new EvDbTestStorageContext();
+int idx = args.FindIndex(m => m == "-d");
+if (idx == -1)
+    Console.WriteLine("Missing database type (`-d` switch)");
+string storeTypeArg = args[idx + 1];
+StoreType storeType = string.Compare(storeTypeArg, nameof(StoreType.SqlServer), true) == 0
+    ? StoreType.SqlServer
+    : StoreType.Posgres;
 
-var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+var context = new EvDbTestStorageContext(storeType);
+
+var environmentName = Environment.GetEnvironmentVariable(
+    "ASPNETCORE_ENVIRONMENT");
 
 CoconaAppBuilder builder = CoconaApp.CreateBuilder();
 builder.Logging.AddDebug();
@@ -21,10 +31,41 @@ builder.Configuration
             .AddJsonFile($"appsettings.{environmentName}.json", true, true);
 var services = builder.Services;
 services.AddScoped<EvDbStorageContext>(_ => context);
+
 services.AddEvDb()
-      .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
-      .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
-services.AddEvDbSqlServerStoreMigration(OutboxShards.Table1, OutboxShards.Table2);
+      .AddDemoStreamFactory(c =>
+      {
+          switch (storeType)
+          {
+              case StoreType.SqlServer:
+                  c.UseSqlServerStoreForEvDbStream();
+                  break;
+              case StoreType.Posgres:
+                  c.UsePostgresStoreForEvDbStream();
+                  break;
+          }
+      })
+      .DefaultSnapshotConfiguration(c =>
+      {
+          switch (storeType)
+          {
+              case StoreType.SqlServer:
+                  c.UseSqlServerForEvDbSnapshot();
+                  break;
+              case StoreType.Posgres:
+                  c.UsePostgresForEvDbSnapshot();
+                  break;
+          }
+      });
+switch (storeType)
+{
+    case StoreType.SqlServer:
+        services.AddEvDbSqlServerStoreMigration(OutboxShards.Table1, OutboxShards.Table2);
+        break;
+    case StoreType.Posgres:
+        services.AddEvDbPostgresStoreMigration(OutboxShards.Table1, OutboxShards.Table2);
+        break;
+}
 builder.AddOtel();
 
 var app = builder.Build();
@@ -32,6 +73,7 @@ await app.RunAsync(async (
         ILogger<Program> logger,
         IEvDbDemoStreamFactory factory,
         IEvDbStorageMigration storageMigration,
+        [Option('d', Description = $"Database type ({nameof(StoreType.SqlServer)}, {nameof(StoreType.Posgres)})")] StoreType _,
         [Option('w', Description = "Number of saving on the same stream (each save is saving a batch of events)")] int writeCycleCount = 3000,
         [Option('s', Description = "Number of independent streams, different streams doesn't collide with each other")] int streamsCount = 1,
         [Option('p', Description = "The degree of parallelism, this is what's cause the collision")] int degreeOfParallelismPerStream = 1,
@@ -40,6 +82,7 @@ await app.RunAsync(async (
         [Option('b', Description = "Number of events to add in each batch")] int batchSize = 100) =>
 {
     await storageMigration.CreateEnvironmentAsync();
+    logger.LogInformation("DB Type = {type}", storeType);
     logger.LogInformation($"Total: {writeCycleCount * streamsCount}, Batch: {batchSize}, Parallel: {degreeOfParallelismPerStream}, Streams Count: {streamsCount}");
     var sw = Stopwatch.StartNew();
     int counter = 0;
@@ -61,7 +104,7 @@ await app.RunAsync(async (
                 bool success = false;
                 IEnumerable<SomethingHappened> events = CreateEvents(streamId, batchSize, j * batchSize);
                 IEnumerable<FaultOccurred> faultEvents = CreateFaultEvents(streamId, batchSize, j * batchSize);
-                
+
                 do
                 {
                     IEvDbDemoStream stream = await factory.GetAsync(streamId);
@@ -159,7 +202,7 @@ static IEnumerable<SomethingHappened> CreateEvents(
 
 static IEnumerable<FaultOccurred> CreateFaultEvents(string streamId, int batchSize, int baseId)
 {
-    for (int i = 0; i < batchSize ; i++)
+    for (int i = 0; i < batchSize; i++)
     {
         int id = baseId + i;
         var e = new FaultOccurred(id, $"Person {id}", Environment.TickCount % 100);

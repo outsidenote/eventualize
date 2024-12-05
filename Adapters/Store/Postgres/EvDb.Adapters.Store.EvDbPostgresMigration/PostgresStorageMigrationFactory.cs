@@ -6,9 +6,9 @@ using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
 
-namespace EvDb.Adapters.Store.SqlServer;
+namespace EvDb.Adapters.Store.Postgres;
 
-public static class SqlServerStorageMigrationFactory
+public static class PostgresStorageMigrationFactory
 {
     public static IEvDbStorageMigration Create(
         ILogger logger,
@@ -17,7 +17,7 @@ public static class SqlServerStorageMigrationFactory
         params EvDbShardName[] shardNames)
     {
         IEvDbStorageMigration result =
-            new SqlServerStorageMigration(
+            new PostgresStorageMigration(
                     logger,
                     context,
                     factory,
@@ -34,7 +34,7 @@ public static class SqlServerStorageMigrationFactory
         params EvDbShardName[] shardNames)
     {
         IEvDbStorageMigration result =
-            new SqlServerStorageMigration(
+            new PostgresStorageMigration(
                     logger,
                     context,
                     factory,
@@ -49,7 +49,7 @@ public static class SqlServerStorageMigrationFactory
         EvDbStorageContext context,
         params EvDbShardName[] shardNames)
     {
-        IEvDbConnectionFactory factory = new EvDbSqlConnectionFactory(connectionString);
+        IEvDbConnectionFactory factory = new EvDbPostgresConnectionFactory(connectionString);
         var result = Create(logger, factory, context, shardNames);
         return result;
     }
@@ -61,7 +61,7 @@ public static class SqlServerStorageMigrationFactory
         StorageFeatures features,
         params EvDbShardName[] shardNames)
     {
-        IEvDbConnectionFactory factory = new EvDbSqlConnectionFactory(connectionString);
+        IEvDbConnectionFactory factory = new EvDbPostgresConnectionFactory(connectionString);
         var result = Create(logger, factory, context, features, shardNames);
         return result;
     }

@@ -3,5 +3,5 @@
 public enum StoreType
 {
     SqlServer,
-    Posgres
+    Postgres
 }

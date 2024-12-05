@@ -21,7 +21,7 @@ public static class StoreAdapterHelper
         string connectionKey = storeType switch
         {
             StoreType.SqlServer => "EvDbSqlServerConnection",
-            StoreType.Posgres => "EvDbPosgresConnection",
+            StoreType.Posgres => "EvDbPostgresConnection",
             _ => throw new NotImplementedException()
         };
 
@@ -45,7 +45,7 @@ public static class StoreAdapterHelper
         StoreType storeType,
         EvDbTestStorageContext? context = null)
     {
-        context = context ?? new EvDbTestStorageContext();
+        context = context ?? new EvDbTestStorageContext(storeType);
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -54,7 +54,7 @@ public static class StoreAdapterHelper
         string connectionKey = storeType switch
         {
             StoreType.SqlServer => "EvDbSqlServerConnection",
-            StoreType.Posgres => "EvDbPosgresConnection",
+            StoreType.Posgres => "EvDbPostgresConnection",
             _ => throw new NotImplementedException()
         };
 

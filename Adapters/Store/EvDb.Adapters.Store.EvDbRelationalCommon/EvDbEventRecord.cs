@@ -18,6 +18,8 @@ public struct EvDbEventRecord
     public string CapturedBy { get; init; }
     public DateTimeOffset CapturedAt { get; init; }
 
+    #region Casting Overloads
+
     public static implicit operator EvDbEvent(EvDbEventRecord entity)
     {
         EvDbStreamCursor StreamCursor = new(
@@ -51,4 +53,6 @@ public struct EvDbEventRecord
             TraceId = activity?.TraceId.ToHexString()
         };
     }
+
+    #endregion //  Casting Overloads
 }

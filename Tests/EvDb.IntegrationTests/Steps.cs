@@ -1,6 +1,7 @@
 ﻿namespace EvDb.Core.Tests;
 
 using Cocona;
+using EvDb.Core.Store.Internals;
 using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using Scenes;
@@ -17,17 +18,19 @@ internal static class Steps
     #region CreateFactory
 
     public static IEvDbSchoolStreamFactory CreateFactory(
-        this EvDbStorageContext storageContext)
+        this EvDbStorageContext storageContext, StoreType storeType)
     {
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-                .AddSchoolStreamFactory(c => c.UseSqlServerStoreForEvDbStream(), storageContext)
-                .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());
+                .AddSchoolStreamFactory(c => c.ChooseStoreAdapter(storeType), storageContext)
+                .DefaultSnapshotConfiguration(c =>c.ChooseSnapshotAdapter(storeType));
         var sp = services.BuildServiceProvider();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
         return factory;
     }
+
+
 
     #endregion // CreateFactory
 
@@ -35,10 +38,11 @@ internal static class Steps
 
     public static IEvDbSchoolStream GivenLocalStream(
         this EvDbStorageContext storageContext,
+        StoreType storeType,
         string? streamId = null)
     {
         streamId = streamId ?? GenerateStreamId();
-        IEvDbSchoolStreamFactory factory = storageContext.CreateFactory();
+        IEvDbSchoolStreamFactory factory = storageContext.CreateFactory(storeType);
         var stream = factory.Create(streamId);
         return stream;
     }
@@ -50,13 +54,14 @@ internal static class Steps
     public static async Task<(IEvDbSchoolStreamFactory Factory, string StreamId)> GivenFactoryForStoredStreamWithEvents(
         this EvDbStorageContext storageContext,
         ITestOutputHelper output,
+        StoreType storeType,
         string? streamId = null,
         int numOfGrades = NUM_OF_GRADES)
     {
         streamId = streamId ?? GenerateStreamId();
-        await storageContext.GivenSavedEventsAsync(output, streamId, numOfGrades);
+        await storageContext.GivenSavedEventsAsync(output, storeType, streamId, numOfGrades);
 
-        IEvDbSchoolStreamFactory factory = storageContext.CreateFactory();
+        IEvDbSchoolStreamFactory factory = storageContext.CreateFactory(storeType);
 
         return (factory, streamId);
     }
@@ -68,11 +73,12 @@ internal static class Steps
     public static async Task<IEvDbSchoolStream> GivenSavedEventsAsync(
         this EvDbStorageContext storageContext,
         ITestOutputHelper output,
+        StoreType storeType,
         string? streamId,
         int numOfGrades = NUM_OF_GRADES)
     {
         IEvDbSchoolStream stream = await storageContext
-                    .GivenLocalStreamWithPendingEvents(numOfGrades, streamId)
+                    .GivenLocalStreamWithPendingEvents(storeType ,numOfGrades, streamId)
                     .WhenStreamIsSavedAsync();
         return stream;
     }
@@ -200,10 +206,11 @@ internal static class Steps
     public static async Task<IEvDbSchoolStream> GivenStreamRetrievedFromStoreWithDifferentSnapshotOffset(
         this EvDbStorageContext storageContext,
         ITestOutputHelper output,
+        StoreType storeType,
         string? streamId = null)
     {
         var stream = await storageContext
-                        .GivenFactoryForStoredStreamWithEvents(output, streamId)
+                        .GivenFactoryForStoredStreamWithEvents(output, storeType, streamId)
                         .WhenGetStreamAsync()
                         .WhenStreamIsSavedAsync()
                         .GivenAddingPendingEventsAsync(1)
@@ -218,10 +225,11 @@ internal static class Steps
 
     public static async Task<IEvDbSchoolStream> GivenLocalStreamWithPendingEvents(
         this EvDbStorageContext storageContext,
+        StoreType storeType,
         int numOfGrades = NUM_OF_GRADES,
         string? streamId = null)
     {
-        return await storageContext.GivenLocalStream(streamId)
+        return await storageContext.GivenLocalStream(storeType, streamId)
                             .WhenAddingPendingEvents(numOfGrades);
     }
 
