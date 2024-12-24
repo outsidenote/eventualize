@@ -69,11 +69,11 @@ volumes:
 #### Example Usage:
 - **Run a Query:**
   ```sh
-  sqlcmd -S localhost -U sa -P YourStrongPassword! -Q "SELECT * FROM YourDatabase.dbo.YourTable"
+  sqlcmd -S 127.0.0.1 -U sa -P YourStrongPassword! -Q "SELECT * FROM YourDatabase.dbo.YourTable"
   ```
 - **Run a Script:**
   ```sh
-  sqlcmd -S localhost -U sa -P YourStrongPassword! -i path/to/your/script.sql
+  sqlcmd -S 127.0.0.1 -U sa -P YourStrongPassword! -i path/to/your/script.sql
   ```
 
 ### bcp (Bulk Copy Program)
@@ -88,14 +88,14 @@ volumes:
 #### Example Usage:
 - **Export Data to a File:**
   ```sh
-  bcp YourDatabase.dbo.YourTable out path/to/outputfile.csv -c -t, -S localhost -U sa -P YourStrongPassword!
+  bcp YourDatabase.dbo.YourTable out path/to/outputfile.csv -c -t, -S 127.0.0.1 -U sa -P YourStrongPassword!
   ```
   - `-c`: Use character data type.
   - `-t,`: Use comma as the field terminator.
 
 - **Import Data from a File:**
   ```sh
-  bcp YourDatabase.dbo.YourTable in path/to/inputfile.csv -c -t, -S localhost -U sa -P YourStrongPassword!
+  bcp YourDatabase.dbo.YourTable in path/to/inputfile.csv -c -t, -S 127.0.0.1 -U sa -P YourStrongPassword!
   ```
 
 ## Using sqlcmd and bcp in Docker Container

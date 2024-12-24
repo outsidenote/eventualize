@@ -1,4 +1,4 @@
-@StressTestsWebApi_HostAddress = http://localhost:5294
+@StressTestsWebApi_HostAddress = http://127.0.0.1:5294
 
 
 # NO OCC small

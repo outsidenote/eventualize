@@ -25,7 +25,7 @@ evdb.AddIssueStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
 
 var redisConnStr = builder.Configuration.GetConnectionString("RedisCache")
                                 ?? Environment.GetEnvironmentVariable("REDIS_CACHE")
-                                ?? "localhost:6379";
+                                ?? "127.0.0.1:6379";
 IConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(redisConnStr);
 services.AddSingleton<IConnectionMultiplexer>(connectionMultiplexer);
 
@@ -54,9 +54,9 @@ loggingBuilder.AddOpenTelemetry(logging =>
     logging.IncludeFormattedMessage = true;
     logging.IncludeScopes = true;
     logging.AddOtlpExporter()
-           .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
-           .AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
-           .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"));
+           .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://127.0.0.1:4327/"))
+           .AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://127.0.0.1:12345/"))
+           .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://127.0.0.1:18889"));
 });
 
 loggingBuilder.Configure(x =>
@@ -90,9 +90,9 @@ services.AddOpenTelemetry()
                 .SetSampler<AlwaysOnSampler>()
                 //.SetSampler(new AlwaysOnSampler())
                 .AddOtlpExporter()
-                .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
-                .AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
-                .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"));
+                .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://127.0.0.1:4327/"))
+                .AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://127.0.0.1:12345/"))
+                .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://127.0.0.1:18889"));
     })
     .WithMetrics(meterBuilder =>
             meterBuilder.AddEvDbInstrumentation()
@@ -100,8 +100,8 @@ services.AddOpenTelemetry()
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()
                         .AddOtlpExporter()
-                        .AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
-                        .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889")));
+                        .AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://127.0.0.1:12345"))
+                        .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://127.0.0.1:18889")));
 
 
 var app = builder.Build();

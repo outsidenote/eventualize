@@ -1,4 +1,4 @@
-@EvDb.Samples.EvDbWebSample_HostAddress = http://localhost:5202
+@EvDb.Samples.EvDbWebSample_HostAddress = http://127.0.0.1:5202
 
 GET {{EvDb.Samples.EvDbWebSample_HostAddress}}/weatherforecast/
 Accept: application/json

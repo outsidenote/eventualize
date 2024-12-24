@@ -1,4 +1,4 @@
-@EvDb.StructuresValidation.WebApi_HostAddress = http://localhost:5219
+@EvDb.StructuresValidation.WebApi_HostAddress = http://127.0.0.1:5219
 
 GET {{EvDb.StructuresValidation.WebApi_HostAddress}}/weatherforecast/
 Accept: application/json

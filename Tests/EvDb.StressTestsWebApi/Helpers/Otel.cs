@@ -13,7 +13,7 @@ internal static class OtelExtensions
 
     public static WebApplicationBuilder AddOtel(this WebApplicationBuilder builder)
     {
-        string otelExporterServer = Environment.GetEnvironmentVariable(OTEL_ENC_KEY) ?? "localhost";
+        string otelExporterServer = Environment.GetEnvironmentVariable(OTEL_ENC_KEY) ?? "127.0.0.1";
         string otelHost = $"http://{otelExporterServer}";
 
         #region Logging
