@@ -159,11 +159,13 @@ internal static class QueryProvider
             ON {tblInitial}events (
                     {toSnakeCase(nameof(EvDbEventRecord.Domain))}, 
                     {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
-                    {toSnakeCase(nameof(EvDbEventRecord.Offset))});
+                    {toSnakeCase(nameof(EvDbEventRecord.Offset))})
+            WITH (ONLINE = ON);
 
             -- Index for getting records with a specific value in column event_type and a value of captured_at within a given time range, sorted by captured_at
             CREATE INDEX IX_event_stored_at_{tblInitialWithoutSchema}
-            ON  {tblInitial}events (stored_at);
+            ON  {tblInitial}events (stored_at)
+            WITH (ONLINE = ON);
 
             """;
 
@@ -240,11 +242,13 @@ internal static class QueryProvider
                ON {tblInitial}{t} (
                      {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
                      {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},  
-                     {toSnakeCase(nameof(EvDbMessageRecord.Offset))});
+                     {toSnakeCase(nameof(EvDbMessageRecord.Offset))})
+            WITH (ONLINE = ON);
             
             CREATE INDEX IX_{t}_stored_at_{tblInitialWithoutSchema}
             ON {tblInitial}{t} (
-                    stored_at);
+                    stored_at)
+            WITH (ONLINE = ON);
 
             """);
 
@@ -330,7 +334,8 @@ internal static class QueryProvider
                 {toSnakeCase(nameof(EvDbViewAddress.Domain))}, 
                 {toSnakeCase(nameof(EvDbViewAddress.Partition))}, 
                 {toSnakeCase(nameof(EvDbViewAddress.StreamId))},
-                {toSnakeCase(nameof(EvDbViewAddress.ViewName))}, stored_at);
+                {toSnakeCase(nameof(EvDbViewAddress.ViewName))}, stored_at)
+            WITH (ONLINE = ON);
 
             ALTER DATABASE {db} 
             SET ALLOW_SNAPSHOT_ISOLATION ON;
