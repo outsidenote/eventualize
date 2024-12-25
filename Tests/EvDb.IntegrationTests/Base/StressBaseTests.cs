@@ -46,9 +46,9 @@ public abstract class StressBaseTests : IntegrationTests
         //    logging.IncludeFormattedMessage = true;
         //    logging.IncludeScopes = true;
         //    logging.AddOtlpExporter()
-        //           .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
-        //           .AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
-        //           .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"));
+        //           .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://127.0.0.1:4327/"))
+        //           .AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://127.0.0.1:12345/"))
+        //           .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://127.0.0.1:18889"));
         //});
 
         //loggingBuilder.Configure(x =>
@@ -77,16 +77,16 @@ public abstract class StressBaseTests : IntegrationTests
                         })
                         .SetSampler<AlwaysOnSampler>()
                         //.AddOtlpExporter()
-                        .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://localhost:4327/"))
-                        //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345/"))
-                        .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889"));
+                        .AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://127.0.0.1:4327/"))
+                        //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://127.0.0.1:12345/"))
+                        .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://127.0.0.1:18889"));
             })
             .WithMetrics(meterBuilder =>
                     meterBuilder.AddEvDbInstrumentation()
                                 .AddProcessInstrumentation()
                                 //.AddOtlpExporter()
-                                //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://localhost:12345"))
-                                .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://localhost:18889")));
+                                //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://127.0.0.1:12345"))
+                                .AddOtlpExporter("aspire", o => o.Endpoint = new Uri("http://127.0.0.1:18889")));
     }
 
     #endregion // Otel
