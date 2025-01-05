@@ -162,14 +162,16 @@ public abstract class EvDbStream :
 
             EvDbEvent ev = events[^1];
             StoredOffset = ev.StreamCursor.Offset;
-            var viewSaveTasks = _views.Select(v => v.SaveAsync(cancellation));
+            var viewSaveTasks = _views.Select(async v =>
+            {
+                await v.SaveAsync(cancellation);
+                v.OnSaved();
+            });
             await Task.WhenAll(viewSaveTasks);
 
             using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
             _pendingEvents = ImmutableList<EvDbEvent>.Empty;
             _pendingOutput = ImmutableList<EvDbMessage>.Empty;
-            foreach (IEvDbViewStore view in _views)
-                view.OnSaved();
 
             return affected;
         }

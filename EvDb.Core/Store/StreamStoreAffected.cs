@@ -2,6 +2,8 @@
 
 namespace EvDb.Core;
 
+// TODO: [bnaya 2024-12-29] Add the views
+
 /// <summary>
 /// Indicate how many events and messages ware affected.
 /// </summary>
