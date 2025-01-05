@@ -91,7 +91,8 @@ public abstract class StressBaseTests : IntegrationTests
 
     #endregion // Otel
 
-    [Theory]
+    [Theory(Timeout = 30_000)]
+    // [Theory]
     [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
     //[InlineData(10, 1, 2, 2)]
@@ -174,7 +175,7 @@ public abstract class StressBaseTests : IntegrationTests
         }
     }
 
-    [Theory]
+    [Theory(Timeout = 1_000)]
     [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
     //[InlineData(10, 1, 2, 2)]
