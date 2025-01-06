@@ -103,7 +103,7 @@ public abstract class EvDbRelationalStorageAdapter :
     #region SnapshotQueries
 
     /// <summary>
-    /// Gets the snapshot's queries.
+    /// Gets the snapshotData's queries.
     /// </summary>
     protected abstract EvDbSnapshotAdapterQueryTemplates SnapshotQueries { get; }
     #endregion //  SnapshotQueries
@@ -159,9 +159,10 @@ public abstract class EvDbRelationalStorageAdapter :
     #endregion //  OnStoreOutboxMessagesAsync
 
     #region OnGetSnapshotAsync
+#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 
     /// <summary>
-    /// Gets the snapshot.
+    /// Gets the snapshotData.
     /// </summary>
     /// <param name="viewAddress">The view uniqueness.</param>
     /// <param name="conn">The connection.</param>
@@ -180,24 +181,25 @@ public abstract class EvDbRelationalStorageAdapter :
         return result;
     }
 
+#pragma warning restore CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
     #endregion //  OnGetSnapshotAsync
 
     #region OnStoreSnapshotAsync
 
     /// <summary>
-    /// Store a snapshot.
+    /// Store a snapshotData.
     /// </summary>
-    /// <param name="connecion">The connection.</param>
-    /// <param name="query">The save snapshot query.</param>
-    /// <param name="snapshot">The snapshot data.</param>
+    /// <param name="connection">The connection.</param>
+    /// <param name="query">The save snapshotData query.</param>
+    /// <param name="snapshot">The snapshotData data.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected virtual Task<int> OnStoreSnapshotAsync(DbConnection connecion,
+    protected virtual Task<int> OnStoreSnapshotAsync(DbConnection connection,
                                               string query,
                                               EvDbStoredSnapshotData snapshot,
                                               CancellationToken cancellationToken)
     {
-        return connecion.ExecuteAsync(query, snapshot);
+        return connection.ExecuteAsync(query, snapshot);
     }
 
     #endregion //  OnStoreSnapshotAsync
@@ -335,7 +337,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #region class RecordParser
 
-    private class RecordParser : IEvDbRecordParser
+    private sealed class RecordParser : IEvDbRecordParser
     {
         private readonly Func<DbDataReader, EvDbEventRecord> _parser;
         private readonly DbDataReader _reader;
@@ -354,13 +356,13 @@ public abstract class EvDbRelationalStorageAdapter :
     #region IEvDbStorageAdapter Members
 
     /// <summary>
-    /// Tries to get a view's snapshot.
+    /// Tries to get a view's snapshotData.
     /// </summary>
     /// <param name="viewAddress">The view address.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     /// <exception cref="System.NotImplementedException"></exception>
-    async Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(
+    async Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapterBase.GetSnapshotAsync(
         EvDbViewAddress viewAddress,
         CancellationToken cancellation)
     {
@@ -485,22 +487,15 @@ public abstract class EvDbRelationalStorageAdapter :
     }
 
     async Task IEvDbStorageSnapshotAdapter.StoreViewAsync(
-        IEvDbViewStore viewStore,
+        EvDbStoredSnapshotData snapshotData,
         CancellationToken cancellation)
     {
-        if (!viewStore.ShouldStoreSnapshot)
-        {
-            await Task.FromResult(true);
-            return;
-        }
-
         cancellation.ThrowIfCancellationRequested();
         string saveSnapshotQuery = SnapshotQueries.SaveSnapshot;
         _logger.LogQuery(saveSnapshotQuery);
 
-        EvDbStoredSnapshotData snapshot = viewStore.GetSnapshotData();
 
-        await ExecuteSafe(conn => OnStoreSnapshotAsync(conn, saveSnapshotQuery, snapshot, cancellation));
+        await ExecuteSafe(conn => OnStoreSnapshotAsync(conn, saveSnapshotQuery, snapshotData, cancellation));
     }
 
     #endregion // IEvDbStorageAdapter Members
