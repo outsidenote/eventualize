@@ -9,7 +9,7 @@ using System.Text.Json;
 using Xunit.Abstractions;
 using static EvDb.Adapters.Store.SqlServer.EvDbSqlServerStorageAdapterFactory;
 
-public class SqlServerStreamChaosTests : StreamChaosBaseTests
+public class SqlServerStreamChaosTests : StreamTxSopeBaseTests
 {
     public SqlServerStreamChaosTests(ITestOutputHelper output) :
         base(output, StoreType.SqlServer)

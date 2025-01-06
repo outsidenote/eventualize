@@ -11,9 +11,9 @@ using System.Text.Json;
 using System.Transactions;
 using Xunit.Abstractions;
 
-public abstract class StreamChaosBaseTests : IntegrationTests
+public abstract class StreamTxSopeBaseTests : IntegrationTests
 {
-    public StreamChaosBaseTests(ITestOutputHelper output, StoreType storeType) :
+    public StreamTxSopeBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType)
     {
     }
