@@ -1,6 +1,32 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbStorageSnapshotAdapter
+public interface IEvDbStorageSnapshotAdapter<TState>: IEvDbStorageSnapshotAdapterBase
+{
+    /// <summary>
+    /// Store the view's state as a snapshot
+    /// </summary>
+    /// <param name="data">The snapshot's snapshotData and metadata</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    Task StoreViewAsync(
+        EvDbStoredSnapshotData<TState> data,
+        CancellationToken cancellation = default);
+}
+
+public interface IEvDbStorageSnapshotAdapter: IEvDbStorageSnapshotAdapterBase
+{
+    /// <summary>
+    /// Store the view's state as a snapshot
+    /// </summary>
+    /// <param name="snapshotData">The snapshot's snapshotData and metadata</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    Task StoreViewAsync(
+        EvDbStoredSnapshotData snapshotData,
+        CancellationToken cancellation = default);
+}
+
+public interface IEvDbStorageSnapshotAdapterBase
 {
     /// <summary>
     /// Gets the latests stored view's snapshot or an empty snapshot if not exists.
@@ -13,13 +39,4 @@ public interface IEvDbStorageSnapshotAdapter
                                 EvDbViewAddress viewAddress,
                                 CancellationToken cancellation = default);
 
-    /// <summary>
-    /// Store the view's state as a snapshot
-    /// </summary>
-    /// <param name="viewStore">The view store.</param>
-    /// <param name="cancellation">The cancellation.</param>
-    /// <returns></returns>
-    Task StoreViewAsync(
-        IEvDbViewStore viewStore,
-        CancellationToken cancellation = default);
 }

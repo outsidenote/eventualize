@@ -18,7 +18,6 @@ builder.Configuration
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile($"appsettings.json", true, true)
             .AddJsonFile($"appsettings.{environmentName}.json", true, true);
-var services = builder.Services;
 
 var app = builder.Build();
 await app.RunAsync(async (
@@ -76,10 +75,10 @@ await app.RunAsync(async (
 
     if (!dryRun && string.IsNullOrWhiteSpace(path))
     {
-        connectionString = Environment.GetEnvironmentVariable(connectionString) ?? connectionString;
+        connectionString = Environment.GetEnvironmentVariable(connectionString!) ?? connectionString;
         IEvDbStorageMigration migration = db switch
         {
-            "sql-server" => SqlServerStorageMigrationFactory.Create(logger, connectionString, context, storageFeatures, outboxNames),
+            "sql-server" => SqlServerStorageMigrationFactory.Create(logger, connectionString!, context, storageFeatures, outboxNames),
             //"posgres" => PostgresStorageMigrationFactory.Create(logger, connectionString, context, storageFeatures, outboxNames),
             _ => throw new NotImplementedException()
         };

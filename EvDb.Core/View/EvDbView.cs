@@ -110,7 +110,7 @@ public abstract class EvDbView : IEvDbViewStore
 
     #region SaveAsync
 
-    public async Task SaveAsync(CancellationToken cancellation = default)
+    async Task IEvDbViewStore.SaveAsync(CancellationToken cancellation)
     {
         if (!this.ShouldStoreSnapshot)
         {
@@ -121,7 +121,9 @@ public abstract class EvDbView : IEvDbViewStore
         OtelTags tags = Address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.View.StoreAsync");
         using var duration = _sysMeters.MeasureStoreSnapshotsDuration(tags);
-        await this._storageAdapter.StoreViewAsync(this, cancellation);
+        // TODO: [bnaya 2025-01-06] call a virtual method
+        EvDbStoredSnapshotData data = GetSnapshotData();
+        await _storageAdapter.StoreViewAsync(data, cancellation);
         _sysMeters.SnapshotStored.Add(1, tags);
     }
 
