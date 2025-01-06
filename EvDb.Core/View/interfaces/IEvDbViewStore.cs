@@ -9,8 +9,6 @@ public interface IEvDbViewStore : IEvDbView
 
     void FoldEvent(EvDbEvent e);
 
-    void OnSaved();
-
     EvDbStoredSnapshotData GetSnapshotData();
 
     Task SaveAsync(CancellationToken cancellation = default);

@@ -12,3 +12,11 @@ public readonly partial record struct EvDbStoredSnapshot(
 {
     public static readonly EvDbStoredSnapshot Empty = new EvDbStoredSnapshot(-1, Array.Empty<byte>());
 }
+
+[Equatable]
+[DebuggerDisplay("{State}, Offset:{Offset}")]
+public readonly partial record struct EvDbStoredSnapshot<TState>(
+            long Offset,
+            TState State)
+{
+}
