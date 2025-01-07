@@ -11,10 +11,31 @@ public interface IEvDbViewFactory
         JsonSerializerOptions? options,
         TimeProvider? timeProvider = null);
 
-    IEvDbViewStore CreateFromSnapshot(EvDbStreamAddress address,
-        EvDbStoredSnapshot snapshot,
+    Task<IEvDbViewStore> GetAsync(
+        EvDbViewAddress address,
         JsonSerializerOptions? options,
-        TimeProvider? timeProvider = null);
-
-    IEvDbStorageSnapshotAdapter StoreAdapter { get; }
+        TimeProvider? timeProvider = null,
+        CancellationToken cancellationToken = default);
 }
+
+//public interface IEvDbViewFactory: IEvDbViewFactoryBase
+//{
+//    IEvDbViewStore CreateFromSnapshot(
+//        EvDbStreamAddress address,
+//        EvDbStoredSnapshot snapshot,
+//        JsonSerializerOptions? options,
+//        TimeProvider? timeProvider = null);
+
+//    //IEvDbStorageSnapshotAdapter StoreAdapter { get; }
+//}
+
+//public interface IEvDbViewFactory<TState>: IEvDbViewFactoryBase
+//{
+//    IEvDbViewStore CreateFromSnapshot(
+//        EvDbStreamAddress address,
+//        EvDbStoredSnapshot<TState> snapshot,
+//        JsonSerializerOptions? options,
+//        TimeProvider? timeProvider = null);
+
+//   // IEvDbStorageSnapshotAdapter<TState> StoreAdapter { get; }
+//}

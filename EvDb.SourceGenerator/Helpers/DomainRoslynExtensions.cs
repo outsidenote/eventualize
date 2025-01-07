@@ -50,8 +50,8 @@ internal static class DomainRoslynExtensions
         INamedTypeSymbol typeSymbol,
         bool isClassOrStruct = true)
     {
-        var asm = typeSymbol.ContainingAssembly.Identity;
-        builder.AppendLine($"[System.CodeDom.Compiler.GeneratedCode(\"{asm.Name}\",\"{asm.Version}\")]");
+        var asm = typeof(DomainRoslynExtensions).Assembly.GetName();
+        builder.AppendLine($"[System.CodeDom.Compiler.GeneratedCode(\"EvDb.SourceGenerator\",\"{asm.Version}\")]");
         if (isClassOrStruct)
         {
             builder.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]");
