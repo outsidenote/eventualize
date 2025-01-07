@@ -221,9 +221,9 @@ internal static class Steps
     {
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
-            .ReturnsLazily<Task<EvDbStoredSnapshot>>(() =>
+            .ReturnsLazily<Task<EvDbStoredSnapshot?>>(() =>
             {
-                return Task.FromResult(EvDbStoredSnapshot.Empty);
+                return Task.FromResult<EvDbStoredSnapshot?>(null);
             });
 
         return input;
@@ -268,7 +268,7 @@ internal static class Steps
     {
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == StudentStatsView.ViewName), A<CancellationToken>.Ignored))
-            .ReturnsLazily<EvDbStoredSnapshot>(() =>
+            .ReturnsLazily<EvDbStoredSnapshot?>(() =>
                 {
                     long offset = getSnapshotOffset(StudentStatsView.ViewName);
                     var snapshot = CreateStudentStatsSnapshot(offset, input.Factory.Options);
@@ -277,7 +277,7 @@ internal static class Steps
 
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == StatsView.ViewName), A<CancellationToken>.Ignored))
-            .ReturnsLazily<EvDbStoredSnapshot>(() =>
+            .ReturnsLazily<EvDbStoredSnapshot?>(() =>
                 {
                     long offset = getSnapshotOffset(StatsView.ViewName);
                     var snapshot = CreateStatsSnapshot(offset, input.Factory.Options);
@@ -286,7 +286,7 @@ internal static class Steps
 
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == MinEventIntervalSecondsView.ViewName), A<CancellationToken>.Ignored))
-            .ReturnsLazily<EvDbStoredSnapshot>(() =>
+            .ReturnsLazily<EvDbStoredSnapshot?>(() =>
                 {
                     long offset = getSnapshotOffset(MinEventIntervalSecondsView.ViewName);
                     var snapshot = CreateStatsSnapshot(offset, input.Factory.Options);

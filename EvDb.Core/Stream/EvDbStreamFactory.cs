@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace EvDb.Core;
 
 [DebuggerDisplay("{PartitionAddress.Domain}:{PartitionAddress.Partition}")]
-public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
+public abstract class EvDbStreamFactory<T> : IEvDbStreamFactory<T>
     where T : IEvDbStreamStore, IEvDbEventTypes
 {
     protected readonly ILogger _logger;
@@ -16,7 +16,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     #region Ctor
 
-    protected EvDbStreamFactoryBase(
+    protected EvDbStreamFactory(
         ILogger logger,
         IEvDbStorageStreamAdapter storageAdapter,
         TimeProvider? timeProvider = null)
@@ -29,8 +29,6 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     #endregion // Ctor
 
     public abstract EvDbPartitionAddress PartitionAddress { get; }
-
-    public virtual int MinEventsBetweenSnapshots { get; }
 
     public virtual JsonSerializerOptions? Options { get; }
 
@@ -77,9 +75,17 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         async Task<IEvDbViewStore> GetViewAsync(IEvDbViewFactory viewFactory)
         {
             EvDbViewAddress viewAddress = new(address, viewFactory.ViewName);
+
             using var snapActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshot")
                                            ?.AddTag("evdb.view.name", viewAddress.ViewName);
-            IEvDbViewStore view = await viewFactory.GetAsync(viewAddress, Options, TimeProvider, cancellationToken);
+
+            // TODO: [bnaya 2025-01-06] viewFactory should have IEvDbViewStore view = viewFactory.GetViewAsync(address)
+            //IEvDbStoredSnapshot snapshot = await snapshotAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
+            //lowestOffset = lowestOffset == -1 // get the lowest offset among all snapshots
+            //                        ? snapshot.Offset
+            //                        : Math.Min(lowestOffset, snapshot.Offset);
+            //IEvDbViewStore view = viewFactory.CreateFromSnapshot(address, snapshot, Options);
+            IEvDbViewStore view = await viewFactory.GetAsync(viewAddress, Options, TimeProvider);
             return view;
         }
 

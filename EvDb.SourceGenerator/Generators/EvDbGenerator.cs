@@ -171,6 +171,7 @@ public partial class EvDbGenerator : BaseGenerator
                         #endregion // Ctor
                                                              
                         protected override IEvDbViewFactory[] ViewFactories { get; }
+
                         #region Partition
                     
                         public override EvDbPartitionAddress PartitionAddress { get; } = 
@@ -412,7 +413,8 @@ public partial class EvDbGenerator : BaseGenerator
             builder.AppendLine($$"""
                     internal partial class {{viewRef.ViewTypeName}}Factory: IEvDbViewFactory
                     { 
-                        private readonly IEvDbStorageSnapshotAdapter _storageAdapter;                        
+                        private readonly IEvDbStorageSnapshotAdapter<{{viewRef.ViewStateTypeFullName}}>? _typedStorageAdapter;                        
+                        private readonly IEvDbStorageSnapshotAdapter? _storageAdapter;                        
                         private readonly ILogger _logger;
                              
                         
@@ -423,11 +425,13 @@ public partial class EvDbGenerator : BaseGenerator
                                         IServiceProvider serviceProvider,
                                         ILogger<{{viewRef.ViewTypeName}}> logger)
                         {
-                            IEvDbStorageSnapshotAdapter storageAdapter = 
-                                serviceProvider.GetKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}") ??
-                                serviceProvider.GetRequiredKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}");
-
-                            _storageAdapter = storageAdapter;
+                           _typedStorageAdapter = serviceProvider.GetKeyedService<IEvDbStorageSnapshotAdapter<{{viewRef.ViewStateTypeFullName}}>>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
+                           if(_typedStorageAdapter == null)
+                           {
+                                _storageAdapter = 
+                                    serviceProvider.GetKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}") ??
+                                    serviceProvider.GetRequiredKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}");
+                            }
                             _logger = logger;
                         } 
 
@@ -438,29 +442,51 @@ public partial class EvDbGenerator : BaseGenerator
                                                 JsonSerializerOptions? options, 
                                                 TimeProvider? timeProvider) 
                         {
-                            return new {{viewRef.ViewTypeName}}(
+                            if(_typedStorageAdapter != null)
+                            {
+                                return new {{viewRef.ViewTypeName}}(
                                                     address, 
-                                                    _storageAdapter, 
+                                                    _typedStorageAdapter, 
                                                     timeProvider ?? TimeProvider.System, 
                                                     _logger, 
                                                     options);
-                        }
-                    
-                        IEvDbViewStore IEvDbViewFactory.CreateFromSnapshot(EvDbStreamAddress address,
-                            EvDbStoredSnapshot snapshot,
-                            JsonSerializerOptions? options, 
-                                                TimeProvider? timeProvider)
-                        {
+                            }
                             return new {{viewRef.ViewTypeName}}(
-                                                address,
+                                                    address, 
+                                                    _storageAdapter!, 
+                                                    timeProvider ?? TimeProvider.System, 
+                                                    _logger, 
+                                                    options);
+                                            }
+                    
+                        async Task<IEvDbViewStore> IEvDbViewFactory.GetAsync(
+                                                EvDbViewAddress viewAddress,
+                                                JsonSerializerOptions? options,
+                                                TimeProvider? timeProvider,
+                                                CancellationToken cancellationToken)
+                        {
+                            if(_typedStorageAdapter != null)
+                            {
+                                EvDbStoredSnapshot<{{viewRef.ViewStateTypeFullName}}>? typedSnapshot = 
+                                            await _typedStorageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
+                                
+                                return new {{viewRef.ViewTypeName}}(
+                                                viewAddress,
+                                                _typedStorageAdapter, 
+                                                timeProvider ?? TimeProvider.System, 
+                                                _logger, 
+                                                typedSnapshot,
+                                                options);
+                            }                    
+                            EvDbStoredSnapshot? snapshot = await _storageAdapter!.GetSnapshotAsync(viewAddress, cancellationToken);
+                            return new {{viewRef.ViewTypeName}}(
+                                                viewAddress,
                                                 _storageAdapter, 
                                                 timeProvider ?? TimeProvider.System, 
                                                 _logger, 
                                                 snapshot,
                                                 options);
                         }
-                    
-                        IEvDbStorageSnapshotAdapter IEvDbViewFactory.StoreAdapter => _storageAdapter;                    
                     }
                     """);
             var folder = viewRef.Namespace;

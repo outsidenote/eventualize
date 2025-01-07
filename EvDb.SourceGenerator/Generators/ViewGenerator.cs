@@ -117,7 +117,7 @@ public partial class ViewGenerator : BaseGenerator
                             ILogger logger,
                             JsonSerializerOptions? options):
                                 base(new EvDbViewAddress(address, ViewName), 
-                                EvDbStoredSnapshot.Empty,
+                                null,
                                 storageAdapter, 
                                 timeProvider,
                                 logger,
@@ -130,7 +130,7 @@ public partial class ViewGenerator : BaseGenerator
                             IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
-                            EvDbStoredSnapshot snapshot, 
+                            EvDbStoredSnapshot? snapshot, 
                             JsonSerializerOptions? options):
                                 base(
                                     new EvDbViewAddress(address, ViewName), 
@@ -142,6 +142,38 @@ public partial class ViewGenerator : BaseGenerator
                         {
                         }
 
+                        protected {{viewClassName}}Base(
+                            EvDbStreamAddress address,
+                            IEvDbStorageSnapshotAdapter<{{stateType}}> typedStorageAdapter,
+                            TimeProvider timeProvider,
+                            ILogger logger,
+                            JsonSerializerOptions? options):
+                                base(new EvDbViewAddress(address, ViewName), 
+                                null,
+                                typedStorageAdapter, 
+                                timeProvider,
+                                logger,
+                                options)
+                        {
+                        }
+                    
+                        protected {{viewClassName}}Base(
+                            EvDbStreamAddress address,
+                            IEvDbStorageSnapshotAdapter<{{stateType}}> typedStorageAdapter,
+                            TimeProvider timeProvider,
+                            ILogger logger,
+                            EvDbStoredSnapshot<{{stateType}}>? snapshot, 
+                            JsonSerializerOptions? options):
+                                base(
+                                    new EvDbViewAddress(address, ViewName), 
+                                    snapshot,
+                                    typedStorageAdapter,
+                                    timeProvider,
+                                    logger,
+                                    options)
+                        {
+                        }
+                    
                         #endregion // Ctor
 
                         #region OnFoldEvent
@@ -201,7 +233,7 @@ public partial class ViewGenerator : BaseGenerator
                             IEvDbStorageSnapshotAdapter storageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
-                            EvDbStoredSnapshot snapshot, 
+                            EvDbStoredSnapshot? snapshot, 
                             JsonSerializerOptions? options):
                                 base (
                                     address,
@@ -212,7 +244,39 @@ public partial class ViewGenerator : BaseGenerator
                                     options)
                         {
                         }
-                    }
+
+                        public {{viewOriginName}}(
+                            EvDbStreamAddress address,
+                            IEvDbStorageSnapshotAdapter<{{stateType}}> typedStorageAdapter, 
+                            TimeProvider timeProvider,
+                            ILogger logger,
+                            JsonSerializerOptions? options):
+                                    base (
+                                        address, 
+                                        typedStorageAdapter, 
+                                        timeProvider, 
+                                        logger,
+                                        options)
+                        {
+                        }
+                    
+                        public {{viewOriginName}}(
+                            EvDbStreamAddress address,
+                            IEvDbStorageSnapshotAdapter<{{stateType }}> typedStorageAdapter, 
+                            TimeProvider timeProvider,
+                            ILogger logger,
+                            EvDbStoredSnapshot<{{stateType}}>? snapshot, 
+                            JsonSerializerOptions? options):
+                                base (
+                                    address,
+                                    typedStorageAdapter,
+                                    timeProvider,
+                                    logger,
+                                    snapshot,
+                                    options)
+                        {
+                        }
+                                        }
                     """);
         context.AddSource(typeSymbol.StandardPath(), builder.ToString());
 

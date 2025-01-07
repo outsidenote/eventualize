@@ -12,31 +12,34 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     protected EvDbView(
         EvDbViewAddress address,
-        EvDbStoredSnapshot snapshot,
+        EvDbStoredSnapshot? snapshot,
         IEvDbStorageSnapshotAdapter storageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options) :
-        base(address, storageAdapter, timeProvider, logger, options, snapshot.Offset)
+        base(address, storageAdapter, timeProvider, logger, options, snapshot?.Offset ?? -1)
     {
-        if (snapshot == EvDbStoredSnapshot.Empty || snapshot.State.Length == 0)
+        if (snapshot == null)
             State = DefaultState;
         else
         {
-            State = JsonSerializer.Deserialize<TState>(snapshot.State, options) ?? DefaultState;
+            State = JsonSerializer.Deserialize<TState>(snapshot.Value.State, options) ?? DefaultState;
         }
     }
 
     protected EvDbView(
         EvDbViewAddress address,
-        EvDbStoredSnapshot<TState> snapshot,
-        IEvDbStorageSnapshotAdapter<TState> typedStorageAdapter,
+        EvDbStoredSnapshot<TState>? snapshot,
+        IEvDbStorageSnapshotAdapter<TState>? typedStorageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options) :
-        base(address, NonStorageSnapshotAdapter.Defaut, timeProvider, logger, options, snapshot.Offset)
+        base(address, null, timeProvider, logger, options, snapshot?.Offset ?? -1)
     {
-        State = snapshot.State;
+        if (snapshot == null)
+            State = DefaultState;
+        else
+            State = snapshot.Value.State;
 
         _typedStorageAdapter = typedStorageAdapter;
     }
@@ -73,13 +76,13 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     private sealed class NonStorageSnapshotAdapter : IEvDbStorageSnapshotAdapter
     {
-        public static readonly IEvDbStorageSnapshotAdapter Defaut = new NonStorageSnapshotAdapter();
+        public static readonly IEvDbStorageSnapshotAdapter Default = new NonStorageSnapshotAdapter();
 
         private NonStorageSnapshotAdapter()
         {
         }
 
-        Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapterBase.GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation)
+        Task<EvDbStoredSnapshot?> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation)
         {
             throw new NotImplementedException();
         }
@@ -99,7 +102,7 @@ public abstract class EvDbView : IEvDbViewStore
     private readonly static ActivitySource _trace = Telemetry.Trace;
     private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
 
-    private readonly IEvDbStorageSnapshotAdapter _storageAdapter;
+    private readonly IEvDbStorageSnapshotAdapter? _storageAdapter;
     protected readonly JsonSerializerOptions? _options;
     protected readonly ILogger _logger;
 
@@ -107,7 +110,7 @@ public abstract class EvDbView : IEvDbViewStore
 
     protected EvDbView(
         EvDbViewAddress address,
-        IEvDbStorageSnapshotAdapter storageAdapter,
+        IEvDbStorageSnapshotAdapter? storageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options,
@@ -170,6 +173,8 @@ public abstract class EvDbView : IEvDbViewStore
         bool saved = await OnSave(cancellation);
         if (!saved)
         {
+            if(_storageAdapter == null)
+                throw new NullReferenceException(nameof(_storageAdapter));
             EvDbStoredSnapshotData data = GetSnapshotData();
             await _storageAdapter.StoreViewAsync(data, cancellation);
         }
