@@ -43,17 +43,27 @@ internal static class Steps
 
     private static IEvDbSchoolStreamFactory CreateFactory(
                 IEvDbStorageAdapter storageAdapter,
-                TimeProvider? timeProvider)
+                TimeProvider? timeProvider,
+                IEvDbStorageSnapshotAdapter<StudentStatsState>? typedStorageAdapter = null)
     {
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddSingleton(storageAdapter);
-        services.AddEvDb()
+        var evdb = services.AddEvDb()
               .AddSchoolStreamFactory(c =>
               {
                   c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
                   c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
               });
+        if (typedStorageAdapter != null)
+        {
+            evdb.ForStudentStats(c =>
+                  {
+                      c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter<StudentStatsState>>(
+                          c.Address.ToString(),
+                          (_, _) => typedStorageAdapter);
+                  });
+        }
         services.AddSingleton<TimeProvider>(timeProvider ?? TimeProvider.System);
         var sp = services.BuildServiceProvider();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
@@ -67,10 +77,11 @@ internal static class Steps
     public static IEvDbSchoolStream GivenLocalStream(
         this IEvDbStorageAdapter storageAdapter,
         string? streamId = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        IEvDbStorageSnapshotAdapter<StudentStatsState>? typedStorageAdapter = null)
     {
         streamId = streamId ?? GenerateStreamId();
-        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter, timeProvider);
+        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter, timeProvider, typedStorageAdapter);
         var stream = factory.Create(streamId);
         return stream;
     }
@@ -85,10 +96,11 @@ internal static class Steps
         string? streamId = null,
         Action<IEvDbStorageAdapter, string>? mockGetAsyncResult = null,
         bool withEvents = true,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        IEvDbStorageSnapshotAdapter<StudentStatsState>? typedStorageAdapter = null)
     {
         streamId = streamId ?? GenerateStreamId();
-        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter, timeProvider);
+        IEvDbSchoolStreamFactory factory = CreateFactory(storageAdapter, timeProvider, typedStorageAdapter);
 
         if (mockGetAsyncResult == null)
         {
@@ -171,12 +183,13 @@ internal static class Steps
 
     public static async Task<IEvDbSchoolStream> GivenStreamWithStaleEvents(
         this IEvDbStorageAdapter storageAdapter,
-        ITestOutputHelper output)
+        ITestOutputHelper output,
+        IEvDbStorageSnapshotAdapter<StudentStatsState>? typedStorageAdapter = null)
     {
 
         A.CallTo(() => storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IImmutableList<EvDbMessage>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
                 .Throws<OCCException>();
-        var stream = await storageAdapter.GivenLocalStreamWithPendingEvents(output, 6);
+        var stream = await storageAdapter.GivenLocalStreamWithPendingEvents(output, 6, typedStorageAdapter: typedStorageAdapter);
         return stream;
     }
 
@@ -445,9 +458,10 @@ internal static class Steps
         this IEvDbStorageAdapter storageAdapter,
         ITestOutputHelper output,
         int numOfGrades = NUM_OF_GRADES,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        IEvDbStorageSnapshotAdapter<StudentStatsState>? typedStorageAdapter = null)
     {
-        return await GivenLocalStream(storageAdapter, timeProvider: timeProvider)
+        return await GivenLocalStream(storageAdapter, timeProvider: timeProvider, typedStorageAdapter: typedStorageAdapter)
                             .WhenAddingPendingEvents(numOfGrades);
     }
 
