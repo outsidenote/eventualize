@@ -243,15 +243,6 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
     #endregion //  OnGetSnapshotAsync
 
-    #region RecordParserFactory
-
-    /// <summary>
-    /// Gets the record parser factory.
-    /// </summary>
-    protected virtual IEvDbRecordParserFactory RecordParserFactory => this;
-
-    #endregion //  RecordParserFactory
-
     #region IEvDbRecordParserFactory members
 
     /// <summary>
