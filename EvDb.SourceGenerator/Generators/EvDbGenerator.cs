@@ -467,7 +467,7 @@ public partial class EvDbGenerator : BaseGenerator
                         {
                             if(_typedStorageAdapter != null)
                             {
-                                EvDbStoredSnapshot<{{viewRef.ViewStateTypeFullName}}>? typedSnapshot = 
+                                EvDbStoredSnapshot<{{viewRef.ViewStateTypeFullName}}> typedSnapshot = 
                                             await _typedStorageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
                                 
                                 return new {{viewRef.ViewTypeName}}(
@@ -478,7 +478,7 @@ public partial class EvDbGenerator : BaseGenerator
                                                 typedSnapshot,
                                                 options);
                             }                    
-                            EvDbStoredSnapshot? snapshot = await _storageAdapter!.GetSnapshotAsync(viewAddress, cancellationToken);
+                            EvDbStoredSnapshot snapshot = await _storageAdapter!.GetSnapshotAsync(viewAddress, cancellationToken);
                             return new {{viewRef.ViewTypeName}}(
                                                 viewAddress,
                                                 _storageAdapter, 

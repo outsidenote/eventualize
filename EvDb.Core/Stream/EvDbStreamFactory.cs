@@ -49,7 +49,7 @@ public abstract class EvDbStreamFactory<T> : IEvDbStreamFactory<T>
         OtelTags tags = address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.CreateAsync");
 
-        var result = OnCreate(id, views, -1);
+        var result = OnCreate(id, views, 0);
         return result;
     }
 
@@ -78,13 +78,6 @@ public abstract class EvDbStreamFactory<T> : IEvDbStreamFactory<T>
 
             using var snapActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshot")
                                            ?.AddTag("evdb.view.name", viewAddress.ViewName);
-
-            // TODO: [bnaya 2025-01-06] viewFactory should have IEvDbViewStore view = viewFactory.GetViewAsync(address)
-            //IEvDbStoredSnapshot snapshot = await snapshotAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
-            //lowestOffset = lowestOffset == -1 // get the lowest offset among all snapshots
-            //                        ? snapshot.Offset
-            //                        : Math.Min(lowestOffset, snapshot.Offset);
-            //IEvDbViewStore view = viewFactory.CreateFromSnapshot(address, snapshot, Options);
             IEvDbViewStore view = await viewFactory.GetAsync(viewAddress, Options, TimeProvider);
             return view;
         }

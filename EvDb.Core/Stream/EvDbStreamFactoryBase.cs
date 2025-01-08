@@ -51,7 +51,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         OtelTags tags = address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.CreateAsync");
 
-        var result = OnCreate(id, views, -1);
+        var result = OnCreate(id, views, 0);
         return result;
     }
 

@@ -214,7 +214,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
     #region OnGetSnapshotAsync
 
-    protected async override Task<EvDbStoredSnapshot?> OnGetSnapshotAsync(
+    protected async override Task<EvDbStoredSnapshot> OnGetSnapshotAsync(
                                                             EvDbViewAddress viewAddress,
                                                             DbConnection conn,
                                                             string query,
@@ -229,7 +229,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         NpgsqlDataReader reader = 
             await command.ExecuteReaderAsync(CommandBehavior.SingleRow, cancellation);
         if(!await reader.ReadAsync())
-            return null;
+            return EvDbStoredSnapshot.Empty;
 
         var stateIndex = reader.GetOrdinal(nameof(EvDbStoredSnapshot.State));
         var record = new EvDbStoredSnapshot
