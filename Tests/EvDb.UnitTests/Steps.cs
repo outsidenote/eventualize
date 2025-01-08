@@ -128,7 +128,7 @@ internal static class Steps
                     this IEvDbSchoolStream stream,
                     int numOfGrades = NUM_OF_GRADES)
     {
-        if (stream.StoredOffset == -1)
+        if (stream.StoredOffset == 0)
             await stream.EnlistStudent();
         await stream.WhenAddGrades(numOfGrades: numOfGrades);
         return stream;
@@ -192,7 +192,7 @@ internal static class Steps
     {
         List<EvDbEvent> storedEvents = new();
         StudentEnlistedEvent student = Steps.CreateStudentEnlistedEvent();
-        bool withEnlisted = initOffset == 0;
+        bool withEnlisted = initOffset == 1;
         if (withEnlisted)
         {
             EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset);
@@ -221,9 +221,9 @@ internal static class Steps
     {
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
-            .ReturnsLazily<Task<EvDbStoredSnapshot?>>(() =>
+            .ReturnsLazily(() =>
             {
-                return Task.FromResult<EvDbStoredSnapshot?>(null);
+                return Task.FromResult(EvDbStoredSnapshot.Empty);
             });
 
         return input;
@@ -268,7 +268,7 @@ internal static class Steps
     {
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == StudentStatsView.ViewName), A<CancellationToken>.Ignored))
-            .ReturnsLazily<EvDbStoredSnapshot?>(() =>
+            .ReturnsLazily<EvDbStoredSnapshot>(() =>
                 {
                     long offset = getSnapshotOffset(StudentStatsView.ViewName);
                     var snapshot = CreateStudentStatsSnapshot(offset, input.Factory.Options);
@@ -277,7 +277,7 @@ internal static class Steps
 
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == StatsView.ViewName), A<CancellationToken>.Ignored))
-            .ReturnsLazily<EvDbStoredSnapshot?>(() =>
+            .ReturnsLazily<EvDbStoredSnapshot>(() =>
                 {
                     long offset = getSnapshotOffset(StatsView.ViewName);
                     var snapshot = CreateStatsSnapshot(offset, input.Factory.Options);
@@ -286,7 +286,7 @@ internal static class Steps
 
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == MinEventIntervalSecondsView.ViewName), A<CancellationToken>.Ignored))
-            .ReturnsLazily<EvDbStoredSnapshot?>(() =>
+            .ReturnsLazily<EvDbStoredSnapshot>(() =>
                 {
                     long offset = getSnapshotOffset(MinEventIntervalSecondsView.ViewName);
                     var snapshot = CreateStatsSnapshot(offset, input.Factory.Options);

@@ -132,7 +132,7 @@ internal static class Steps
                     this IEvDbSchoolStream stream,
                     int numOfGrades = NUM_OF_GRADES)
     {
-        if (stream.StoredOffset == -1)
+        if (stream.StoredOffset == 0)
             await stream.EnlistStudent();
         await stream.WhenAddGrades(numOfGrades: numOfGrades);
         return stream;

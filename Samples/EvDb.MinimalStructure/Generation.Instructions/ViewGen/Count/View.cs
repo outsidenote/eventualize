@@ -8,7 +8,7 @@ internal partial class View
 {
     private readonly ConcurrentDictionary<long, object?> _once = new ConcurrentDictionary<long, object?>();
     protected override int DefaultState { get; } = 0;
-    private long _lastOffset = -1;
+    private long _lastOffset = 0;
 
     protected override int Fold(int state, Event2 payload, IEvDbEventMeta meta)
     {

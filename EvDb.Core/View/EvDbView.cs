@@ -12,34 +12,34 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     protected EvDbView(
         EvDbViewAddress address,
-        EvDbStoredSnapshot? snapshot,
+        EvDbStoredSnapshot snapshot,
         IEvDbStorageSnapshotAdapter storageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options) :
-        base(address, storageAdapter, timeProvider, logger, options, snapshot?.Offset ?? -1)
+        base(address, storageAdapter, timeProvider, logger, options, snapshot.Offset)
     {
-        if (snapshot == null)
+        if (snapshot.Offset == 0)
             State = DefaultState;
         else
         {
-            State = JsonSerializer.Deserialize<TState>(snapshot.Value.State, options) ?? DefaultState;
+            State = JsonSerializer.Deserialize<TState>(snapshot.State, options) ?? DefaultState;
         }
     }
 
     protected EvDbView(
         EvDbViewAddress address,
-        EvDbStoredSnapshot<TState>? snapshot,
-        IEvDbStorageSnapshotAdapter<TState>? typedStorageAdapter,
+        EvDbStoredSnapshot<TState> snapshot,
+        IEvDbStorageSnapshotAdapter<TState> typedStorageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options) :
-        base(address, null, timeProvider, logger, options, snapshot?.Offset ?? -1)
+        base(address, null, timeProvider, logger, options, snapshot.Offset)
     {
-        if (snapshot == null)
+        if (snapshot.Offset == 0)
             State = DefaultState;
         else
-            State = snapshot.Value.State;
+            State = snapshot.State;
 
         _typedStorageAdapter = typedStorageAdapter;
     }
@@ -82,7 +82,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
         {
         }
 
-        Task<EvDbStoredSnapshot?> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation)
+        Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation)
         {
             throw new NotImplementedException();
         }
@@ -114,7 +114,7 @@ public abstract class EvDbView : IEvDbViewStore
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options,
-        long storedOffset = -1)
+        long storedOffset = 0)
     {
         _storageAdapter = storageAdapter;
         TimeProvider = timeProvider;
@@ -143,10 +143,10 @@ public abstract class EvDbView : IEvDbViewStore
     {
         get
         {
-            long numEventsSinceLatestSnapshot = StoreOffset == -1
+            long numEventsSinceLatestSnapshot = StoreOffset == 0
                 ? FoldOffset
                 : FoldOffset - StoreOffset;
-            bool result = numEventsSinceLatestSnapshot >= MinEventsBetweenSnapshots;
+            bool result = numEventsSinceLatestSnapshot > MinEventsBetweenSnapshots;
             return result;
         }
     }

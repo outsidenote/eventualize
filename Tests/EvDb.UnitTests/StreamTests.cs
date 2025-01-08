@@ -30,9 +30,9 @@ public class StreamTests
 
         void ThenPendingEventsAddedSuccessfully()
         {
-            Assert.Equal(-1, stream.StoredOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(-1, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(3, v.FoldOffset));
+            Assert.Equal(0, stream.StoredOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(0, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(4, v.FoldOffset));
 
             Assert.Equal(180, stream.Views.ALL.Sum);
             Assert.Equal(3, stream.Views.ALL.Count);
@@ -58,9 +58,9 @@ public class StreamTests
 
         void ThenStreamSavedWithoutSnapshot(IEvDbSchoolStream aggregate)
         {
-            Assert.Equal(3, stream.StoredOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(-1, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(3, v.FoldOffset));
+            Assert.Equal(4, stream.StoredOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(0, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(4, v.FoldOffset));
 
             Assert.Equal(180, stream.Views.ALL.Sum);
             Assert.Equal(3, stream.Views.ALL.Count);
@@ -86,9 +86,9 @@ public class StreamTests
 
         void ThenStreamSavedWithSnapshot(IEvDbSchoolStream stream)
         {
-            Assert.Equal(6, stream.StoredOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
+            Assert.Equal(7, stream.StoredOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(7, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(7, v.FoldOffset));
 
             Assert.Equal(630, stream.Views.ALL.Sum);
             Assert.Equal(6, stream.Views.ALL.Count);
@@ -116,9 +116,9 @@ public class StreamTests
 
         void ThenStreamSavedWithSnapshot(IEvDbSchoolStream aggregate)
         {
-            Assert.Equal(6, stream.StoredOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
+            Assert.Equal(7, stream.StoredOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(7, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(7, v.FoldOffset));
 
             Assert.Equal(360, stream.Views.ALL.Sum);
             Assert.Equal(6, stream.Views.ALL.Count);
