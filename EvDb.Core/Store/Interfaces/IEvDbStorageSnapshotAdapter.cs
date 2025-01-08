@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbStorageSnapshotAdapter: IEvDbStorageSnapshotAdapterBase
+public interface IEvDbStorageSnapshotAdapter
 {
     /// <summary>
     /// Gets the latests stored view's snapshot or an empty snapshot if not exists.
@@ -24,7 +24,7 @@ public interface IEvDbStorageSnapshotAdapter: IEvDbStorageSnapshotAdapterBase
         CancellationToken cancellation = default);
 }
 
-public interface IEvDbStorageSnapshotAdapter<TState>: IEvDbStorageSnapshotAdapterBase
+public interface IEvDbStorageSnapshotAdapter<TState>
 {
     /// <summary>
     /// Gets the latests stored view's snapshot or an empty snapshot if not exists.
@@ -46,9 +46,4 @@ public interface IEvDbStorageSnapshotAdapter<TState>: IEvDbStorageSnapshotAdapte
     Task StoreViewAsync(
         EvDbStoredSnapshotData<TState> data,
         CancellationToken cancellation = default);
-}
-
-public interface IEvDbStorageSnapshotAdapterBase
-{
- 
 }
