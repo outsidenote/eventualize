@@ -40,7 +40,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         DbConnection connection,
         string query,
         EvDbEventRecord[] records,
-        DbTransaction transaction,
+        //DbTransaction transaction,
         CancellationToken cancellationToken)
     {
         #region Parameters
@@ -78,7 +78,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
         #endregion //  Parameters
 
-        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection, (NpgsqlTransaction)transaction);
+        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection); //, (NpgsqlTransaction)transaction);
 
         #region Setup Parameters
 
@@ -110,7 +110,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         EvDbShardName shardName,
         string query,
         EvDbMessageRecord[] records,
-        DbTransaction transaction,
+        // DbTransaction transaction,
         CancellationToken cancellationToken)
     {
         query = string.Format(query, shardName);
@@ -156,7 +156,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
         #endregion //  Parameters 
 
-        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection, (NpgsqlTransaction)transaction);
+        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection); // , (NpgsqlTransaction)transaction);
 
         #region Setup Parameters
 

@@ -7,6 +7,9 @@ using EvDb.Adapters.Store.Postgres;
 using Npgsql;
 using Microsoft.Extensions.DependencyInjection;
 using EvDb.Core.Store.Internals;
+using FakeItEasy;
+using static IdentityModel.OidcConstants;
+using System.Collections.Immutable;
 
 namespace EvDb.Core.Tests;
 
@@ -14,6 +17,7 @@ public record StoreAdapters(IEvDbStorageStreamAdapter Stream, IEvDbStorageSnapsh
 
 public static class StoreAdapterHelper
 {
+
     public static EvDbStreamStoreRegistrationContext ChooseStoreAdapter(
                                         this EvDbStreamStoreRegistrationContext context,
                                         StoreType storeType)
@@ -29,6 +33,7 @@ public static class StoreAdapterHelper
             default:
                 throw new NotImplementedException();
         }
+
         return context;
     }
 

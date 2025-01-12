@@ -34,11 +34,11 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         DbConnection connection,
         string query,
         EvDbEventRecord[] records,
-        DbTransaction transaction,
+        //DbTransaction transaction,
         CancellationToken cancellationToken)
     {
         IEnumerable<SqlDataRecord> dataRecords = ToEventsTvp(records);
-        using SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection, (SqlTransaction)transaction);
+        using SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection);//, (SqlTransaction)transaction);
         insertCommand.CommandType = CommandType.StoredProcedure;
         SqlParameter tvpParam = insertCommand.Parameters.AddWithValue(
                                                             "@Records",
@@ -59,12 +59,12 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         EvDbShardName shardName,
         string query,
         EvDbMessageRecord[] records,
-        DbTransaction transaction, 
+        //DbTransaction transaction, 
         CancellationToken cancellationToken)
     {
         var dataRecords = ToOutboxTvp(records);
         query = string.Format(query, shardName);
-        SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection, (SqlTransaction)transaction);
+        SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection); //, (SqlTransaction)transaction);
         insertCommand.CommandType = CommandType.StoredProcedure;
         SqlParameter tvpParam = insertCommand.Parameters.AddWithValue(
                                                             $"@{shardName}Records",

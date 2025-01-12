@@ -8,6 +8,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Transactions;
 using static EvDb.Core.Adapters.StoreTelemetry;
 
 namespace EvDb.Core.Adapters;
@@ -27,11 +28,13 @@ public abstract class EvDbRelationalStorageAdapter :
     private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
     private const int RETRY_COUNT = 4;
     private const int RETRY_COUNT_DELAY_MILLI = 2;
+    private static readonly TimeSpan TX_TIMEOUT = TimeSpan.FromSeconds(5);
 
     #region Ctor
 
     protected EvDbRelationalStorageAdapter(ILogger logger,
-        IEvDbConnectionFactory factory, IEnumerable<IEvDbOutboxTransformer> transformers)
+        IEvDbConnectionFactory factory, 
+        IEnumerable<IEvDbOutboxTransformer> transformers)
     {
         _logger = logger;
         _factory = factory;
@@ -116,17 +119,15 @@ public abstract class EvDbRelationalStorageAdapter :
     /// <param name="connection"></param>
     /// <param name="query"></param>
     /// <param name="records"></param>
-    /// <param name="transaction"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     protected virtual async Task<int> OnStoreStreamEventsAsync(
         DbConnection connection,
         string query,
         EvDbEventRecord[] records,
-        DbTransaction transaction,
         CancellationToken cancellationToken)
     {
-        int affctedEvents = await connection.ExecuteAsync(query, records, transaction);
+        int affctedEvents = await connection.ExecuteAsync(query, records); 
         return affctedEvents;
     }
 
@@ -141,7 +142,6 @@ public abstract class EvDbRelationalStorageAdapter :
     /// <param name="shardName"></param>
     /// <param name="query"></param>
     /// <param name="records"></param>
-    /// <param name="transaction"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     protected virtual async Task<int> OnStoreOutboxMessagesAsync(
@@ -149,10 +149,9 @@ public abstract class EvDbRelationalStorageAdapter :
         EvDbShardName shardName,
         string query,
         EvDbMessageRecord[] records,
-        DbTransaction transaction,
         CancellationToken cancellationToken)
     {
-        int affctedMessages = await connection.ExecuteAsync(query, records, transaction);
+        int affctedMessages = await connection.ExecuteAsync(query, records); 
         return affctedMessages;
     }
 
@@ -208,7 +207,6 @@ public abstract class EvDbRelationalStorageAdapter :
         IImmutableList<EvDbMessage> messages,
         IEvDbStreamStoreData streamStore,
         DbConnection conn,
-        DbTransaction transaction,
         CancellationToken cancellationToken)
     {
         #region messages = _transformers.Transform(...)
@@ -228,7 +226,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
         #endregion //  messages = _transformers.Transform(...)
 
-        string saveToTopicQuery = StreamQueries.SaveToOutbox;
+        string saveToOutboxQuery = StreamQueries.SaveToOutbox;
 
         var shards = from message in messages
                      group (EvDbMessageRecord)message by message.ShardName;
@@ -246,7 +244,7 @@ public abstract class EvDbRelationalStorageAdapter :
             var tasks = shards.Select(async shard =>
             {
                 EvDbShardName shardName = shard.Key;
-                int affctedMessages = await ExecuteAsync(streamStore, conn, transaction, saveToTopicQuery, shard, shardName, cancellationToken);
+                int affctedMessages = await ExecuteAsync(streamStore, conn, saveToOutboxQuery, shard, shardName, cancellationToken);
                 StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, shard.Key);
                 return KeyValuePair.Create(shardName, affctedMessages);
             });
@@ -265,7 +263,7 @@ public abstract class EvDbRelationalStorageAdapter :
             foreach (var shard in shards)
             {
                 EvDbShardName shardName = shard.Key;
-                int affctedMessages = await ExecuteAsync(streamStore, conn, transaction, saveToTopicQuery, shard, shardName, cancellationToken);
+                int affctedMessages = await ExecuteAsync(streamStore, conn, saveToOutboxQuery, shard, shardName, cancellationToken);
                 results.Add(KeyValuePair.Create(shardName, affctedMessages));
             }
 
@@ -278,13 +276,12 @@ public abstract class EvDbRelationalStorageAdapter :
 
         async Task<int> ExecuteAsync(IEvDbStreamStoreData streamStore,
                                 DbConnection conn,
-                                DbTransaction transaction,
-                                string saveToTopicQuery,
+                                string saveToOutboxQuery,
                                 IGrouping<EvDbShardName, EvDbMessageRecord> shard,
                                 EvDbShardName shardName,
                                 CancellationToken cancellationToken)
         {
-            string query = string.Format(saveToTopicQuery, shardName);
+            string query = string.Format(saveToOutboxQuery, shardName);
             EvDbMessageRecord[] items = shard.ToArray();
 
             OtelTags tags = OtelTags.Empty.Add("shard", shardName);
@@ -293,7 +290,6 @@ public abstract class EvDbRelationalStorageAdapter :
                                                                     shardName,
                                                                     query,
                                                                     items,
-                                                                    transaction,
                                                                     cancellationToken);
             StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, shard.Key);
             return affctedMessages;
@@ -406,9 +402,11 @@ public abstract class EvDbRelationalStorageAdapter :
 
         EvDbEventRecord[] eventsRecords = events.Select<EvDbEvent, EvDbEventRecord>(e => e).ToArray();
 
-        await using DbTransaction transaction = await conn.BeginTransactionAsync();
         try
         {
+            using var tx = new TransactionScope(TransactionScopeOption.Required,
+                                                TX_TIMEOUT,
+                                                TransactionScopeAsyncFlowOption.Enabled);
             int affctedEvents;
             IImmutableDictionary<EvDbShardName, int> affectedOnOutbox;
 
@@ -424,21 +422,15 @@ public abstract class EvDbRelationalStorageAdapter :
                 affectedOnOutbox = await StoreOutboxAsync();
             }
 
-            await transaction.CommitAsync();
+            tx.Complete();
             return new StreamStoreAffected(affctedEvents, affectedOnOutbox);
         }
         #region Exception Handling
 
         catch (Exception ex) when (IsOccException(ex))
         {
-            await transaction.RollbackAsync();
             var cursor = new EvDbStreamCursor(streamStore.StreamAddress);
             throw new OCCException(cursor);
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
         }
 
         #endregion //  Exception Handling
@@ -453,13 +445,14 @@ public abstract class EvDbRelationalStorageAdapter :
                 affctedEvents = await OnStoreStreamEventsAsync(conn,
                                                                saveEventsQuery,
                                                                eventsRecords,
-                                                               transaction,
                                                                cancellation);
                 StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
             }
 
             return affctedEvents;
         }
+
+        #endregion //  StoreEventsAsync
 
         #region StoreOutboxAsync
 
@@ -472,7 +465,6 @@ public abstract class EvDbRelationalStorageAdapter :
                 affectedOnOutbox = await this.StoreOutboxAsync(messages,
                                                           streamStore,
                                                           conn,
-                                                          transaction,
                                                           cancellation);
             }
 
@@ -480,8 +472,6 @@ public abstract class EvDbRelationalStorageAdapter :
         }
 
         #endregion //  StoreOutboxAsync
-
-        #endregion //  StoreEventsAsync
     }
 
     async Task IEvDbStorageSnapshotAdapter.StoreViewAsync(
