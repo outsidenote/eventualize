@@ -8,7 +8,7 @@ grand_parent: Learn More
 
 # Optimistic Concurrency Control (OCC)
 
-Optimistic Concurrency Control is a mechanism `Eventualize` uses in order to handle the a situation where multiple local aggregates would like to store events into the same stored aggregate.
+Optimistic Concurrency Control is a mechanism `Eventualize` uses in order to handle a situation where multiple local aggregates would like to store events into the same stored aggregate.
 
 First, let's understand why is that an issue that needs special handling.
 
