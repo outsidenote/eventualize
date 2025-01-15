@@ -38,7 +38,7 @@ public static class EvDbPostgresStorageMigrationDI
             string connectionStringOrKey = "EvDbPostgresConnection",
             params EvDbShardName[] shardNames)
     {
-        services.AddScoped(sp =>
+        services.AddSingleton(sp =>
         {
             var ctx = context
                 ?? sp.GetService<EvDbStorageContext>()

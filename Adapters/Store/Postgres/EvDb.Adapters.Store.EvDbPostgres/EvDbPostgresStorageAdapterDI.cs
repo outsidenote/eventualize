@@ -32,7 +32,7 @@ public static class EvDbPostgresStorageAdapterDI
         IServiceCollection services = instance.Services;
         EvDbPartitionAddress key = instance.Address;
         var context = instance.Context;
-        services.AddKeyedScoped(
+        services.AddKeyedSingleton(
             key.ToString(),
             (sp, _) =>
                 {
@@ -62,7 +62,7 @@ public static class EvDbPostgresStorageAdapterDI
         IServiceCollection services = instance.Services;
         EvDbViewBasicAddress key = instance.Address;
         var context = instance.Context;
-        services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(
+        services.AddKeyedSingleton<IEvDbStorageSnapshotAdapter>(
             key.ToString(),
             (sp, _) =>
                 {
