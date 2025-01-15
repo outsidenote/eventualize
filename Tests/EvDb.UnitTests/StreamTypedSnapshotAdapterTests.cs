@@ -148,7 +148,9 @@ public class StreamTypedSnapshotAdapterTests
     {
         private readonly ConcurrentDictionary<EvDbStreamAddress, EvDbStoredSnapshotData<StudentStatsState>> _states = new();
 
-        public async Task<EvDbStoredSnapshot<StudentStatsState>> GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation = default)
+        public async Task<EvDbStoredSnapshot<StudentStatsState>> GetSnapshotAsync(
+            EvDbViewAddress viewAddress, 
+            CancellationToken cancellation = default)
         {
             await Task.Yield();
             if (_states.TryGetValue(viewAddress, out var state))
@@ -157,7 +159,8 @@ public class StreamTypedSnapshotAdapterTests
             }
             return EvDbStoredSnapshot<StudentStatsState>.Empty;
         }
-        public async Task StoreViewAsync(EvDbStoredSnapshotData<StudentStatsState> data, CancellationToken cancellation = default)
+        public async Task StoreViewAsync(
+            EvDbStoredSnapshotData<StudentStatsState> data, CancellationToken cancellation = default)
         {
             await Task.Yield();
             _states.AddOrUpdate(data, data, (k, v) => data);
