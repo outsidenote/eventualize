@@ -63,8 +63,12 @@ jobs:
           commit_message: "[skip ci] Increment Version"
           commit_options: "--no-verify"
           push_options: "--no-verify"
-          tagging_message: "v${{join(steps.*.outputs.version)}}"
+          tagging_message: "v${{join(steps.*.outputs.version)}}"  
   
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x  
   
       - name: .NET Restore dependencies
         run: dotnet restore /property:Configuration=Release 
