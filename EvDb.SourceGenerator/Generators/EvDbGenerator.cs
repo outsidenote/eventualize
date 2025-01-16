@@ -84,7 +84,7 @@ public partial class EvDbGenerator : BaseGenerator
                             .Select(p => p.Value)
                             .FirstOrDefault();
 
-        var lifetime = typedConstant.ToEnumName() ?? "Scoped";
+        var lifetime = typedConstant.ToEnumName() ?? "Singleton";
 
         #region ViewInfo[] viewsInfo = ..
 

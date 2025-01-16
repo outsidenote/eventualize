@@ -8,7 +8,7 @@ namespace EvDb.UnitTests;
 //[EvDbAttachView<MinEventIntervalSecondsView>("MinInterval")]
 [EvDbStreamFactory<IEvDbSchoolStreamAdders, EvDbSchoolOutbox>(
                         "school-records1", "students", 
-                                Lifetime = ServiceLifetime.Singleton)]
+                                Lifetime = ServiceLifetime.Scoped)]
 public partial class SchoolStreamFactory
 {
 }
