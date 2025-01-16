@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<PackageReleaseNotes>
 			Breaking changes:
-			- 1.1.141: state column changed to binary in sql-server adapter
+			- 1.1.145: state column changed to binary in sql-server adapter
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
