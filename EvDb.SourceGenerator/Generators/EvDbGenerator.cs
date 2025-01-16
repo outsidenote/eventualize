@@ -79,12 +79,13 @@ public partial class EvDbGenerator : BaseGenerator
 
         #endregion //  string domain = ..., string partition = ...
 
-        TypedConstant typedConstant = attOfFactory.NamedArguments
-                            .Where(p => p.Key == "Lifetime")
-                            .Select(p => p.Value)
-                            .FirstOrDefault();
+        //TypedConstant typedConstant = attOfFactory.NamedArguments
+        //                    .Where(p => p.Key == "Lifetime")
+        //                    .Select(p => p.Value)
+        //                    .FirstOrDefault();
 
-        var lifetime = typedConstant.ToEnumName() ?? "Singleton";
+        //var lifetime = typedConstant.ToEnumName() ?? "Singleton";
+        const string lifetime = "Singleton";
 
         #region ViewInfo[] viewsInfo = ..
 

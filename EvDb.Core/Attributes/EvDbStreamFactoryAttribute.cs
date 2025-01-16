@@ -18,8 +18,11 @@ public class EvDbStreamFactoryAttribute<TEventType, TTopicProducer> : EvDbStream
     public EvDbStreamFactoryAttribute(string domain, string partition) : base(domain, partition)
     {
     }
-
-    public ServiceLifetime Lifetime { get; set; } = ServiceLifetime.Scoped;
+    
+    ///// <summary>
+    ///// Sets the registration lifetime
+    ///// </summary>
+    //public ServiceLifetime Lifetime { get; set; } = ServiceLifetime.Scoped;
 }
 
 /// <summary>
@@ -47,6 +50,11 @@ public class EvDbStreamFactoryAttribute<TEventType> : Attribute
         Domain = domain;
         Partition = partition;
     }
+
+    ///// <summary>
+    ///// Sets the registration lifetime
+    ///// </summary>
+    //public ServiceLifetime Lifetime { get; set; } = ServiceLifetime.Scoped;
 
     /// <summary>
     /// The `domain` and `partition` are the static part of the stream address (uniqueness).
