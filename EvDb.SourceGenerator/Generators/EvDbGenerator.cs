@@ -42,7 +42,7 @@ public partial class EvDbGenerator : BaseGenerator
         StringBuilder builder = new StringBuilder();
 
         string type = typeSymbol.ToType(syntax, cancellationToken);
-        var allAttributes = typeSymbol.GetAttributes();
+        ImmutableArray<AttributeData> allAttributes = typeSymbol.GetAttributes();
         AttributeData attOfFactory = allAttributes
                           .First(att => att.AttributeClass?.Name == STREAM_FACTORY_ATT);
         (string streamName, 
@@ -78,6 +78,13 @@ public partial class EvDbGenerator : BaseGenerator
         }
 
         #endregion //  string domain = ..., string partition = ...
+
+        TypedConstant typedConstant = attOfFactory.NamedArguments
+                            .Where(p => p.Key == "Lifetime")
+                            .Select(p => p.Value)
+                            .FirstOrDefault();
+
+        var lifetime = typedConstant.ToEnumName() ?? "Scoped";
 
         #region ViewInfo[] viewsInfo = ..
 
@@ -465,7 +472,7 @@ public partial class EvDbGenerator : BaseGenerator
 
         var addViewsFactories = viewsInfo.Select(viewRef =>
                         $$"""
-                            services.AddKeyedScoped<IEvDbViewFactory, {{viewRef.ViewTypeFullName}}Factory>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
+                            services.AddKeyed{{lifetime}}<IEvDbViewFactory, {{viewRef.ViewTypeFullName}}Factory>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
 
                         """);
 
@@ -510,7 +517,7 @@ public partial class EvDbGenerator : BaseGenerator
 
         var addViewFactories = viewsInfo.Select(viewRef =>
                                             $$"""
-                                                    services.AddKeyedScoped<IEvDbViewFactory,{{viewRef.ViewTypeFullName}}Factory>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
+                                                    services.AddKeyed{{lifetime}}<IEvDbViewFactory,{{viewRef.ViewTypeFullName}}Factory>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
 
                                             """);
 
@@ -533,7 +540,7 @@ public partial class EvDbGenerator : BaseGenerator
 
                     {{string.Join("", addViewFactories)}}
 
-                            services.AddScoped<I{{factoryName}},{{factoryOriginName}}>();     
+                            services.Add{{lifetime}}<I{{factoryName}},{{factoryOriginName}}>();     
                         
                             var storageContext = new EvDbStreamStoreRegistrationContext(context,
                                 new EvDbPartitionAddress("{{domain}}","{{partition}}"),
