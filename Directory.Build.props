@@ -8,8 +8,8 @@
 
 	<PropertyGroup>
 		<!-- <PackageId>EvDb</PackageId> -->
-		<Version>1.1.143</Version>
-		<PackageVersion>1.1.143</PackageVersion>
+		<Version>1.1.144</Version>
+		<PackageVersion>1.1.144</PackageVersion>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EvDbDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
