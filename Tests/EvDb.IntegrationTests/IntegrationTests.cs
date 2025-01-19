@@ -11,9 +11,10 @@ using System.Diagnostics;
 using Xunit.Abstractions;
 
 [DebuggerDisplay("{_storeType}")]
-public class IntegrationTests : IAsyncLifetime
+public abstract class IntegrationTests : IAsyncLifetime
 {
-    protected readonly IEvDbStorageMigration _storageMigration;
+    private readonly IEvDbStorageMigration _storageMigration;
+    private readonly IEvDbStorageMigration? _storageMigrationSnapshot;
     protected readonly ITestOutputHelper _output;
     protected readonly StoreType _storeType;
     protected readonly ILogger _logger = A.Fake<ILogger>();
@@ -21,7 +22,8 @@ public class IntegrationTests : IAsyncLifetime
     private readonly string _outboxQuery;
 
 
-    public IntegrationTests(ITestOutputHelper output, StoreType storeType)
+    public IntegrationTests(ITestOutputHelper output, StoreType storeType,
+        bool seSeparateSnapshotContext = false)
     {
         _output = output;
         _storeType = storeType;
@@ -40,10 +42,19 @@ public class IntegrationTests : IAsyncLifetime
         var context = new EvDbTestStorageContext(schema, dbName);
         StorageContext = context;
         _storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, storeType, context,
-                                                        OutboxShards.MessagingVip,
-                                                        OutboxShards.Messaging,
-                                                        OutboxShards.Commands,
-                                                        EvDbShardName.Default);
+                                                    OutboxShards.MessagingVip,
+                                                    OutboxShards.Messaging,
+                                                    OutboxShards.Commands,
+                                                    EvDbShardName.Default);
+        if (seSeparateSnapshotContext)
+        {
+            AlternativeContext = new EvDbStorageContext(dbName, context.Environment,
+                                                $"{context.Prefix}_different",
+                                                schema);
+            _storageMigrationSnapshot = StoreAdapterHelper.CreateStoreMigration(_logger, storeType,
+                                                            AlternativeContext,
+                                                            EvDbShardName.Default);
+        }
         _connection = StoreAdapterHelper.GetConnection(storeType, context);
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
@@ -90,10 +101,12 @@ public class IntegrationTests : IAsyncLifetime
 
 
     public EvDbStorageContext StorageContext { get; }
+    public EvDbStorageContext? AlternativeContext { get; }
 
     public async Task InitializeAsync()
     {
         await _storageMigration.CreateEnvironmentAsync();
+        await (_storageMigrationSnapshot?.CreateEnvironmentAsync() ?? Task.CompletedTask);
     }
 
     public async Task DisposeAsync()

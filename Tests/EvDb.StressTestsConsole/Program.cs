@@ -187,7 +187,7 @@ await app.RunAsync(async (
 static IEnumerable<SomethingHappened> CreateEvents(
     string streamId, int batchSize, int baseId)
 {
-    yield break;
+    // yield break;
     foreach (var k in Enumerable.Range(0, batchSize - 5))
     {
         int id = baseId + k;

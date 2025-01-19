@@ -39,15 +39,16 @@ public static class StoreAdapterHelper
 
     public static EvDbSnapshotStoreRegistrationContext ChooseSnapshotAdapter(
         this EvDbSnapshotStoreRegistrationContext context,
-        StoreType storeType)
+        StoreType storeType,
+        EvDbStorageContext? overrideContext = null)
     {
         switch (storeType)
         {
             case StoreType.SqlServer:
-                context.UseSqlServerForEvDbSnapshot();
+                context.UseSqlServerForEvDbSnapshot(overrideContext);
                 break;
             case StoreType.Postgres:
-                context.UsePostgresForEvDbSnapshot();
+                context.UsePostgresForEvDbSnapshot(overrideContext);
                 break;
             default:
                 throw new NotImplementedException();
@@ -113,7 +114,7 @@ public static class StoreAdapterHelper
     public static IEvDbStorageMigration CreateStoreMigration(
         ILogger logger,
         StoreType storeType,
-        EvDbTestStorageContext? context = null,
+        EvDbStorageContext? context = null,
         params EvDbShardName[] shardNames)
     {
         EvDbSchemaName schema = storeType switch

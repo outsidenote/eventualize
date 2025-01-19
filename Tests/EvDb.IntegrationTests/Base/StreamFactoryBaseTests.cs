@@ -6,7 +6,8 @@ namespace EvDb.Core.Tests;
 
 public abstract class StreamFactoryBaseTests : IntegrationTests
 {
-    protected StreamFactoryBaseTests(ITestOutputHelper output, StoreType storeType) : base(output, storeType)
+    protected StreamFactoryBaseTests(ITestOutputHelper output, 
+                                    StoreType storeType) : base(output, storeType)
     {
     }
 
