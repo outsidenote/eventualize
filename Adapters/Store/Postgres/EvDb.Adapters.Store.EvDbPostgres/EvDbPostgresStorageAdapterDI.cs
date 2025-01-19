@@ -59,9 +59,16 @@ public static class EvDbPostgresStorageAdapterDI
             this EvDbSnapshotStoreRegistrationContext instance,
             string connectionStringOrConfigurationKey = "EvDbPostgresConnection")
     {
+        UsePostgresForEvDbSnapshot(instance, instance.Context, connectionStringOrConfigurationKey);
+    }
+
+    public static void UsePostgresForEvDbSnapshot(
+            this EvDbSnapshotStoreRegistrationContext instance,
+            EvDbStorageContext? context,
+            string connectionStringOrConfigurationKey = "EvDbPostgresConnection")
+    {
         IServiceCollection services = instance.Services;
         EvDbViewBasicAddress key = instance.Address;
-        var context = instance.Context;
         services.AddKeyedSingleton<IEvDbStorageSnapshotAdapter>(
             key.ToString(),
             (sp, _) =>
