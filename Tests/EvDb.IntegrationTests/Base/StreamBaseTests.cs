@@ -12,8 +12,6 @@ using Xunit.Abstractions;
 
 public abstract class StreamBaseTests : IntegrationTests
 {
-    //protected abstract IEvDbStorageStreamAdapter GetStorageAdapter
-
     public StreamBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType)
     {
