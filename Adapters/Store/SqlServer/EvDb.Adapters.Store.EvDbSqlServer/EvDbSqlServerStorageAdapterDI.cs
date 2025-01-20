@@ -67,6 +67,7 @@ public static class EvDbSqlServerStorageAdapterDI
             EvDbStorageContext? context,
             string connectionStringOrConfigurationKey = "EvDbSqlServerConnection")
     {
+        context = context ?? instance.Context;
         IServiceCollection services = instance.Services;
         EvDbViewBasicAddress key = instance.Address;
         services.AddKeyedSingleton<IEvDbStorageSnapshotAdapter>(

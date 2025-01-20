@@ -67,6 +67,7 @@ public static class EvDbPostgresStorageAdapterDI
             EvDbStorageContext? context,
             string connectionStringOrConfigurationKey = "EvDbPostgresConnection")
     {
+        context = context ?? instance.Context;
         IServiceCollection services = instance.Services;
         EvDbViewBasicAddress key = instance.Address;
         services.AddKeyedSingleton<IEvDbStorageSnapshotAdapter>(

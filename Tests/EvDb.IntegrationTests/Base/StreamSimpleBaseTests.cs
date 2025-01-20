@@ -36,16 +36,19 @@ public abstract class StreamSimpleBaseTests : IntegrationTests
     [Fact]
     public async Task Stream_WithAltSnapshot_Succeed()
     {
-        await _stream.EnlistStudent();
+        var student =  new StudentEntity(10, "Mikey"); ;
+        var studentEnlisted = new StudentEnlistedEvent(student);
+        await _stream.AddAsync(studentEnlisted);
         for (int i = 1; i < 4; i++)
         {
-            var grade = new StudentReceivedGradeEvent(i, i * 10, i % 2 == 0 ? 80 : 90);
+            var grade = new StudentReceivedGradeEvent(i, student.Id, i % 2 == 0 ? 80 : 90);
             await _stream.AddAsync(grade);
         }
         await _stream.StoreAsync();
 
 
-        //Assert.Equal(3, _stream.StoredOffset);
-        //Assert.Equal(3, _stream.Views.ALL.Count);
+        Assert.Equal(3, _stream.StoredOffset);
+        Assert.Equal(3, _stream.Views.ALL.Count);
+        Assert.Equal(260, _stream.Views.ALL.Sum);
     }
 }
