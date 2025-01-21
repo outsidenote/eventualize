@@ -479,7 +479,7 @@ public abstract class EvDbRelationalStorageAdapter :
         return snapshot;
     }
 
-    async Task IEvDbStorageSnapshotAdapter.StoreViewAsync(
+    async Task IEvDbStorageSnapshotAdapter.StoreSnapshotAsync(
         EvDbStoredSnapshotData snapshotData,
         CancellationToken cancellation)
     {

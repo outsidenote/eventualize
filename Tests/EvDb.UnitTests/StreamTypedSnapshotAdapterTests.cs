@@ -159,7 +159,7 @@ public class StreamTypedSnapshotAdapterTests
             }
             return EvDbStoredSnapshot<StudentStatsState>.Empty;
         }
-        public async Task StoreViewAsync(
+        public async Task StoreSnapshotAsync(
             EvDbStoredSnapshotData<StudentStatsState> data, CancellationToken cancellation = default)
         {
             await Task.Yield();

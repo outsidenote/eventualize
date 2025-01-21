@@ -53,7 +53,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
         var snapshotData = new EvDbStoredSnapshotData<TState>(Address, FoldOffset, State);
 
-        await _typedStorageAdapter.StoreViewAsync(snapshotData, cancellation);
+        await _typedStorageAdapter.StoreSnapshotAsync(snapshotData, cancellation);
         return true;
     }
 
@@ -87,7 +87,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
             throw new NotImplementedException();
         }
 
-        Task IEvDbStorageSnapshotAdapter.StoreViewAsync(EvDbStoredSnapshotData snapshotData, CancellationToken cancellation)
+        Task IEvDbStorageSnapshotAdapter.StoreSnapshotAsync(EvDbStoredSnapshotData snapshotData, CancellationToken cancellation)
         {
             throw new NotImplementedException();
         }
@@ -176,7 +176,7 @@ public abstract class EvDbView : IEvDbViewStore
             if(_storageAdapter == null)
                 throw new NullReferenceException(nameof(_storageAdapter));
             EvDbStoredSnapshotData data = GetSnapshotData();
-            await _storageAdapter.StoreViewAsync(data, cancellation);
+            await _storageAdapter.StoreSnapshotAsync(data, cancellation);
         }
         _sysMeters.SnapshotStored.Add(1, tags);
 

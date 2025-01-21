@@ -19,7 +19,7 @@ public interface IEvDbStorageSnapshotAdapter
     /// <param name="snapshotData">The snapshot's snapshotData and metadata</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    Task StoreViewAsync(
+    Task StoreSnapshotAsync(
         EvDbStoredSnapshotData snapshotData,
         CancellationToken cancellation = default);
 }
@@ -43,7 +43,7 @@ public interface IEvDbStorageSnapshotAdapter<TState>
     /// <param name="data">The snapshot's snapshotData and metadata</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    Task StoreViewAsync(
+    Task StoreSnapshotAsync(
         EvDbStoredSnapshotData<TState> data,
         CancellationToken cancellation = default);
 }
