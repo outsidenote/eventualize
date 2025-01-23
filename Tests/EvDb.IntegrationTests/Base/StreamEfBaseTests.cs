@@ -174,84 +174,142 @@ public abstract class StreamEfBaseTests : IntegrationTests
         #endregion //  Validation
     }
 
-    //[Fact]
-    //public async Task Stream_Ef_UntypedSnapshot_Succeed()
-    //{
-    //    // MinEventsBetweenSnapshots = 3
+    [Fact]
+    public async Task Stream_Ef_UntypedSnapshot_Succeed()
+    {
+        // MinEventsBetweenSnapshots = 3
 
-    //    const int id = 10;
-    //    IEvDbPerson stream = _factory.Create(id);
-    //    PersonNameChanged personName = new(id, "Nora");
-    //    await stream.AddAsync(personName);
+        const int id = 10;
+        IEvDbPerson stream = _factory.Create(id);
+        PersonNameChanged personName = new(id, "Nora");
+        await stream.AddAsync(personName);
 
-    //    #region Validation
+        #region Validation
 
-    //    Assert.Equal(id, stream.Views.Untyped.Id);
-    //    Assert.Equal(personName.Name, stream.Views.Untyped.Name);
-    //    Assert.Empty(stream.Views.Untyped.Emails);
+        Assert.Equal(id, stream.Views.Typed.Id);
+        Assert.Equal(personName.Name, stream.Views.Typed.Name);
+        Assert.Empty(stream.Views.Untyped.Emails);
 
-    //    #endregion //  Validation
+        #endregion //  Validation
 
-    //    await stream.StoreAsync(); // Only Stream, Snapshot not created
-    //    stream = await _factory.GetAsync(id);
+        await stream.StoreAsync(); // Only Stream, Snapshot not created
+        stream = await _factory.GetAsync(id);
 
-    //    #region Validation
+        #region Validation
 
-    //    Assert.Equal(id, stream.Views.Untyped.Id);
-    //    Assert.Equal(personName.Name, stream.Views.Untyped.Name);
-    //    Assert.Empty(stream.Views.Untyped.Emails);
+        Assert.Equal(id, stream.Views.Untyped.Id);
+        Assert.Equal(personName.Name, stream.Views.Untyped.Name);
+        Assert.Empty(stream.Views.Untyped.Emails);
 
-    //    #endregion //  Validation
+        #endregion //  Validation
 
-    //    var email1 = new PersonEmailAdded(id, "nora@gmail.com", "personal");
-    //    await stream.AddAsync(email1);
+        var email1 = new PersonEmailAdded(id, "nora@gmail.com", "personal");
+        await stream.AddAsync(email1);
 
-    //    await stream.StoreAsync(); // Only Stream, Snapshot not created
-    //    stream = await _factory.GetAsync(id);
+        #region Validation
 
-    //    #region Validation
+        Assert.Single(stream.Views.Untyped.Emails);
+        Assert.Null(stream.Views.Untyped.Address);
 
-    //    Assert.Single(stream.Views.Untyped.Emails);
-    //    Assert.Null(stream.Views.Untyped.Address);
+        #endregion //  Validation
 
-    //    #endregion //  Validation
+        await stream.StoreAsync(); // Only Stream, Snapshot not created
+        stream = await _factory.GetAsync(id);
 
-    //    var email2 = new PersonEmailAdded(id, "nora@work.com", "work");
-    //    await stream.AddAsync(email2);
+        #region Validation
 
-    //    await stream.StoreAsync(); // Stream & Snapshot
-    //    stream = await _factory.GetAsync(id);
+        Assert.Single(stream.Views.Untyped.Emails);
+        Assert.Null(stream.Views.Untyped.Address);
 
-    //    #region Validation
+        #endregion //  Validation
 
-    //    Assert.Equal(2, stream.Views.Untyped.Emails.Length);
-    //    Assert.Null(stream.Views.Untyped.Address);
+        var email2 = new PersonEmailAdded(id, "nora@work.com", "work");
+        await stream.AddAsync(email2);
 
-    //    #endregion //  Validation
+        #region Validation
 
-    //    var address = new Address("US", "Anytown", "123 Main St");
-    //    var addressEvent = new PersonAddressChanged(id, address);
-    //    await stream.AddAsync(addressEvent);
+        Assert.Equal(2, stream.Views.Untyped.Emails.Length);
+        Assert.Null(stream.Views.Untyped.Address);
 
-    //    #region Validation
+        #endregion //  Validation
 
-    //    Assert.Equal(2, stream.Views.Untyped.Emails.Length);
-    //    Assert.Equal(address, stream.Views.Untyped.Address);
+        await stream.StoreAsync(); // Stream & Snapshot
+        stream = await _factory.GetAsync(id);
 
-    //    #endregion //  Validation
+        #region Validation
 
-    //    await stream.StoreAsync(); // Only Stream, Snapshot not created
-    //    stream = await _factory.GetAsync(id);
+        Assert.Equal(2, stream.Views.Untyped.Emails.Length);
+        Assert.Null(stream.Views.Untyped.Address);
 
-    //    #region Validation
+        #endregion //  Validation
 
-    //    Assert.Equal(id, stream.Views.Untyped.Id);
-    //    Assert.Equal(personName.Name, stream.Views.Untyped.Name);
-    //    Assert.Equal(2, stream.Views.Untyped.Emails.Length);
-    //    Assert.Contains("nora@gmail.com", stream.Views.Untyped.Emails.Select(e => e.Value));
-    //    Assert.Contains("nora@work.com", stream.Views.Untyped.Emails.Select(e => e.Value));
-    //    Assert.Equal(address, stream.Views.Untyped.Address);
+        var address = new Address("US", "Anytown", "123 Main St");
+        var addressEvent = new PersonAddressChanged(id, address);
+        await stream.AddAsync(addressEvent);
 
-    //    #endregion //  Validation    
-    //}
+        #region Validation
+
+        Assert.Equal(2, stream.Views.Untyped.Emails.Length);
+        Assert.Equal(address, stream.Views.Untyped.Address);
+
+        #endregion //  Validation
+
+        await stream.StoreAsync(); // Only Stream, Snapshot not created
+        stream = await _factory.GetAsync(id);
+
+        #region Validation
+
+        Assert.Equal(id, stream.Views.Untyped.Id);
+        Assert.Equal(personName.Name, stream.Views.Untyped.Name);
+        Assert.Equal(2, stream.Views.Untyped.Emails.Length);
+        Assert.Contains("nora@gmail.com", stream.Views.Untyped.Emails.Select(e => e.Value));
+        Assert.Contains("nora@work.com", stream.Views.Untyped.Emails.Select(e => e.Value));
+        Assert.Equal(address, stream.Views.Untyped.Address);
+
+        #endregion //  Validation
+
+        var birthday = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-10));
+        var birthdayEvent = new PersonBirthdayChanged(id, birthday);
+        await stream.AddAsync(birthdayEvent);
+
+        #region Validation
+
+        Assert.Equal(birthday, stream.Views.Untyped.Birthday);
+
+        #endregion //  Validation
+
+        await stream.StoreAsync(); // Only Stream, Snapshot not created
+        stream = await _factory.GetAsync(id);
+
+        #region Validation
+
+        Assert.Equal(birthday, stream.Views.Untyped.Birthday);
+
+        #endregion //  Validation
+
+        var email3 = new PersonEmailRemoved(id, "nora@work.com");
+        await stream.AddAsync(email3);
+        var email4 = new PersonEmailCategoryUpdated(id, "nora@gmail.com", "family");
+        await stream.AddAsync(email4);
+
+        #region Validation
+
+        Assert.Single(stream.Views.Untyped.Emails);
+        Assert.DoesNotContain(stream.Views.Untyped.Emails, e => e.Value == email3.Email);
+        Assert.Equal(email4.Category, stream.Views.Untyped.Emails.First().Category);
+
+        #endregion //  Validation
+
+        await stream.StoreAsync(); // Stream & Snapshot
+        stream = await _factory.GetAsync(id);
+
+        #region Validation
+
+        Assert.Single(stream.Views.Untyped.Emails);
+        Assert.DoesNotContain(stream.Views.Untyped.Emails, e => e.Value == email3.Email);
+        Assert.Equal(email4.Category, stream.Views.Untyped.Emails.First().Category);
+        Assert.Equal(address, stream.Views.Untyped.Address);
+
+        #endregion //  Validation
+    }
 }

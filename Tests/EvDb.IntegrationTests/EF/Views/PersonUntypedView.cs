@@ -42,7 +42,7 @@ public partial class PersonUntypedView
     {
         var emails = state.Emails.Select(e =>
         {
-            if (e.Value != payload.Email)
+            if (e.Value == payload.Email)
                 return e with {  Category = payload.Category };
             return e;
         }).ToArray();

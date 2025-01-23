@@ -14,7 +14,7 @@ namespace EvDb.IntegrationTests.EF.Views;
 public partial class PersonTypedView
 {
     protected override Person DefaultState { get; } = new Person() { Emails = Array.Empty<Email>() };
-    public override int MinEventsBetweenSnapshots { get; } = 1;
+    public override int MinEventsBetweenSnapshots { get; } = 3;
 
 
     protected override Person Fold(Person state, PersonAddressChanged payload, IEvDbEventMeta meta)
