@@ -47,7 +47,7 @@ public abstract class StreamSimpleBaseTests : IntegrationTests
         await _stream.StoreAsync();
 
 
-        Assert.Equal(3, _stream.StoredOffset);
+        Assert.Equal(4, _stream.StoredOffset);
         Assert.Equal(3, _stream.Views.ALL.Count);
         Assert.Equal(260, _stream.Views.ALL.Sum);
     }
