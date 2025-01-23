@@ -5,7 +5,7 @@ public readonly partial record struct Email(string Value, string Domain, string 
     public static implicit operator Email(string value)
     {
         int len = value.IndexOf('@');
-        return new Email(value.Substring(0, len), value.Substring(len + 1), "Other");
+        return new Email(value, value.Substring(len + 1), "Other");
     }
     public static implicit operator string(Email value) => $"{value.Value}@{value.Domain}";
 }

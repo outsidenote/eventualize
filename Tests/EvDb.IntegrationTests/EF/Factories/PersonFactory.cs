@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 
 namespace EvDb.IntegrationTests.EF.Factories;
 
-[EvDbAttachView<PersonView>]
+[EvDbAttachView<PersonTypedView>("Typed")]
+//[EvDbAttachView<PersonUntypedView>("Untyped")]
 [EvDbStreamFactory<IPersonEvents>("community", "people")]
-internal class PersonFactory
+internal partial class PersonFactory
 {
 }

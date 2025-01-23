@@ -95,12 +95,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
             _storageAdapter.GetEventsAsync(cursor, cancellationToken);
 
         long streamOffset = lowestOffset;
-        var list = new List<EvDbEvent>();
         await foreach (EvDbEvent e in events)
-        {
-            list.Add(e);
-        }
-        foreach (var e in list)
         {
             foreach (IEvDbViewStore view in views)
             {

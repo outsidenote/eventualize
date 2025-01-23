@@ -51,7 +51,11 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
         if (_typedStorageAdapter == null)
             return false;
 
-        var snapshotData = new EvDbStoredSnapshotData<TState>(Address, FoldOffset, State);
+        var snapshotData = new EvDbStoredSnapshotData<TState>(
+                                        Address, 
+                                        FoldOffset, 
+                                        StoreOffset,
+                                        State);
 
         await _typedStorageAdapter.StoreSnapshotAsync(snapshotData, cancellation);
         return true;
@@ -68,7 +72,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
     public override EvDbStoredSnapshotData GetSnapshotData()
     {
         byte[] state = JsonSerializer.SerializeToUtf8Bytes(State, _options);
-        var snapshot = new EvDbStoredSnapshotData(Address, FoldOffset, state);
+        var snapshot = new EvDbStoredSnapshotData(Address, FoldOffset, StoreOffset, state);
         return snapshot;
     }
 

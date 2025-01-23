@@ -2,26 +2,11 @@
 
 namespace EvDb.IntegrationTests.EF;
 
-public record PersonEntity(int Id,
-                            string Name,
-                            DateOnly Birthday,
-                            Email[] Emails,
-                            AddressEntity Address)
+public record PersonEntity
 {
-    public static implicit operator Person(PersonEntity temp)
-    {
-        return new Person(Id: temp.Id,
-                          Name: temp.Name,
-                          Birthday: temp.Birthday,
-                          Emails: temp.Emails,
-                          Address: temp.Address);
-    }
-    public static implicit operator PersonEntity(Person temp)
-    {
-        return new Person(Id: temp.Id,
-                          Name: temp.Name,
-                          Birthday: temp.Birthday,
-                          Emails: temp.Emails,
-                          Address: temp.Address);
-    }
+    public required int Id { get; init; }
+    public required string Name { get; init; }
+    public DateOnly Birthday { get; init; }
+    public List<EmailEntity> Emails { get; init; } = new List<EmailEntity>();
+    public required AddressEntity? Address { get; init; }
 }

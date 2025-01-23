@@ -10,24 +10,26 @@ using System.Threading.Tasks;
 
 namespace EvDb.IntegrationTests.EF.Views;
 
-[EvDbViewType<Person, IPersonEvents>("people")]
-public partial class PersonView
+[EvDbViewType<Person, IPersonEvents>("untyped-people")]
+public partial class PersonUntypedView
 {
-    protected override Person DefaultState { get; } = new Person();
+    protected override Person DefaultState { get; } = new Person() { Emails = Array.Empty<Email>() };
+    public override int MinEventsBetweenSnapshots => 3;
+
 
     protected override Person Fold(Person state, PersonAddressChanged payload, IEvDbEventMeta meta)
     {
-        return state with { Address = payload.Address };
+        return state with { Id = payload.Id, Address = payload.Address };
     }
 
     protected override Person Fold(Person state, PersonBirthdayChanged payload, IEvDbEventMeta meta)
     {
-        return state with { Birthday = payload.Date };
+        return state with { Id = payload.Id, Birthday = payload.Date };
     }
 
     protected override Person Fold(Person state, PersonNameChanged payload, IEvDbEventMeta meta)
     {
-        return state with { Name = payload.Name };
+        return state with { Id = payload.Id, Name = payload.Name };
     }
 
     protected override Person Fold(Person state, PersonEmailRemoved payload, IEvDbEventMeta meta)

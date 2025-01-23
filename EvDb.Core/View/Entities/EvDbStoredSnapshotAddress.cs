@@ -12,13 +12,15 @@ public readonly partial record struct EvDbStoredSnapshotData(
             string StreamId,
             string ViewName,
             long Offset,
+            long StoreOffset,
             byte[] State)
 {
     public EvDbStoredSnapshotData(
             EvDbViewAddress address,
             long offset,
+            long storeOffset,
             byte[] state)
-                : this(Guid.NewGuid(), address.Domain, address.Partition, address.StreamId, address.ViewName, offset, state)
+                : this(Guid.NewGuid(), address.Domain, address.Partition, address.StreamId, address.ViewName, offset, storeOffset, state)
     {
     }
 
@@ -152,13 +154,15 @@ public readonly partial record struct EvDbStoredSnapshotData<TState>(
             string StreamId,
             string ViewName,
             long Offset,
+            long StoreOffset,
             TState State)
 {
     public EvDbStoredSnapshotData(
             EvDbViewAddress address,
             long offset,
+            long storeOffset,
             TState state)
-                : this(Guid.NewGuid(), address.Domain, address.Partition, address.StreamId, address.ViewName, offset, state)
+                : this(Guid.NewGuid(), address.Domain, address.Partition, address.StreamId, address.ViewName, offset, storeOffset, state)
     {
     }
 

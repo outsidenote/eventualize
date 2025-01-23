@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
 
 public abstract class StreamSimpleBaseTests : IntegrationTests
 {
-    IEvDbSchoolStream _stream;
+    private readonly IEvDbSchoolStream _stream;
 
     public StreamSimpleBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType, true)
