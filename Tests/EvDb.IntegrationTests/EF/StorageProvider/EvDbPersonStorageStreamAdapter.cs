@@ -2,42 +2,46 @@
 using EvDb.IntegrationTests.EF;
 using EvDb.IntegrationTests.EF.States;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Text.Json;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public class EvDbPersonStorageStreamAdapter : EvDbTypedStorageStreamAdapter<Person>
+public class EvDbPersonStorageStreamAdapter : EvDbTypedStorageStreamAdapter
 {
-    private readonly IDbContextFactory<PersonContext> _contectFactory;
+    private readonly IDbContextFactory<PersonContext> _contextFactory;
 
-    public EvDbPersonStorageStreamAdapter(IDbContextFactory<PersonContext> contectFactory,
-                                          IEvDbStorageSnapshotAdapter adapter) : base(adapter)
+    public EvDbPersonStorageStreamAdapter(IDbContextFactory<PersonContext> contextFactory,
+                                          IEvDbStorageSnapshotAdapter adapter,
+                                          Predicate<EvDbViewAddress>? canHandle = null) : base(adapter, canHandle)
     {
-        _contectFactory = contectFactory;
+        _contextFactory = contextFactory;
     }
 
-    async protected override Task<Person> OnGetSnapshotAsync(
-        EvDbViewAddress viewAddress,
-        EvDbStoredSnapshot metadata,
-        CancellationToken cancellation)
+    protected override bool CanHandle<TState>(EvDbViewAddress address) => typeof(TState) == typeof(Person);
+
+    async protected override Task<EvDbStoredSnapshotBase> OnGetSnapshotAsync(EvDbViewAddress viewAddress,
+                                                                       EvDbStoredSnapshot metadata,
+                                                                       CancellationToken cancellation)
     {
         int personId = JsonSerializer.Deserialize<int>(metadata.State);
-        var context = _contectFactory.CreateDbContext();
+        var context = _contextFactory.CreateDbContext();
         PersonEntity? entity = await context.Persons
                                     .Include(p => p.Emails) // Eagerly load the related Emails
                                     .FirstOrDefaultAsync(p => p.Id == personId);
+
         Person person = entity == null ? new Person() : entity.FromEntity();
-        return person;
+        var result = new EvDbStoredSnapshot<Person>(metadata.Offset, person);
+        return result;
     }
 
-    async protected override Task<byte[]> OnStoreSnapshotAsync(
-                            EvDbStoredSnapshotData<Person> data, CancellationToken cancellation)
+    async protected override Task<byte[]> OnStoreSnapshotAsync(EvDbStoredSnapshotDataBase data,
+                                                               CancellationToken cancellation)
     {
-        Person person = data.State;
+        EvDbStoredSnapshotData<Person> snapshot = (EvDbStoredSnapshotData<Person>)data;
+        Person person = snapshot.State;
         PersonEntity state = person.ToEntity();
-        state = state with { Id = data.State.Id };
-        var context = _contectFactory.CreateDbContext();
+        state = state with { Id = person.Id };
+        var context = _contextFactory.CreateDbContext();
         if (data.StoreOffset == 0)
         {
             await context.Persons.AddAsync(state);
@@ -79,7 +83,7 @@ public class EvDbPersonStorageStreamAdapter : EvDbTypedStorageStreamAdapter<Pers
                     var entry = person.Emails
                                         .First(e => e.Value == item.Value)
                                         .ToEntity(state.Id);
-                    if(entry != item)
+                    if (entry != item)
                         context.Entry(item).CurrentValues.SetValues(entry);
                 }
                 else

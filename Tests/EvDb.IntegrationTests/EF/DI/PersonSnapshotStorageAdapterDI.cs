@@ -1,14 +1,12 @@
-﻿using EvDb.Adapters.Store.SqlServer;
+﻿// Ignore Spelling: Sql
+
+using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Store.Internals;
 using EvDb.IntegrationTests.EF;
-using EvDb.IntegrationTests.EF.States;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Text;
-using System.Transactions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -39,7 +37,7 @@ public static class PersonSnapshotStorageAdapterDI
                     });
 
         var context = instance.Context;
-        services.AddKeyedScoped<IEvDbStorageSnapshotAdapter<Person>>(
+        services.AddKeyedScoped<IEvDbTypedStorageSnapshotAdapter>(
             key.ToString(),
 
             (sp, _) =>

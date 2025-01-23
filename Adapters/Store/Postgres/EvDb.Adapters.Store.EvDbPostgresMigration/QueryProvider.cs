@@ -101,7 +101,7 @@ internal static class QueryProvider
         #endregion
 
         #region string createOutboxTable = ...
-        
+
         IEnumerable<string> createOutbox = (features & StorageFeatures.Outbox) == StorageFeatures.None
             ? Array.Empty<string>()
             : outboxShardNames.Select(t =>

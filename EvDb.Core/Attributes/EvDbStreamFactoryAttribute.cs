@@ -1,7 +1,5 @@
 ﻿#pragma warning disable S2326 // Unused type parameters should be removed
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace EvDb.Core;
 
 /// <summary>
@@ -18,7 +16,7 @@ public class EvDbStreamFactoryAttribute<TEventType, TTopicProducer> : EvDbStream
     public EvDbStreamFactoryAttribute(string domain, string partition) : base(domain, partition)
     {
     }
-    
+
     ///// <summary>
     ///// Sets the registration lifetime
     ///// </summary>

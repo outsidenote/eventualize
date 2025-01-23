@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
-using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Transactions;
 using static EvDb.Core.Adapters.StoreTelemetry;
@@ -20,7 +19,7 @@ namespace EvDb.Core.Adapters;
 public abstract class EvDbRelationalStorageAdapter :
     IEvDbStorageStreamAdapter,
     IEvDbStorageSnapshotAdapter,
-    IEvDbRecordParserFactory    
+    IEvDbRecordParserFactory
 {
     private readonly static ActivitySource _trace = StoreTelemetry.Trace;
     protected readonly ILogger _logger;
@@ -33,7 +32,7 @@ public abstract class EvDbRelationalStorageAdapter :
     #region Ctor
 
     protected EvDbRelationalStorageAdapter(ILogger logger,
-        IEvDbConnectionFactory factory, 
+        IEvDbConnectionFactory factory,
         IEnumerable<IEvDbOutboxTransformer> transformers)
     {
         _logger = logger;
@@ -127,7 +126,7 @@ public abstract class EvDbRelationalStorageAdapter :
         EvDbEventRecord[] records,
         CancellationToken cancellationToken)
     {
-        int affctedEvents = await connection.ExecuteAsync(query, records); 
+        int affctedEvents = await connection.ExecuteAsync(query, records);
         return affctedEvents;
     }
 
@@ -151,14 +150,13 @@ public abstract class EvDbRelationalStorageAdapter :
         EvDbMessageRecord[] records,
         CancellationToken cancellationToken)
     {
-        int affctedMessages = await connection.ExecuteAsync(query, records); 
+        int affctedMessages = await connection.ExecuteAsync(query, records);
         return affctedMessages;
     }
 
     #endregion //  OnStoreOutboxMessagesAsync
 
     #region OnGetSnapshotAsync
-#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 
     /// <summary>
     /// Gets the snapshotData.
@@ -166,6 +164,7 @@ public abstract class EvDbRelationalStorageAdapter :
     /// <param name="viewAddress">The view uniqueness.</param>
     /// <param name="conn">The connection.</param>
     /// <param name="query">The query.</param>
+    /// <param name="cancellation"></param>
     /// <returns></returns>
     protected virtual async Task<EvDbStoredSnapshot> OnGetSnapshotAsync(
         EvDbViewAddress viewAddress,
@@ -173,14 +172,13 @@ public abstract class EvDbRelationalStorageAdapter :
         string query,
         CancellationToken cancellation)
     {
-        EvDbStoredSnapshot result =
+        EvDbStoredSnapshot? result =
                        await conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshot>(
                                                 query,
                                                 viewAddress);
-        return result;
+        return result ?? EvDbStoredSnapshot.Empty;
     }
 
-#pragma warning restore CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
     #endregion //  OnGetSnapshotAsync
 
     #region OnStoreSnapshotAsync
@@ -262,7 +260,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
         async Task<KeyValuePair<EvDbShardName, int>[]> ExecuteSequentialAsync()
         {
-            List<KeyValuePair<EvDbShardName, int>> results = new(); 
+            List<KeyValuePair<EvDbShardName, int>> results = new();
             foreach (var shard in shards)
             {
                 EvDbShardName shardName = shard.Key;
@@ -289,7 +287,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
             OtelTags tags = OtelTags.Empty.Add("shard", shardName);
             using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
-            int  affctedMessages = await OnStoreOutboxMessagesAsync(conn,
+            int affctedMessages = await OnStoreOutboxMessagesAsync(conn,
                                                                     shardName,
                                                                     query,
                                                                     items,
@@ -308,7 +306,7 @@ public abstract class EvDbRelationalStorageAdapter :
     /// <summary>
     /// Gets a value indicating whether this instance is support concurrent commands.
     /// </summary>
-    protected virtual bool IsSupportConcurrentCommands { get; } = true; 
+    protected virtual bool IsSupportConcurrentCommands { get; } = true;
 
     #endregion //  IsSupportConcurrentCommands
 
@@ -398,7 +396,7 @@ public abstract class EvDbRelationalStorageAdapter :
                 affctedEvents = await affctedEventsTask;
             }
             else
-            { 
+            {
                 affctedEvents = await StoreEventsAsync();
                 affectedOnOutbox = await StoreOutboxAsync();
             }
@@ -491,7 +489,7 @@ public abstract class EvDbRelationalStorageAdapter :
         await ExecuteSafe(conn => OnStoreSnapshotAsync(conn, saveSnapshotQuery, snapshotData, cancellation));
     }
 
-    #endregion // IEvDbStorageSnapshotAdapter Members
+    #endregion // IEvDbTypedStorageSnapshotAdapter Members
 
     #region IsOccException
 

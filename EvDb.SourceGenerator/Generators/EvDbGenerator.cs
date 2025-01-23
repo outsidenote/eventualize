@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Text;
-using System.Xml.Serialization;
 
 namespace EvDb.SourceGenerator;
 
@@ -45,11 +44,11 @@ public partial class EvDbGenerator : BaseGenerator
         ImmutableArray<AttributeData> allAttributes = typeSymbol.GetAttributes();
         AttributeData attOfFactory = allAttributes
                           .First(att => att.AttributeClass?.Name == STREAM_FACTORY_ATT);
-        (string streamName, 
-        string streamInterface, 
-        string factoryOriginName, 
+        (string streamName,
+        string streamInterface,
+        string factoryOriginName,
         string factoryName,
-        string factoryInterface) = 
+        string factoryInterface) =
                         GetStreamName(typeSymbol, attOfFactory);
 
         ImmutableArray<ITypeSymbol> args = attOfFactory.AttributeClass?.TypeArguments ?? ImmutableArray<ITypeSymbol>.Empty;
@@ -413,7 +412,7 @@ public partial class EvDbGenerator : BaseGenerator
             builder.AppendLine($$"""
                     internal partial class {{viewRef.ViewTypeName}}Factory: IEvDbViewFactory
                     { 
-                        private readonly IEvDbStorageSnapshotAdapter<{{viewRef.ViewStateTypeFullName}}>? _typedStorageAdapter;                        
+                        private readonly IEvDbTypedStorageSnapshotAdapter? _typedStorageAdapter;                        
                         private readonly IEvDbStorageSnapshotAdapter? _storageAdapter;                        
                         private readonly ILogger _logger;
                              
@@ -425,7 +424,7 @@ public partial class EvDbGenerator : BaseGenerator
                                         IServiceProvider serviceProvider,
                                         ILogger<{{viewRef.ViewTypeName}}> logger)
                         {
-                           _typedStorageAdapter = serviceProvider.GetKeyedService<IEvDbStorageSnapshotAdapter<{{viewRef.ViewStateTypeFullName}}>>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
+                           _typedStorageAdapter = serviceProvider.GetKeyedService<IEvDbTypedStorageSnapshotAdapter>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
                            if(_typedStorageAdapter == null)
                            {
                                 _storageAdapter = 
@@ -465,10 +464,21 @@ public partial class EvDbGenerator : BaseGenerator
                                                 TimeProvider? timeProvider,
                                                 CancellationToken cancellationToken)
                         {
-                            if(_typedStorageAdapter != null)
+                            if(_typedStorageAdapter != null && _typedStorageAdapter.CanHandle<{{viewRef.ViewStateTypeFullName}}>(viewAddress))
                             {
-                                EvDbStoredSnapshot<{{viewRef.ViewStateTypeFullName}}> typedSnapshot = 
-                                            await _typedStorageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
+                                EvDbStoredSnapshotBase snapData = await  _typedStorageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
+                              
+                                if(snapData == EvDbStoredSnapshotBase.None)
+                                {
+                                    return new {{viewRef.ViewTypeName}}(
+                                                viewAddress,
+                                                _typedStorageAdapter, 
+                                                timeProvider ?? TimeProvider.System, 
+                                                _logger, 
+                                                options);
+                                }
+
+                                var typedSnapshot = (EvDbStoredSnapshot<{{viewRef.ViewStateTypeFullName}}>)snapData;
                                 
                                 return new {{viewRef.ViewTypeName}}(
                                                 viewAddress,
@@ -624,11 +634,11 @@ public partial class EvDbGenerator : BaseGenerator
     #region GetStreamName
 
     internal static (string StreamName,
-        string streamInterface, 
+        string streamInterface,
         string FactoryOriginName,
         string factoryName,
         string factoryInterface) GetStreamName(
-                            ITypeSymbol typeSymbol, 
+                            ITypeSymbol typeSymbol,
                             AttributeData? attOfFactory = null)
     {
         if (attOfFactory == null)
@@ -650,7 +660,7 @@ public partial class EvDbGenerator : BaseGenerator
                 streamName = $"{streamName}1";
         }
 
-        string factoryName = factoryOriginName.StartsWith("EvDb", StringComparison.OrdinalIgnoreCase) 
+        string factoryName = factoryOriginName.StartsWith("EvDb", StringComparison.OrdinalIgnoreCase)
             ? factoryOriginName
             : $"EvDb{factoryOriginName}";
         string streamInterface = $"I{streamName}";

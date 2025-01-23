@@ -2,5 +2,5 @@
 
 public interface IEvDbStoredSnapshot
 {
-    long Offset { get;  }
+    long Offset { get; }
 }

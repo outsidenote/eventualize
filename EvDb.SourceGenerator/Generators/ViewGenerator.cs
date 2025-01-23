@@ -144,7 +144,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter<{{stateType}}> typedStorageAdapter,
+                            IEvDbTypedStorageSnapshotAdapter typedStorageAdapter,
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -159,7 +159,7 @@ public partial class ViewGenerator : BaseGenerator
                     
                         protected {{viewClassName}}Base(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter<{{stateType}}> typedStorageAdapter,
+                            IEvDbTypedStorageSnapshotAdapter typedStorageAdapter,
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot<{{stateType}}> snapshot, 
@@ -247,7 +247,7 @@ public partial class ViewGenerator : BaseGenerator
 
                         public {{viewOriginName}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter<{{stateType}}> typedStorageAdapter, 
+                            IEvDbTypedStorageSnapshotAdapter typedStorageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
                             JsonSerializerOptions? options):
@@ -262,7 +262,7 @@ public partial class ViewGenerator : BaseGenerator
                     
                         public {{viewOriginName}}(
                             EvDbStreamAddress address,
-                            IEvDbStorageSnapshotAdapter<{{stateType }}> typedStorageAdapter, 
+                            IEvDbTypedStorageSnapshotAdapter typedStorageAdapter, 
                             TimeProvider timeProvider,
                             ILogger logger,
                             EvDbStoredSnapshot<{{stateType}}> snapshot, 
@@ -276,7 +276,7 @@ public partial class ViewGenerator : BaseGenerator
                                     options)
                         {
                         }
-                                        }
+                    }
                     """);
         context.AddSource(typeSymbol.StandardPath(), builder.ToString());
 

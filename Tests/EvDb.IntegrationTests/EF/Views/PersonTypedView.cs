@@ -1,12 +1,6 @@
-﻿using DeviceDetectorNET.Class.Client;
-using EvDb.Core;
+﻿using EvDb.Core;
 using EvDb.IntegrationTests.EF.Events;
 using EvDb.IntegrationTests.EF.States;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EvDb.IntegrationTests.EF.Views;
 
@@ -43,7 +37,7 @@ public partial class PersonTypedView
         var emails = state.Emails.Select(e =>
         {
             if (e.Value == payload.Email)
-                return e with {  Category = payload.Category };
+                return e with { Category = payload.Category };
             return e;
         }).ToArray();
 

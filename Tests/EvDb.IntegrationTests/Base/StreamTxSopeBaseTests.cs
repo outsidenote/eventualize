@@ -1,13 +1,7 @@
 ﻿// Ignore Spelling: Sql
 
 namespace EvDb.Core.Tests;
-
-using EvDb.Adapters.Store.Postgres;
-using EvDb.Adapters.Store.SqlServer;
-using EvDb.Core.Adapters;
-using EvDb.Scenes;
 using EvDb.UnitTests;
-using System.Text.Json;
 using System.Transactions;
 using Xunit.Abstractions;
 

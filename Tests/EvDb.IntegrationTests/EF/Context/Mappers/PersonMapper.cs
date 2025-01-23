@@ -16,9 +16,9 @@ public static partial class PersonMapper
 
     public static partial Address FromEntity(this AddressEntity source);
 
+    [MapperIgnoreSource(nameof(EmailEntity.Id))]
     [MapperIgnoreSource(nameof(EmailEntity.PersonId))]
     public static partial Email FromEntity(this EmailEntity source);
 
     public static partial EmailEntity ToEntity(this Email source, int personId);
 }
-    

@@ -4,10 +4,7 @@ using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-using System.Threading.Tasks.Dataflow;
 
 
 var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -111,7 +108,7 @@ await app.RunAsync(async (
         }
         else if (operation == Operation.Drop)
         {
-            logger.LogInformation( scripts.DestroyEnvironment);
+            logger.LogInformation(scripts.DestroyEnvironment);
             if (!dryRun)
             {
                 logger.LogInformation("Saving `drop` script into [{Path}]", path);

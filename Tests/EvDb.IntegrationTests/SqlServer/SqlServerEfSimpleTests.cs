@@ -3,13 +3,8 @@
 namespace EvDb.Core.Tests;
 
 using Dapper;
-using EvDb.Core.Adapters;
-using EvDb.Scenes;
-using EvDb.UnitTests;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
-using static EvDb.Adapters.Store.SqlServer.EvDbSqlServerStorageAdapterFactory;
 
 public class SqlServerEfSimpleTests : StreamEfBaseTests
 {
@@ -25,7 +20,8 @@ public class SqlServerEfSimpleTests : StreamEfBaseTests
         );
 
         CREATE TABLE Emails (
-            Value NVARCHAR(255) NOT NULL PRIMARY KEY,
+            Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+            Value NVARCHAR(255) NOT NULL,
             PersonId INT NOT NULL,
             Domain NVARCHAR(255) NOT NULL,
             Category NVARCHAR(255) NOT NULL,
@@ -34,6 +30,7 @@ public class SqlServerEfSimpleTests : StreamEfBaseTests
 
         -- Create Indices
         CREATE UNIQUE INDEX IX_People_Id ON People (Id);
+        CREATE UNIQUE INDEX IX_Email_Id ON Emails (Id);
         CREATE INDEX IX_Emails_PersonId ON Emails (PersonId);
         """;
 

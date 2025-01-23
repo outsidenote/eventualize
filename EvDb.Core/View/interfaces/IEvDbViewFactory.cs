@@ -26,7 +26,7 @@ public interface IEvDbViewFactory
 //        JsonSerializerOptions? options,
 //        TimeProvider? timeProvider = null);
 
-//    //IEvDbStorageSnapshotAdapter StoreAdapter { get; }
+//    //IEvDbTypedStorageSnapshotAdapter StoreAdapter { get; }
 //}
 
 //public interface IEvDbViewFactory<TState>: IEvDbViewFactoryBase
@@ -37,5 +37,5 @@ public interface IEvDbViewFactory
 //        JsonSerializerOptions? options,
 //        TimeProvider? timeProvider = null);
 
-//   // IEvDbStorageSnapshotAdapter<TState> StoreAdapter { get; }
+//   // IEvDbTypedStorageSnapshotAdapter<TState> StoreAdapter { get; }
 //}

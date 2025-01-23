@@ -1,6 +1,6 @@
 ﻿namespace EvDb.IntegrationTests.EF;
 
-public readonly partial record struct Email(string Value, string Domain, string Category) 
+public readonly partial record struct Email(string Value, string Domain, string Category)
 {
     public static implicit operator Email(string value)
     {

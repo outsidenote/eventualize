@@ -22,7 +22,7 @@ public abstract class StressBaseTests : IntegrationTests
         CoconaAppBuilder builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-            .AddDemoStreamFactory(c =>c.ChooseStoreAdapter(storeType), StorageContext)
+            .AddDemoStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
             .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType));
         Otel(builder);
         var sp = services.BuildServiceProvider();

@@ -332,12 +332,12 @@ internal static class RoslynExtensions
 
     public static string? ToEnumName(this TypedConstant typedConstant)
     {
-        if(typedConstant.Value == null)
+        if (typedConstant.Value == null)
             return null;
         var enumValue = (int)typedConstant.Value;
         var enumType = typedConstant.Type;
         // Map the value back to the enum name
-        IFieldSymbol field = enumType.GetMembers()
+        IFieldSymbol field = enumType!.GetMembers()
             .OfType<IFieldSymbol>()
             .FirstOrDefault(f => f.HasConstantValue && (int)f.ConstantValue == enumValue);
         return field.Name;

@@ -6,7 +6,7 @@ namespace EvDb.Core;
 
 public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 {
-    private readonly IEvDbStorageSnapshotAdapter<TState>? _typedStorageAdapter;
+    private readonly IEvDbTypedStorageSnapshotAdapter? _typedStorageAdapter;
 
     #region Ctor
 
@@ -30,7 +30,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
     protected EvDbView(
         EvDbViewAddress address,
         EvDbStoredSnapshot<TState> snapshot,
-        IEvDbStorageSnapshotAdapter<TState> typedStorageAdapter,
+        IEvDbTypedStorageSnapshotAdapter typedStorageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options) :
@@ -48,12 +48,12 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     protected override async Task<bool> OnSave(CancellationToken cancellation)
     {
-        if (_typedStorageAdapter == null)
+        if (_typedStorageAdapter == null || !_typedStorageAdapter.CanHandle<TState>(Address))
             return false;
 
         var snapshotData = new EvDbStoredSnapshotData<TState>(
-                                        Address, 
-                                        FoldOffset, 
+                                        Address,
+                                        FoldOffset,
                                         StoreOffset,
                                         State);
 
@@ -177,7 +177,7 @@ public abstract class EvDbView : IEvDbViewStore
         bool saved = await OnSave(cancellation);
         if (!saved)
         {
-            if(_storageAdapter == null)
+            if (_storageAdapter == null)
                 throw new NullReferenceException(nameof(_storageAdapter));
             EvDbStoredSnapshotData data = GetSnapshotData();
             await _storageAdapter.StoreSnapshotAsync(data, cancellation);

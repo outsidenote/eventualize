@@ -14,7 +14,7 @@ public readonly record struct SnapshotSaveParameter(
 {
     public SnapshotSaveParameter(EvDbViewAddress viewAddress, EvDbStoredSnapshot storedSnapshot)
         : this(
-              Guid.NewGuid(),   
+              Guid.NewGuid(),
               viewAddress.Domain,
               viewAddress.Partition,
               viewAddress.StreamId,

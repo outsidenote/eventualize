@@ -7,18 +7,20 @@ namespace EvDb.Core;
 /// <summary>
 /// Specialized snapshot storage adapter 
 /// </summary>
-/// <typeparam name="TState"></typeparam>
-public abstract class EvDbTypedStorageStreamAdapter<TState> :
-                        IEvDbStorageSnapshotAdapter<TState>
+public abstract class EvDbTypedStorageStreamAdapter :
+                        IEvDbTypedStorageSnapshotAdapter
 {
     private readonly IEvDbStorageSnapshotAdapter _adapter;
+    private readonly Predicate<EvDbViewAddress>? _canHandle;
 
     #region Ctor
 
     public EvDbTypedStorageStreamAdapter(
-        IEvDbStorageSnapshotAdapter adapter)
+        IEvDbStorageSnapshotAdapter adapter,
+        Predicate<EvDbViewAddress>? canHandle = null)
     {
         _adapter = adapter;
+        _canHandle = canHandle;
     }
 
     #endregion //  Ctor
@@ -30,7 +32,7 @@ public abstract class EvDbTypedStorageStreamAdapter<TState> :
     /// <param name="metadata"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
-    protected abstract Task<TState> OnGetSnapshotAsync(
+    protected abstract Task<EvDbStoredSnapshotBase> OnGetSnapshotAsync(
                                         EvDbViewAddress viewAddress,
                                         EvDbStoredSnapshot metadata,
                                         CancellationToken cancellation);
@@ -46,36 +48,62 @@ public abstract class EvDbTypedStorageStreamAdapter<TState> :
     /// that can be use in `OnGetSnapshotAsync` to fetch the state.
     /// </returns>
     protected abstract Task<byte[]> OnStoreSnapshotAsync(
-                                        EvDbStoredSnapshotData<TState> data,
+                                        EvDbStoredSnapshotDataBase data,
                                         CancellationToken cancellation);
 
+    /// <summary>
+    /// Indication whether the adapter is compatible with the state type.
+    /// </summary>
+    /// <typeparam name="TState"></typeparam>
+    /// <param name="address">The view address</param>
+    /// <returns>
+    /// true: the adapter is compatible with the state type.
+    /// false: the adapter is not compatible with the state type.
+    /// </returns>
+    protected abstract bool CanHandle<TState>(EvDbViewAddress address);
 
-    #region IEvDbStorageSnapshotAdapter<TState> Members
+    #region IEvDbTypedStorageSnapshotAdapter Members
 
-    async Task<EvDbStoredSnapshot<TState>> IEvDbStorageSnapshotAdapter<TState>.GetSnapshotAsync(
+    /// <summary>
+    /// Indication whether the adapter is compatible with the state type.
+    /// </summary>
+    /// <typeparam name="TState"></typeparam>
+    /// <returns>
+    /// true: the adapter is compatible with the state type.
+    /// false: the adapter is not compatible with the state type.
+    /// </returns>
+    bool IEvDbTypedStorageSnapshotAdapter.CanHandle<TState>(EvDbViewAddress viewAddress)
+    {
+        if (_canHandle != null && !_canHandle(viewAddress))
+            return false;
+
+        return CanHandle<TState>(viewAddress);
+    }
+
+    async Task<EvDbStoredSnapshotBase> IEvDbTypedStorageSnapshotAdapter.GetSnapshotAsync(
         EvDbViewAddress viewAddress,
         CancellationToken cancellation)
     {
         EvDbStoredSnapshot meta = await _adapter.GetSnapshotAsync(viewAddress, cancellation);
         if (meta.Offset == 0)
-            return new EvDbStoredSnapshot<TState>(0, default);
-        TState state = await OnGetSnapshotAsync(viewAddress, meta, cancellation);
-        return new EvDbStoredSnapshot<TState>(meta.Offset, state);
+            return EvDbStoredSnapshotBase.None;
+        var snapshot = await OnGetSnapshotAsync(viewAddress, meta, cancellation);
+        return snapshot;
     }
 
-    async Task IEvDbStorageSnapshotAdapter<TState>.StoreSnapshotAsync(
-        EvDbStoredSnapshotData<TState> data,
+    async Task IEvDbTypedStorageSnapshotAdapter.StoreSnapshotAsync(
+        EvDbStoredSnapshotDataBase data,
         CancellationToken cancellation)
     {
         using var tx = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
 
         byte[] buffer = await OnStoreSnapshotAsync(data, cancellation);
-    EvDbStoredSnapshotData snapshot = new(data, data.Offset, data.StoreOffset, buffer);
+        EvDbStoredSnapshotData snapshot = new(data, data.Offset, data.StoreOffset, buffer);
         await _adapter.StoreSnapshotAsync(snapshot, cancellation);
 
         tx.Complete();
     }
 
-    #endregion //  IEvDbStorageSnapshotAdapter<TState> Members
+    #endregion //  IEvDbTypedStorageSnapshotAdapter Members
 }
 

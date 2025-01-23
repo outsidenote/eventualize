@@ -14,7 +14,7 @@ namespace EvDb.StressTestsWebApi.Outbox
         {
 
             if (payload is not ISpecificRecord record)
-            { 
+            {
                 throw new NotSupportedException();
             }
 
@@ -31,7 +31,7 @@ namespace EvDb.StressTestsWebApi.Outbox
             return result;
         }
 
-        bool IEvDbOutboxSerializer.ShouldSerialize<T>(EvDbChannelName channel, EvDbShardName shardName, T payload) => 
+        bool IEvDbOutboxSerializer.ShouldSerialize<T>(EvDbChannelName channel, EvDbShardName shardName, T payload) =>
             shardName == OutboxShards.Table1;
     }
 }

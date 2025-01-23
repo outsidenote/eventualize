@@ -1,7 +1,18 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbStorageSnapshotAdapter
+public interface IEvDbTypedStorageSnapshotAdapter
 {
+    /// <summary>
+    /// Indication whether the adapter is compatible with the state type.
+    /// </summary>
+    /// <typeparam name="TState"></typeparam>
+    /// <param name="viewAddress">The view address.</param>
+    /// <returns>
+    /// true: the adapter is compatible with the state type.
+    /// false: the adapter is not compatible with the state type.
+    /// </returns>
+    bool CanHandle<TState>(EvDbViewAddress viewAddress);
+
     /// <summary>
     /// Gets the latests stored view's snapshot or an empty snapshot if not exists.
     /// </summary>
@@ -9,17 +20,17 @@ public interface IEvDbStorageSnapshotAdapter
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     /// <exception cref="System.NotImplementedException"></exception>
-    Task<EvDbStoredSnapshot> GetSnapshotAsync(
+    Task<EvDbStoredSnapshotBase> GetSnapshotAsync(
                                 EvDbViewAddress viewAddress,
                                 CancellationToken cancellation = default);
 
     /// <summary>
     /// Store the view's state as a snapshot
     /// </summary>
-    /// <param name="snapshotData">The snapshot's snapshotData and metadata</param>
+    /// <param name="data">The snapshot's snapshotData and metadata</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     Task StoreSnapshotAsync(
-        EvDbStoredSnapshotData snapshotData,
+        EvDbStoredSnapshotDataBase data,
         CancellationToken cancellation = default);
 }

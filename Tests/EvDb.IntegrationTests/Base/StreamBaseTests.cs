@@ -86,7 +86,7 @@ public abstract class StreamBaseTests : IntegrationTests
             Assert.All(defaults, m => Assert.Equal("avg", m.MessageType));
             Assert.All(defaults, m => Assert.Equal(EvDbOutbox.DEFAULT_OUTBOX, m.Channel));
 
-         
+
 
             string connectionString = StoreAdapterHelper.GetConnectionString(_storeType);
             IEvDbStorageStreamAdapter adapter = _storeType switch
@@ -110,7 +110,7 @@ public abstract class StreamBaseTests : IntegrationTests
             Assert.True(eventsOffsets.SequenceEqual([1, 2, 3, 4]));
             for (int i = 1; i <= defaults.Length; i++)
             {
-                EvDbMessageRecord item = defaults[i-1];
+                EvDbMessageRecord item = defaults[i - 1];
                 Assert.Equal("student-received-grade", item.EventType);
                 var itemOffset = item.Offset;
                 Assert.Equal(i + 1, itemOffset);

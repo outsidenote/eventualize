@@ -1,21 +1,11 @@
-﻿using EvDb.Scenes;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace EvDb.IntegrationTests.EF;
 
-using EvDb.IntegrationTests.EF.States;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Diagnostics;
-using System.Reflection.Emit;
-using System.Runtime.ConstrainedExecution;
 
 public class PersonContext : DbContext
 {
@@ -23,19 +13,21 @@ public class PersonContext : DbContext
 
     public DbSet<EmailEntity> Emails { get; set; }
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public PersonContext(DbContextOptions<PersonContext> options) : base(options)
     {
         // ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.LogTo( m => Trace.WriteLine(m), LogLevel.Information)
+        optionsBuilder.LogTo(m => Trace.WriteLine(m), LogLevel.Information)
             .EnableSensitiveDataLogging();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {        
+    {
         modelBuilder.Entity<PersonEntity>(ConfigurePerson);
         modelBuilder.Entity<EmailEntity>(ConfigureEmail);
         modelBuilder.Entity<EmailEntity>(entity =>
@@ -50,9 +42,12 @@ public class PersonContext : DbContext
         builder.ToTable("Emails");
 
         // Set the primary key
-        builder.HasKey(e => e.Value);
+        builder.HasKey(e => e.Id);
 
         // Configure properties
+        builder.Property(e => e.Id)
+            .IsRequired(); // Optional: Set max length
+
         builder.Property(e => e.Value)
             .IsRequired() // Mark as required
             .HasMaxLength(255); // Optional: Set max length

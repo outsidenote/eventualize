@@ -1,8 +1,8 @@
 ﻿// Ignore Spelling: Postgres
 
 using EvDb.Core.Adapters;
-using System.Data.Common;
 using Npgsql;
+using System.Data.Common;
 
 namespace EvDb.Adapters.Store.Postgres;
 

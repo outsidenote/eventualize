@@ -1,6 +1,4 @@
-﻿using EvDb.IntegrationTests.EF.States;
-
-namespace EvDb.IntegrationTests.EF;
+﻿namespace EvDb.IntegrationTests.EF;
 
 public record PersonEntity
 {

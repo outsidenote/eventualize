@@ -2,14 +2,11 @@
 
 using EvDb.Core;
 using EvDb.Core.Adapters;
+using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient.Server;
 using Microsoft.Extensions.Logging;
-using Microsoft.SqlServer.Server;
 using System.Data;
 using System.Data.Common;
-using Microsoft.Data.SqlClient;
-using Dapper;
-using System.Threading;
-using Microsoft.Data.SqlClient.Server;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
