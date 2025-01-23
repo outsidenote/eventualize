@@ -128,6 +128,50 @@ public abstract class StreamEfBaseTests : IntegrationTests
         Assert.Equal(address, stream.Views.Typed.Address);
 
         #endregion //  Validation
+
+        var birthday = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-10));
+        var birthdayEvent = new PersonBirthdayChanged(id, birthday);
+        await stream.AddAsync(birthdayEvent);
+
+        #region Validation
+
+        Assert.Equal(birthday, stream.Views.Typed.Birthday);
+
+        #endregion //  Validation
+
+        await stream.StoreAsync(); // Only Stream, Snapshot not created
+        stream = await _factory.GetAsync(id);
+
+        #region Validation
+
+        Assert.Equal(birthday, stream.Views.Typed.Birthday);
+
+        #endregion //  Validation
+
+        var email3 = new PersonEmailRemoved(id, "nora@work.com");
+        await stream.AddAsync(email3);
+        var email4 = new PersonEmailCategoryUpdated(id, "nora@gmail.com", "family");
+        await stream.AddAsync(email4);
+
+        #region Validation
+
+        Assert.Single(stream.Views.Typed.Emails);
+        Assert.DoesNotContain(stream.Views.Typed.Emails, e => e.Value == email3.Email);
+        Assert.Equal(email4.Category, stream.Views.Typed.Emails.First().Category);
+
+        #endregion //  Validation
+
+        await stream.StoreAsync(); // Stream & Snapshot
+        stream = await _factory.GetAsync(id);
+
+        #region Validation
+
+        Assert.Single(stream.Views.Typed.Emails);
+        Assert.DoesNotContain(stream.Views.Typed.Emails, e => e.Value == email3.Email);
+        Assert.Equal(email4.Category, stream.Views.Typed.Emails.First().Category);
+        Assert.Equal(address, stream.Views.Typed.Address);
+
+        #endregion //  Validation
     }
 
     //[Fact]

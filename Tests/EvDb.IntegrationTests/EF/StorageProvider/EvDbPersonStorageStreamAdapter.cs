@@ -76,7 +76,11 @@ public class EvDbPersonStorageStreamAdapter : EvDbTypedStorageStreamAdapter<Pers
             {
                 if (candidateEmailValues.Contains(item.Value))
                 {
-                    context.Emails.Entry(item).State = EntityState.Modified;
+                    var entry = person.Emails
+                                        .First(e => e.Value == item.Value)
+                                        .ToEntity(state.Id);
+                    if(entry != item)
+                        context.Entry(item).CurrentValues.SetValues(entry);
                 }
                 else
                     context.Emails.Entry(item).State = EntityState.Deleted;
