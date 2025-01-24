@@ -9,9 +9,9 @@ public interface IEvDbTypedSnapshotStorageAdapterFactory
     /// Creates the specified adapter.
     /// </summary>
     /// <param name="adapter">The adapter.</param>
-    /// <param name="canHandle">The can handle filter.</param>
+    /// <param name="filter">Filter strategy of what payload it can handle.</param>
     /// <returns></returns>
     IEvDbTypedStorageSnapshotAdapter Create(
         IEvDbStorageSnapshotAdapter adapter,
-        Predicate<EvDbViewAddress>? canHandle = null);
+        Predicate<EvDbViewAddress>? filter = null);
 }

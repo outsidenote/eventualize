@@ -5,7 +5,8 @@ using EvDb.IntegrationTests.EF.Views;
 namespace EvDb.IntegrationTests.EF.Factories;
 
 [EvDbAttachView<PersonTypedView>("Typed")]
-//[EvDbAttachView<PersonUntypedView>("Untyped")]
+[EvDbAttachView<PersonTyped2View>("Typed2")]
+[EvDbAttachView<PersonUntypedView>("Untyped")]
 [EvDbStreamFactory<IPersonEvents>("community", "people")]
 internal partial class PersonFactory
 {

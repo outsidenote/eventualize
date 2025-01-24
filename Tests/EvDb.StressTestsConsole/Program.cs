@@ -110,8 +110,8 @@ await app.RunAsync(async (
             {
                 var count = Interlocked.Increment(ref counter);
                 bool success = false;
-                IEnumerable<SomethingHappened> events = CreateEvents(streamId, batchSize, j * batchSize);
-                IEnumerable<FaultOccurred> faultEvents = CreateFaultEvents(streamId, batchSize, j * batchSize);
+                IEnumerable<SomethingHappened> events = CreateEvents(batchSize, j * batchSize);
+                IEnumerable<FaultOccurred> faultEvents = CreateFaultEvents(batchSize, j * batchSize);
 
                 do
                 {
@@ -192,8 +192,7 @@ await app.RunAsync(async (
 
 #region CreateEvents
 
-static IEnumerable<SomethingHappened> CreateEvents(
-    string streamId, int batchSize, int baseId)
+static IEnumerable<SomethingHappened> CreateEvents(int batchSize, int baseId)
 {
     // yield break;
     foreach (var k in Enumerable.Range(0, batchSize - 5))
@@ -208,7 +207,7 @@ static IEnumerable<SomethingHappened> CreateEvents(
 
 #region CreateFaultEvents
 
-static IEnumerable<FaultOccurred> CreateFaultEvents(string streamId, int batchSize, int baseId)
+static IEnumerable<FaultOccurred> CreateFaultEvents(int batchSize, int baseId)
 {
     for (int i = 0; i < batchSize; i++)
     {

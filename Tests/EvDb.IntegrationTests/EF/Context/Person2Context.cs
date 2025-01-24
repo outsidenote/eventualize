@@ -7,14 +7,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
-public class PersonContext : DbContext
+public class Person2Context : DbContext
 {
     public DbSet<PersonEntity> Persons { get; set; }
 
     public DbSet<EmailEntity> Emails { get; set; }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-    public PersonContext(DbContextOptions<PersonContext> options) : base(options)
+    public Person2Context(DbContextOptions<PersonContext> options) : base(options)
     {
         // ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
@@ -34,7 +34,7 @@ public class PersonContext : DbContext
 
     private void ConfigureEmail(EntityTypeBuilder<EmailEntity> builder)
     {
-        builder.ToTable("Emails");
+        builder.ToTable("Emails2");
 
         // Set the primary key
         builder.HasKey(e => e.Id);
@@ -66,7 +66,7 @@ public class PersonContext : DbContext
 
     private void ConfigurePerson(EntityTypeBuilder<PersonEntity> builder)
     {
-        builder.ToTable("People");
+        builder.ToTable("People2");
         builder.HasKey(p => p.Id);
 
         // Configure Birthday
