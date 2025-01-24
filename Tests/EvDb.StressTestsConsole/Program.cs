@@ -9,10 +9,18 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Threading.Tasks.Dataflow;
 
-int idx = args.FindIndex(m => m == "-d");
-if (idx == -1)
+
+(string? storeTypeArg, bool dbFound) = 
+    args.Aggregate<string, (string? Db, bool Found)>((null, false), (acc, cur) =>
+{
+    if(acc.Found)
+        return (cur, true);
+    if (cur == "-d")
+        return (null, true);
+    return (null, false);
+});
+if (!dbFound)
     Console.WriteLine("Missing database type (`-d` switch)");
-string storeTypeArg = args[idx + 1];
 StoreType storeType = string.Compare(storeTypeArg, nameof(StoreType.SqlServer), true) == 0
     ? StoreType.SqlServer
     : StoreType.Posgres;

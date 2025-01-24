@@ -29,9 +29,10 @@ public static class EvDbPostgresStorageAdapterDI
             IEnumerable<IEvDbOutboxTransformer> transformers,
             string connectionStringOrConfigurationKey = "EvDbPostgresConnection")
     {
-        IServiceCollection services = instance.Services;
-        EvDbPartitionAddress key = instance.Address;
-        var context = instance.Context;
+        IEvDbRegistrationContext entry = instance;
+        IServiceCollection services = entry.Services;
+        EvDbPartitionAddress key = entry.Address;
+        var context = entry.Context;
         services.AddKeyedSingleton(
             key.ToString(),
             (sp, _) =>

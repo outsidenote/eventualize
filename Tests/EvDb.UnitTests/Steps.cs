@@ -51,8 +51,9 @@ internal static class Steps
         var evdb = services.AddEvDb()
               .AddSchoolStreamFactory(c =>
               {
-                  c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
-                  c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
+                  IEvDbRegistrationContext x = c;
+                  x.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(x.Address.ToString(), (_, _) => storageAdapter);
+                  x.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(x.Address.ToString(), (_, _) => storageAdapter);
               });
         services.AddSingleton<TimeProvider>(timeProvider ?? TimeProvider.System);
         var sp = services.BuildServiceProvider();
