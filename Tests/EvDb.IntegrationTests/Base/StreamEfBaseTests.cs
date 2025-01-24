@@ -19,16 +19,36 @@ public abstract class StreamEfBaseTests : IntegrationTests
     {
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
-        services.AddSqlDbContextFactory<PersonContext>(TypedStorageOptions.Default);
+        services.AddSqlDbContextFactory<PersonContext>();
         services.AddEvDb()
                 .AddPersonFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
-                .DefaultSnapshotConfiguration(c => 
-                            c.ChooseSnapshotAdapter(storeType, AlternativeContext)
-                             .UseTypedSqlServerForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>(
-                                        c => c.ViewName == PersonTyped2View.ViewName))
-                .ForTyped(c => 
-                        c.UseTypedSqlServerForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>(
-                                        c => c.ViewName == PersonTypedView.ViewName));
+                .DefaultSnapshotConfiguration(c =>
+                {
+                    c.ChooseSnapshotAdapter(storeType, AlternativeContext);
+                    switch (storeType)
+                    {
+                        case StoreType.SqlServer:
+                            c.UseTypedSqlServerForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>(
+                                       c => c.ViewName == PersonTyped2View.ViewName);
+                            break;
+                        case StoreType.Postgres:
+                            c.UseTypedPostgresForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>(
+                                    c => c.ViewName == PersonTyped2View.ViewName);
+                            break;
+                    }
+                })
+                .ForTyped(c =>
+                {
+                    switch (storeType)
+                    {
+                        case StoreType.SqlServer:
+                            c.UseTypedSqlServerForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>();
+                            break;
+                        case StoreType.Postgres:
+                            c.UseTypedPostgresForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>();
+                            break;
+                    }
+                });
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbPersonFactory>();
     }

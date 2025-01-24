@@ -13,23 +13,25 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class EvDbSqlServerStorageAdapterDI
 {
+    private const string DEFAULT_CONNECTION_STRING_KEY = "EvDbSqlServerConnection";
+
     #region UseSqlServerStoreForEvDbStream
 
     public static void UseSqlServerStoreForEvDbStream(
         this EvDbStreamStoreRegistrationContext instance,
         params IEvDbOutboxTransformer[] transformers) =>
-        instance.UseSqlServerStoreForEvDbStream("EvDbSqlServerConnection", transformers);
+        instance.UseSqlServerStoreForEvDbStream(DEFAULT_CONNECTION_STRING_KEY, transformers);
 
     public static void UseSqlServerStoreForEvDbStream(
         this EvDbStreamStoreRegistrationContext instance,
-        string connectionStringOrConfigurationKey = "EvDbSqlServerConnection",
+        string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
         params IEvDbOutboxTransformer[] transformers)
         => instance.UseSqlServerStoreForEvDbStream(transformers, connectionStringOrConfigurationKey);
 
     public static void UseSqlServerStoreForEvDbStream(
             this EvDbStreamStoreRegistrationContext instance,
             IEnumerable<IEvDbOutboxTransformer> transformers,
-            string connectionStringOrConfigurationKey = "EvDbSqlServerConnection")
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         IEvDbRegistrationContext entry = instance;
         IServiceCollection services = entry.Services;
@@ -64,7 +66,7 @@ public static class EvDbSqlServerStorageAdapterDI
 
     public static void UseSqlServerForEvDbSnapshot(
             this EvDbSnapshotStoreRegistrationContext instance,
-            string connectionStringOrConfigurationKey = "EvDbSqlServerConnection")
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         UseSqlServerForEvDbSnapshot(instance, instance.Context, connectionStringOrConfigurationKey);
     }
@@ -72,7 +74,7 @@ public static class EvDbSqlServerStorageAdapterDI
     public static void UseSqlServerForEvDbSnapshot(
             this EvDbSnapshotStoreRegistrationContext instance,
             EvDbStorageContext? context,
-            string connectionStringOrConfigurationKey = "EvDbSqlServerConnection")
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         context = context ?? instance.Context;
         IServiceCollection services = instance.Services;
@@ -108,31 +110,13 @@ public static class EvDbSqlServerStorageAdapterDI
     /// </summary>
     /// <typeparam name="T">The Typed snapshot adapter factory</typeparam>
     /// <param name="instance">The instance.</param>
-    /// <param name="options">The options.</param>
-    public static void UseTypedSqlServerForEvDbSnapshot<T>(
-            this EvDbSnapshotStoreRegistrationContext instance,
-            Func<TypedStorageOptions, TypedStorageOptions> options)
-        where T : class, IEvDbTypedSnapshotStorageAdapterFactory
-    {
-        TypedStorageOptions setting = options.Invoke(TypedStorageOptions.Default);
-        instance.UseTypedSqlServerForEvDbSnapshot<T>(setting, null);
-    }
-
-    /// <summary>
-    /// Uses the typed SQL server adapter for EvDb snapshot.
-    /// </summary>
-    /// <typeparam name="T">The Typed snapshot adapter factory</typeparam>
-    /// <param name="instance">The instance.</param>
     /// <param name="filter">Filter strategy of what payload it can handle.</param>
-    /// <param name="options">The options.</param>
     public static void UseTypedSqlServerForEvDbSnapshot<T>(
             this EvDbSnapshotStoreRegistrationContext instance,
-            Predicate<EvDbViewAddress>? filter = null,
-            Func<TypedStorageOptions, TypedStorageOptions>? options = null)
+            Predicate<EvDbViewAddress> filter)
         where T : class, IEvDbTypedSnapshotStorageAdapterFactory
     {
-        TypedStorageOptions setting = options?.Invoke(TypedStorageOptions.Default) ?? TypedStorageOptions.Default;
-        instance.UseTypedSqlServerForEvDbSnapshot<T>(setting, filter);
+        instance.UseTypedSqlServerForEvDbSnapshot<T>(DEFAULT_CONNECTION_STRING_KEY, filter);
     }
 
 
@@ -141,19 +125,21 @@ public static class EvDbSqlServerStorageAdapterDI
     /// </summary>
     /// <typeparam name="T">The Typed snapshot adapter factory</typeparam>
     /// <param name="instance">The instance.</param>
-    /// <param name="setting">The setting.</param>
+    /// <param name="connectionStringOrConfigurationKey">
+    /// Connection string or configuration key of it.
+    /// </param>
     /// <param name="filter">Filter strategy of what payload it can handle.</param>
-    private static void UseTypedSqlServerForEvDbSnapshot<T>(
+    public static void UseTypedSqlServerForEvDbSnapshot<T>(
             this EvDbSnapshotStoreRegistrationContext instance,
-            TypedStorageOptions setting,
-            Predicate<EvDbViewAddress>? filter)
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
+            Predicate<EvDbViewAddress>? filter = null)
         where T : class, IEvDbTypedSnapshotStorageAdapterFactory
     {
         IServiceCollection services = instance.Services;
         EvDbViewBasicAddress key = instance.Address;
 
         var context = instance.Context;
-        string fullKey = $"{key}.for-typed-decorator";
+        string fullKey = $"{key}.for-typed-decorator.sql-server";
 
         services.AddKeyedSingleton<IEvDbTypedSnapshotStorageAdapterFactory, T>(fullKey);
 
@@ -169,7 +155,6 @@ public static class EvDbSqlServerStorageAdapterDI
                 #region IEvDbConnectionFactory connectionFactory = ...
 
                 IConfiguration? configuration = sp.GetService<IConfiguration>();
-                string connectionStringOrConfigurationKey = setting.EvDbConnectionStringOrConfigurationKey;
                 string connectionString = configuration?.GetConnectionString(connectionStringOrConfigurationKey) ?? connectionStringOrConfigurationKey;
 
                 #endregion // IEvDbConnectionFactory connectionFactory = ...

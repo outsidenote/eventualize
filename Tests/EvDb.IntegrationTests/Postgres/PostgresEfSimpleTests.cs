@@ -6,41 +6,47 @@ using Dapper;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
-public class SqlServerEfSimpleTests : StreamEfBaseTests
+public class PostgresEfSimpleTests : StreamEfBaseTests
 {
     private const string CREATE_SCRIPT =
         """
+        -- Create People table
         CREATE TABLE People (
-            Id INT NOT NULL PRIMARY KEY,
-            Name NVARCHAR(MAX) NOT NULL,
+            Id SERIAL PRIMARY KEY,
+            Name TEXT NOT NULL,
             Birthday DATE NULL,
-            Country NVARCHAR(255) NULL,
-            City NVARCHAR(255) NULL,
-            Street NVARCHAR(255) NULL
-        );
-        CREATE TABLE People2 (
-            Id INT NOT NULL PRIMARY KEY,
-            Name NVARCHAR(MAX) NOT NULL,
-            Birthday DATE NULL,
-            Country NVARCHAR(255) NULL,
-            City NVARCHAR(255) NULL,
-            Street NVARCHAR(255) NULL
+            Country VARCHAR(255) NULL,
+            City VARCHAR(255) NULL,
+            Street VARCHAR(255) NULL
         );
 
+        -- Create People2 table
+        CREATE TABLE People2 (
+            Id SERIAL PRIMARY KEY,
+            Name TEXT NOT NULL,
+            Birthday DATE NULL,
+            Country VARCHAR(255) NULL,
+            City VARCHAR(255) NULL,
+            Street VARCHAR(255) NULL
+        );
+
+        -- Create Emails table
         CREATE TABLE Emails (
-            Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
-            Value NVARCHAR(255) NOT NULL,
+            Id UUID PRIMARY KEY,
+            Value VARCHAR(255) NOT NULL,
             PersonId INT NOT NULL,
-            Domain NVARCHAR(255) NOT NULL,
-            Category NVARCHAR(255) NOT NULL,
+            Domain VARCHAR(255) NOT NULL,
+            Category VARCHAR(255) NOT NULL,
             CONSTRAINT FK_Emails_People FOREIGN KEY (PersonId) REFERENCES People (Id) ON DELETE CASCADE
         );
+
+        -- Create Emails2 table
         CREATE TABLE Emails2 (
-            Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
-            Value NVARCHAR(255) NOT NULL,
+            Id UUID PRIMARY KEY,
+            Value VARCHAR(255) NOT NULL,
             PersonId INT NOT NULL,
-            Domain NVARCHAR(255) NOT NULL,
-            Category NVARCHAR(255) NOT NULL,
+            Domain VARCHAR(255) NOT NULL,
+            Category VARCHAR(255) NOT NULL,
             CONSTRAINT FK_Emails_People2 FOREIGN KEY (PersonId) REFERENCES People2 (Id) ON DELETE CASCADE
         );
 
@@ -60,12 +66,15 @@ public class SqlServerEfSimpleTests : StreamEfBaseTests
         DROP TABLE IF EXISTS Emails;
         DROP TABLE IF EXISTS People;
         DROP TABLE IF EXISTS Emails2;
-        DROP TABLE IF EXISTS People2;
+        DROP TABLE IF EXISTS People2;DROP TABLE IF EXISTS Emails CASCADE;
+        DROP TABLE IF EXISTS People CASCADE;
+        DROP TABLE IF EXISTS Emails2 CASCADE;
+        DROP TABLE IF EXISTS People2 CASCADE;
         """;
 
 
-    public SqlServerEfSimpleTests(ITestOutputHelper output) :
-        base(output, StoreType.SqlServer)
+    public PostgresEfSimpleTests(ITestOutputHelper output) :
+        base(output, StoreType.Postgres)
     {
     }
 
