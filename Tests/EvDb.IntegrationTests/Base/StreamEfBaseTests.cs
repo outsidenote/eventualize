@@ -18,10 +18,12 @@ public abstract class StreamEfBaseTests : IntegrationTests
     {
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
+        services.AddSqlDbContextFactory<PersonContext>(TypedStorageOptions.Default);
         services.AddEvDb()
                 .AddPersonFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
                 .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext))
-                .ForTyped(c => c.UsePersonSqlServerForEvDbSnapshot());
+                //.ForTyped(c => c.UsePersonSqlServerForEvDbSnapshot());
+                .ForTyped(c => c.UseTypedSqlServerForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>());
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbPersonFactory>();
     }

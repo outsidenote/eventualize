@@ -120,9 +120,9 @@ public static class PersonSnapshotStorageAdapterDI
             (sp, _) =>
             {
                 IEvDbStorageSnapshotAdapter adapter = 
-                            sp.GetKeyedService<IEvDbStorageSnapshotAdapter>(fullKey) ?? throw new MissingMemberException($"`{nameof(IEvDbStorageSnapshotAdapter)}` is missing, expected to be registered under `{fullKey}` key.");
+                            sp.GetRequiredKeyedService<IEvDbStorageSnapshotAdapter>(fullKey);
                 IEvDbTypedSnapshotStorageAdapterFactory factory = 
-                            sp.GetKeyedService<IEvDbTypedSnapshotStorageAdapterFactory>(fullKey) ?? throw new MissingMemberException($"`{nameof(IEvDbStorageSnapshotAdapter)}` is missing, expected to be registered under `{fullKey}` key.");
+                            sp.GetRequiredKeyedService<IEvDbTypedSnapshotStorageAdapterFactory>(fullKey);
                 var result = factory.Create(adapter, canHandle);
                 return result;
             });
