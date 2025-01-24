@@ -1,5 +1,9 @@
 ﻿namespace EvDb.Core;
 
+/// <summary>
+/// Snapshot storage adapter for a specific state type.
+/// Acts on typed states rather than raw bytes.
+/// </summary>
 public interface IEvDbTypedStorageSnapshotAdapter
 {
     /// <summary>
