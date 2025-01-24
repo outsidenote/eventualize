@@ -48,11 +48,12 @@ internal static class Steps
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddSingleton(storageAdapter);
-        services.AddEvDb()
+        var evdb = services.AddEvDb()
               .AddSchoolStreamFactory(c =>
               {
-                  c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
-                  c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => storageAdapter);
+                  IEvDbRegistrationContext x = c;
+                  x.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(x.Address.ToString(), (_, _) => storageAdapter);
+                  x.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(x.Address.ToString(), (_, _) => storageAdapter);
               });
         services.AddSingleton<TimeProvider>(timeProvider ?? TimeProvider.System);
         var sp = services.BuildServiceProvider();
@@ -128,7 +129,7 @@ internal static class Steps
                     this IEvDbSchoolStream stream,
                     int numOfGrades = NUM_OF_GRADES)
     {
-        if (stream.StoredOffset == -1)
+        if (stream.StoredOffset == 0)
             await stream.EnlistStudent();
         await stream.WhenAddGrades(numOfGrades: numOfGrades);
         return stream;
@@ -192,7 +193,7 @@ internal static class Steps
     {
         List<EvDbEvent> storedEvents = new();
         StudentEnlistedEvent student = Steps.CreateStudentEnlistedEvent();
-        bool withEnlisted = initOffset == 0;
+        bool withEnlisted = initOffset == 1;
         if (withEnlisted)
         {
             EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset);
@@ -221,10 +222,7 @@ internal static class Steps
     {
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
-            .ReturnsLazily<Task<EvDbStoredSnapshot>>(() =>
-            {
-                return Task.FromResult(EvDbStoredSnapshot.Empty);
-            });
+            .ReturnsLazily(() => Task.FromResult(new EvDbStoredSnapshot(0, Array.Empty<byte>())));
 
         return input;
     }

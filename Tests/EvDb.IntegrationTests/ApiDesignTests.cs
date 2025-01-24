@@ -29,7 +29,7 @@ public class ApiDesignTests
                             //.Topics(c =>
                             //{
                             //    c.CreateTopicGroup(x => [x.Topic1, x.Topic2])
-                            //            .WithTransformation<T>()
+                            //            .WithTransformation<TState>()
                             //            .WithTransformation(x => JsonSerializer.Serialize(x.Payload));
                             //})
                             .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))

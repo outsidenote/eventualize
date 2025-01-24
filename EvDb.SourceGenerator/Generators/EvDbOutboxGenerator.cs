@@ -380,7 +380,6 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     /// Keep in mind the table name will be prefixed using the EvDbStorageContext conventions.
                     /// </summary>
                     /// <param name="outbox"></param>
-                    /// <remarks></remarks>
                     /// <returns></returns>
                     protected virtual Shards[] ChannelToShards(Channels outbox) => [];
                 """;

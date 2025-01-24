@@ -1,7 +1,6 @@
 ﻿namespace EvDb.Core.Tests;
 
 using Cocona;
-using EvDb.Core.Store.Internals;
 using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using Scenes;
@@ -24,7 +23,7 @@ internal static class Steps
         var services = builder.Services;
         services.AddEvDb()
                 .AddSchoolStreamFactory(c => c.ChooseStoreAdapter(storeType), storageContext)
-                .DefaultSnapshotConfiguration(c =>c.ChooseSnapshotAdapter(storeType));
+                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType));
         var sp = services.BuildServiceProvider();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
         return factory;
@@ -78,7 +77,7 @@ internal static class Steps
         int numOfGrades = NUM_OF_GRADES)
     {
         IEvDbSchoolStream stream = await storageContext
-                    .GivenLocalStreamWithPendingEvents(storeType ,numOfGrades, streamId)
+                    .GivenLocalStreamWithPendingEvents(storeType, numOfGrades, streamId)
                     .WhenStreamIsSavedAsync();
         return stream;
     }
@@ -132,7 +131,7 @@ internal static class Steps
                     this IEvDbSchoolStream stream,
                     int numOfGrades = NUM_OF_GRADES)
     {
-        if (stream.StoredOffset == -1)
+        if (stream.StoredOffset == 0)
             await stream.EnlistStudent();
         await stream.WhenAddGrades(numOfGrades: numOfGrades);
         return stream;

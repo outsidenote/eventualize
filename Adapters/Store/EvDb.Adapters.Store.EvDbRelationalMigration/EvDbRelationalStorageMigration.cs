@@ -31,7 +31,7 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
     }
 
     #endregion // Ctor
-        
+
     protected abstract EvDbMigrationQueryTemplates Queries { get; }
 
 
@@ -46,7 +46,7 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
             _logger.LogInformation(query);
             await conn.ExecuteAsync(query);
         }
-    }   
+    }
 
     async Task IEvDbStorageMigration.DestroyEnvironmentAsync(CancellationToken cancellation)
     {

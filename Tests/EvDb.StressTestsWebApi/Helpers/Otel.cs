@@ -72,7 +72,6 @@ internal static class OtelExtensions
                                 .AddRuntimeInstrumentation()
                                 .AddAspNetCoreInstrumentation()
 
-                                .AddPrometheusExporter()
                                 .AddOtlpExporter(o => o.Endpoint = new Uri($"{otelHost}:4317"))
                                 //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri($"{otelHost}:12345"))
                                 .AddOtlpExporter("grafana", o => o.Endpoint = new Uri($"{otelHost}:4337"))

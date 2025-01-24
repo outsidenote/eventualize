@@ -16,10 +16,10 @@ public interface IEvDbStorageSnapshotAdapter
     /// <summary>
     /// Store the view's state as a snapshot
     /// </summary>
-    /// <param name="viewStore">The view store.</param>
+    /// <param name="snapshotData">The snapshot's snapshotData and metadata</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    Task StoreViewAsync(
-        IEvDbViewStore viewStore,
+    Task StoreSnapshotAsync(
+        EvDbStoredSnapshotData snapshotData,
         CancellationToken cancellation = default);
 }

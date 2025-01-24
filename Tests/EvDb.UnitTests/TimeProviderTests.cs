@@ -24,8 +24,9 @@ public class TimeProviderTests
         services.AddEvDb()
               .AddDemoStreamFactory(c =>
               {
-                  c.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(c.Address.ToString(), (_, _) => _storageAdapter);
-                  c.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(c.Address.ToString(), (_, _) => _storageAdapter);
+                  IEvDbRegistrationContext x = c;
+                  x.Services.AddKeyedScoped<IEvDbStorageStreamAdapter>(x.Address.ToString(), (_, _) => _storageAdapter);
+                  x.Services.AddKeyedScoped<IEvDbStorageSnapshotAdapter>(x.Address.ToString(), (_, _) => _storageAdapter);
               });
         services.AddSingleton<TimeProvider>(_timeProvider);
         var sp = services.BuildServiceProvider();

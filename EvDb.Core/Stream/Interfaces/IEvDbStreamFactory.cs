@@ -19,7 +19,7 @@ public interface IEvDbStreamFactory<T> : IEvDbStreamConfig
     /// </param>
     /// <returns></returns>
     T Create<TId>(in TId streamId)
-        where TId: notnull;
+        where TId : notnull;
 
     /// <summary>
     /// Get a stream from the storage
@@ -34,5 +34,5 @@ public interface IEvDbStreamFactory<T> : IEvDbStreamConfig
     Task<T> GetAsync<TId>(
         TId streamId,
         CancellationToken cancellationToken = default)
-        where TId: notnull;
+        where TId : notnull;
 }

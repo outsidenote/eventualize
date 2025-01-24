@@ -6,7 +6,7 @@ namespace EvDb.Core.Tests;
 
 public abstract class StreamFactoryBaseTests : IntegrationTests
 {
-    protected StreamFactoryBaseTests(ITestOutputHelper output, 
+    protected StreamFactoryBaseTests(ITestOutputHelper output,
                                     StoreType storeType) : base(output, storeType)
     {
     }
@@ -81,9 +81,10 @@ public abstract class StreamFactoryBaseTests : IntegrationTests
 
         void ThenStoredEventsAddedSuccessfully()
         {
-            Assert.Equal(6, stream.StoredOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
+            Assert.Equal(7, stream.StoredOffset);
+            var viewsMeta = stream.Views.ToMetadata();
+            Assert.All(viewsMeta, v => Assert.Equal(7, v.StoreOffset));
+            Assert.All(viewsMeta, v => Assert.Equal(7, v.FoldOffset));
 
             Assert.Equal(630, stream.Views.ALL.Sum);
             Assert.Equal(6, stream.Views.ALL.Count);
@@ -107,11 +108,11 @@ public abstract class StreamFactoryBaseTests : IntegrationTests
         void ThenStoredEventsAddedSuccessfully()
         {
             var meta = stream.Views.ToMetadata();
-            Assert.Equal(4, stream.StoredOffset);
-            Assert.Equal(-1, meta.First().StoreOffset);
-            Assert.Equal(4, meta.Last().StoreOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(4, v.FoldOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(4, v.FoldOffset));
+            Assert.Equal(5, stream.StoredOffset);
+            Assert.Equal(0, meta.First().StoreOffset);
+            Assert.Equal(5, meta.Last().StoreOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(5, v.FoldOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(5, v.FoldOffset));
 
             Assert.Equal(210, stream.Views.ALL.Sum);
             Assert.Equal(4, stream.Views.ALL.Count);

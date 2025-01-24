@@ -22,7 +22,7 @@ public abstract class StressBaseTests : IntegrationTests
         CoconaAppBuilder builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-            .AddDemoStreamFactory(c =>c.ChooseStoreAdapter(storeType), StorageContext)
+            .AddDemoStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
             .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType));
         Otel(builder);
         var sp = services.BuildServiceProvider();
@@ -170,7 +170,7 @@ public abstract class StressBaseTests : IntegrationTests
             var streamId = $"stream-{i}";
             var stream = await _factory.GetAsync(streamId);
 
-            Assert.Equal(expectedEventsCount - 1, stream.StoredOffset);
+            Assert.Equal(expectedEventsCount, stream.StoredOffset);
             //Assert.Equal(expectedEventsCount, stream.Views.Count);
         }
     }
@@ -246,7 +246,7 @@ public abstract class StressBaseTests : IntegrationTests
             var stream = await _factory.GetAsync(streamId);
 
             Assert.Equal(expectedEventsCount, stream.Views.Count);
-            Assert.Equal(expectedEventsCount - 1, stream.StoredOffset);
+            Assert.Equal(expectedEventsCount, stream.StoredOffset);
         }
     }
 

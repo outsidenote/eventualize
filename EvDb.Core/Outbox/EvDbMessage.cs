@@ -12,7 +12,7 @@ public partial record struct EvDbMessage(
                                 EvDbShardName ShardName,
                                 string MessageType,
                                 string SerializeType,
-                                [property: IgnoreEquality]DateTimeOffset CapturedAt,
+                                [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,
                                 EvDbStreamCursor StreamCursor,
                                 byte[] Payload) :

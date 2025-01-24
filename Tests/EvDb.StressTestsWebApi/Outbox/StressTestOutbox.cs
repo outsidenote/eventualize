@@ -7,8 +7,8 @@ namespace EvDb.StressTestsWebApi.Outbox;
 [EvDbMessageTypes<Message1>]
 [EvDbMessageTypes<Message2>]
 [EvDbOutbox<DemoStreamFactory, OutboxShards>]
-[EvDbUseOutboxSerialization<EmbeddedSchemaSerializer>(EvDbOutboxSerializationMode.Strict)] 
-public partial class StressTestOutbox 
+[EvDbUseOutboxSerialization<EmbeddedSchemaSerializer>(EvDbOutboxSerializationMode.Strict)]
+public partial class StressTestOutbox
 {
     protected override Shards[] ChannelToShards(Channels outbox) =>
 
@@ -24,7 +24,7 @@ public partial class StressTestOutbox
     {
         if (views.Count % 2 == 0)
         {
-            outbox.Add(new Message1 { Amount = views.Count}, Message1.Channels.Channel1);
+            outbox.Add(new Message1 { Amount = views.Count }, Message1.Channels.Channel1);
         }
         else
         {

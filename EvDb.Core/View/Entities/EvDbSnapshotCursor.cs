@@ -7,7 +7,7 @@ namespace EvDb.Core;
 [Equatable]
 public readonly partial record struct EvDbSnapshotCursor(string Domain, string Partition, string StreamId, string ViewName, long Offset = 0)
 {
-    public static readonly EvDbSnapshotCursor Empty = new EvDbSnapshotCursor("N/A", "N/A", "N/A", "N/A", -1);
+    public static readonly EvDbSnapshotCursor Empty = new EvDbSnapshotCursor("N/A", "N/A", "N/A", "N/A", 0);
 
     public EvDbSnapshotCursor(EvDbStreamAddress streamAddress, string viewName, long offset = 0)
         : this(streamAddress.Domain, streamAddress.Partition, streamAddress.StreamId, viewName, offset) { }

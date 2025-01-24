@@ -103,13 +103,13 @@ public abstract class IntegrationTests : IAsyncLifetime
     public EvDbStorageContext StorageContext { get; }
     public EvDbStorageContext? AlternativeContext { get; }
 
-    public async Task InitializeAsync()
+    public virtual async Task InitializeAsync()
     {
         await _storageMigration.CreateEnvironmentAsync();
         await (_storageMigrationSnapshot?.CreateEnvironmentAsync() ?? Task.CompletedTask);
     }
 
-    public async Task DisposeAsync()
+    public virtual async Task DisposeAsync()
     {
         //await _storageMigration.DisposeAsync();
         await _connection.CloseAsync();

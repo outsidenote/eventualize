@@ -6,6 +6,7 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using OpenTelemetry;
 
 namespace EvDb.StressTests;
 
@@ -41,7 +42,7 @@ internal static class OtelExtensions
 
         #endregion // Logging}
 
-        var services = builder.Services;
+        IServiceCollection services = builder.Services;
         services.AddOpenTelemetry()
                     .ConfigureResource(resource =>
                                    resource.AddService(APP_NAME,

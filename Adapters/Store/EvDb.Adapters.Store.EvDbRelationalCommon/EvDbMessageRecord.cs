@@ -1,11 +1,10 @@
-﻿using System.Data;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace EvDb.Core.Adapters;
 
 [DebuggerDisplay("MessageType: {MessageType} ,EventType:{EventType}, Channel:{Channel} Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbMessageRecord
-{   
+{
     public Guid Id { get; init; }
     public string Domain { get; init; }
     public string Partition { get; init; }

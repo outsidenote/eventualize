@@ -9,10 +9,18 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Threading.Tasks.Dataflow;
 
-int idx = args.FindIndex(m => m == "-d");
-if (idx == -1)
+
+(string? storeTypeArg, bool dbFound) = 
+    args.Aggregate<string, (string? Db, bool Found)>((null, false), (acc, cur) =>
+{
+    if(acc.Found)
+        return (cur, true);
+    if (cur == "-d")
+        return (null, true);
+    return (null, false);
+});
+if (!dbFound)
     Console.WriteLine("Missing database type (`-d` switch)");
-string storeTypeArg = args[idx + 1];
 StoreType storeType = string.Compare(storeTypeArg, nameof(StoreType.SqlServer), true) == 0
     ? StoreType.SqlServer
     : StoreType.Posgres;
@@ -102,8 +110,8 @@ await app.RunAsync(async (
             {
                 var count = Interlocked.Increment(ref counter);
                 bool success = false;
-                IEnumerable<SomethingHappened> events = CreateEvents(streamId, batchSize, j * batchSize);
-                IEnumerable<FaultOccurred> faultEvents = CreateFaultEvents(streamId, batchSize, j * batchSize);
+                IEnumerable<SomethingHappened> events = CreateEvents(batchSize, j * batchSize);
+                IEnumerable<FaultOccurred> faultEvents = CreateFaultEvents(batchSize, j * batchSize);
 
                 do
                 {
@@ -184,8 +192,7 @@ await app.RunAsync(async (
 
 #region CreateEvents
 
-static IEnumerable<SomethingHappened> CreateEvents(
-    string streamId, int batchSize, int baseId)
+static IEnumerable<SomethingHappened> CreateEvents(int batchSize, int baseId)
 {
     // yield break;
     foreach (var k in Enumerable.Range(0, batchSize - 5))
@@ -200,7 +207,7 @@ static IEnumerable<SomethingHappened> CreateEvents(
 
 #region CreateFaultEvents
 
-static IEnumerable<FaultOccurred> CreateFaultEvents(string streamId, int batchSize, int baseId)
+static IEnumerable<FaultOccurred> CreateFaultEvents(int batchSize, int baseId)
 {
     for (int i = 0; i < batchSize; i++)
     {

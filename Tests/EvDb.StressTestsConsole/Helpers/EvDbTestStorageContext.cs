@@ -4,7 +4,7 @@ namespace EvDb.StressTests;
 
 public record EvDbTestStorageContext(StoreType storeType) : EvDbStorageContext(
      storeType switch
-     { 
+     {
          StoreType.SqlServer => "master",
          StoreType.Posgres => "test_db",
          _ => throw new NotSupportedException()

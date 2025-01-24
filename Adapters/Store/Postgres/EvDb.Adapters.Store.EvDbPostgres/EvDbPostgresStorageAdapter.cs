@@ -3,18 +3,11 @@
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
-using Microsoft.SqlServer.Server;
+using Npgsql;
 using System.Data;
 using System.Data.Common;
-using Npgsql;
-using Dapper;
-using System.Threading;
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Transactions;
-using System.Text.Json;
 using System.Text;
-using System.Security.Cryptography;
 
 namespace EvDb.Adapters.Store.Postgres;
 
@@ -226,31 +219,20 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         command.Parameters.AddWithValue(nameof(EvDbViewAddress.StreamId), viewAddress.StreamId);
         command.Parameters.AddWithValue(nameof(EvDbViewAddress.ViewName), viewAddress.ViewName);
 
-        NpgsqlDataReader reader = 
+        NpgsqlDataReader reader =
             await command.ExecuteReaderAsync(CommandBehavior.SingleRow, cancellation);
-        if(!await reader.ReadAsync())
+        if (!await reader.ReadAsync())
             return EvDbStoredSnapshot.Empty;
 
         var stateIndex = reader.GetOrdinal(nameof(EvDbStoredSnapshot.State));
-        var record = new EvDbStoredSnapshot
-        {
-            Offset = reader.GetInt64(reader.GetOrdinal(nameof(EvDbStoredSnapshot.Offset))), // Non-nullable
-            State = Encoding.UTF8.GetBytes(reader.GetString(stateIndex))
-        };
+        var offset = reader.GetInt64(reader.GetOrdinal(nameof(EvDbStoredSnapshot.Offset)));
+        var state = Encoding.UTF8.GetBytes(reader.GetString(stateIndex));
+        var record = new EvDbStoredSnapshot(offset, state);
         return record;
 
     }
 
     #endregion //  OnGetSnapshotAsync
-
-    #region RecordParserFactory
-
-    /// <summary>
-    /// Gets the record parser factory.
-    /// </summary>
-    protected virtual IEvDbRecordParserFactory RecordParserFactory => this;
-
-    #endregion //  RecordParserFactory
 
     #region IEvDbRecordParserFactory members
 

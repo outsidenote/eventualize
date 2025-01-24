@@ -29,9 +29,9 @@ public abstract class StreamBaseTests : IntegrationTests
 
         async Task ThenStreamSavedWithoutSnapshot()
         {
-            Assert.Equal(3, stream.StoredOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(-1, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(3, v.FoldOffset));
+            Assert.Equal(4, stream.StoredOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(0, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(4, v.FoldOffset));
 
             Assert.Equal(180, stream.Views.ALL.Sum);
             Assert.Equal(3, stream.Views.ALL.Count);
@@ -86,7 +86,7 @@ public abstract class StreamBaseTests : IntegrationTests
             Assert.All(defaults, m => Assert.Equal("avg", m.MessageType));
             Assert.All(defaults, m => Assert.Equal(EvDbOutbox.DEFAULT_OUTBOX, m.Channel));
 
-         
+
 
             string connectionString = StoreAdapterHelper.GetConnectionString(_storeType);
             IEvDbStorageStreamAdapter adapter = _storeType switch
@@ -107,10 +107,10 @@ public abstract class StreamBaseTests : IntegrationTests
             Assert.Equal(60, avg3!.Avg);
 
             var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
-            Assert.True(eventsOffsets.SequenceEqual([0, 1, 2, 3]));
-            for (int i = 0; i < defaults.Length; i++)
+            Assert.True(eventsOffsets.SequenceEqual([1, 2, 3, 4]));
+            for (int i = 1; i <= defaults.Length; i++)
             {
-                EvDbMessageRecord item = defaults[i];
+                EvDbMessageRecord item = defaults[i - 1];
                 Assert.Equal("student-received-grade", item.EventType);
                 var itemOffset = item.Offset;
                 Assert.Equal(i + 1, itemOffset);
@@ -130,9 +130,9 @@ public abstract class StreamBaseTests : IntegrationTests
 
         void ThenStreamSavedWithSnapshot()
         {
-            Assert.Equal(6, stream.StoredOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
+            Assert.Equal(7, stream.StoredOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(7, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(7, v.FoldOffset));
 
             Assert.Equal(630, stream.Views.ALL.Sum);
             Assert.Equal(6, stream.Views.ALL.Count);
@@ -160,9 +160,9 @@ public abstract class StreamBaseTests : IntegrationTests
 
         void ThenStreamSavedWithSnapshot()
         {
-            Assert.Equal(6, stream.StoredOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(6, v.FoldOffset));
+            Assert.Equal(7, stream.StoredOffset);
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(7, v.StoreOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(7, v.FoldOffset));
 
             Assert.Equal(360, stream.Views.ALL.Sum);
             Assert.Equal(6, stream.Views.ALL.Count);

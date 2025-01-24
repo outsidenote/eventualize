@@ -2,14 +2,16 @@
 	<PropertyGroup>
 		<PackageReleaseNotes>
 			Breaking changes:
+			- 1.1.141: state column changed to binary in sql-server adapter
 			- 1.1.145: state column changed to binary in sql-server adapter
+			- 1.2.0: offset starts at 0 for empty stream or empty snapshot
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<!-- <PackageId>EvDb</PackageId> -->
-		<Version>1.1.151</Version>
-		<PackageVersion>1.1.151</PackageVersion>
+		<Version>1.2.1</Version>
+		<PackageVersion>1.2.1</PackageVersion>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EvDbDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

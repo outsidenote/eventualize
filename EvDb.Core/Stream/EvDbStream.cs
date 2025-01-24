@@ -168,8 +168,6 @@ public abstract class EvDbStream :
             using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
             _pendingEvents = ImmutableList<EvDbEvent>.Empty;
             _pendingOutput = ImmutableList<EvDbMessage>.Empty;
-            foreach (IEvDbViewStore view in _views)
-                view.OnSaved();
 
             return affected;
         }

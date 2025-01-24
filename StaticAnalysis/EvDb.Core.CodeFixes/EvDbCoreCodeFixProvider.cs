@@ -4,23 +4,19 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EvDb.Core
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(EvDbCoreCodeFixProvider)), Shared]
     public class EvDbCoreCodeFixProvider : CodeFixProvider
     {
+        private static readonly SymbolRenameOptions RENAMER = new SymbolRenameOptions(true);
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(EvDbCoreAnalyzer.DiagnosticId); }
+            get { return ImmutableArray.Create(EvDbCoreAnalyzer.PartialDiagnosticId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -38,16 +34,23 @@ namespace EvDb.Core
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<TypeDeclarationSyntax>().First();
+            var declaration = root?.FindToken(diagnosticSpan.Start)
+                                   .Parent?
+                                   .AncestorsAndSelf()
+                                   .OfType<TypeDeclarationSyntax>()
+                                   .First();
 
             // Register a code action that will invoke the fix.
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    title: "Fix EvDb partial type",
-                    createChangedSolution: c => 
-                    FixPartial(context.Document, declaration, c),
-                    equivalenceKey: nameof(CodeFixResources.CodeFixTitle)),
-                diagnostic);
+            if (declaration != null)
+            {
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        title: "Fix EvDb partial type",
+                        createChangedSolution: c =>
+                        FixPartial(context.Document, declaration, c),
+                        equivalenceKey: nameof(CodeFixResources.CodeFixTitle)),
+                    diagnostic);
+            }
         }
 
         private async Task<Solution> FixPartial(Document document, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
@@ -62,8 +65,11 @@ namespace EvDb.Core
 
             // Produce a new solution that has all references to that type renamed, including the declaration.
             var originalSolution = document.Project.Solution;
-            var optionSet = originalSolution.Workspace.Options;
-            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution,
+                                                              typeSymbol!,
+                                                              RENAMER,
+                                                              newName,
+                                                              cancellationToken);
 
             // Return the new solution with the now-uppercase type name.
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

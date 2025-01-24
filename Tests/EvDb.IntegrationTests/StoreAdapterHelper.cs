@@ -1,15 +1,12 @@
-﻿using EvDb.Adapters.Store.SqlServer;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System.Data.Common;
-using Microsoft.Data.SqlClient;
-using EvDb.Adapters.Store.Postgres;
-using Npgsql;
-using Microsoft.Extensions.DependencyInjection;
+﻿using EvDb.Adapters.Store.Postgres;
+using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core.Store.Internals;
-using FakeItEasy;
-using static IdentityModel.OidcConstants;
-using System.Collections.Immutable;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using System.Data.Common;
 
 namespace EvDb.Core.Tests;
 

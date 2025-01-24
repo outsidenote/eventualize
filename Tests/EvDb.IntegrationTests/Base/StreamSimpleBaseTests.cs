@@ -3,20 +3,14 @@
 namespace EvDb.Core.Tests;
 
 using Cocona;
-using EvDb.Adapters.Store.Postgres;
-using EvDb.Adapters.Store.SqlServer;
-using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
-using System.Text.Json;
-using Xunit.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
-using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
+using Xunit.Abstractions;
 
 public abstract class StreamSimpleBaseTests : IntegrationTests
 {
-    IEvDbSchoolStream _stream;
+    private readonly IEvDbSchoolStream _stream;
 
     public StreamSimpleBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType, true)
@@ -36,7 +30,7 @@ public abstract class StreamSimpleBaseTests : IntegrationTests
     [Fact]
     public async Task Stream_WithAltSnapshot_Succeed()
     {
-        var student =  new StudentEntity(10, "Mikey"); ;
+        var student = new StudentEntity(10, "Mikey"); ;
         var studentEnlisted = new StudentEnlistedEvent(student);
         await _stream.AddAsync(studentEnlisted);
         for (int i = 1; i < 4; i++)
@@ -47,7 +41,7 @@ public abstract class StreamSimpleBaseTests : IntegrationTests
         await _stream.StoreAsync();
 
 
-        Assert.Equal(3, _stream.StoredOffset);
+        Assert.Equal(4, _stream.StoredOffset);
         Assert.Equal(3, _stream.Views.ALL.Count);
         Assert.Equal(260, _stream.Views.ALL.Sum);
     }

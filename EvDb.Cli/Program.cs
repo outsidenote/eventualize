@@ -4,10 +4,7 @@ using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-using System.Threading.Tasks.Dataflow;
 
 
 var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -18,7 +15,6 @@ builder.Configuration
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile($"appsettings.json", true, true)
             .AddJsonFile($"appsettings.{environmentName}.json", true, true);
-var services = builder.Services;
 
 var app = builder.Build();
 await app.RunAsync(async (
@@ -76,10 +72,10 @@ await app.RunAsync(async (
 
     if (!dryRun && string.IsNullOrWhiteSpace(path))
     {
-        connectionString = Environment.GetEnvironmentVariable(connectionString) ?? connectionString;
+        connectionString = Environment.GetEnvironmentVariable(connectionString!) ?? connectionString;
         IEvDbStorageMigration migration = db switch
         {
-            "sql-server" => SqlServerStorageMigrationFactory.Create(logger, connectionString, context, storageFeatures, outboxNames),
+            "sql-server" => SqlServerStorageMigrationFactory.Create(logger, connectionString!, context, storageFeatures, outboxNames),
             //"posgres" => PostgresStorageMigrationFactory.Create(logger, connectionString, context, storageFeatures, outboxNames),
             _ => throw new NotImplementedException()
         };
@@ -112,7 +108,7 @@ await app.RunAsync(async (
         }
         else if (operation == Operation.Drop)
         {
-            logger.LogInformation( scripts.DestroyEnvironment);
+            logger.LogInformation(scripts.DestroyEnvironment);
             if (!dryRun)
             {
                 logger.LogInformation("Saving `drop` script into [{Path}]", path);
