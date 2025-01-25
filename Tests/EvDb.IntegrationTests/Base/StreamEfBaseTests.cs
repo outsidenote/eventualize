@@ -19,7 +19,15 @@ public abstract class StreamEfBaseTests : IntegrationTests
     {
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
-        services.AddSqlDbContextFactory<PersonContext>();
+        switch (storeType)
+        {
+            case StoreType.SqlServer:
+                services.AddSqlServerDbContextFactory<PersonContext>();
+                break;
+            case StoreType.Postgres:
+                services.AddPostgresDbContextFactory<PersonContext>();
+                break;
+        }
         services.AddEvDb()
                 .AddPersonFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
                 .DefaultSnapshotConfiguration(c =>
