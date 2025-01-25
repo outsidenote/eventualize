@@ -63,6 +63,7 @@ public class SqlServerEfSimpleTests : StreamEfBaseTests
         DROP TABLE IF EXISTS People2;
         """;
 
+
     public SqlServerEfSimpleTests(ITestOutputHelper output) :
         base(output, StoreType.SqlServer)
     {
