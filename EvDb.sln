@@ -110,6 +110,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.Core.Analyzer", "Stati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.Core.Analyzer.Package", "Packaging\EvDb.Core.Analyzer.Package\EvDb.Core.Analyzer.Package.csproj", "{4591D842-8015-4B19-8397-308173041301}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.StructuresValidation.OutboxPattern", "Tests\StructuresValidation\EvDb.StructuresValidation.OutboxPattern\EvDb.StructuresValidation.OutboxPattern.csproj", "{ECA70D2B-1639-4C93-9EDE-9A81633409E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -591,6 +593,24 @@ Global
 		{4591D842-8015-4B19-8397-308173041301}.Release|x64.Build.0 = Release|Any CPU
 		{4591D842-8015-4B19-8397-308173041301}.Release|x86.ActiveCfg = Release|Any CPU
 		{4591D842-8015-4B19-8397-308173041301}.Release|x86.Build.0 = Release|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Debug|x64.Build.0 = Debug|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Debug|x86.Build.0 = Debug|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Gen|Any CPU.ActiveCfg = Gen|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Gen|Any CPU.Build.0 = Gen|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Gen|x64.ActiveCfg = Gen|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Gen|x64.Build.0 = Gen|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Gen|x86.ActiveCfg = Gen|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Gen|x86.Build.0 = Gen|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Release|x64.ActiveCfg = Release|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Release|x64.Build.0 = Release|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Release|x86.ActiveCfg = Release|Any CPU
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -628,6 +648,7 @@ Global
 		{9EAD706A-80A4-418C-9B7E-C4EDDC49663C} = {E73AE862-1C51-4558-BBCA-BA1A85501519}
 		{F8CDE68E-4834-439E-93A7-A5C00F26E418} = {E73AE862-1C51-4558-BBCA-BA1A85501519}
 		{4591D842-8015-4B19-8397-308173041301} = {E32ECE21-9483-4D63-88F2-94F81D02989E}
+		{ECA70D2B-1639-4C93-9EDE-9A81633409E3} = {4D9BC5CF-DAE6-4001-8A1C-4D517718CEC4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CF849979-7A01-419B-A9C7-8EA947DCD0C2}

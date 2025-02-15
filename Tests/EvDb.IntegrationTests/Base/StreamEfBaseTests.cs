@@ -25,7 +25,7 @@ public abstract class StreamEfBaseTests : IntegrationTests
                 services.AddSqlServerDbContextFactory<PersonContext>();
                 break;
             case StoreType.Postgres:
-                services.AddPostgresDbContextFactory<PersonContext>();
+                services.AddPostgresDbContextFactory<Person2Context>();
                 break;
         }
         services.AddEvDb()
@@ -40,7 +40,7 @@ public abstract class StreamEfBaseTests : IntegrationTests
                                        c => c.ViewName == PersonTyped2View.ViewName);
                             break;
                         case StoreType.Postgres:
-                            c.UseTypedPostgresForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>(
+                            c.UseTypedPostgresForEvDbSnapshot<EvDbPerson2StorageStreamAdapterFactory>(
                                     c => c.ViewName == PersonTyped2View.ViewName);
                             break;
                     }
@@ -53,7 +53,7 @@ public abstract class StreamEfBaseTests : IntegrationTests
                             c.UseTypedSqlServerForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>();
                             break;
                         case StoreType.Postgres:
-                            c.UseTypedPostgresForEvDbSnapshot<EvDbPersonStorageStreamAdapterFactory>();
+                            c.UseTypedPostgresForEvDbSnapshot<EvDbPerson2StorageStreamAdapterFactory>();
                             break;
                     }
                 });

@@ -14,7 +14,7 @@ public class Person2Context : DbContext
     public DbSet<EmailEntity> Emails { get; set; }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-    public Person2Context(DbContextOptions<PersonContext> options) : base(options)
+    public Person2Context(DbContextOptions<Person2Context> options) : base(options)
     {
         // ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
