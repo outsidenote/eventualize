@@ -31,11 +31,12 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 
     protected abstract IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; }
 
-    public void Add<T>(T payload, EvDbChannelName channel, EvDbShardName shardName)
-        where T : notnull, IEvDbPayload
+    void IEvDbOutboxProducerGeneric.Add<T>(T payload, EvDbChannelName channel, EvDbShardName shardName)
     {
+#pragma warning disable S2955 // Generic parameters not constrained to reference types should not be compared to "null"
         if (payload == null)
             throw new ArgumentNullException(nameof(payload));
+#pragma warning restore S2955 // Generic parameters not constrained to reference types should not be compared to "null"
 
         IEvDbOutboxSerializer? serializer = null;
         IEvDbOutboxSerializer[] serializers = OutboxSerializers.Where(m =>

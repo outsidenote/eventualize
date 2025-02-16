@@ -54,8 +54,9 @@ public partial class EventPayloadGenerator : BaseGenerator
         builder.AppendLine($$"""
                     partial {{type}} {{name}}: IEvDbPayload
                     {
+                        public const string PAYLOAD_TYPE = {{key}};
                         [System.Text.Json.Serialization.JsonIgnore]
-                        string IEvDbPayload.PayloadType { get; } = {{key}};
+                        string IEvDbPayload.PayloadType { get; } = PAYLOAD_TYPE;
 
                     {{GetAdditions(typeSymbol, type, name)}}
                     }                

@@ -85,7 +85,7 @@ public abstract class IntegrationTests : IAsyncLifetime
                 """;
     }
 
-    public async IAsyncEnumerable<EvDbMessageRecord> GetMessagesFromTopicsAsync(EvDbShardName table)
+    public async IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName table)
     {
         await _connection.OpenAsync();
         string query = string.Format(_outboxQuery, table);

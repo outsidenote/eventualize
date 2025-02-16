@@ -47,6 +47,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\StructuresValidation\EvDb.StructuresValidation.Repositories\EvDb.StructuresValidation.Repositories.csproj" />
 	</ItemGroup>
 
 
