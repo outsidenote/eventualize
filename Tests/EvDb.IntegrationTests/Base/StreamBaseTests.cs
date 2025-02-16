@@ -44,14 +44,14 @@ public abstract class StreamBaseTests : IntegrationTests
             Assert.Equal(180, studentStat.Sum);
             Assert.Equal(3, studentStat.Count);
 
-            ICollection<EvDbMessageRecord> messagingCollection = await GetMessagesFromTopicsAsync(OutboxShards.Messaging).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> messagingCollection = await GetOutboxAsync(OutboxShards.Messaging).ToEnumerableAsync();
             EvDbMessageRecord[] messaging = messagingCollection!.ToArray();
             Assert.Equal(4, messaging.Length);
             Assert.All(messaging, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(messaging, m => Assert.Equal("student-passed", m.MessageType));
             Assert.All(messaging, m => Assert.True(m.Channel == "channel-3" || m.Channel == "channel-2"));
 
-            ICollection<EvDbMessageRecord> messagingVipCollection = await GetMessagesFromTopicsAsync(OutboxShards.MessagingVip).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> messagingVipCollection = await GetOutboxAsync(OutboxShards.MessagingVip).ToEnumerableAsync();
             EvDbMessageRecord[] messagingVip = messagingVipCollection!.ToArray();
             Assert.Equal(2, messagingVip.Length);
             Assert.All(messagingVip, m => Assert.Equal("student-received-grade", m.EventType));
@@ -65,7 +65,7 @@ public abstract class StreamBaseTests : IntegrationTests
                 Assert.Equal("Lora", pass.Name);
             });
 
-            ICollection<EvDbMessageRecord> commandsCollection = await GetMessagesFromTopicsAsync(OutboxShards.Commands).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> commandsCollection = await GetOutboxAsync(OutboxShards.Commands).ToEnumerableAsync();
             EvDbMessageRecord[] commands = commandsCollection!.ToArray();
             Assert.Single(commands);
             Assert.All(commands, m => Assert.Equal("student-received-grade", m.EventType));
@@ -79,7 +79,7 @@ public abstract class StreamBaseTests : IntegrationTests
                 Assert.Equal("Lora", fail.Name);
             });
 
-            ICollection<EvDbMessageRecord> defaultscommandsCollection = await GetMessagesFromTopicsAsync(EvDbShardName.Default).ToEnumerableAsync();
+            ICollection<EvDbMessageRecord> defaultscommandsCollection = await GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
             EvDbMessageRecord[] defaults = defaultscommandsCollection!.ToArray();
             Assert.Equal(3, defaults.Length);
             Assert.All(defaults, m => Assert.Equal("student-received-grade", m.EventType));

@@ -36,6 +36,8 @@ public partial class MessagePayloadGenerator : EventPayloadGenerator
                                 .OrderBy(m => m)
                                 .ToArray();
 
+        if(channels.Length == 0)
+            return string.Empty;
 
         string channelEnums = string.Join(",", channels.Select(t =>
                     $$"""

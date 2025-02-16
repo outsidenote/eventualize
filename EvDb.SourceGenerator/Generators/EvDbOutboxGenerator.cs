@@ -111,7 +111,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
                             public void Add({{info.FullTypeName}} payload)
                             {
-                                base.Add(payload, EvDbOutbox.DEFAULT_OUTBOX, EvDbShardName.Default); 
+                                IEvDbOutboxProducerGeneric self = this;
+                                self.Add(payload, EvDbOutbox.DEFAULT_OUTBOX, EvDbShardName.Default); 
                             }            
 
                         """;
@@ -123,7 +124,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                                 var shardNames = _outboxToShards.ChannelToShards({{outboxName}}.Channels.DEFAULT);
                                 foreach (var shardName in shardNames)
                                 {
-                                    base.Add(payload, EvDbOutbox.DEFAULT_OUTBOX, shardName); 
+                                    IEvDbOutboxProducerGeneric self = this;
+                                    self.Add(payload, EvDbOutbox.DEFAULT_OUTBOX, shardName); 
                                 }
                             }
             
@@ -145,7 +147,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     var shardNames = _outboxToShards.ChannelToShards({{outboxName}}.Channels.{{info.Channels[0].FixNameForClass()}});
                     foreach (var shardName in shardNames)
                     {
-                        base.Add(payload, "{{info.Channels[0]}}", shardName); 
+                        IEvDbOutboxProducerGeneric self = this;
+                        self.Add(payload, "{{info.Channels[0]}}", shardName); 
                     }
                 }
             
@@ -182,7 +185,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     var shardNames = _outboxToShards.ChannelToShards(outboxTextEnum);
                     foreach (var shardName in shardNames)
                     {
-                        base.Add(payload, outboxText, shardName);
+                        IEvDbOutboxProducerGeneric self = this;
+                        self.Add(payload, outboxText, shardName);
                     }
                 }
             
@@ -300,7 +304,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             /// Shard is a data splitting, usually for different messaging frameworks (Like Kafka, NATS, SQS, RabbitMQ, etc.)
                             /// Depending on the storage adapter `shard` might be split into different tables 
                             /// </summary>
-                            public {{streamName}}OutboxDefinitionContext CreateShard(string groupName, {{outboxName}}.Channels outboxs, params {{outboxName}}.Channels[] additionalOutboxs)
+                            public {{streamName}}OutboxDefinitionContext CreateShard(string groupName, {{outboxName}}.Channels outbox, params {{outboxName}}.Channels[] additionalOutboxs)
                             {
                                 return {{streamName}}OutboxDefinitionContext.Instance;
                             }
@@ -324,7 +328,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     {{info.FullTypeName}} payload,
                     IEvDbEventMeta meta,
                     {{streamName}}Views views,
-                    {{outboxName}}Context outboxs)
+                    {{outboxName}}Context outbox)
                 {
                 }
             
@@ -341,7 +345,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                         case "{{info.SnapshotStorageName}}":
                             {
                                 var payload = c.GetData<{{info.FullTypeName}}>(_serializationOptions);
-                                ProduceOutboxMessages(payload, e, states, outboxs);
+                                ProduceOutboxMessages(payload, e, states, outbox);
                                 break;
                             }
                         
@@ -458,8 +462,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                                     : string.Empty;
 
         string createOutbox = hasAnyChannel 
-            ? $"{outboxName}Context outboxs = new(_logger, _evDbStream, e, this);"
-            : $"{outboxName}Context outboxs = new(_logger, _evDbStream, e);";
+            ? $"{outboxName}Context outbox = new(_logger, _evDbStream, e, this);"
+            : $"{outboxName}Context outbox = new(_logger, _evDbStream, e);";
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);
         builder.AppendLine("using EvDb.Core.Internals;");
