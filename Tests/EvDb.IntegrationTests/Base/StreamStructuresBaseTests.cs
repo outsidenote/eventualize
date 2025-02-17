@@ -4,6 +4,7 @@ namespace EvDb.Core.Tests;
 
 using Cocona;
 using EvDb.Scenes;
+using EvDb.StructuresValidation.Abstractions;
 using EvDb.StructuresValidation.Abstractions.Events;
 using EvDb.StructuresValidation.Repositories;
 using EvDb.UnitTests;

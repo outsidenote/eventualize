@@ -2,8 +2,9 @@
 
 namespace EvDb.StructuresValidation.Abstractions;
 
+[EvDbAttachChannel(OutboxChannels02.Channel1)]
 [EvDbDefineMessagePayload("email-validated-status")]
-public readonly partial record struct PersonChangedMessage()
+public readonly partial record struct PersonChanged02Message()
 {
     public string Id { get; init; } = string.Empty;
     public string Email { get; init; } = string.Empty;

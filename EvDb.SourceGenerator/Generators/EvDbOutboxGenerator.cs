@@ -106,7 +106,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                 .Where(info => info.Channels.Length == 0 || info.HasDefaultChannel)
                 .Select((info, i) =>
                 {
-                    if(!hasAnyChannel)
+                    if(!hasAnyChannel || !hasShards)
                         return $$"""
 
                             public void Add({{info.FullTypeName}} payload)
@@ -140,24 +140,57 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             messageTypes
                 .Where(m => m.Channels.Length == 1 && !m.HasDefaultChannel)
                 .Select((info, i) =>
-            $$"""
-
-                public void Add({{info.FullTypeName}} payload)
                 {
-                    var shardNames = _outboxToShards.ChannelToShards({{outboxName}}.Channels.{{info.Channels[0].FixNameForClass()}});
-                    foreach (var shardName in shardNames)
+                    if (!hasAnyChannel || !hasShards)
                     {
-                        IEvDbOutboxProducerGeneric self = this;
-                        self.Add(payload, "{{info.Channels[0]}}", shardName); 
-                    }
-                }
+                        return $$"""
+                            public void Add({{info.FullTypeName}} payload)
+                            {
+                                IEvDbOutboxProducerGeneric self = this;
+                                self.Add(payload, "{{info.Channels[0]}}", EvDbShardName.Default); 
+                            }            
             
-            """);
+                        """;
+                    }
+                    return $$"""
+
+                            public void Add({{info.FullTypeName}} payload)
+                            {
+                                var shardNames = _outboxToShards.ChannelToShards({{outboxName}}.Channels.{{info.Channels[0].FixNameForClass()}});
+                                foreach (var shardName in shardNames)
+                                {
+                                    IEvDbOutboxProducerGeneric self = this;
+                                    self.Add(payload, "{{info.Channels[0]}}", shardName); 
+                                }
+                            }
+            
+                        """;
+                });
 
         #endregion //  addMessageTypesSingle = ...
 
         #region addMessageTypesMulti = ...
 
+        string multiAdds;
+        if(hasShards)
+        {
+            multiAdds = """
+                        var shardNames = _outboxToShards.ChannelToShards(outboxTextEnum);
+                        foreach (var shardName in shardNames)
+                        {
+                            IEvDbOutboxProducerGeneric self = this;
+                            self.Add(payload, outboxText, shardName);
+                        }
+                        
+                """;       
+        }
+        else
+        {
+            multiAdds = """
+                        IEvDbOutboxProducerGeneric self = this;
+                        self.Add(payload, outboxText, EvDbShardName.Default);               
+                """;
+        }
         var addMessageTypesMulti = multiChannel.Select((info, i) =>
             $$"""
 
@@ -182,12 +215,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             """))}}                
                         };
 
-                    var shardNames = _outboxToShards.ChannelToShards(outboxTextEnum);
-                    foreach (var shardName in shardNames)
-                    {
-                        IEvDbOutboxProducerGeneric self = this;
-                        self.Add(payload, outboxText, shardName);
-                    }
+                    {{multiAdds}}
                 }
             
             """);
@@ -227,7 +255,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                                                                         (IEnumerable<IEvDbOutboxSerializer>)
                                                                         [{{string.Join(",", crateSerializers)}}]);
                     """);
-        if (hasAnyChannel)
+        if (hasAnyChannel && hasShards)
         {
             builder.AppendLine($$"""
                         private readonly I{{outboxName}}ChannelToShards _outboxToShards;

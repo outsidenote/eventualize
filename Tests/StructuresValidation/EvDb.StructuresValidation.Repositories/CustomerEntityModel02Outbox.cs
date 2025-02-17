@@ -4,14 +4,15 @@ using EvDb.StructuresValidation.Abstractions.Events;
 
 namespace EvDb.StructuresValidation.Repositories;
 
+[EvDbMessageTypes<PersonChanged02Message>]
 [EvDbMessageTypes<PersonChangedMessage>]
-[EvDbOutbox<CustomerEntityModel01StreamFactory>]
-public partial class CustomerEntityModel01Outbox
+[EvDbOutbox<CustomerEntityModel02StreamFactory>]
+public partial class CustomerEntityModel02Outbox
 {
     protected override void ProduceOutboxMessages(EmailValidatedEvent payload,
                                                   IEvDbEventMeta meta,
-                                                  EvDbCustomerEntityModel01StreamViews views,
-                                                  CustomerEntityModel01OutboxContext outbox)
+                                                  EvDbCustomerEntityModel02StreamViews views,
+                                                  CustomerEntityModel02OutboxContext outbox)
     {
         var personChanged = new PersonChangedMessage
         {
