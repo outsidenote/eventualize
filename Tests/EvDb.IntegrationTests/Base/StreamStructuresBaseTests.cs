@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 public abstract class StreamStructuresBaseTests : IntegrationTests
 {
-    private readonly IEvDbCustomerEntityModel01Stream _stream;
+    private readonly IEvDbCustomerEntityModelSingleChannelStream _stream;
 
     public StreamStructuresBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType, true)
@@ -22,10 +22,10 @@ public abstract class StreamStructuresBaseTests : IntegrationTests
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-                .AddCustomerEntityModel01StreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
+                .AddCustomerEntityModelSingleChannelStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
                 .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext));
         var sp = services.BuildServiceProvider();
-        IEvDbCustomerEntityModel01StreamFactory factory = sp.GetRequiredService<IEvDbCustomerEntityModel01StreamFactory>();
+        IEvDbCustomerEntityModelSingleChannelStreamFactory factory = sp.GetRequiredService<IEvDbCustomerEntityModelSingleChannelStreamFactory>();
         _stream = factory.Create(streamId);
 
     }

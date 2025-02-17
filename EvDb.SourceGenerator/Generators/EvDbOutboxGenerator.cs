@@ -106,7 +106,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                 .Where(info => info.Channels.Length == 0 || info.HasDefaultChannel)
                 .Select((info, i) =>
                 {
-                    if(!hasAnyChannel || !hasShards)
+                    if (!hasAnyChannel || !hasShards)
+                    {
                         return $$"""
 
                             public void Add({{info.FullTypeName}} payload)
@@ -116,6 +117,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             }            
 
                         """;
+                    }
                     return 
                         $$"""
 
@@ -431,14 +433,14 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         #region string outboxToShards = ...
 
         string outboxToShards = string.Empty;
-        if (!hasAnyChannel)
+        if (!hasAnyChannel || !hasShards)
             outboxToShards = string.Empty;
-        else if (!hasShards)
-        {
-            outboxToShards = $"""      
-                    IEnumerable<EvDbShardName> I{outboxName}ChannelToShards.ChannelToShards({outboxName}Channels outbox) => [EvDbShardName.Default];
-                """;
-        }
+        //else if (!hasShards)
+        //{
+        //    outboxToShards = $"""      
+        //            IEnumerable<EvDbShardName> I{outboxName}ChannelToShards.ChannelToShards({outboxName}Channels outbox) => [EvDbShardName.Default];
+        //        """;
+        //}
         else
         {
             outboxToShards = $$"""
@@ -485,11 +487,11 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         #endregion // AllTopiAllChannelsEnumcsEnum
 
-        string iChannelToShards = hasAnyChannel 
+        string iChannelToShards = hasAnyChannel && hasShards
                                     ? $", I{outboxName}ChannelToShards"
                                     : string.Empty;
 
-        string createOutbox = hasAnyChannel 
+        string createOutbox = hasAnyChannel && hasShards 
             ? $"{outboxName}Context outbox = new(_logger, _evDbStream, e, this);"
             : $"{outboxName}Context outbox = new(_logger, _evDbStream, e);";
 
@@ -563,7 +565,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
         #region ChannelToShards
 
-        if (hasAnyChannel)
+        if (hasAnyChannel && hasShards)
         {
             builder.ClearAndAppendHeader(syntax, typeSymbol);
             builder.AppendLine();
