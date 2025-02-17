@@ -11,12 +11,12 @@ public partial class CustomerEntityModelDefaultAndSingleChannelsOutbox
 {
     protected override void ProduceOutboxMessages(EmailValidatedEvent payload, IEvDbEventMeta meta, EvDbCustomerEntityModelDefaultAndSingleChannelsStreamViews views, CustomerEntityModelDefaultAndSingleChannelsOutboxContext outbox)
     {
-        var personChanged = new PersonChangedMessage
+        var personChanged = new PersonChangedDefaultAndSingleChannelsMessage
         {
             Id = meta.StreamCursor.StreamId,
             Email = payload.Email,
             EmailIsValid = payload.IsValid
         };
-        outbox.Add(personChanged);
+        outbox.Add(personChanged, PersonChangedDefaultAndSingleChannelsMessage.Channels.Channel1);
     }
 }

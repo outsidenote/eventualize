@@ -11,7 +11,7 @@ public partial class CustomerEntityModelSingleChannelOutbox
 {
     protected override void ProduceOutboxMessages(EmailValidatedEvent payload, IEvDbEventMeta meta, EvDbCustomerEntityModelSingleChannelStreamViews views, CustomerEntityModelSingleChannelOutboxContext outbox)
     {
-        var personChanged = new PersonChangedMessage
+        var personChanged = new PersonChangedSingleChannelMessage
         {
             Id = meta.StreamCursor.StreamId,
             Email = payload.Email,

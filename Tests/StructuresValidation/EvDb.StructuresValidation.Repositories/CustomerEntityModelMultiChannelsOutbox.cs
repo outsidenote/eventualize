@@ -11,12 +11,13 @@ public partial class CustomerEntityModelMultiChannelsOutbox
 {
     protected override void ProduceOutboxMessages(EmailValidatedEvent payload, IEvDbEventMeta meta, EvDbCustomerEntityModelMultiChannelsStreamViews views, CustomerEntityModelMultiChannelsOutboxContext outbox)
     {
-        var personChanged = new PersonChangedMessage
+        var personChanged = new PersonChangedMultiChannelsMessage
         {
             Id = meta.StreamCursor.StreamId,
             Email = payload.Email,
             EmailIsValid = payload.IsValid
         };
-        outbox.Add(personChanged);
+        outbox.Add(personChanged, PersonChangedMultiChannelsMessage.Channels.Channel1);
+        outbox.Add(personChanged, PersonChangedMultiChannelsMessage.Channels.Channel2);
     }
 }
