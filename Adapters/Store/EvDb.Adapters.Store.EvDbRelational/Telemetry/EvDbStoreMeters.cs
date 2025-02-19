@@ -39,29 +39,30 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
     /// </summary>
     private readonly Counter<int> _messagesStored;
 
-    void IEvDbStoreMeters.AddEvents(int count, IEvDbStreamStoreData streamStore, string dbType)
+    void IEvDbStoreMeters.AddEvents(
+        int count, 
+        EvDbStreamAddress address,
+        string dbType)
     {
         if (!_eventsStored.Enabled)
             return;
 
-        var adr = streamStore.StreamAddress;
         _eventsStored.Add(count, tags => tags.Add("evdb_store_db", dbType)
-                                                          .Add("evdb_store_domain", adr.Domain)
-                                                          .Add("evdb_store_partition", adr.Partition));
+                                                          .Add("evdb_store_domain", address.Domain)
+                                                          .Add("evdb_store_partition", address.Partition));
     }
 
     void IEvDbStoreMeters.AddMessages(int count,
-                                      IEvDbStreamStoreData streamStore,
+                                      EvDbStreamAddress address,
                                       string dbType,
                                       EvDbShardName shardName)
     {
         if (!_messagesStored.Enabled)
             return;
-        var adr = streamStore.StreamAddress;
 
         _eventsStored.Add(count, tags => tags.Add("evdb_store_db", dbType)
-                                                      .Add("evdb_store_domain", adr.Domain)
-                                                      .Add("evdb_store_partition", adr.Partition)
+                                                      .Add("evdb_store_domain", address.Domain)
+                                                      .Add("evdb_store_partition", address.Partition)
                                                       .Add("evdb_store_shard", shardName));
     }
 }

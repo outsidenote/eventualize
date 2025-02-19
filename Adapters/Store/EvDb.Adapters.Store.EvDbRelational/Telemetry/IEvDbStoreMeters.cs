@@ -5,9 +5,9 @@ internal interface IEvDbStoreMeters
     /// <summary>
     /// Events stored into the storage database
     /// </summary>
-    void AddEvents(int count, IEvDbStreamStoreData streamStore, string dbType);
+    void AddEvents(int count, EvDbStreamAddress address, string dbType);
     /// <summary>
     /// Events stored into the storage database
     /// </summary>
-    void AddMessages(int count, IEvDbStreamStoreData streamStore, string dbType, EvDbShardName shardName);
+    void AddMessages(int count, EvDbStreamAddress address, string dbType, EvDbShardName shardName);
 }

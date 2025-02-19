@@ -8,19 +8,6 @@ using System.Runtime.CompilerServices;
 
 namespace EvDb.Core.Adapters;
 
-internal static partial class JsonConstants
-{
-    public const string SystemTextJsonSourceGenerationName = "System.Text.Json.SourceGeneration";
-
-    public const string IJsonOnSerializedFullName = "System.Text.Json.Serialization.IJsonOnSerialized";
-    public const string IJsonOnSerializingFullName = "System.Text.Json.Serialization.IJsonOnSerializing";
-    public const string DoubleFormatString = "G17";
-    public const string SingleFormatString = "G9";
-
-    public const int StackallocByteThreshold = 256;
-    public const int StackallocCharThreshold = StackallocByteThreshold / 2;
-}
-
 // credit: https://github.com/dotnet/runtime/blob/ba8993fa8c80a663dadd495db17ac9593bdf703b/src/libraries/System.Text.Json/Common/JsonSeparatorNamingPolicy.cs#L11
 public abstract class EvDbSeparatorNamingPolicy
 {

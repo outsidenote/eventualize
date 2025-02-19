@@ -147,7 +147,7 @@ public abstract class EvDbStream :
         }
         try
         {
-            StreamStoreAffected affected = await _storageAdapter.StoreStreamAsync(events, outbox, this, cancellation);
+            StreamStoreAffected affected = await _storageAdapter.StoreStreamAsync(events, outbox, cancellation);
 
             #region Telemetry
 

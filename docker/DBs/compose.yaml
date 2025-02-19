@@ -11,6 +11,7 @@ volumes:
   # psql96:
   # psql13:
   psql:
+  mongodb_data:
   # mariadb:
   # cockroachdb:
   # bigquery:
@@ -67,6 +68,20 @@ services:
       - 5432:5432
     restart: unless-stopped
     
+
+  mongodb:
+    container_name: mongodb-event-source
+    image: mongo:latest
+    #environment:
+    #  MONGO_INITDB_ROOT_USERNAME: rootuser
+    #  MONGO_INITDB_ROOT_PASSWORD: MasadNetunim12!@
+    #  # Optionally, specify a default database to be created on startup:
+    #  MONGO_INITDB_DATABASE: evdb
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
   # psql13:
   #   image: postgres:13
   #   environment:

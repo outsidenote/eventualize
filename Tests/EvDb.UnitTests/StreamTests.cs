@@ -15,7 +15,7 @@ public class StreamTests
     public StreamTests(ITestOutputHelper output)
     {
         _output = output;
-        A.CallTo(() => _storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IImmutableList<EvDbMessage>>.Ignored, A<IEvDbStreamStoreData>.Ignored, A<CancellationToken>.Ignored))
+        A.CallTo(() => _storageAdapter.StoreStreamAsync(A<IImmutableList<EvDbEvent>>.Ignored, A<IImmutableList<EvDbMessage>>.Ignored, A<CancellationToken>.Ignored))
         .Returns(StreamStoreAffected.Empty);
 
     }
