@@ -22,6 +22,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<PackageIcon>icon-light.png</PackageIcon>
 		<IsPackable>true</IsPackable>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Configurations>Debug;Release;Gen</Configurations>
 		<PackageTags>
 			event-source, event-driven, event-sourcing, producer, consumer, pub, sub, evdb, pub-sub, eventualize, eventualizedb, reliable, redis, bnaya, roma, sql, sql-server, postgres, my-sql, maria-db, dynamo-db
@@ -33,7 +34,6 @@
 		<RepositoryType>GitHub</RepositoryType>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<IncludeSource>True</IncludeSource>
 		<IncludeSymbols>True</IncludeSymbols>

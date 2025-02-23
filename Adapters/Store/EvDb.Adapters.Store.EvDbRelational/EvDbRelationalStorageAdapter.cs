@@ -209,28 +209,11 @@ public abstract class EvDbRelationalStorageAdapter :
         DbConnection conn,
         CancellationToken cancellationToken)
     {
-        #region messages = _transformers.Transform(...)
-
-        foreach (var transformer in _transformers)
-        {
-            messages = messages.Select(m =>
-            {
-                var newPayload = transformer.Transform(m.Channel,
-                                                       m.MessageType,
-                                                       m.EventType,
-                                                       m.Payload);
-
-                return m with { Payload = newPayload };
-            }).ToImmutableList();
-        }
-
-        #endregion //  messages = _transformers.Transform(...)
-
         string saveToOutboxQuery = StreamQueries.SaveToOutbox;
 
         EvDbStreamAddress address = messages[0].StreamCursor;
-        var shards = from message in messages
-                     group (EvDbMessageRecord)message by message.ShardName;
+        IEnumerable<IGrouping<EvDbShardName, EvDbMessageRecord>> shards =
+                                messages.GroupByShards(_transformers);
         KeyValuePair<EvDbShardName, int>[] affctedCollection = IsSupportConcurrentCommands switch
         {
             true => await ExecuteInParallelAsync(),

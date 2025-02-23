@@ -68,20 +68,43 @@ services:
       - 5432:5432
     restart: unless-stopped
     
-
   mongodb:
+    image: mongo:8
     container_name: mongodb-event-source
-    image: mongo:latest
-    #environment:
-    #  MONGO_INITDB_ROOT_USERNAME: rootuser
-    #  MONGO_INITDB_ROOT_PASSWORD: MasadNetunim12!@
-    #  # Optionally, specify a default database to be created on startup:
-    #  MONGO_INITDB_DATABASE: evdb
     volumes:
       - mongodb_data:/data/db
+    environment:
+      #  MONGO_INITDB_ROOT_USERNAME: rootuser
+      #  MONGO_INITDB_ROOT_PASSWORD: MasadNetunim12!@
+      MONGO_INITDB_DATABASE: evdb
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     ports:
       - "27017:27017"
+    command: "--bind_ip_all --quiet --logpath /dev/null --replSet rs0"
     restart: unless-stopped
+  mongo-init:
+    image: mongo:8
+    container_name: mongodb-event-source-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: >
+      mongosh --host mongodb:27017 --eval
+      '
+      rs.initiate( {
+         _id : "rs0",
+         members: [
+            { _id: 0, host: "localhost:27017" }
+         ]
+      })
+      '
+    restart: no
+      
   # psql13:
   #   image: postgres:13
   #   environment:
