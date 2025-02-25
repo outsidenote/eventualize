@@ -18,7 +18,7 @@
 
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\EvDb.Adapters.Store.EvDbRelationalMigration\EvDb.Adapters.Store.EvDbRelationalMigration.csproj" />
+	  <ProjectReference Include="..\..\EvDb.Adapters.Store.EvDbRelationalAdmin\EvDb.Adapters.Store.EvDbRelationalAdmin.csproj" />
 	  <ProjectReference Include="..\EvDb.Adapters.Store.EvDbSqlServer\EvDb.Adapters.Store.EvDbSqlServer.csproj" />
 	</ItemGroup>
 </Project>

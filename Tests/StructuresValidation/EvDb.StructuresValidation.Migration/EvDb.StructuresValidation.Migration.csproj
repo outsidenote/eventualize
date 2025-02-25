@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerMigration\EvDb.Adapters.Store.EvDbSqlServerMigration.csproj" />
+		<ProjectReference Include="..\..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerAdmin\EvDb.Adapters.Store.EvDbSqlServerAdmin.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

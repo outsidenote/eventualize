@@ -39,9 +39,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Adapters\Store\Postgres\EvDb.Adapters.Store.EvDbPostgresMigration\EvDb.Adapters.Store.EvDbPostgresMigration.csproj" />
+		<ProjectReference Include="..\..\Adapters\Store\Postgres\EvDb.Adapters.Store.EvDbPostgresAdmin\EvDb.Adapters.Store.EvDbPostgresAdmin.csproj" />
 		<ProjectReference Include="..\..\Adapters\Store\Postgres\EvDb.Adapters.Store.EvDbPostgres\EvDb.Adapters.Store.EvDbPostgres.csproj" />
-		<ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerMigration\EvDb.Adapters.Store.EvDbSqlServerMigration.csproj" />
+		<ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerAdmin\EvDb.Adapters.Store.EvDbSqlServerAdmin.csproj" />
 		<ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServer\EvDb.Adapters.Store.EvDbSqlServer.csproj" />
 		<ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />
 		<ProjectReference Include="..\..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
