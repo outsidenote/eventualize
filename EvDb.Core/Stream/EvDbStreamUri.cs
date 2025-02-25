@@ -75,7 +75,7 @@ public readonly partial record struct EvDbStreamAddress(string Domain, string Pa
 
     public override string ToString()
     {
-        return $"{Domain}/{Partition}/{StreamId}";
+        return $"{Domain}:{Partition}:{StreamId}";
     }
 
     #endregion // ToString

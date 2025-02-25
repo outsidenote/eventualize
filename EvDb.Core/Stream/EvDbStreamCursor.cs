@@ -73,4 +73,6 @@ public readonly partial record struct EvDbStreamCursor(string Domain, string Par
 
 
     #endregion // Casting Overloads
+
+    public override string ToString() => $"{Domain}:{Partition}:{StreamId}:{Offset}";
 }

@@ -87,6 +87,7 @@ internal static class EvDbBsonDocumentExtensions
         var traceId = activity?.TraceId.ToHexString();
         var spanId = activity?.SpanId.ToHexString();
 
+        // TODO: [bnaya 2025-02-25] use nameof
         return new BsonDocument
             {
                 { "domain", rec.StreamCursor.Domain },
