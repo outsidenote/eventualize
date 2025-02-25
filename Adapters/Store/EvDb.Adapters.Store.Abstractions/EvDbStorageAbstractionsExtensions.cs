@@ -6,17 +6,24 @@ public static class EvDbStorageAbstractionsExtensions
 {
     public static IEnumerable<IGrouping<EvDbShardName, EvDbMessageRecord>> GroupByShards(
                         this IImmutableList<EvDbMessage> messages,
-                        IEnumerable<IEvDbOutboxTransformer> transformers)
+                        IImmutableList<IEvDbOutboxTransformer> transformers)
     {
+        if (transformers.Count != 0)
+        {
+            var transformed = from transformer in transformers
+                              from message in messages
+                              let newPayload = transformer.Transform(message.Channel,
+                                                  message.MessageType,
+                                                  message.EventType,
+                                                  message.Payload)
+                              let newMessage = message with { Payload = newPayload }
+                              select newMessage;
+            messages = transformed.ToImmutableList();
+        }
+        
         IEnumerable<IGrouping<EvDbShardName, EvDbMessageRecord>> result =
-                from transformer in transformers
                 from message in messages
-                let newPayload = transformer.Transform(message.Channel,
-                                                message.MessageType,
-                                                message.EventType,
-                                                message.Payload)
-                let newMessage = message with { Payload = newPayload }
-                group (EvDbMessageRecord)newMessage by message.ShardName;
+                group (EvDbMessageRecord)message by message.ShardName;
         return result;
     }
 }

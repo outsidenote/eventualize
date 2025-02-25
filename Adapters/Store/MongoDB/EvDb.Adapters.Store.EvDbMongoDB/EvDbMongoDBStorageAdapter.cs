@@ -1,4 +1,6 @@
-﻿using EvDb.Core;
+﻿// Ignore Spelling: Mongo
+
+using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
@@ -22,7 +24,7 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
     private readonly IMongoCollection<BsonDocument> _snapshotsCollection;
     private readonly IMongoCollection<BsonDocument> _outboxCollection;
     private readonly ILogger _logger;
-    private readonly IEnumerable<IEvDbOutboxTransformer> _transformers;
+    private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
     private readonly Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
 
@@ -32,7 +34,6 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
                         EvDbStorageContext storageContext,
                         IEnumerable<IEvDbOutboxTransformer> transformers)
     {
-        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
         string schema = storageContext.Schema.HasValue
             ? $"{storageContext.Schema}."
             : string.Empty;
@@ -51,7 +52,7 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
         // TODO: [bnaya 2025-02-23] Migration? outside of Ctor
         CreateUniqueIndex();
         _logger = logger;
-        _transformers = transformers;
+        _transformers = transformers.ToImmutableArray();
     }
 
 
@@ -94,7 +95,7 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
     /// </summary>
     public async IAsyncEnumerable<EvDbEvent> GetEventsAsync(
         EvDbStreamCursor streamCursor,
-        [EnumeratorCancellation] CancellationToken cancellation)
+        [EnumeratorCancellation] CancellationToken cancellation = default)
     {
         // For demonstration purposes, assume streamCursor has properties StreamId and Offset.
         var filter = Builders<BsonDocument>.Filter.Eq("stream_id", streamCursor.StreamId) &
@@ -116,7 +117,7 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
     /// <summary>
     /// Retrieves a stored snapshot for the specified view address.
     /// </summary>
-    public async Task<EvDbStoredSnapshot> GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation)
+    public async Task<EvDbStoredSnapshot> GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation = default)
     {
         // For demonstration, assume viewAddress has properties Domain, Partition, and StreamId.
         var filter = Builders<BsonDocument>.Filter.Eq("domain", viewAddress.Domain) &
@@ -182,7 +183,7 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
             {
                 var cursor = events[0].StreamCursor;
                 await session.AbortTransactionAsync(cancellation);
-                throw new OCCException(cursor);
+                throw new OCCException(cursor, ex);
             }
             catch (Exception)
             {

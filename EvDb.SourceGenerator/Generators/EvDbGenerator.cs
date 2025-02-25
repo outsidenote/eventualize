@@ -341,6 +341,7 @@ public partial class EvDbGenerator : BaseGenerator
 
                         public EvDb{{factoryOriginName}}Entry(IServiceCollection services)
                         {
+                            _services = services;
                         }
 
                         internal EvDb{{factoryOriginName}}Entry(EvDbRegistrationEntry parent)
@@ -570,7 +571,7 @@ public partial class EvDbGenerator : BaseGenerator
                                 /// <summary>
                                 /// Register a snapshot store provider for `{{viewRef.ViewPropName}}` view
                                 /// </summary>
-                                /// <param name="entry"></param>
+                                /// <param name="source"></param>
                                 /// <param name="registrationAction">The registration action.</param>
                                 /// <returns></returns>
                                 public static EvDb{{factoryOriginName}}SnapshotEntryFor For{{viewRef.ViewPropName}}(

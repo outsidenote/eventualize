@@ -11,7 +11,7 @@ namespace EvDb.Core;
 /// <param name="Partition">Representation of a stream partition under the domain, like a User</param>
 /// <param name="StreamId">The instance of a stream entity like { User: 'Joe' }</param>
 [Equatable]
-[DebuggerDisplay("Domain:{Domain}, Partition:{Partition}, StreamId:{StreamId}")]
+[DebuggerDisplay("{Domain}:{Partition}:{StreamId}")]
 public readonly partial record struct EvDbStreamAddress(string Domain, string Partition, string StreamId)
 {
     public EvDbStreamAddress(EvDbPartitionAddress baseAddress, string streamId)

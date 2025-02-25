@@ -77,14 +77,14 @@ services.AddOpenTelemetry()
     {
         tracing
                 .AddEvDbInstrumentation()
-                .AddRedisInstrumentation(connectionMultiplexer)
-                .AddSqlClientInstrumentation(o =>
-                {
-                    o.SetDbStatementForText = true;
-                    o.SetDbStatementForStoredProcedure = true;
-                    o.EnableConnectionLevelAttributes = true;
-                    o.RecordException = true;
-                })
+                //.AddRedisInstrumentation(connectionMultiplexer)
+                //.AddSqlClientInstrumentation(o =>
+                //{
+                //    o.SetDbStatementForText = true;
+                //    o.SetDbStatementForStoredProcedure = true;
+                //    o.EnableConnectionLevelAttributes = true;
+                //    o.RecordException = true;
+                //})
                 .AddAspNetCoreInstrumentation(o => o.AddDefaultNetCoreTraceFilters())
                 .AddHttpClientInstrumentation(o => o.AddDefaultHttpClientTraceFilters())
                 .SetSampler<AlwaysOnSampler>()
@@ -96,7 +96,7 @@ services.AddOpenTelemetry()
     })
     .WithMetrics(meterBuilder =>
             meterBuilder.AddEvDbInstrumentation()
-                        .AddProcessInstrumentation()
+                        //.AddProcessInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()
                         .AddOtlpExporter()

@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Sql
+﻿// Ignore Spelling: Sql Admin
 
 using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
@@ -10,54 +10,55 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbSqlServerStorageMigrationDI
 {
-    public static IServiceCollection AddEvDbSqlServerStoreMigration(
+    #region Overloads
+
+    public static IServiceCollection AddEvDbSqlServerStoreAdmin(
             this IServiceCollection services,
             string connectionStringOrKey,
             params EvDbShardName[] shardNames)
     {
-        return services.AddEvDbSqlServerStoreMigration(
+        return services.AddEvDbSqlServerStoreAdmin(
                             null,
                             connectionStringOrKey,
                             shardNames);
     }
 
-    public static IServiceCollection AddEvDbSqlServerStoreMigration(
+    public static IServiceCollection AddEvDbSqlServerStoreAdmin(
             this IServiceCollection services,
             params EvDbShardName[] shardNames)
     {
-        return services.AddEvDbSqlServerStoreMigration(
+        return services.AddEvDbSqlServerStoreAdmin(
                             null,
                             "EvDbSqlServerConnection",
                             shardNames);
     }
 
+    #endregion //  Overloads
 
-    public static IServiceCollection AddEvDbSqlServerStoreMigration(
+    public static IServiceCollection AddEvDbSqlServerStoreAdmin(
             this IServiceCollection services,
             EvDbStorageContext? context = null,
             string connectionStringOrKey = "EvDbSqlServerConnection",
             params EvDbShardName[] shardNames)
     {
+        services.AddEvDbRelationalStoreAdmin();
+
         services.AddSingleton(sp =>
         {
             var ctx = context
                 ?? sp.GetService<EvDbStorageContext>()
                 ?? EvDbStorageContext.CreateWithEnvironment("evdb");
 
-            #region IEvDbConnectionFactory connectionFactory = ...
-
+            ILogger logger = sp.GetRequiredService<ILogger<EvDbRelationalStorageAdminFactory>>();
             string connectionString;
             IConfiguration? configuration = sp.GetService<IConfiguration>();
             connectionString = configuration?.GetConnectionString(connectionStringOrKey) ?? connectionStringOrKey;
 
-            #endregion // IEvDbConnectionFactory connectionFactory = ...
-
-            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<EvDbRelationalStorageMigration>();
-            IEvDbStorageMigration adapter = SqlServerStorageMigrationFactory.Create(logger, connectionString, ctx, shardNames);
+            IEvDbStorageAdmin adapter = SqlServerStorageAdminFactory.Create(logger, connectionString, ctx, shardNames);
             return adapter;
         });
 
         return services;
     }
+
 }

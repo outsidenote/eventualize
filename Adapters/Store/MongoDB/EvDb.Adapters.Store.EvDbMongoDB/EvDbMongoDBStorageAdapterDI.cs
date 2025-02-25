@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Sql
+﻿// Ignore Spelling: Sql Mongo
 
 using EvDb.Adapters.Store.MongoDB;
 using EvDb.Core;

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EvDb.Adapters.Store.Postgres;
 
-internal static class QueryProvider
+internal static class Scripts
 {
     private const int DEFAULT_TEXT_LIMIT = 100;
 
@@ -18,7 +18,6 @@ internal static class QueryProvider
             ? $"{storageContext.Schema}."
             : string.Empty;
         string tblInitial = $"{schema}{storageContext.ShortId}";
-        string tblInitialWithoutSchema = $"{storageContext.Schema}_{storageContext.ShortId}";
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
         if (!outboxShardNames.Any())

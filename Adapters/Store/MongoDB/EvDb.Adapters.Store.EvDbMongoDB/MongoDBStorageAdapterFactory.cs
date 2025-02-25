@@ -1,4 +1,4 @@
-// Ignore Spelling: MongoDB
+// Ignore Spelling: MongoDB Mongo
 
 using EvDb.Core;
 using Microsoft.Extensions.Logging;

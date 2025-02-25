@@ -52,11 +52,11 @@ internal static class OtelExtensions
                 tracing
                         .AddEvDbInstrumentation()
                         .AddEvDbStoreInstrumentation()
-                        .AddSqlClientInstrumentation(o =>
-                        {
-                            o.SetDbStatementForText = true;
-                            o.SetDbStatementForStoredProcedure = true;
-                        })
+                        //.AddSqlClientInstrumentation(o =>
+                        //{
+                        //    o.SetDbStatementForText = true;
+                        //    o.SetDbStatementForStoredProcedure = true;
+                        //})
                         .SetSampler<AlwaysOnSampler>()
                         .AddOtlpExporter(o => o.Endpoint = new Uri($"{otelHost}:4317"))
                         .AddOtlpExporter("grafana", o => o.Endpoint = new Uri($"{otelHost}:4337"))
@@ -68,8 +68,8 @@ internal static class OtelExtensions
                     meterBuilder.AddEvDbInstrumentation()
                                 .AddEvDbStoreInstrumentation()
                                 .AddHttpClientInstrumentation()
-                                .AddProcessInstrumentation()
-                                .AddRuntimeInstrumentation()
+                                //.AddProcessInstrumentation()
+                                //.AddRuntimeInstrumentation()
                                 .AddAspNetCoreInstrumentation()
 
                                 .AddOtlpExporter(o => o.Endpoint = new Uri($"{otelHost}:4317"))

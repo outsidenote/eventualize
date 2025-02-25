@@ -10,6 +10,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbPostgresStorageMigrationDI
 {
+    #region Overloads
+
     public static IServiceCollection AddEvDbPostgresStoreMigration(
             this IServiceCollection services,
             string connectionStringOrKey,
@@ -31,6 +33,7 @@ public static class EvDbPostgresStorageMigrationDI
                             shardNames);
     }
 
+    #endregion //  Overloads
 
     public static IServiceCollection AddEvDbPostgresStoreMigration(
             this IServiceCollection services,
@@ -38,6 +41,7 @@ public static class EvDbPostgresStorageMigrationDI
             string connectionStringOrKey = "EvDbPostgresConnection",
             params EvDbShardName[] shardNames)
     {
+        services.AddSingleton<IEvDbStorageScripting, PostgresStorageScripting>();
         services.AddSingleton(sp =>
         {
             var ctx = context
@@ -53,8 +57,8 @@ public static class EvDbPostgresStorageMigrationDI
             #endregion // IEvDbConnectionFactory connectionFactory = ...
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<EvDbRelationalStorageMigration>();
-            IEvDbStorageMigration adapter = PostgresStorageMigrationFactory.Create(logger, connectionString, ctx, shardNames);
+            var logger = loggerFactory.CreateLogger<EvDbRelationalStorageAdminFactory>();
+            IEvDbStorageAdmin adapter =  PostgresStorageAdminFactory.Create(logger, connectionString, ctx, shardNames);
             return adapter;
         });
 

@@ -68,7 +68,7 @@ services.AddEvDb()
 switch (storeType)
 {
     case StoreType.SqlServer:
-        services.AddEvDbSqlServerStoreMigration(OutboxShards.Table1, OutboxShards.Table2);
+        services.AddEvDbSqlServerStoreAdmin(OutboxShards.Table1, OutboxShards.Table2);
         break;
     case StoreType.Posgres:
         services.AddEvDbPostgresStoreMigration(OutboxShards.Table1, OutboxShards.Table2);
@@ -80,7 +80,7 @@ var app = builder.Build();
 await app.RunAsync(async (
         ILogger<Program> logger,
         IEvDbDemoStreamFactory factory,
-        IEvDbStorageMigration storageMigration,
+        IEvDbStorageAdmin storageMigration,
         [Option('d', Description = $"Database type ({nameof(StoreType.SqlServer)}, {nameof(StoreType.Posgres)})")] StoreType _,
         [Option('w', Description = "Number of saving on the same stream (each save is saving a batch of events)")] int writeCycleCount = 3000,
         [Option('s', Description = "Number of independent streams, different streams doesn't collide with each other")] int streamsCount = 1,

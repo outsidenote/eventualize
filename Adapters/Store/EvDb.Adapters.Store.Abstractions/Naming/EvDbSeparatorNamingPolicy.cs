@@ -11,12 +11,12 @@ namespace EvDb.Core.Adapters;
 // credit: https://github.com/dotnet/runtime/blob/ba8993fa8c80a663dadd495db17ac9593bdf703b/src/libraries/System.Text.Json/Common/JsonSeparatorNamingPolicy.cs#L11
 public abstract class EvDbSeparatorNamingPolicy
 {
-    public const int STACK_ALLOC_BY_TETHRESHOLD = 256;
-    public const int STACK_ALLOCC_HAR_THRESHOLD = STACK_ALLOC_BY_TETHRESHOLD / 2;
+    public const int STACK_ALLOC_BY_THRESHOLD = 256;
+    public const int STACK_ALLOC_HALF_THRESHOLD = STACK_ALLOC_BY_THRESHOLD / 2;
     private readonly bool _lowercase;
     private readonly char _separator;
 
-    internal EvDbSeparatorNamingPolicy(bool lowercase, char separator)
+    protected EvDbSeparatorNamingPolicy(bool lowercase, char separator)
     {
         Debug.Assert(char.IsPunctuation(separator));
 
@@ -41,9 +41,11 @@ public abstract class EvDbSeparatorNamingPolicy
         // While we can't predict the expansion factor of the resultant string,
         // start with a buffer that is at least 20% larger than the input.
         int initialBufferLength = (int)(1.2 * chars.Length);
-        Span<char> destination = initialBufferLength <= STACK_ALLOCC_HAR_THRESHOLD
-            ? stackalloc char[STACK_ALLOCC_HAR_THRESHOLD]
-            : (rentedBuffer = ArrayPool<char>.Shared.Rent(initialBufferLength));
+        Span<char> destination = stackalloc char[STACK_ALLOC_HALF_THRESHOLD];
+        if (initialBufferLength > STACK_ALLOC_HALF_THRESHOLD)
+        {
+            destination = rentedBuffer = ArrayPool<char>.Shared.Rent(initialBufferLength);
+        }
 
         SeparatorState state = SeparatorState.NotStarted;
         int charsWritten = 0;

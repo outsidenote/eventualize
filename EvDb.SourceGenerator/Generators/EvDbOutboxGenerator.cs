@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Text;
-//using static EvDb.SourceGenerator.EvDbShardsGenerator;
 
 namespace EvDb.SourceGenerator;
 
@@ -67,12 +66,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         bool hasShards = shardsSymbol != null;
         string? shardEnumNs = shardsSymbol?.ContainingNamespace.ToDisplayString();
 
-        (string streamName,
-        string streamInterface,
-        string factoryOriginName,
-        string factoryName,
-        string factoryInterface) =
-                EvDbGenerator.GetStreamName(factoryTypeSymbol!);
+        var streamInfo = EvDbGenerator.GetStreamName(factoryTypeSymbol!);
+        string streamName = streamInfo.StreamName;
 
         IEnumerable<PayloadInfo> eventsPayloads = factoryTypeSymbol!.GetPayloadsFromFactory();
 
@@ -214,7 +209,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             $$"""
 
                             {{info.TypeName}}.Channels.{{t.FixNameForClass()}} => {{outboxName}}.Channels.{{t.FixNameForClass()}}
-            """))}}                
+            """))}}   ,
+                            _ => throw new NotImplementedException()             
                         };
 
                     {{multiAdds}}
@@ -435,12 +431,6 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         string outboxToShards = string.Empty;
         if (!hasAnyChannel || !hasShards)
             outboxToShards = string.Empty;
-        //else if (!hasShards)
-        //{
-        //    outboxToShards = $"""      
-        //            IEnumerable<EvDbShardName> I{outboxName}ChannelToShards.ChannelToShards({outboxName}Channels outbox) => [EvDbShardName.Default];
-        //        """;
-        //}
         else
         {
             outboxToShards = $$"""
@@ -570,20 +560,15 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             builder.ClearAndAppendHeader(syntax, typeSymbol);
             builder.AppendLine();
 
-            builder.DefaultsOnType(typeSymbol, false);
-            builder.AppendLine($$"""
+            builder.DefaultsOnType(typeSymbol, false, """
                     /// <summary>
                     /// Map outbox to tables.
                     /// Keep in mind that the actual table names will be prefixed according to the context specified in the `EvDbStorageContext` 
-                    /// </summary>
+                    /// </summary>                    
+                    """);
+            builder.AppendLine($$"""
                     public interface I{{outboxName}}ChannelToShards
                     {
-                        /// <summary>
-                        /// Map outbox to tables.
-                        /// Keep in mind that the actual table names will be prefixed according to the context specified in the `EvDbStorageContext` 
-                        /// </summary>
-                        /// <param name="outbox">The outbox.</param>
-                        /// <returns></returns>
                         IEnumerable<EvDbShardName> ChannelToShards({{outboxName}}.Channels outbox);
                     }
                     """);

@@ -33,7 +33,6 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         DbConnection connection,
         string query,
         EvDbEventRecord[] records,
-        //DbTransaction transaction,
         CancellationToken cancellationToken)
     {
         #region Parameters
@@ -71,7 +70,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
         #endregion //  Parameters
 
-        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection); //, (NpgsqlTransaction)transaction);
+        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection); 
 
         #region Setup Parameters
 
@@ -103,7 +102,6 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         EvDbShardName shardName,
         string query,
         EvDbMessageRecord[] records,
-        // DbTransaction transaction,
         CancellationToken cancellationToken)
     {
         query = string.Format(query, shardName);
@@ -149,7 +147,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
         #endregion //  Parameters 
 
-        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection); // , (NpgsqlTransaction)transaction);
+        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
 
         #region Setup Parameters
 
@@ -247,7 +245,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
     #region class RecordParser
 
-    private class RecordParser : IEvDbRecordParser
+    private sealed class RecordParser : IEvDbRecordParser
     {
         private readonly DbDataReader _reader;
 
@@ -259,7 +257,6 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         EvDbEventRecord IEvDbRecordParser.ParseEvent()
         {
             var payloadIndex = _reader.GetOrdinal(nameof(EvDbEventRecord.Payload));
-            // TODO: [bnaya 2024-12-03] use static naming from nameof
             var record = new EvDbEventRecord
             {
                 Domain = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.Domain))), // Non-nullable

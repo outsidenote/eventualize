@@ -1,5 +1,6 @@
 ﻿using Cocona;
 using Cocona.Builder;
+using EvDb.Adapters.Store.Postgres;
 using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Adapters;
@@ -17,6 +18,7 @@ builder.Configuration
             .AddJsonFile($"appsettings.{environmentName}.json", true, true);
 
 var app = builder.Build();
+
 await app.RunAsync(async (
         ILogger<Program> logger,
         [Option("action", ['a'],
@@ -24,7 +26,7 @@ await app.RunAsync(async (
                 Description = "Action (`Create`, `Drop`)")]
         Operation operation,
         [Option("database", ['d'],
-                Description = "Database type (`sql-server` | `posgres`, etc.)")]
+                Description = "Database type (`sql-server` | `postgres`, etc.)")]
         string db,
         [Option("name", ['n'],
                 ValueName = "String",
@@ -54,7 +56,7 @@ await app.RunAsync(async (
         [Option("dry-run",
                 Description = "Only writes to the console")]
         bool dryRun = false,
-        [Argument("path", Description = "Path for a script file won;t affect the DB when exists)")]
+        [Argument("path", Description = "Path for a script file won't affect the DB when exists)")]
         string? path = null
         ) =>
 {
@@ -70,30 +72,29 @@ await app.RunAsync(async (
 
     EvDbShardName[] outboxNames = outbox ?? Array.Empty<EvDbShardName>();
 
+    IEvDbStorageAdmin admin = db switch
+    {
+        "sql-server" => SqlServerStorageAdminFactory.Create(logger, connectionString!, context, storageFeatures, outboxNames),
+        "postgres" => PostgresStorageAdminFactory.Create(logger, connectionString!, context, storageFeatures, outboxNames),
+        _ => throw new NotImplementedException()
+    };
+
     if (!dryRun && string.IsNullOrWhiteSpace(path))
     {
-        connectionString = Environment.GetEnvironmentVariable(connectionString!) ?? connectionString;
-        IEvDbStorageMigration migration = db switch
-        {
-            "sql-server" => SqlServerStorageMigrationFactory.Create(logger, connectionString!, context, storageFeatures, outboxNames),
-            //"posgres" => PostgresStorageMigrationFactory.Create(logger, connectionString, context, storageFeatures, outboxNames),
-            _ => throw new NotImplementedException()
-        };
-
         if (operation == Operation.Create)
         {
             logger.LogInformation("Creating...");
-            await migration.CreateEnvironmentAsync();
+            await admin.CreateEnvironmentAsync();
         }
         else if (operation == Operation.Drop)
         {
             logger.LogInformation("Dropping...");
-            await migration.DestroyEnvironmentAsync();
+            await admin.DestroyEnvironmentAsync();
         }
     }
     else
     {
-        EvDbMigrationQueryTemplates scripts = SqlServerStorageMigrationFactory.CreateScripts(logger, context, storageFeatures, outboxNames);
+        EvDbMigrationQueryTemplates scripts = admin.Scripts;
 
         if (operation == Operation.Create)
         {

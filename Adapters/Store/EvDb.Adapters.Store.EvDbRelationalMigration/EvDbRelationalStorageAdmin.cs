@@ -1,4 +1,6 @@
-﻿using Dapper;
+﻿// Ignore Spelling: Admin
+
+using Dapper;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
 
@@ -8,16 +10,18 @@ namespace EvDb.Core.Adapters;
 /// Store adapter for rational database
 /// </summary>
 /// <seealso cref="EvDb.Core.IEvDbStorageAdapter" />
-public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
+internal class EvDbRelationalStorageAdmin : IEvDbStorageAdmin
 {
     private readonly Task<DbConnection> _commandsTask;
     private readonly ILogger _logger;
+    private readonly EvDbMigrationQueryTemplates _scripts;
 
     #region Ctor
 
-    protected EvDbRelationalStorageMigration(
+    public EvDbRelationalStorageAdmin(
         ILogger logger,
-        IEvDbConnectionFactory factory)
+        IEvDbConnectionFactory factory,
+        EvDbMigrationQueryTemplates scripts)
     {
         _commandsTask = InitAsync();
         async Task<DbConnection> InitAsync()
@@ -28,36 +32,37 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
         }
 
         _logger = logger;
+        _scripts = scripts;
     }
 
     #endregion // Ctor
 
-    protected abstract EvDbMigrationQueryTemplates Queries { get; }
+    #region IEvDbStorageAdmin Members
 
-
-    #region IEvDbStorageMigration Members
-
-    async Task IEvDbStorageMigration.CreateEnvironmentAsync(CancellationToken cancellation)
+    async Task IEvDbStorageAdmin.CreateEnvironmentAsync(CancellationToken cancellation)
     {
         var conn = await _commandsTask;
 
-        foreach (string query in Queries.CreateEnvironment)
+        foreach (string query in _scripts.CreateEnvironment)
         {
             _logger.LogInformation(query);
             await conn.ExecuteAsync(query);
         }
     }
 
-    async Task IEvDbStorageMigration.DestroyEnvironmentAsync(CancellationToken cancellation)
+    async Task IEvDbStorageAdmin.DestroyEnvironmentAsync(CancellationToken cancellation)
     {
         var conn = await _commandsTask;
-        string query = Queries.DestroyEnvironment;
+        string query = _scripts.DestroyEnvironment;
         _logger.LogInformation(query);
 
         await conn.ExecuteAsync(query);
     }
 
-    #endregion // IEvDbStorageMigration Members
+    EvDbMigrationQueryTemplates IEvDbStorageAdmin.Scripts => _scripts;
+
+
+    #endregion // IEvDbStorageAdmin Members
 
     #region Dispose Pattern
 
@@ -81,7 +86,7 @@ public abstract class EvDbRelationalStorageMigration : IEvDbStorageMigration
         await commands.DisposeAsync();
     }
 
-    ~EvDbRelationalStorageMigration()
+    ~EvDbRelationalStorageAdmin()
     {
         Dispose(false);
     }

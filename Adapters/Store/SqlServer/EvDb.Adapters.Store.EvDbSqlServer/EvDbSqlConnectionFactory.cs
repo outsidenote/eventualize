@@ -4,7 +4,7 @@ using System.Data.Common;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-public sealed class EvDbSqlConnectionFactory : EvDbConnectionFactory
+public sealed class EvDbSqlConnectionFactory : IEvDbConnectionFactory
 {
     private readonly string _connectionString;
 
@@ -13,10 +13,10 @@ public sealed class EvDbSqlConnectionFactory : EvDbConnectionFactory
         _connectionString = connectionString;
     }
 
-    public override DbConnection CreateConnection()
+    string IEvDbConnectionFactory.ProviderType { get; } = "SqlServer";
+
+    DbConnection IEvDbConnectionFactory.CreateConnection()
     {
         return new SqlConnection(_connectionString);
     }
-
-    public override string ProviderType => "SqlServer";
 }

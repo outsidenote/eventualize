@@ -108,7 +108,7 @@ public static class StoreAdapterHelper
         return conn;
     }
 
-    public static IEvDbStorageMigration CreateStoreMigration(
+    public static IEvDbStorageAdmin CreateStoreMigration(
         ILogger logger,
         StoreType storeType,
         EvDbStorageContext? context = null,
@@ -129,12 +129,12 @@ public static class StoreAdapterHelper
         context = context ?? new EvDbTestStorageContext(schema, dbName);
         string connectionString = GetConnectionString(storeType);
 
-        IEvDbStorageMigration result = storeType switch
+        IEvDbStorageAdmin result = storeType switch
         {
             StoreType.SqlServer =>
-                SqlServerStorageMigrationFactory.Create(logger, connectionString, context, shardNames),
+                SqlServerStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             StoreType.Postgres =>
-                PostgresStorageMigrationFactory.Create(logger, connectionString, context, shardNames),
+                PostgresStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             _ => throw new NotImplementedException()
         };
 

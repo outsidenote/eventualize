@@ -6,13 +6,14 @@
 			- 1.1.145: state column changed to binary in sql-server adapter
 			- 1.2.0: offset starts at 0 for empty stream or empty snapshot
 			- 1.2.3: Default connection string key changed from "EvDbSqlServerConnection" to "EvDbConnection"
-		</PackageReleaseNotes>
+			- 2.0.0: Storage Provider interfaces has changed
+	</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<!-- <PackageId>EvDb</PackageId> -->
 		<Version>1.2.5</Version>
-		<PackageVersion>1.2.5</PackageVersion>
+		<PackageVersion>2.0.0</PackageVersion>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EvDbDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

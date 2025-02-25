@@ -13,8 +13,8 @@ using Xunit.Abstractions;
 [DebuggerDisplay("{_storeType}")]
 public abstract class IntegrationTests : IAsyncLifetime
 {
-    private readonly IEvDbStorageMigration _storageMigration;
-    private readonly IEvDbStorageMigration? _storageMigrationSnapshot;
+    private readonly IEvDbStorageAdmin _storageMigration;
+    private readonly IEvDbStorageAdmin? _storageMigrationSnapshot;
     protected readonly ITestOutputHelper _output;
     protected readonly StoreType _storeType;
     protected readonly ILogger _logger = A.Fake<ILogger>();

@@ -1,6 +1,6 @@
 ﻿using Generator.Equals;
 
-namespace EvDb.Core.Adapters;
+namespace EvDb.Core;
 
 /// <summary>
 /// Queries permutation with a specific context

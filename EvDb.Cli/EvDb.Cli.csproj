@@ -33,6 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Adapters\Store\Postgres\EvDb.Adapters.Store.EvDbPostgresMigration\EvDb.Adapters.Store.EvDbPostgresMigration.csproj" />
 		<ProjectReference Include="..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerMigration\EvDb.Adapters.Store.EvDbSqlServerMigration.csproj" />
 	</ItemGroup>
 
