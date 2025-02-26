@@ -41,8 +41,6 @@ public static class EvDbSqlServerStorageMigrationDI
             string connectionStringOrKey = "EvDbSqlServerConnection",
             params EvDbShardName[] shardNames)
     {
-        services.AddEvDbRelationalStoreAdmin();
-
         services.AddSingleton(sp =>
         {
             var ctx = context

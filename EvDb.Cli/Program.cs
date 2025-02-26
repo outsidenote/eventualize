@@ -3,7 +3,6 @@ using Cocona.Builder;
 using EvDb.Adapters.Store.Postgres;
 using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
-using EvDb.Core.Adapters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 

@@ -6,9 +6,9 @@ using EvDb.Core;
 
 namespace EvDb.Adapters.Store.Postgres;
 
-public class PostgresStorageScripting : IEvDbStorageScripting
+public class MongoStorageScripting : IEvDbStorageScripting
 {
-    public static readonly IEvDbStorageScripting Default = new PostgresStorageScripting();
+    public static readonly IEvDbStorageScripting Default = new MongoStorageScripting();
 
     EvDbMigrationQueryTemplates IEvDbStorageScripting.CreateScripts(
                                                         EvDbStorageContext context,

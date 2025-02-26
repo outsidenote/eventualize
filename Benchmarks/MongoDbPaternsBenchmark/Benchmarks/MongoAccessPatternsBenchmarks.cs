@@ -14,7 +14,7 @@ public class MongoAccessPatternsBenchmarks
 {
     // MongoDB client, database and collections for each pattern.
     private MongoClient _client;
-    private IMongoDatabase _database;
+    private IMongoDatabase _db;
     private IMongoCollection<BsonDocument> _collectionById; // using _id from EvDbStreamCursor.ToString()
     private IMongoCollection<BsonDocument> _collectionComposed; // using unique index
 
@@ -23,7 +23,7 @@ public class MongoAccessPatternsBenchmarks
     private const string CollectionComposed = "evdb-benchmark-composed";
     private const int INSERT_BATCH_SIZE = 100;
     private const int INSERT_TIMES = 10_000;
-    private const int GET_BATCH_SIZE = 100;
+    private const int GET_BATCH_SIZE = 500;
     private const int GET_TIMES = 200;
     private const int REPORT_INSERT_CYCLE = 30;
 
@@ -53,20 +53,20 @@ public class MongoAccessPatternsBenchmarks
     {
         _client = new MongoClient("mongodb://localhost:27017");
         _client.DropDatabase(DatabaseName);
-        _database = _client.GetDatabase(DatabaseName);
+        _db = _client.GetDatabase(DatabaseName);
 
         // Get or create the collections for each access pattern.
-        _collectionById = _database.GetCollection<BsonDocument>(CollectionById);
-        _collectionComposed = _database.GetCollection<BsonDocument>(CollectionComposed);
+        _collectionById = _db.GetCollection<BsonDocument>(CollectionById);
+        _collectionComposed = _db.GetCollection<BsonDocument>(CollectionComposed);
         // Ensure collections exist by creating them if they don't.
-        var existingCollections = _database.ListCollectionNames().ToList();
+        var existingCollections = _db.ListCollectionNames().ToList();
         if (!existingCollections.Contains(CollectionById))
         {
-            _database.CreateCollection(CollectionById);
+            _db.CreateCollection(CollectionById);
         }
         if (!existingCollections.Contains(CollectionComposed))
         {
-            _database.CreateCollection(CollectionComposed);
+            _db.CreateCollection(CollectionComposed);
         }
 
         // Create indexes for both collections: domain, partition, stream_id, offset.

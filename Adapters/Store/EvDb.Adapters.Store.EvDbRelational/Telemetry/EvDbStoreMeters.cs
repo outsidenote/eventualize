@@ -40,7 +40,7 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
     private readonly Counter<int> _messagesStored;
 
     void IEvDbStoreMeters.AddEvents(
-        int count, 
+        int count,
         EvDbStreamAddress address,
         string dbType)
     {

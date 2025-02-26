@@ -7,7 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
+using EvDb.Adapters.Store.EvDbMongoDB.Internals;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
@@ -17,15 +17,15 @@ namespace EvDb.Adapters.Store.MongoDB;
 /// <summary>
 /// MongoDB storage adapter that handles event streams, snapshots, and outbox messages.
 /// </summary>
-public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorageSnapshotAdapter
+internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorageSnapshotAdapter, IDisposable, IAsyncDisposable
 {
+    private readonly MongoClient _client;
     private readonly IMongoDatabase _db;
     private readonly IMongoCollection<BsonDocument> _eventsCollection;
     private readonly IMongoCollection<BsonDocument> _snapshotsCollection;
     private readonly IMongoCollection<BsonDocument> _outboxCollection;
     private readonly ILogger _logger;
     private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
-    private readonly Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
 
     public EvDbMongoDBStorageAdapter(
@@ -34,61 +34,24 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
                         EvDbStorageContext storageContext,
                         IEnumerable<IEvDbOutboxTransformer> transformers)
     {
-        string schema = storageContext.Schema.HasValue
-            ? $"{storageContext.Schema}."
-            : string.Empty;
-        string tblInitial = $"{schema}{storageContext.ShortId}";
+        string collectionPrefix = storageContext.CalcCollectionPrefix();
 
-        var client = new MongoClient(settings);
+        _client = new MongoClient(settings);
         string databaseName = storageContext.DatabaseName;
-        _db = client.GetDatabase(databaseName);
+        _db = _client.GetDatabase(databaseName);
 
         // Collections for events, snapshots, and outbox messages.
-        _eventsCollection = _db.GetCollection<BsonDocument>($"{tblInitial}events");
-        _snapshotsCollection = _db.GetCollection<BsonDocument>($"{tblInitial}snapshots");
+        _eventsCollection = _db.GetCollection<BsonDocument>($"{collectionPrefix}events");
+        _snapshotsCollection = _db.GetCollection<BsonDocument>($"{collectionPrefix}snapshots");
         // TODO: [Bnaya 2025-02-20] dynamic table 
-        _outboxCollection = _db.GetCollection<BsonDocument>($$"""{{tblInitial}}{0}outbox""");
+        _outboxCollection = _db.GetCollection<BsonDocument>($$"""{{collectionPrefix}}{0}outbox""");
 
         // TODO: [bnaya 2025-02-23] Migration? outside of Ctor
-        CreateUniqueIndex();
         _logger = logger;
         _transformers = transformers.ToImmutableArray();
     }
 
-
-    // TODO: [bnaya 2025-02-23] create indices for outbox and snapshots
-    // TODO: [bnaya 2025-02-23] generate a DDL script 
-    private async Task CreateUniqueIndex()
-    {
-        var unique = new CreateIndexOptions { Unique = true };
-
-        var eventsPK = Builders<BsonDocument>.IndexKeys
-            .Ascending(toSnakeCase(nameof(EvDbEventRecord.Domain)))
-            .Ascending(toSnakeCase(nameof(EvDbEventRecord.Partition)))
-            .Ascending(toSnakeCase(nameof(EvDbEventRecord.StreamId)))
-            .Ascending(toSnakeCase(nameof(EvDbEventRecord.Offset)));
-        var eventsIndexModel = new CreateIndexModel<BsonDocument>(eventsPK, unique);
-        await _eventsCollection.Indexes.CreateOneAsync(eventsIndexModel);
-
-        var outboxPK = Builders<BsonDocument>.IndexKeys
-            .Ascending(toSnakeCase(nameof(EvDbMessageRecord.Domain)))
-            .Ascending(toSnakeCase(nameof(EvDbMessageRecord.Partition)))
-            .Ascending(toSnakeCase(nameof(EvDbMessageRecord.StreamId)))
-            .Ascending(toSnakeCase(nameof(EvDbMessageRecord.Offset)))
-            .Ascending(toSnakeCase(nameof(EvDbMessageRecord.Channel)))
-            .Ascending(toSnakeCase(nameof(EvDbMessageRecord.MessageType)));
-        var outboxIndexModel = new CreateIndexModel<BsonDocument>(outboxPK, unique);
-        await _outboxCollection.Indexes.CreateOneAsync(outboxIndexModel);
-
-        var snapshotPK = Builders<BsonDocument>.IndexKeys
-            .Ascending(toSnakeCase(nameof(EvDbViewAddress.Domain)))
-            .Ascending(toSnakeCase(nameof(EvDbViewAddress.Partition)))
-            .Ascending(toSnakeCase(nameof(EvDbViewAddress.StreamId)))
-            .Ascending(toSnakeCase(nameof(EvDbViewAddress.ViewName)))
-            .Ascending(toSnakeCase(nameof(EvDbStoredSnapshot.Offset)));
-        var snapshotIndexModel = new CreateIndexModel<BsonDocument>(snapshotPK, unique);
-        await _outboxCollection.Indexes.CreateOneAsync(snapshotIndexModel);
-    }
+    #region GetEventsAsync
 
     /// <summary>
     /// Retrieves events for the given stream cursor.
@@ -114,41 +77,9 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
         }
     }
 
-    /// <summary>
-    /// Retrieves a stored snapshot for the specified view address.
-    /// </summary>
-    public async Task<EvDbStoredSnapshot> GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation = default)
-    {
-        // For demonstration, assume viewAddress has properties Domain, Partition, and StreamId.
-        var filter = Builders<BsonDocument>.Filter.Eq("domain", viewAddress.Domain) &
-                     Builders<BsonDocument>.Filter.Eq("partition", viewAddress.Partition) &
-                     Builders<BsonDocument>.Filter.Eq("stream_id", viewAddress.StreamId);
+    #endregion //  GetEventsAsync
 
-        var document = await _snapshotsCollection.Find(filter).FirstOrDefaultAsync(cancellation);
-        if (document == null)
-            return EvDbStoredSnapshot.Empty;
-
-        return document.ToSnapshotInfo();
-    }
-
-    /// <summary>
-    /// Stores a snapshot.
-    /// </summary>
-    async Task IEvDbStorageSnapshotAdapter.StoreSnapshotAsync(EvDbStoredSnapshotData snapshotData, CancellationToken cancellation)
-    {
-        if (snapshotData == null)
-            throw new ArgumentNullException(nameof(snapshotData));
-
-        var snapshotDoc = snapshotData.ToBsonDocument();
-        try
-        {
-            await _snapshotsCollection.InsertOneAsync(snapshotDoc, cancellationToken: cancellation);
-        }
-        catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
-        {
-            throw new InvalidOperationException("Optimistic concurrency error while inserting snapshot.", ex);
-        }
-    }
+    #region StoreStreamAsync
 
     async Task<Core.StreamStoreAffected> IEvDbStorageStreamAdapter.StoreStreamAsync(IImmutableList<EvDbEvent> events,
                                                                               IImmutableList<EvDbMessage> messages,
@@ -160,7 +91,7 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
             throw new ArgumentNullException(nameof(messages));
         if (events.Count == 0)
             return new StreamStoreAffected(0, ImmutableDictionary<EvDbShardName, int>.Empty);
-        
+
         var options = new InsertManyOptions { IsOrdered = true };
 
         // Convert events and messages to BsonDocument lists.
@@ -210,4 +141,77 @@ public class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorage
             await _outboxCollection.InsertManyAsync(session, outboxDocs, options, cancellation);
         }
     }
+
+    #endregion //  StoreStreamAsync
+
+    #region GetSnapshotAsync
+
+    /// <summary>
+    /// Retrieves a stored snapshot for the specified view address.
+    /// </summary>
+    public async Task<EvDbStoredSnapshot> GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation = default)
+    {
+        // For demonstration, assume viewAddress has properties Domain, Partition, and StreamId.
+        var filter = Builders<BsonDocument>.Filter.Eq("domain", viewAddress.Domain) &
+                     Builders<BsonDocument>.Filter.Eq("partition", viewAddress.Partition) &
+                     Builders<BsonDocument>.Filter.Eq("stream_id", viewAddress.StreamId);
+
+        var document = await _snapshotsCollection.Find(filter).FirstOrDefaultAsync(cancellation);
+        if (document == null)
+            return EvDbStoredSnapshot.Empty;
+
+        return document.ToSnapshotInfo();
+    }
+
+    #endregion //  GetSnapshotAsync
+
+    #region StoreSnapshotAsync
+
+    /// <summary>
+    /// Stores a snapshot.
+    /// </summary>
+    async Task IEvDbStorageSnapshotAdapter.StoreSnapshotAsync(EvDbStoredSnapshotData snapshotData, CancellationToken cancellation)
+    {
+        if (snapshotData == null)
+            throw new ArgumentNullException(nameof(snapshotData));
+
+        var snapshotDoc = snapshotData.ToBsonDocument();
+        try
+        {
+            await _snapshotsCollection.InsertOneAsync(snapshotDoc, cancellationToken: cancellation);
+        }
+        catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+        {
+            throw new InvalidOperationException("Optimistic concurrency error while inserting snapshot.", ex);
+        }
+    }
+
+    #endregion //  StoreSnapshotAsync
+
+    #region Dispose Pattern
+
+    void IDisposable.Dispose()
+    {
+        DisposeAction();
+        GC.SuppressFinalize(this);
+    }
+
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        DisposeAction();
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
+    }
+
+    private void DisposeAction()
+    {
+        _client?.Dispose();
+    }
+
+    ~EvDbMongoDBStorageAdapter()
+    {
+        DisposeAction();
+    }
+
+    #endregion //  DisposeAction Pattern
 }

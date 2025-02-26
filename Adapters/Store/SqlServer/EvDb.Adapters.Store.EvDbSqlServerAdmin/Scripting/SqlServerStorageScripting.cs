@@ -3,12 +3,10 @@
 using EvDb.Core;
 // Ignore Spelling: Sql
 
-using EvDb.Core.Adapters;
-using Microsoft.Extensions.Logging;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-public class SqlServerStorageScripting: IEvDbStorageScripting
+public class SqlServerStorageScripting : IEvDbStorageScripting
 {
     public static readonly IEvDbStorageScripting Default = new SqlServerStorageScripting();
 
@@ -16,9 +14,9 @@ public class SqlServerStorageScripting: IEvDbStorageScripting
             EvDbStorageContext context,
             StorageFeatures features,
             IEnumerable<EvDbShardName> shardNames)
-            {
-                EvDbMigrationQueryTemplates scripts = Sctipts.Create(context, features, shardNames);
-                return scripts;
-            }
+    {
+        EvDbMigrationQueryTemplates scripts = Sctipts.Create(context, features, shardNames);
+        return scripts;
+    }
 }
 

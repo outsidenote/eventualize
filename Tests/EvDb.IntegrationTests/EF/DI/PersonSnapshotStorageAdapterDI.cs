@@ -1,12 +1,7 @@
 ﻿// Ignore Spelling: Sql
 
-using EvDb.Adapters.Store.SqlServer;
-using EvDb.Core;
-using EvDb.Core.Store.Internals;
-using EvDb.IntegrationTests.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

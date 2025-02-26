@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+	  <PackageReference Include="Npgsql" Version="9.0.1" />
+	  <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.1" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\..\..\docs\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\EvDb.Adapters.Store.EvDbMongoDB\EvDb.Adapters.Store.EvDbMongoDB.csproj" />
+	</ItemGroup>
+
+</Project>

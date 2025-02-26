@@ -2,8 +2,8 @@
 using EvDb.Core.Internals;
 
 namespace Microsoft.Extensions.DependencyInjection;
-public interface IEvDbRegistrationContext: IEvDbRegistrationEntry
+public interface IEvDbRegistrationContext : IEvDbRegistrationEntry
 {
-    EvDbPartitionAddress Address { get;  }
-    EvDbStorageContext? Context { get;  }
+    EvDbPartitionAddress Address { get; }
+    EvDbStorageContext? Context { get; }
 }

@@ -10,10 +10,10 @@ using System.Diagnostics;
 using System.Threading.Tasks.Dataflow;
 
 
-(string? storeTypeArg, bool dbFound) = 
+(string? storeTypeArg, bool dbFound) =
     args.Aggregate<string, (string? Db, bool Found)>((null, false), (acc, cur) =>
 {
-    if(acc.Found)
+    if (acc.Found)
         return (cur, true);
     if (cur == "-d")
         return (null, true);

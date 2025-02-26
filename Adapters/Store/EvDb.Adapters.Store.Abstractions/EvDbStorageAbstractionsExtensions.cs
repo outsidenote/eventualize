@@ -20,7 +20,7 @@ public static class EvDbStorageAbstractionsExtensions
                               select newMessage;
             messages = transformed.ToImmutableList();
         }
-        
+
         IEnumerable<IGrouping<EvDbShardName, EvDbMessageRecord>> result =
                 from message in messages
                 group (EvDbMessageRecord)message by message.ShardName;

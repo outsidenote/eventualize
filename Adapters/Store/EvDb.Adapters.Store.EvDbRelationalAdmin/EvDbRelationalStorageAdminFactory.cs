@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EvDb.Core.Adapters;
 
-public class EvDbRelationalStorageAdminFactory: IEvDbStorageAdminFactory
+public class EvDbRelationalStorageAdminFactory
 {
     private readonly ILogger _logger;
     private readonly IEvDbConnectionFactory _factory;
@@ -25,7 +25,7 @@ public class EvDbRelationalStorageAdminFactory: IEvDbStorageAdminFactory
         StorageFeatures features,
         params EvDbShardName[] shardNames)
     {
-        EvDbMigrationQueryTemplates queries = 
+        EvDbMigrationQueryTemplates queries =
                         _scripting.CreateScripts(context, features, shardNames);
 
         IEvDbStorageAdmin result =
@@ -34,5 +34,5 @@ public class EvDbRelationalStorageAdminFactory: IEvDbStorageAdminFactory
                     _factory,
                     queries);
         return result;
-    }  
+    }
 }

@@ -70,7 +70,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
         #endregion //  Parameters
 
-        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection); 
+        var command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
 
         #region Setup Parameters
 

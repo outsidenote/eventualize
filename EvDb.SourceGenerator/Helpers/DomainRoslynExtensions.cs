@@ -54,7 +54,7 @@ internal static class DomainRoslynExtensions
         var asm = typeof(DomainRoslynExtensions).Assembly.GetName();
         builder.AppendLine("// ReSharper disable once UnusedType.Global");
         builder.AppendLine();
-        if(!string.IsNullOrWhiteSpace(typeXmlDoc))
+        if (!string.IsNullOrWhiteSpace(typeXmlDoc))
             builder.AppendLine(typeXmlDoc);
         builder.AppendLine($"[System.CodeDom.Compiler.GeneratedCode(\"EvDb.SourceGenerator\",\"{asm.Version}\")]");
         if (isClassOrStruct)

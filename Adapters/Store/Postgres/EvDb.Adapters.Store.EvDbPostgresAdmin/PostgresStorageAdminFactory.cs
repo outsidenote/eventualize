@@ -18,10 +18,10 @@ public static class PostgresStorageAdminFactory
         EvDbStorageContext context,
         params EvDbShardName[] shardNames)
     {
-        return Create(logger, factory, context, StorageFeatures.All, shardNames); 
+        return Create(logger, factory, context, StorageFeatures.All, shardNames);
     }
 
-    public static IEvDbStorageAdmin     Create(
+    public static IEvDbStorageAdmin Create(
         ILogger logger,
         string connectionString,
         EvDbStorageContext context,

@@ -10,7 +10,7 @@ namespace EvDb.Core.Adapters;
 /// Store adapter for rational database
 /// </summary>
 /// <seealso cref="EvDb.Core.IEvDbStorageAdapter" />
-internal class EvDbRelationalStorageAdmin : IEvDbStorageAdmin
+internal sealed class EvDbRelationalStorageAdmin : IEvDbStorageAdmin
 {
     private readonly Task<DbConnection> _commandsTask;
     private readonly ILogger _logger;
@@ -69,12 +69,6 @@ internal class EvDbRelationalStorageAdmin : IEvDbStorageAdmin
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        Dispose(true);
-    }
-
-    protected virtual async void Dispose(bool disposed)
-    {
-        await Task.Yield();
         IDisposable commands = _commandsTask.Result;
         commands.Dispose();
     }
@@ -88,7 +82,7 @@ internal class EvDbRelationalStorageAdmin : IEvDbStorageAdmin
 
     ~EvDbRelationalStorageAdmin()
     {
-        Dispose(false);
+        Dispose();
     }
 
     #endregion // Dispose Pattern

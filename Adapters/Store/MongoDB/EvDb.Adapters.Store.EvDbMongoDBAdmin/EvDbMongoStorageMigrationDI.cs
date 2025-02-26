@@ -2,13 +2,12 @@
 
 using EvDb.Adapters.Store.Postgres;
 using EvDb.Core;
-using EvDb.Core.Adapters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class EvDbPostgresStorageMigrationDI
+public static class EvDbMongoStorageMigrationDI
 {
     #region Overloads
 
@@ -41,7 +40,7 @@ public static class EvDbPostgresStorageMigrationDI
             string connectionStringOrKey = "EvDbPostgresConnection",
             params EvDbShardName[] shardNames)
     {
-        services.AddSingleton<IEvDbStorageScripting, PostgresStorageScripting>();
+        services.AddSingleton<IEvDbStorageScripting, MongoStorageScripting>();
         services.AddSingleton(sp =>
         {
             var ctx = context
@@ -57,8 +56,8 @@ public static class EvDbPostgresStorageMigrationDI
             #endregion // IEvDbConnectionFactory connectionFactory = ...
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<EvDbRelationalStorageAdminFactory>();
-            IEvDbStorageAdmin adapter = PostgresStorageAdminFactory.Create(logger, connectionString, ctx, shardNames);
+            var logger = loggerFactory.CreateLogger<MongoStorageAdminFactory>();
+            IEvDbStorageAdmin adapter = MongoStorageAdminFactory.Create(logger, connectionString, ctx, shardNames);
             return adapter;
         });
 

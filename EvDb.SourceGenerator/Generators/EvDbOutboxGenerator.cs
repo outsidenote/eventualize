@@ -113,7 +113,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 
                         """;
                     }
-                    return 
+                    return
                         $$"""
 
                             public void Add({{info.FullTypeName}} payload)
@@ -169,7 +169,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         #region addMessageTypesMulti = ...
 
         string multiAdds;
-        if(hasShards)
+        if (hasShards)
         {
             multiAdds = """
                         var shardNames = _outboxToShards.ChannelToShards(outboxTextEnum);
@@ -179,7 +179,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             self.Add(payload, outboxText, shardName);
                         }
                         
-                """;       
+                """;
         }
         else
         {
@@ -270,7 +270,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     """);
         }
         else
-        { 
+        {
             builder.AppendLine($$"""
 
                         public {{outboxName}}Context(
@@ -282,7 +282,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                         }
                     """);
         }
-            builder.AppendLine($$"""
+        builder.AppendLine($$"""
                     {{string.Join("", addMessageTypes)}}
                     {{string.Join("", addMessageTypesSingle)}}
                     {{string.Join("", addMessageTypesMulti)}}
@@ -481,7 +481,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                                     ? $", I{outboxName}ChannelToShards"
                                     : string.Empty;
 
-        string createOutbox = hasAnyChannel && hasShards 
+        string createOutbox = hasAnyChannel && hasShards
             ? $"{outboxName}Context outbox = new(_logger, _evDbStream, e, this);"
             : $"{outboxName}Context outbox = new(_logger, _evDbStream, e);";
 
