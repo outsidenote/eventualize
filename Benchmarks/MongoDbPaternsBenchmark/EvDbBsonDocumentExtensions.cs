@@ -1,6 +1,6 @@
-﻿using System.Diagnostics;
+﻿using MongoDB.Bson;
+using System.Diagnostics;
 using System.Text;
-using MongoDB.Bson;
 
 namespace MongoBenchmark;
 

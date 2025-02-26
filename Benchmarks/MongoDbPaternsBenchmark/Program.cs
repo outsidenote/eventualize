@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text.Json;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
 using MongoBenchmark;
+using System.Diagnostics;
 
 await ManualAsync();
 

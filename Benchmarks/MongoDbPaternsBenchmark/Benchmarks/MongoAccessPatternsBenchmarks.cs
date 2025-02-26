@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Collections.Immutable;
+using System.Text;
 using Xunit;
 
 namespace MongoBenchmark;
