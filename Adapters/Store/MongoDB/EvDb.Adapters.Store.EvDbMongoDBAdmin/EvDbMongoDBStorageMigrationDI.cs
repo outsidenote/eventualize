@@ -7,26 +7,26 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class EvDbMongoStorageMigrationDI
+public static class EvDbMongoDBStorageMigrationDI
 {
     #region Overloads
 
-    public static IServiceCollection AddEvDbPostgresStoreMigration(
+    public static IServiceCollection AddEvDbMongoDBStoreAdmin(
             this IServiceCollection services,
             string connectionStringOrKey,
             params EvDbShardName[] shardNames)
     {
-        return services.AddEvDbPostgresStoreMigration(
+        return services.AddEvDbMongoDBStoreAdmin(
                             null,
                             connectionStringOrKey,
                             shardNames);
     }
 
-    public static IServiceCollection AddEvDbPostgresStoreMigration(
+    public static IServiceCollection AddEvDbMongoDBStoreAdmin(
             this IServiceCollection services,
             params EvDbShardName[] shardNames)
     {
-        return services.AddEvDbPostgresStoreMigration(
+        return services.AddEvDbMongoDBStoreAdmin(
                             null,
                             "EvDbPostgresConnection",
                             shardNames);
@@ -34,7 +34,7 @@ public static class EvDbMongoStorageMigrationDI
 
     #endregion //  Overloads
 
-    public static IServiceCollection AddEvDbPostgresStoreMigration(
+    public static IServiceCollection AddEvDbMongoDBStoreAdmin(
             this IServiceCollection services,
             EvDbStorageContext? context = null,
             string connectionStringOrKey = "EvDbPostgresConnection",
@@ -56,8 +56,8 @@ public static class EvDbMongoStorageMigrationDI
             #endregion // IEvDbConnectionFactory connectionFactory = ...
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<MongoStorageAdminFactory>();
-            IEvDbStorageAdmin adapter = MongoStorageAdminFactory.Create(logger, connectionString, ctx, shardNames);
+            var logger = loggerFactory.CreateLogger<MongoDBStorageAdminFactory>();
+            IEvDbStorageAdmin adapter = MongoDBStorageAdminFactory.Create(logger, connectionString, ctx, shardNames);
             return adapter;
         });
 

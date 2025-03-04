@@ -2,8 +2,9 @@
 using MongoDB.Bson;
 using System.Diagnostics;
 using System.Text;
+using static EvDb.Adapters.Store.EvDbMongoDB.Internals.EvDbFileds;
 
-namespace EvDb.Adapters.Store;
+namespace EvDb.Adapters.Store.Internals;
 
 internal static class EvDbBsonDocumentExtensions
 {
@@ -11,14 +12,14 @@ internal static class EvDbBsonDocumentExtensions
 
     public static EvDbEvent ToEvent(this BsonDocument doc)
     {
-        var domain = doc.GetValue("domain").AsString;
-        var partition = doc.GetValue("partition").AsString;
-        var streamId = doc.GetValue("stream_id").AsString;
-        var offset = doc.GetValue("offset").ToInt64();
-        var eventType = doc.GetValue("event_type").AsString;
-        var payload = doc.GetValue("state").AsBsonDocument.ToBson();
-        var capturedBy = doc.GetValue("captured_by").AsString;
-        var capturedAt = doc.GetValue("captured_by").AsBsonDateTime.ToUniversalTime();
+        var domain = doc.GetValue(Event.Domain).AsString;
+        var partition = doc.GetValue(Event.Partition).AsString;
+        var streamId = doc.GetValue(Event.StreamId).AsString;
+        var offset = doc.GetValue(Event.Offset).ToInt64();
+        var eventType = doc.GetValue(Event.EventType).AsString;
+        var payload = doc.GetValue(Event.Payload).AsBsonDocument.ToBson();
+        var capturedBy = doc.GetValue(Event.CapturedBy).AsString;
+        var capturedAt = doc.GetValue(Event.CapturedAt).AsBsonDateTime.ToUniversalTime();
         var cursor = new EvDbStreamCursor(domain, partition, streamId, offset);
         return new EvDbEvent(eventType, capturedAt, capturedBy, cursor, payload);
     }
@@ -29,18 +30,18 @@ internal static class EvDbBsonDocumentExtensions
 
     public static EvDbMessage ToMessageRecord(this BsonDocument doc)
     {
-        var domain = doc.GetValue("domain").AsString;
-        var partition = doc.GetValue("partition").AsString;
-        var streamId = doc.GetValue("stream_id").AsString;
-        var offset = doc.GetValue("offset").ToInt64();
-        var eventType = doc.GetValue("event_type").AsString;
-        var shardName = doc.GetValue("shard-name").AsString;
-        var payload = doc.GetValue("payload").AsBsonDocument.ToBson();
-        var capturedBy = doc.GetValue("captured_by").AsString;
-        var capturedAt = doc.GetValue("captured_by").AsBsonDateTime.ToUniversalTime();
-        var channel = doc.GetValue("channel").AsString;
-        var serializeType = doc.GetValue("serialize_type").AsString;
-        var meaageType = doc.GetValue("message_type").AsString;
+        var domain = doc.GetValue(Outbox.Domain).AsString;
+        var partition = doc.GetValue(Outbox.Partition).AsString;
+        var streamId = doc.GetValue(Outbox.StreamId).AsString;
+        var offset = doc.GetValue(Outbox.Offset).ToInt64();
+        var eventType = doc.GetValue(Outbox.EventType).AsString;
+        var shardName = doc.GetValue(Outbox.ShardName).AsString;
+        var payload = doc.GetValue(Outbox.Payload).AsBsonDocument.ToBson();
+        var capturedBy = doc.GetValue(Outbox.CapturedBy).AsString;
+        var capturedAt = doc.GetValue(Outbox.CapturedAt).AsBsonDateTime.ToUniversalTime();
+        var channel = doc.GetValue(Outbox.Channel).AsString;
+        var serializeType = doc.GetValue(Outbox.SerializeType).AsString;
+        var meaageType = doc.GetValue(Outbox.MessageType).AsString;
         var cursor = new EvDbStreamCursor(domain, partition, streamId, offset);
         return new EvDbMessage(eventType, channel, shardName, meaageType, serializeType, capturedAt, capturedBy, cursor, payload);
     }
@@ -52,13 +53,13 @@ internal static class EvDbBsonDocumentExtensions
     public static EvDbStoredSnapshotData ToSnapshotData(this BsonDocument doc)
     {
         // Map fields from the BsonDocument back to an EvDbEvent.
-        var domain = doc.GetValue("domain").AsString;
-        var partition = doc.GetValue("partition").AsString;
-        var streamId = doc.GetValue("stream_id").AsString;
-        var viewName = doc.GetValue("view-name").AsString;
-        var offset = doc.GetValue("offset").ToInt64();
-        var storeOffset = doc.GetValue("store-offset").ToInt64();
-        var state = doc.GetValue("state").AsBsonDocument.ToBson();
+        var domain = doc.GetValue(Snapshot.Domain).AsString;
+        var partition = doc.GetValue(Snapshot.Partition).AsString;
+        var streamId = doc.GetValue(Snapshot.StreamId).AsString;
+        var viewName = doc.GetValue(Snapshot.ViewName).AsString;
+        var offset = doc.GetValue(Snapshot.Offset).ToInt64();
+        var storeOffset = doc.GetValue(Snapshot.StoreOffset).ToInt64();
+        var state = doc.GetValue(Snapshot.State).AsBsonDocument.ToBson();
         var address = new EvDbViewAddress(domain, partition, streamId, viewName);
         return new EvDbStoredSnapshotData(address, offset, storeOffset, state);
     }
@@ -69,8 +70,8 @@ internal static class EvDbBsonDocumentExtensions
 
     public static EvDbStoredSnapshot ToSnapshotInfo(this BsonDocument doc)
     {
-        var storeOffset = doc.GetValue("store-offset").ToInt64();
-        var state = doc.GetValue("state").AsBsonDocument.ToBson();
+        var storeOffset = doc.GetValue(Snapshot.StoreOffset).ToInt64();
+        var state = doc.GetValue(Snapshot.State).AsBsonDocument.ToBson();
         return new EvDbStoredSnapshot(storeOffset, state);
     }
 
@@ -90,24 +91,24 @@ internal static class EvDbBsonDocumentExtensions
         // TODO: [bnaya 2025-02-25] use nameof
         return new BsonDocument
             {
-                { "domain", rec.StreamCursor.Domain },
-                { "partition", rec.StreamCursor.Partition },
-                { "stream_id", rec.StreamCursor.StreamId },
-                { "offset", rec.StreamCursor.Offset },
-                { "event_type", rec.EventType },
-                { "trace_id", traceId != null ? (BsonValue) traceId : BsonNull.Value },
-                { "span_id", spanId != null ? (BsonValue) spanId : BsonNull.Value },
-                { "payload", payload },
-                { "captured_by", rec.CapturedBy },
-                { "captured_at", new BsonDateTime(rec.CapturedAt.UtcDateTime) }
+                { Event.Domain, rec.StreamCursor.Domain },
+                { Event.Partition, rec.StreamCursor.Partition },
+                { Event.StreamId, rec.StreamCursor.StreamId },
+                { Event.Offset, rec.StreamCursor.Offset },
+                { Event.EventType, rec.EventType },
+                { Event.TraceId, traceId != null ? (BsonValue) traceId : BsonNull.Value },
+                { Event.SpanId, spanId != null ? (BsonValue) spanId : BsonNull.Value },
+                { Event.Payload, payload },
+                { Event.CapturedBy, rec.CapturedBy },
+                { Event.CapturedAt, new BsonDateTime(rec.CapturedAt.UtcDateTime) }
             };
     }
 
-    #endregion //  ToBsonDocument(EvDbEventRecord rec)
+    #endregion //  EvDbToBsonDocument(EvDbEventRecord rec)
 
-    #region ToBsonDocument(EvDbMessageRecord rec)
+    #region EvDbToBsonDocument(EvDbMessageRecord rec)
 
-    public static BsonDocument ToBsonDocument(this EvDbMessage rec)
+    public static BsonDocument EvDbToBsonDocument(this EvDbMessage rec)
     {
         string json = Encoding.UTF8.GetString(rec.Payload);
         var payload = BsonDocument.Parse(json);
@@ -118,44 +119,57 @@ internal static class EvDbBsonDocumentExtensions
 
         return new BsonDocument
             {
-                { "domain", rec.StreamCursor.Domain },
-                { "partition", rec.StreamCursor.Partition },
-                { "stream_id", rec.StreamCursor.StreamId },
-                { "offset", rec.StreamCursor.Offset },
-                { "event_type", rec.EventType },
-                { "message_type", rec.MessageType },
-                { "channel", rec.Channel.ToString() },
-                { "serialize_type", rec.SerializeType },
-                { "shard-name", rec.ShardName.ToString() },
-                { "trace_id",traceId != null ? (BsonValue) traceId : BsonNull.Value },
-                { "span_id", spanId != null ? (BsonValue) spanId : BsonNull.Value },
-                { "payload", payload },
-                { "captured_by", rec.CapturedBy },
-                { "captured_at", new BsonDateTime(rec.CapturedAt.UtcDateTime) }
+                { Outbox.Domain, rec.StreamCursor.Domain },
+                { Outbox.Payload, rec.StreamCursor.Partition },
+                { Outbox.StreamId, rec.StreamCursor.StreamId },
+                { Outbox.Offset, rec.StreamCursor.Offset },
+                { Outbox.EventType, rec.EventType },
+                { Outbox.MessageType, rec.MessageType },
+                { Outbox.Channel, rec.Channel.ToString() },
+                { Outbox.SerializeType, rec.SerializeType },
+                { Outbox.ShardName, rec.ShardName.ToString() },
+                { Outbox.TraceId,traceId != null ? (BsonValue) traceId : BsonNull.Value },
+                { Outbox.SpanId, spanId != null ? (BsonValue) spanId : BsonNull.Value },
+                { Outbox.Payload, payload },
+                { Outbox.CapturedBy, rec.CapturedBy },
+                { Outbox.CapturedAt, new BsonDateTime(rec.CapturedAt.UtcDateTime) }
             };
     }
 
-    #endregion //  ToBsonDocument(EvDbMessageRecord rec)
+    #endregion //  EvDbToBsonDocument(EvDbMessageRecord rec)
 
-    #region ToBsonDocument(EvDbStoredSnapshotData rec)
+    #region EvDbToBsonDocument(EvDbStoredSnapshotData rec)
 
-    public static BsonDocument ToBsonDocument(this EvDbStoredSnapshotData rec)
+    public static BsonDocument EvDbToBsonDocument(this EvDbStoredSnapshotData rec)
     {
         string json = Encoding.UTF8.GetString(rec.State);
         var state = BsonDocument.Parse(json);
 
         return new BsonDocument
             {
-                { "id", new BsonBinaryData(rec.Id, GuidRepresentation.Standard) },
-                { "domain", rec.Domain },
-                { "partition", rec.Partition },
-                { "stream_id", rec.StreamId },
-                { "view-name", rec.ViewName },
-                { "offset", rec.Offset },
-                { "store-offset", rec.StoreOffset },
-                { "state", state }
+                { Snapshot.Id, new BsonBinaryData(rec.Id, GuidRepresentation.Standard) },
+                { Snapshot.Domain, rec.Domain },
+                { Snapshot.Partition, rec.Partition },
+                { Snapshot.StreamId, rec.StreamId },
+                { Snapshot.ViewName, rec.ViewName },
+                { Snapshot.Offset, rec.Offset },
+                { Snapshot.StoreOffset, rec.StoreOffset },
+                { Snapshot.State, state }
             };
     }
 
-    #endregion //  ToBsonDocument(EvDbStoredSnapshotData rec)
+    #endregion //  EvDbToBsonDocument(EvDbStoredSnapshotData rec)
+
+    #region CalcCollectionPrefix
+
+    public static string CalcCollectionPrefix(this EvDbStorageContext storageContext)
+    {
+        string schema = storageContext.Schema.HasValue
+            ? $"{storageContext.Schema}."
+            : string.Empty;
+        string tblInitial = $"{schema}{storageContext.ShortId}";
+        return tblInitial;
+    }
+
+    #endregion //  CalcCollectionPrefix
 }

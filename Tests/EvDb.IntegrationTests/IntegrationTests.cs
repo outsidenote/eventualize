@@ -18,7 +18,7 @@ public abstract class IntegrationTests : IAsyncLifetime
     protected readonly ITestOutputHelper _output;
     protected readonly StoreType _storeType;
     protected readonly ILogger _logger = A.Fake<ILogger>();
-    protected readonly DbConnection _connection;
+    protected readonly DbConnection? _connection;
     private readonly string _outboxQuery;
 
 
@@ -31,12 +31,14 @@ public abstract class IntegrationTests : IAsyncLifetime
         {
             StoreType.SqlServer => "dbo",
             StoreType.Postgres => "public",
+            StoreType.MongoDB => "default",
             _ => EvDbSchemaName.Empty
         };
         EvDbDatabaseName dbName = storeType switch
         {
             StoreType.SqlServer => "master",
             StoreType.Postgres => "tests",
+            StoreType.MongoDB => "tests",
             _ => EvDbDatabaseName.Empty
         };
         var context = new EvDbTestStorageContext(schema, dbName);
@@ -55,7 +57,12 @@ public abstract class IntegrationTests : IAsyncLifetime
                                                             AlternativeContext,
                                                             EvDbShardName.Default);
         }
-        _connection = StoreAdapterHelper.GetConnection(storeType, context);
+        _connection = storeType switch
+        {
+            StoreType.MongoDB => null,
+            _ => StoreAdapterHelper.GetConnection(storeType, context)
+        };
+
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
         string escape = storeType switch
@@ -63,7 +70,11 @@ public abstract class IntegrationTests : IAsyncLifetime
             StoreType.Postgres => "\"",
             _ => string.Empty
         };
-        _outboxQuery =
+
+        _outboxQuery = storeType switch
+        {
+            StoreType.MongoDB => string.Empty,
+            _ =>
             $$"""
                 SELECT
                     {{toSnakeCase(nameof(EvDbMessageRecord.Domain))}} as {{nameof(EvDbMessageRecord.Domain)}},
@@ -82,8 +93,12 @@ public abstract class IntegrationTests : IAsyncLifetime
                 FROM {{context.Id}}{0} 
                 ORDER BY {{escape}}{{toSnakeCase(nameof(EvDbMessageRecord.Offset))}}{{escape}}, 
                          {{toSnakeCase(nameof(EvDbMessageRecord.MessageType))}};
-                """;
+                """
+        };
     }
+
+    // TODO: [bnaya 2025-03-03] set it right for mongo
+    #region GetOutboxAsync
 
     public async IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName table)
     {
@@ -98,6 +113,8 @@ public abstract class IntegrationTests : IAsyncLifetime
         }
         await _connection.CloseAsync();
     }
+
+    #endregion //  GetOutboxAsync
 
 
     public EvDbStorageContext StorageContext { get; }

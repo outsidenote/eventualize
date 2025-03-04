@@ -21,17 +21,17 @@ public class MongoAccessPatternsBenchmarks
     private const string DatabaseName = "evdb-benchmark_db";
     private const string CollectionById = "evdb-benchmark-by-id";
     private const string CollectionComposed = "evdb-benchmark-composed";
-    private const int INSERT_BATCH_SIZE = 100;
-    private const int INSERT_TIMES = 10_000;
-    private const int GET_BATCH_SIZE = 500;
-    private const int GET_TIMES = 200;
-    private const int REPORT_INSERT_CYCLE = 30;
+    private const int INSERT_BATCH_SIZE = 1000;
+    private const int INSERT_TIMES = 500;
+    private const int GET_BATCH_SIZE = 50;
+    private const int GET_TIMES = 100;
+    private const int REPORT_INSERT_CYCLE = 50;
 
     private int _iterationCount = -1;
 
     private IImmutableList<EvDbEvent> _events;
 
-    private FindOptions<BsonDocument> GET_OPTIONS = new FindOptions<BsonDocument> { Limit = GET_BATCH_SIZE };
+    #region Setup/Cleanup
 
     [IterationSetup]
     public void IterationSetup()
@@ -73,11 +73,11 @@ public class MongoAccessPatternsBenchmarks
         var indexKeys = Builders<BsonDocument>.IndexKeys
                             .Ascending("domain")
                             .Ascending("partition")
-                            .Ascending("stream_id")
-                            .Ascending("offset");
-
+                            .Ascending("stream_id");
+        var indexPrimaryKeys = indexKeys
+                                .Ascending("offset");
         _collectionById.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexKeys));
-        _collectionComposed.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexKeys,
+        _collectionComposed.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexPrimaryKeys,
                                                                 new CreateIndexOptions { Unique = true }));
 
 
@@ -93,6 +93,62 @@ public class MongoAccessPatternsBenchmarks
         // Drop the database once the benchmarks have finished.
         _client.DropDatabase(DatabaseName);
     }
+
+    #endregion //  Setup/Cleanup
+
+    #region Compound
+
+    //[Benchmark]
+    public void Compound_InsertMany()
+    {
+        // Pattern2: Use a unique field (simulate unique index) instead of setting _id manually
+        for (int i = 0; i < INSERT_TIMES; i++)
+        {
+            var documents = _events.Skip(INSERT_BATCH_SIZE * i)
+                                   .Take(INSERT_BATCH_SIZE)
+                                   .Select(ev => ev.ToBsonDocument());
+            _collectionComposed.InsertMany(documents);
+            if (i % REPORT_INSERT_CYCLE == 0)
+                Console.Write(".");
+        }
+        Console.WriteLine();
+    }
+
+    [Benchmark]
+    public async Task Compound_GetBatch()
+    {
+        Compound_InsertMany();
+
+        // Use the current iteration count as the starting offset.
+        int baseOffset = _iterationCount * INSERT_BATCH_SIZE * INSERT_TIMES;
+
+        for (int i = 0; i < GET_TIMES; i++)
+        {
+            int firstOffset = baseOffset + (i * GET_BATCH_SIZE);
+            var filter = Builders<BsonDocument>.Filter.And(
+                Builders<BsonDocument>.Filter.Eq("domain", "testdomain"),
+                Builders<BsonDocument>.Filter.Eq("partition", "testpartition"),
+                Builders<BsonDocument>.Filter.Eq("stream_id", "teststream"),
+                Builders<BsonDocument>.Filter.Gte("offset", firstOffset)
+            );
+            var sorting = Builders<BsonDocument>.Sort.Ascending("domain")
+                                                                          .Ascending("partition")
+                                                                          .Ascending("stream_id")
+                                                                          .Ascending("offset");
+            var cursor = _collectionComposed.Find(filter)
+                                            .Sort(sorting)
+                                            .Limit(GET_BATCH_SIZE);
+            var result = await cursor.ToListAsync();
+
+            Assert.Equal(GET_BATCH_SIZE, result.Count);
+            Assert.True(result.Select(m => m["offset"].ToInt32())
+                              .SequenceEqual(Enumerable.Range(firstOffset, GET_BATCH_SIZE)));
+        }
+    }
+
+    #endregion //  Compound
+
+    #region ById
 
     //[Benchmark]
     public void ById_InsertMany()
@@ -115,22 +171,6 @@ public class MongoAccessPatternsBenchmarks
         Console.WriteLine();
     }
 
-    //[Benchmark]
-    public void Composed_InsertMany()
-    {
-        // Pattern2: Use a unique field (simulate unique index) instead of setting _id manually
-        for (int i = 0; i < INSERT_TIMES; i++)
-        {
-            var documents = _events.Skip(INSERT_BATCH_SIZE * i)
-                                   .Take(INSERT_BATCH_SIZE)
-                                   .Select(ev => ev.ToBsonDocument());
-            _collectionComposed.InsertMany(documents);
-            if (i % REPORT_INSERT_CYCLE == 0)
-                Console.Write(".");
-        }
-        Console.WriteLine();
-    }
-
     [Benchmark(Baseline = true)]
     public async Task ById_GetBatch()
     {
@@ -139,17 +179,24 @@ public class MongoAccessPatternsBenchmarks
         // Use the current iteration count as the starting offset.
         int baseOffset = _iterationCount * INSERT_BATCH_SIZE * INSERT_TIMES;
 
-        // Retrieve a batch of 100 events starting at the offset.
         for (int i = 0; i < GET_TIMES; i++)
         {
             int firstOffset = baseOffset + (i * GET_BATCH_SIZE);
-            var filter = Builders<BsonDocument>.Filter.And(
-                Builders<BsonDocument>.Filter.Eq("domain", "testdomain"),
-                Builders<BsonDocument>.Filter.Eq("partition", "testpartition"),
-                Builders<BsonDocument>.Filter.Eq("stream_id", "teststream"),
-                Builders<BsonDocument>.Filter.Gte("offset", firstOffset)
-            );
-            var cursor = await _collectionById.FindAsync(filter, GET_OPTIONS);
+            var fromId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", firstOffset).ToString();
+            var filter = Builders<BsonDocument>.Filter
+                                        .And(
+                                            Builders<BsonDocument>.Filter
+                                                .Eq("domain", "testdomain"),
+                                            Builders<BsonDocument>.Filter
+                                                .Eq("partition", "testpartition"),
+                                            Builders<BsonDocument>.Filter
+                                                .Eq("stream_id", "teststream"),                                        
+                                            Builders<BsonDocument>.Filter
+                                                .Gte("_id", fromId));
+
+            var cursor = _collectionById.Find(filter)
+                                              .Sort(Builders<BsonDocument>.Sort.Ascending("_id"))
+                                              .Limit(GET_BATCH_SIZE);
             var result = await cursor.ToListAsync();
 
             Assert.Equal(GET_BATCH_SIZE, result.Count);
@@ -159,9 +206,9 @@ public class MongoAccessPatternsBenchmarks
     }
 
     [Benchmark]
-    public async Task Composed_GetBatch()
+    public async Task ById_GetViaCursor()
     {
-        Composed_InsertMany();
+        ById_InsertMany();
 
         // Use the current iteration count as the starting offset.
         int baseOffset = _iterationCount * INSERT_BATCH_SIZE * INSERT_TIMES;
@@ -169,20 +216,39 @@ public class MongoAccessPatternsBenchmarks
         for (int i = 0; i < GET_TIMES; i++)
         {
             int firstOffset = baseOffset + (i * GET_BATCH_SIZE);
-            var filter = Builders<BsonDocument>.Filter.And(
-                Builders<BsonDocument>.Filter.Eq("domain", "testdomain"),
-                Builders<BsonDocument>.Filter.Eq("partition", "testpartition"),
-                Builders<BsonDocument>.Filter.Eq("stream_id", "teststream"),
-                Builders<BsonDocument>.Filter.Gte("offset", firstOffset)
-            );
-            var cursor = await _collectionComposed.FindAsync(filter, GET_OPTIONS);
-            var result = await cursor.ToListAsync();
+            var fromId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", firstOffset).ToString();
+            var filter = Builders<BsonDocument>.Filter
+                                        .And(
+                                            Builders<BsonDocument>.Filter
+                                                .Eq("domain", "testdomain"),
+                                            Builders<BsonDocument>.Filter
+                                                .Eq("partition", "testpartition"),
+                                            Builders<BsonDocument>.Filter
+                                                .Eq("stream_id", "teststream"),
+                                            Builders<BsonDocument>.Filter
+                                                .Gte("_id", fromId));
+
+            var query = _collectionById.Find(filter)
+                                              .Sort(Builders<BsonDocument>.Sort.Ascending("_id"))
+                                              .Limit(GET_BATCH_SIZE);
+            using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync();
+            var result = new List<BsonDocument>();
+            while (await cursor.MoveNextAsync())
+            {
+                foreach (var doc in cursor.Current)
+                {
+                    // Convert from BsonDocument back to EvDbEvent.
+                    result.Add(doc);
+                }
+            }
 
             Assert.Equal(GET_BATCH_SIZE, result.Count);
             Assert.True(result.Select(m => m["offset"].ToInt32())
                               .SequenceEqual(Enumerable.Range(firstOffset, GET_BATCH_SIZE)));
         }
     }
+
+    #endregion //  ById
 
     private EvDbEvent CreateTestEvent(int index)
     {

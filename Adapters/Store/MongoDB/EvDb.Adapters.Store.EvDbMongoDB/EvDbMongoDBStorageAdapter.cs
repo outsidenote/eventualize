@@ -8,11 +8,19 @@ using MongoDB.Driver;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using EvDb.Adapters.Store.EvDbMongoDB.Internals;
+using System.Diagnostics;
+using Microsoft.Extensions.Diagnostics.Latency;
+using System.Collections.Concurrent;
+using EvDb.Adapters.Store.Internals;
+using static EvDb.Core.Adapters.StoreTelemetry;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
 // TODO: [bnaya 2025-02-23] Add OTEL, Logs
 // TODO: [bnaya 2025-02-23] replace string with nameof
+
+public record EvDbCollections(IMongoCollection<BsonDocument> Events,
+                              IMongoCollection<BsonDocument> Snapshots);
 
 /// <summary>
 /// MongoDB storage adapter that handles event streams, snapshots, and outbox messages.
@@ -23,10 +31,16 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     private readonly IMongoDatabase _db;
     private readonly IMongoCollection<BsonDocument> _eventsCollection;
     private readonly IMongoCollection<BsonDocument> _snapshotsCollection;
-    private readonly IMongoCollection<BsonDocument> _outboxCollection;
+    private readonly ConcurrentDictionary<EvDbShardName, IMongoCollection<BsonDocument>> _outboxCollections = new ConcurrentDictionary<EvDbShardName, IMongoCollection<BsonDocument>>();
+    private readonly string _outboxCollectionFormat;
     private readonly ILogger _logger;
+    private readonly EvDbStorageContext _storageContext;
     private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
+    private readonly static ActivitySource _trace = StoreTelemetry.Trace;
+    private const string DATABASE_TYPE = "MongoDB";
 
+
+    #region Ctor
 
     public EvDbMongoDBStorageAdapter(
                         MongoClientSettings settings,
@@ -34,22 +48,24 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                         EvDbStorageContext storageContext,
                         IEnumerable<IEvDbOutboxTransformer> transformers)
     {
+        _storageContext = storageContext;
         string collectionPrefix = storageContext.CalcCollectionPrefix();
 
         _client = new MongoClient(settings);
         string databaseName = storageContext.DatabaseName;
         _db = _client.GetDatabase(databaseName);
 
-        // Collections for events, snapshots, and outbox messages.
+
         _eventsCollection = _db.GetCollection<BsonDocument>($"{collectionPrefix}events");
         _snapshotsCollection = _db.GetCollection<BsonDocument>($"{collectionPrefix}snapshots");
-        // TODO: [Bnaya 2025-02-20] dynamic table 
-        _outboxCollection = _db.GetCollection<BsonDocument>($$"""{{collectionPrefix}}{0}outbox""");
+        _outboxCollectionFormat = $$"""{{collectionPrefix}}{0}outbox""";
 
-        // TODO: [bnaya 2025-02-23] Migration? outside of Ctor
+        // TODO: [bnaya 2025-02-23] Migration? outside of Ctor, index are important
         _logger = logger;
         _transformers = transformers.ToImmutableArray();
     }
+
+    #endregion //  Ctor
 
     #region GetEventsAsync
 
@@ -60,19 +76,22 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         EvDbStreamCursor streamCursor,
         [EnumeratorCancellation] CancellationToken cancellation = default)
     {
-        // For demonstration purposes, assume streamCursor has properties StreamId and Offset.
-        var filter = Builders<BsonDocument>.Filter.Eq("stream_id", streamCursor.StreamId) &
-                     Builders<BsonDocument>.Filter.Gt("offset", streamCursor.Offset);
+        var filter = streamCursor.ToFilter();
+        var sorting = Builders<BsonDocument>.Sort.Ascending("_id");
 
-        using (var cursor = await _eventsCollection.FindAsync(filter, cancellationToken: cancellation))
+        IFindFluent<BsonDocument, BsonDocument> query = _eventsCollection.Find(filter)
+                                     .Sort(sorting);
+        if(_logger.IsEnabled(LogLevel.Trace))
+            _logger.LogQuery(query.ToJson());
+
+        using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
+
+        while (await cursor.MoveNextAsync(cancellation))
         {
-            while (await cursor.MoveNextAsync(cancellation))
+            foreach (var doc in cursor.Current)
             {
-                foreach (var doc in cursor.Current)
-                {
-                    // Convert from BsonDocument back to EvDbEvent.
-                    yield return doc.ToEvent();
-                }
+                // Convert from BsonDocument back to EvDbEvent.
+                yield return doc.ToEvent();
             }
         }
     }
@@ -95,52 +114,84 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         var options = new InsertManyOptions { IsOrdered = true };
 
         // Convert events and messages to BsonDocument lists.
-        var eventDocs = events.Select(e => e.ToBsonDocument()).ToList();
+        var eventDocs = events.Select(e => e.ToBsonDocument());
 
-        using (var session = await _db.Client.StartSessionAsync(cancellationToken: cancellation))
+        IImmutableDictionary<EvDbShardName, int> outboxCountPerShard = ImmutableDictionary<EvDbShardName, int>.Empty;
+        using var session = await _db.Client.StartSessionAsync(cancellationToken: cancellation);
+        session.StartTransaction();
+        try
         {
-            session.StartTransaction();
-            try
+            await StoreEventsAsync(options, eventDocs, session, cancellation);
+            if (messages.Count != 0)
             {
-                await _eventsCollection.InsertManyAsync(session, eventDocs, options, cancellation);
-                if (messages.Count != 0)
-                {
-                    await StoreOutbox(session);
-                }
+                outboxCountPerShard = await StoreOutbox(session);
+            }
 
-                await session.CommitTransactionAsync(cancellation);
-            }
-            catch (MongoBulkWriteException<BsonDocument> ex)
-            {
-                var cursor = events[0].StreamCursor;
-                await session.AbortTransactionAsync(cancellation);
-                throw new OCCException(cursor, ex);
-            }
-            catch (Exception)
-            {
-                await session.AbortTransactionAsync(cancellation);
-                throw;
-            }
+            await session.CommitTransactionAsync(cancellation);
+        }
+        #region Exception Handling
+
+        catch (MongoBulkWriteException<BsonDocument> ex)
+        {
+            var cursor = events[0].StreamCursor;
+            await session.AbortTransactionAsync(cancellation);
+            throw new OCCException(cursor, ex);
+        }
+        catch (Exception)
+        {
+            await session.AbortTransactionAsync(cancellation);
+            throw;
         }
 
-        // TODO: [Bnaya 2025-02-19] make it more efficient
-        ImmutableDictionary<EvDbShardName, int> outboxMap =
-            messages.GroupBy(m => m.ShardName)
-                                .Select(g => new { g.Key, Count = g.Count() })
-                                .ToDictionary(m => m.Key, m => m.Count)
-                                .ToImmutableDictionary();
-        return new StreamStoreAffected(events.Count, outboxMap);
+        #endregion //  Exception Handling
 
-        async Task StoreOutbox(IClientSessionHandle session)
+        return new StreamStoreAffected(events.Count, outboxCountPerShard);
+
+        #region StoreOutboxAsync
+
+        async Task<ImmutableDictionary<EvDbShardName, int>> StoreOutbox(IClientSessionHandle session)
         {
             EvDbStreamAddress address = messages[0].StreamCursor;
             IEnumerable<IGrouping<EvDbShardName, EvDbMessageRecord>> shards =
                                     messages.GroupByShards(_transformers);
-
-            var outboxDocs = messages.Select(m => m.ToBsonDocument()).ToList();
-            await _outboxCollection.InsertManyAsync(session, outboxDocs, options, cancellation);
+            var tasks = shards.Select(async g =>
+            {
+                EvDbShardName shardName = g.Key;
+                OtelTags tags = OtelTags.Empty.Add("shard", shardName);
+                using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
+                var outboxDocs = g.Select(m => m.ToBsonDocument()).ToArray();
+                var outboxCollection = _outboxCollections.GetOrAdd(shardName, CreateOutboxCollection);
+                await outboxCollection.InsertManyAsync(session, outboxDocs, options, cancellation);
+                int affctedMessages = outboxDocs.Length;
+                StoreMeters.AddMessages(affctedMessages, address, DATABASE_TYPE, shardName);
+                return KeyValuePair.Create(shardName, affctedMessages);
+            });
+            var pairs = await Task.WhenAll(tasks);
+            var result = pairs.ToImmutableDictionary();
+            return result;
         }
+
+        #endregion //  StoreOutboxAsync
+
+        #region StoreEventsAsync
+
+        async Task StoreEventsAsync(
+                            InsertManyOptions options,
+                            IEnumerable<BsonDocument> eventDocs,
+                            IClientSessionHandle session,
+                            CancellationToken cancellation)
+        {
+            using var activity = _trace.StartActivity("EvDb.StoreEventsAsync");
+            await _eventsCollection.InsertManyAsync(session, eventDocs, options, cancellation);
+            int affctedEvents = events.Count;
+            EvDbStreamAddress address = events[0].StreamCursor;
+            StoreMeters.AddEvents(affctedEvents, address, DATABASE_TYPE);
+
+        }
+
+        #endregion //  StoreEventsAsync
     }
+
 
     #endregion //  StoreStreamAsync
 
@@ -149,12 +200,13 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     /// <summary>
     /// Retrieves a stored snapshot for the specified view address.
     /// </summary>
-    public async Task<EvDbStoredSnapshot> GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation = default)
+    async Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(
+                                                EvDbViewAddress viewAddress,
+                                                CancellationToken cancellation)
     {
-        // For demonstration, assume viewAddress has properties Domain, Partition, and StreamId.
-        var filter = Builders<BsonDocument>.Filter.Eq("domain", viewAddress.Domain) &
-                     Builders<BsonDocument>.Filter.Eq("partition", viewAddress.Partition) &
-                     Builders<BsonDocument>.Filter.Eq("stream_id", viewAddress.StreamId);
+        FilterDefinition<BsonDocument> filter = viewAddress.ToFilter();
+        if (_logger.IsEnabled(LogLevel.Trace))
+            _logger.LogQuery(filter.ToJson());
 
         var document = await _snapshotsCollection.Find(filter).FirstOrDefaultAsync(cancellation);
         if (document == null)
@@ -175,7 +227,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (snapshotData == null)
             throw new ArgumentNullException(nameof(snapshotData));
 
-        var snapshotDoc = snapshotData.ToBsonDocument();
+        var snapshotDoc = snapshotData.EvDbToBsonDocument();
         try
         {
             await _snapshotsCollection.InsertOneAsync(snapshotDoc, cancellationToken: cancellation);
@@ -187,6 +239,16 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     }
 
     #endregion //  StoreSnapshotAsync
+
+    #region CreateOutboxCollection
+
+    private IMongoCollection<BsonDocument> CreateOutboxCollection(EvDbShardName shard)
+    {
+        string collectionName = string.Format(_outboxCollectionFormat, shard);
+        return _db.GetCollection<BsonDocument>(collectionName);
+    }
+
+    #endregion //  CreateOutboxCollection
 
     #region Dispose Pattern
 

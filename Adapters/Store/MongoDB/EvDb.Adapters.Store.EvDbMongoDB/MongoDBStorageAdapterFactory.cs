@@ -6,7 +6,6 @@ using MongoDB.Driver;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
-//public readonly record struct 
 public static class EvDbMongoDBStorageAdapterFactory
 {
     #region CreateStreamAdapter

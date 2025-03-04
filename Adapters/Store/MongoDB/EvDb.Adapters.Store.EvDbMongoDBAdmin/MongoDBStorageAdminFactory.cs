@@ -7,19 +7,19 @@ using MongoDB.Driver;
 
 namespace EvDb.Adapters.Store.Postgres;
 
-public class MongoStorageAdminFactory 
+public class MongoDBStorageAdminFactory 
 {
     //public static readonly IEvDbStorageAdminFactory Create()
     //{
     //    new MongoStorageAdminFactory()  
     //}
 
-    public MongoStorageAdminFactory()
+    public MongoDBStorageAdminFactory()
     {
 
     }
 
-    internal static IEvDbStorageAdmin Create(ILogger<MongoStorageAdminFactory> logger,
+    internal static IEvDbStorageAdmin Create(ILogger<MongoDBStorageAdminFactory> logger,
                                              string connectionString,
                                              EvDbStorageContext ctx,
                                              EvDbShardName[] shardNames)
@@ -28,7 +28,7 @@ public class MongoStorageAdminFactory
         return Create(logger, settings, ctx, shardNames);
     }
 
-    internal static IEvDbStorageAdmin Create(ILogger<MongoStorageAdminFactory> logger,
+    internal static IEvDbStorageAdmin Create(ILogger<MongoDBStorageAdminFactory> logger,
                                              MongoClientSettings settings,
                                              EvDbStorageContext ctx,
                                              EvDbShardName[] shardNames)

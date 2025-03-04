@@ -4,13 +4,13 @@
 using EvDb.Core;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
-using EvDb.Adapters.Store.EvDbMongoDB.Internals;
+using EvDb.Adapters.Store.Internals;
 using EvDb.Core.Adapters;
 using MongoDB.Bson;
 
 namespace EvDb.Adapters.Store.Postgres;
 
-public sealed class MongoStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsyncDisposable
+public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsyncDisposable
 {
     private readonly MongoClient _client;
     private readonly IMongoDatabase _db;
@@ -24,22 +24,22 @@ public sealed class MongoStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsyncDi
                             IMongoCollection<BsonDocument> SnapshotsCollection);
 
 
-    public MongoStorageAdmin(
+    public MongoDBStorageAdmin(
         ILogger logger,
         MongoClientSettings settings,
         EvDbStorageContext storageContext, 
         StorageFeatures features,
         params EvDbShardName[] shardNames)
     {
-        string collectionPrefix = storageContext.CalcCollectionPrefix();
-        _client = new MongoClient(settings);
-        string databaseName = storageContext.DatabaseName;
-        _db = _client.GetDatabase(databaseName);
-        string eventsCollectionName = $"{collectionPrefix}events";
-        string snapshotsCollectionName = $"{collectionPrefix}snapshots";
-        string outboxCollectionName = $$"""{{collectionPrefix}}{0}outbox""";
+        //string collectionPrefix = storageContext.CalcCollectionPrefix();
+        //_client = new MongoClient(settings);
+        //string databaseName = storageContext.DatabaseName;
+        //_db = _client.GetDatabase(databaseName);
+        //string eventsCollectionName = $"{collectionPrefix}events";
+        //string snapshotsCollectionName = $"{collectionPrefix}snapshots";
+        //string outboxCollectionName = $$"""{{collectionPrefix}}{0}outbox""";
 
-        var existingCollections = _db.ListCollectionNames().ToList();
+        //var existingCollections = _db.ListCollectionNames().ToList();
         //if (!existingCollections.Contains(CollectionById))
         //{
         //    _db.CreateCollection(CollectionById);
@@ -117,7 +117,7 @@ public sealed class MongoStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsyncDi
         _client?.Dispose();
     }
 
-    ~MongoStorageAdmin()
+    ~MongoDBStorageAdmin()
     {
         DisposeAction();
     }

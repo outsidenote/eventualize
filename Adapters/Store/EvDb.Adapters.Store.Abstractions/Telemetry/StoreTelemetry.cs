@@ -2,7 +2,7 @@
 
 namespace EvDb.Core.Adapters;
 
-internal static class StoreTelemetry
+public static class StoreTelemetry
 {
     public const string TraceName = "EvDb:Store";
 

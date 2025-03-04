@@ -1,6 +1,6 @@
 ﻿namespace EvDb.Core.Adapters;
 
-internal interface IEvDbStoreMeters
+public interface IEvDbStoreMeters
 {
     /// <summary>
     /// Events stored into the storage database

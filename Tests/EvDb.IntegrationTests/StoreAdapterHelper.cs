@@ -1,6 +1,8 @@
-﻿using EvDb.Adapters.Store.Postgres;
+﻿using EvDb.Adapters.Store.MongoDB;
+using EvDb.Adapters.Store.Postgres;
 using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core.Store.Internals;
+using FakeItEasy;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +29,9 @@ public static class StoreAdapterHelper
             case StoreType.Postgres:
                 context.UsePostgresStoreForEvDbStream();
                 break;
+            case StoreType.MongoDB:
+                context.UseMongoDBStoreForEvDbStream();
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -46,6 +51,9 @@ public static class StoreAdapterHelper
                 break;
             case StoreType.Postgres:
                 context.UsePostgresForEvDbSnapshot(overrideContext);
+                break;
+            case StoreType.MongoDB:
+                context.UseMongoDBForEvDbSnapshot(overrideContext);
                 break;
             default:
                 throw new NotImplementedException();
@@ -68,6 +76,7 @@ public static class StoreAdapterHelper
         {
             StoreType.SqlServer => "EvDbSqlServerConnection",
             StoreType.Postgres => "EvDbPostgresConnection",
+            StoreType.MongoDB => "EvDbMongoDBConnection",
             _ => throw new NotImplementedException()
         };
 
@@ -80,6 +89,8 @@ public static class StoreAdapterHelper
                 EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []),
             StoreType.Postgres =>
                 EvDbPostgresStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []),
+            StoreType.MongoDB =>
+                EvDbMongoDBStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []),
             _ => throw new NotImplementedException()
         };
 
@@ -102,6 +113,7 @@ public static class StoreAdapterHelper
         {
             StoreType.SqlServer => new SqlConnection(connectionString),
             StoreType.Postgres => new NpgsqlConnection(connectionString),
+            //StoreType.MongoDB => ,
             _ => throw new NotImplementedException()
         };
 
@@ -135,6 +147,9 @@ public static class StoreAdapterHelper
                 SqlServerStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             StoreType.Postgres =>
                 PostgresStorageAdminFactory.Create(logger, connectionString, context, shardNames),
+            StoreType.MongoDB => // TODO: [bnaya 2025-03-03] set it right 
+                A.Fake<IEvDbStorageAdmin>(),
+                //MongoDBStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             _ => throw new NotImplementedException()
         };
 
@@ -152,6 +167,7 @@ public static class StoreAdapterHelper
         {
             StoreType.SqlServer => "EvDbSqlServerConnection",
             StoreType.Postgres => "EvDbPostgresConnection",
+            StoreType.MongoDB => "EvDbMongoDBConnection",
             _ => throw new NotImplementedException()
         };
 
