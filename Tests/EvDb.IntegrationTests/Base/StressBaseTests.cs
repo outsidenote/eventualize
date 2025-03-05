@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
-public abstract class StressBaseTests : IntegrationTests
+public abstract class StressBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbDemoStreamFactory _factory;
 

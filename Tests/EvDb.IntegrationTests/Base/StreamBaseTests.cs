@@ -10,7 +10,7 @@ using EvDb.UnitTests;
 using System.Text.Json;
 using Xunit.Abstractions;
 
-public abstract class StreamBaseTests : IntegrationTests
+public abstract class StreamBaseTests : BaseIntegrationTests
 {
     public StreamBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType)

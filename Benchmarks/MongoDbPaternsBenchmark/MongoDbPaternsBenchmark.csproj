@@ -7,16 +7,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Include="..\..\docs\README.md" Link="README.md">
+	    <PackagePath>\</PackagePath>
+	    <Pack>True</Pack>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 		<PackageReference Include="MongoDB.Driver" Version="3.2.0" />
 		<PackageReference Include="xunit.assert" Version="2.9.3" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="..\..\docs\README.md" Link="README.md">
-			<PackagePath>\</PackagePath>
-			<Pack>True</Pack>
-		</None>
 	</ItemGroup>
 </Project>

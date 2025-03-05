@@ -34,7 +34,6 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     private readonly ConcurrentDictionary<EvDbShardName, IMongoCollection<BsonDocument>> _outboxCollections = new ConcurrentDictionary<EvDbShardName, IMongoCollection<BsonDocument>>();
     private readonly string _outboxCollectionFormat;
     private readonly ILogger _logger;
-    private readonly EvDbStorageContext _storageContext;
     private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
     private readonly static ActivitySource _trace = StoreTelemetry.Trace;
     private const string DATABASE_TYPE = "MongoDB";
@@ -48,7 +47,6 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                         EvDbStorageContext storageContext,
                         IEnumerable<IEvDbOutboxTransformer> transformers)
     {
-        _storageContext = storageContext;
         string collectionPrefix = storageContext.CalcCollectionPrefix();
 
         _client = new MongoClient(settings);
@@ -114,7 +112,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         var options = new InsertManyOptions { IsOrdered = true };
 
         // Convert events and messages to BsonDocument lists.
-        var eventDocs = events.Select(e => e.ToBsonDocument());
+        var eventDocs = events.Select(e => e.EvDbToBsonDocument());
 
         IImmutableDictionary<EvDbShardName, int> outboxCountPerShard = ImmutableDictionary<EvDbShardName, int>.Empty;
         using var session = await _db.Client.StartSessionAsync(cancellationToken: cancellation);
@@ -159,7 +157,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                 EvDbShardName shardName = g.Key;
                 OtelTags tags = OtelTags.Empty.Add("shard", shardName);
                 using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
-                var outboxDocs = g.Select(m => m.ToBsonDocument()).ToArray();
+                var outboxDocs = g.Select(m => m.EvDbToBsonDocument(shardName)).ToArray();
                 var outboxCollection = _outboxCollections.GetOrAdd(shardName, CreateOutboxCollection);
                 await outboxCollection.InsertManyAsync(session, outboxDocs, options, cancellation);
                 int affctedMessages = outboxDocs.Length;

@@ -15,7 +15,8 @@ static void Benchmark()
 
 static async Task ManualAsync()
 {
-    var x = new MongoAccessPatternsBenchmarks();
+    var tests = new MongoAccessPatternsBenchmarks();
+    tests.GlobalSetup();
 
     for (int i = 0; i < 20; i++)
     {
@@ -23,47 +24,40 @@ static async Task ManualAsync()
         Console.WriteLine("Compound");
         Console.ResetColor();
 
-        x.GlobalSetup();
-        x.IterationSetup();
+        tests.IterationSetup();
         var sw = Stopwatch.StartNew();
-        await x.Compound_GetBatch();
+        await tests.Compound_GetBatch();
         sw.Stop();
         var complexDuration = sw.Elapsed.TotalSeconds;
-        x.GlobalCleanup();
-
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("By Id");
         Console.ResetColor();
 
-        x.GlobalSetup();
-        x.IterationSetup();
+        tests.IterationSetup();
         sw = Stopwatch.StartNew();
-        await x.ById_GetBatch();
+        await tests.ById_GetBatch();
         sw.Stop();
         var byIdDuration = sw.Elapsed.TotalSeconds;
-        x.GlobalCleanup();
 
 
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("By Id Via Cursor");
-        Console.ResetColor();
+        //Console.ForegroundColor = ConsoleColor.Yellow;
+        //Console.WriteLine("By Id Via Cursor");
+        //Console.ResetColor();
 
-        x.GlobalSetup();
-        x.IterationSetup();
-        sw = Stopwatch.StartNew();
-        await x.ById_GetViaCursor();
-        sw.Stop();
-        var byIdViaCursorDuration = sw.Elapsed.TotalSeconds;
-        x.GlobalCleanup();
+        //tests.IterationSetup();
+        //sw = Stopwatch.StartNew();
+        //await tests.ById_GetViaCursor();
+        //sw.Stop();
+        //var byIdViaCursorDuration = sw.Elapsed.TotalSeconds;
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine($"""
     Compound:           {complexDuration:N2}
     By Id:              {byIdDuration:N2}
-    By Id via Cursor:   {byIdViaCursorDuration:N2}
     """);
         Console.ResetColor();
         Console.WriteLine("====================================");
     }
+        tests.GlobalCleanup();
 }

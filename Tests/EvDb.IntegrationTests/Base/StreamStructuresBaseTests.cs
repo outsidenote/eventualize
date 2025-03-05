@@ -9,7 +9,7 @@ using EvDb.StructuresValidation.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-public abstract class StreamStructuresBaseTests : IntegrationTests
+public abstract class StreamStructuresBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbCustomerEntityModelSingleChannelStream _streamSingle;
     private readonly IEvDbCustomerEntityModelDefaultAndSingleChannelsStream _streamDefaultAndSingle;
@@ -62,7 +62,7 @@ public abstract class StreamStructuresBaseTests : IntegrationTests
 
         Assert.Equal(1, _streamNo.StoredOffset);
 
-        var outboxEnumerable = await base.GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
+        var outboxEnumerable = await GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
         var outbox = outboxEnumerable.ToArray();
         Assert.Single(outbox);
         Assert.Equal(PersonChangedMessage.PAYLOAD_TYPE, outbox[0].MessageType);
@@ -79,7 +79,7 @@ public abstract class StreamStructuresBaseTests : IntegrationTests
 
         Assert.Equal(1, _streamSingle.StoredOffset);
 
-        var outboxEnumerable = await base.GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
+        var outboxEnumerable = await GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
         var outbox = outboxEnumerable.ToArray();
         Assert.Single(outbox);
         Assert.Equal(PersonChangedSingleChannelMessage.PAYLOAD_TYPE, outbox[0].MessageType);
@@ -96,7 +96,7 @@ public abstract class StreamStructuresBaseTests : IntegrationTests
 
         Assert.Equal(1, _streamDefaultAndSingle.StoredOffset);
 
-        var outboxEnumerable = await base.GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
+        var outboxEnumerable = await GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
         var outbox = outboxEnumerable.ToArray();
         Assert.Single(outbox);
         Assert.Equal(PersonChangedDefaultAndSingleChannelsMessage.PAYLOAD_TYPE, outbox[0].MessageType);
@@ -114,7 +114,7 @@ public abstract class StreamStructuresBaseTests : IntegrationTests
 
         Assert.Equal(1, _streamDefault.StoredOffset);
 
-        var outboxEnumerable = await base.GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
+        var outboxEnumerable = await GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
         var outbox = outboxEnumerable.ToArray();
         Assert.Single(outbox);
         Assert.Equal(PersonChangedDefaultChannelMessage.PAYLOAD_TYPE, outbox[0].MessageType);
@@ -132,7 +132,7 @@ public abstract class StreamStructuresBaseTests : IntegrationTests
 
         Assert.Equal(1, _streamMulti.StoredOffset);
 
-        var outboxEnumerable = await base.GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
+        var outboxEnumerable = await GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
         var outbox = outboxEnumerable.ToArray();
         Assert.Equal(2, outbox.Length);
         Assert.All(outbox, m => Assert.Equal(PersonChangedMultiChannelsMessage.PAYLOAD_TYPE, m.MessageType));

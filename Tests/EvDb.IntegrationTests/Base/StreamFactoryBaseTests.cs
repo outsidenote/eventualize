@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
-public abstract class StreamFactoryBaseTests : IntegrationTests
+public abstract class StreamFactoryBaseTests : BaseIntegrationTests
 {
     protected StreamFactoryBaseTests(ITestOutputHelper output,
                                     StoreType storeType) : base(output, storeType)

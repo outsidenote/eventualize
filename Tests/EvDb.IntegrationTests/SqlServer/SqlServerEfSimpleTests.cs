@@ -3,11 +3,15 @@
 namespace EvDb.Core.Tests;
 
 using Dapper;
+using EvDb.Core.Adapters;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
 public class SqlServerEfSimpleTests : StreamEfBaseTests
 {
+    public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) =>
+                                RelationalOutboxTestHelper.GetOutboxAsync(_storeType, StorageContext, shard);
+
     private const string CREATE_SCRIPT =
         """
         CREATE TABLE People (
@@ -71,14 +75,20 @@ public class SqlServerEfSimpleTests : StreamEfBaseTests
 
     public override async Task InitializeAsync()
     {
-        await _connection.ExecuteAsync(DROP_SCRIPT);
-        await _connection.ExecuteAsync(CREATE_SCRIPT);
+        using var connection = StoreAdapterHelper.GetConnection(_storeType, StorageContext);
+        await connection.OpenAsync();
+
+        await connection.ExecuteAsync(DROP_SCRIPT);
+        await connection.ExecuteAsync(CREATE_SCRIPT);
         await base.InitializeAsync();
     }
 
     public async override Task DisposeAsync()
     {
-        await _connection.ExecuteAsync(DROP_SCRIPT);
+        using var connection = StoreAdapterHelper.GetConnection(_storeType, StorageContext);
+        await connection.OpenAsync();
+
+        await connection.ExecuteAsync(DROP_SCRIPT);
         await base.DisposeAsync();
     }
 }

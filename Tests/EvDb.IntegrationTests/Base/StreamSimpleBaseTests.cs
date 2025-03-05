@@ -8,7 +8,7 @@ using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-public abstract class StreamSimpleBaseTests : IntegrationTests
+public abstract class StreamSimpleBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbSchoolStream _stream;
 

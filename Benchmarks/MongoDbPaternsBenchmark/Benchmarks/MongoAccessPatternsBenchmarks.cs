@@ -16,16 +16,17 @@ public class MongoAccessPatternsBenchmarks
     private MongoClient _client;
     private IMongoDatabase _db;
     private IMongoCollection<BsonDocument> _collectionById; // using _id from EvDbStreamCursor.ToString()
-    private IMongoCollection<BsonDocument> _collectionComposed; // using unique index
+    private IMongoCollection<BsonDocument> _collectionCompund; // using unique index
 
     private const string DatabaseName = "evdb-benchmark_db";
     private const string CollectionById = "evdb-benchmark-by-id";
     private const string CollectionComposed = "evdb-benchmark-composed";
     private const int INSERT_BATCH_SIZE = 1000;
-    private const int INSERT_TIMES = 500;
-    private const int GET_BATCH_SIZE = 50;
-    private const int GET_TIMES = 100;
+    private const int INSERT_TIMES = 50;
+    private const int GET_BATCH_SIZE = 100;
+    private const int GET_TIMES = 20;
     private const int REPORT_INSERT_CYCLE = 50;
+    private TimeSpan Delay = TimeSpan.FromMilliseconds(450);
 
     private int _iterationCount = -1;
 
@@ -37,8 +38,8 @@ public class MongoAccessPatternsBenchmarks
     public void IterationSetup()
     {
         // Clear both collections before each iteration.
-        _collectionById.DeleteMany(Builders<BsonDocument>.Filter.Empty);
-        _collectionComposed.DeleteMany(Builders<BsonDocument>.Filter.Empty);
+        //_collectionById.DeleteMany(Builders<BsonDocument>.Filter.Empty);
+        //_collectionCompund.DeleteMany(Builders<BsonDocument>.Filter.Empty);
 
         // Increment the iteration counter for each iteration.
         var iteration = Interlocked.Increment(ref _iterationCount);
@@ -57,32 +58,30 @@ public class MongoAccessPatternsBenchmarks
 
         // Get or create the collections for each access pattern.
         _collectionById = _db.GetCollection<BsonDocument>(CollectionById);
-        _collectionComposed = _db.GetCollection<BsonDocument>(CollectionComposed);
+        _collectionCompund = _db.GetCollection<BsonDocument>(CollectionComposed);
         // Ensure collections exist by creating them if they don't.
         var existingCollections = _db.ListCollectionNames().ToList();
         if (!existingCollections.Contains(CollectionById))
-        {
             _db.CreateCollection(CollectionById);
-        }
         if (!existingCollections.Contains(CollectionComposed))
-        {
             _db.CreateCollection(CollectionComposed);
-        }
 
         // Create indexes for both collections: domain, partition, stream_id, offset.
         var indexKeys = Builders<BsonDocument>.IndexKeys
                             .Ascending("domain")
                             .Ascending("partition")
                             .Ascending("stream_id");
+        var j = indexKeys.ToJson();
         var indexPrimaryKeys = indexKeys
                                 .Ascending("offset");
-        _collectionById.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexKeys));
-        _collectionComposed.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexPrimaryKeys,
-                                                                new CreateIndexOptions { Unique = true }));
+        // var byIdOptions = new CreateIndexOptions { Name = "domain_partition_id" };
+        // _collectionById.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexKeys, byIdOptions));
+        var compoundOptions = new CreateIndexOptions { Name = "domain_partition_id_offset", Unique = true };
+        _collectionCompund.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexPrimaryKeys, compoundOptions));
 
 
         // (Optional) For pattern2, you might create an additional unique index on a separate field.
-        //_collectionComposed.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(
+        //_collectionCompund.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(
         //   Builders<BsonDocument>.IndexKeys.Ascending("unique_id"),
         //   new CreateIndexOptions { Unique = true }));
     }
@@ -91,7 +90,7 @@ public class MongoAccessPatternsBenchmarks
     public void GlobalCleanup()
     {
         // Drop the database once the benchmarks have finished.
-        _client.DropDatabase(DatabaseName);
+       //_client.DropDatabase(DatabaseName);
     }
 
     #endregion //  Setup/Cleanup
@@ -99,7 +98,7 @@ public class MongoAccessPatternsBenchmarks
     #region Compound
 
     //[Benchmark]
-    public void Compound_InsertMany()
+    public async Task Compound_InsertMany()
     {
         // Pattern2: Use a unique field (simulate unique index) instead of setting _id manually
         for (int i = 0; i < INSERT_TIMES; i++)
@@ -107,7 +106,7 @@ public class MongoAccessPatternsBenchmarks
             var documents = _events.Skip(INSERT_BATCH_SIZE * i)
                                    .Take(INSERT_BATCH_SIZE)
                                    .Select(ev => ev.ToBsonDocument());
-            _collectionComposed.InsertMany(documents);
+            await _collectionCompund.InsertManyAsync(documents);
             if (i % REPORT_INSERT_CYCLE == 0)
                 Console.Write(".");
         }
@@ -117,7 +116,7 @@ public class MongoAccessPatternsBenchmarks
     [Benchmark]
     public async Task Compound_GetBatch()
     {
-        Compound_InsertMany();
+        await Compound_InsertMany();
 
         // Use the current iteration count as the starting offset.
         int baseOffset = _iterationCount * INSERT_BATCH_SIZE * INSERT_TIMES;
@@ -135,14 +134,23 @@ public class MongoAccessPatternsBenchmarks
                                                                           .Ascending("partition")
                                                                           .Ascending("stream_id")
                                                                           .Ascending("offset");
-            var cursor = _collectionComposed.Find(filter)
+            var cursor = _collectionCompund.Find(filter)
                                             .Sort(sorting)
                                             .Limit(GET_BATCH_SIZE);
             var result = await cursor.ToListAsync();
+            for (int j = 0; j < 10; j++)
+            {
+                if (result.Count == GET_BATCH_SIZE)
+                    break;
 
-            Assert.Equal(GET_BATCH_SIZE, result.Count);
-            Assert.True(result.Select(m => m["offset"].ToInt32())
-                              .SequenceEqual(Enumerable.Range(firstOffset, GET_BATCH_SIZE)));
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Expected {GET_BATCH_SIZE} but got {result.Count}");
+                Console.ResetColor();
+                await Task.Delay(Delay);
+            }
+
+            Assert.Equal(result.Select(m => m["offset"].ToInt32()),
+                        Enumerable.Range(firstOffset, GET_BATCH_SIZE));
         }
     }
 
@@ -151,7 +159,7 @@ public class MongoAccessPatternsBenchmarks
     #region ById
 
     //[Benchmark]
-    public void ById_InsertMany()
+    public async Task ById_InsertMany()
     {
         for (int i = 0; i < INSERT_TIMES; i++)
         {
@@ -164,7 +172,7 @@ public class MongoAccessPatternsBenchmarks
                 doc["_id"] = ev.StreamCursor.ToString();
                 return doc;
             });
-            _collectionById.InsertMany(documents);
+            await _collectionById.InsertManyAsync(documents);
             if (i % REPORT_INSERT_CYCLE == 0)
                 Console.Write(".");
         }
@@ -174,7 +182,7 @@ public class MongoAccessPatternsBenchmarks
     [Benchmark(Baseline = true)]
     public async Task ById_GetBatch()
     {
-        ById_InsertMany();
+        await ById_InsertMany();
 
         // Use the current iteration count as the starting offset.
         int baseOffset = _iterationCount * INSERT_BATCH_SIZE * INSERT_TIMES;
@@ -182,26 +190,21 @@ public class MongoAccessPatternsBenchmarks
         for (int i = 0; i < GET_TIMES; i++)
         {
             int firstOffset = baseOffset + (i * GET_BATCH_SIZE);
-            var fromId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", firstOffset).ToString();
-            var filter = Builders<BsonDocument>.Filter
-                                        .And(
-                                            Builders<BsonDocument>.Filter
-                                                .Eq("domain", "testdomain"),
-                                            Builders<BsonDocument>.Filter
-                                                .Eq("partition", "testpartition"),
-                                            Builders<BsonDocument>.Filter
-                                                .Eq("stream_id", "teststream"),                                        
-                                            Builders<BsonDocument>.Filter
-                                                .Gte("_id", fromId));
+            IFindFluent<BsonDocument, BsonDocument> query = CreateByIdQuery(firstOffset, i);
+            var result = await query.ToListAsync();
 
-            var cursor = _collectionById.Find(filter)
-                                              .Sort(Builders<BsonDocument>.Sort.Ascending("_id"))
-                                              .Limit(GET_BATCH_SIZE);
-            var result = await cursor.ToListAsync();
-
-            Assert.Equal(GET_BATCH_SIZE, result.Count);
-            Assert.True(result.Select(m => m["offset"].ToInt32())
-                              .SequenceEqual(Enumerable.Range(firstOffset, GET_BATCH_SIZE)));
+            for (int j = 0; j < 10; j++)
+            {
+                if (result.Count == GET_BATCH_SIZE)
+                    break;
+            
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Expected {GET_BATCH_SIZE} but got {result.Count}");
+                Console.ResetColor();
+                await Task.Delay(Delay);
+            }
+            Assert.Equal(result.Select(m => m["offset"].ToInt32()),
+                        Enumerable.Range(firstOffset, GET_BATCH_SIZE));
         }
     }
 
@@ -216,21 +219,7 @@ public class MongoAccessPatternsBenchmarks
         for (int i = 0; i < GET_TIMES; i++)
         {
             int firstOffset = baseOffset + (i * GET_BATCH_SIZE);
-            var fromId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", firstOffset).ToString();
-            var filter = Builders<BsonDocument>.Filter
-                                        .And(
-                                            Builders<BsonDocument>.Filter
-                                                .Eq("domain", "testdomain"),
-                                            Builders<BsonDocument>.Filter
-                                                .Eq("partition", "testpartition"),
-                                            Builders<BsonDocument>.Filter
-                                                .Eq("stream_id", "teststream"),
-                                            Builders<BsonDocument>.Filter
-                                                .Gte("_id", fromId));
-
-            var query = _collectionById.Find(filter)
-                                              .Sort(Builders<BsonDocument>.Sort.Ascending("_id"))
-                                              .Limit(GET_BATCH_SIZE);
+            IFindFluent<BsonDocument, BsonDocument> query = CreateByIdQuery(firstOffset, i);
             using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync();
             var result = new List<BsonDocument>();
             while (await cursor.MoveNextAsync())
@@ -242,11 +231,38 @@ public class MongoAccessPatternsBenchmarks
                 }
             }
 
-            Assert.Equal(GET_BATCH_SIZE, result.Count);
-            Assert.True(result.Select(m => m["offset"].ToInt32())
-                              .SequenceEqual(Enumerable.Range(firstOffset, GET_BATCH_SIZE)));
+            for (int j = 0; j < 10; j++)
+            {
+                if (result.Count == GET_BATCH_SIZE)
+                    break;
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Expected {GET_BATCH_SIZE} but got {result.Count}");
+                Console.ResetColor();
+                await Task.Delay(Delay);
+            }
+
+            Assert.Equal(result.Select(m => m["offset"].ToInt32()),
+                        Enumerable.Range(firstOffset, GET_BATCH_SIZE));
         }
     }
+
+    private IFindFluent<BsonDocument, BsonDocument> CreateByIdQuery(int firstOffset, int i)
+    {        
+        var fromId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", firstOffset).ToString();
+        var startwithId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", 0).ToNonOffsetString();
+        var filter = Builders<BsonDocument>.Filter.And(
+                                            Builders<BsonDocument>.Filter.Regex(
+                                                "_id", new BsonRegularExpression($"^{startwithId}")),
+                                            Builders<BsonDocument>.Filter.Gte(
+                                                "_id", fromId));
+
+        IFindFluent<BsonDocument, BsonDocument> query = _collectionById.Find(filter)
+                                          .Sort(Builders<BsonDocument>.Sort.Ascending("_id"))
+                                          .Limit(GET_BATCH_SIZE);
+        return query;
+    }
+
 
     #endregion //  ById
 

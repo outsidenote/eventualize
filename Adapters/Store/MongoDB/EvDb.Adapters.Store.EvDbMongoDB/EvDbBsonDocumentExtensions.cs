@@ -1,4 +1,5 @@
 ﻿using EvDb.Core;
+using EvDb.Core.Adapters;
 using MongoDB.Bson;
 using System.Diagnostics;
 using System.Text;
@@ -77,9 +78,9 @@ internal static class EvDbBsonDocumentExtensions
 
     #endregion //  ToSnapshotInfo
 
-    #region ToBsonDocument(EvDbEventRecord rec)
+    #region EvDbToBsonDocument(EvDbEventRecord rec)
 
-    public static BsonDocument ToBsonDocument(this EvDbEvent rec)
+    public static BsonDocument EvDbToBsonDocument(this EvDbEvent rec)
     {
         string json = Encoding.UTF8.GetString(rec.Payload);
         var payload = BsonDocument.Parse(json);
@@ -110,8 +111,7 @@ internal static class EvDbBsonDocumentExtensions
 
     public static BsonDocument EvDbToBsonDocument(this EvDbMessage rec)
     {
-        string json = Encoding.UTF8.GetString(rec.Payload);
-        var payload = BsonDocument.Parse(json);
+        BsonDocument payload = GetOutboxPayload(rec.SerializeType, rec.Payload);
 
         var activity = Activity.Current;
         var traceId = activity?.TraceId.ToHexString();
@@ -137,6 +137,61 @@ internal static class EvDbBsonDocumentExtensions
     }
 
     #endregion //  EvDbToBsonDocument(EvDbMessageRecord rec)
+
+    #region EvDbToBsonDocument(EvDbMessageRecord rec)
+
+    public static BsonDocument EvDbToBsonDocument(this EvDbMessageRecord rec, EvDbShardName shardName)
+    {
+        BsonDocument payload = GetOutboxPayload(rec.SerializeType, rec.Payload);
+
+        var activity = Activity.Current;
+        var traceId = activity?.TraceId.ToHexString();
+        var spanId = activity?.SpanId.ToHexString();
+
+        return new BsonDocument
+            {
+                { Outbox.Domain, rec.Domain },
+                { Outbox.Partition, rec.Partition },
+                { Outbox.StreamId, rec.StreamId },
+                { Outbox.Offset, rec.Offset },
+                { Outbox.EventType, rec.EventType },
+                { Outbox.MessageType, rec.MessageType },
+                { Outbox.Channel, rec.Channel.ToString() },
+                { Outbox.SerializeType, rec.SerializeType },
+                { Outbox.ShardName, shardName.ToString() },
+                { Outbox.TraceId,traceId != null ? (BsonValue) traceId : BsonNull.Value },
+                { Outbox.SpanId, spanId != null ? (BsonValue) spanId : BsonNull.Value },
+                { Outbox.Payload, payload },
+                { Outbox.CapturedBy, rec.CapturedBy },
+                { Outbox.CapturedAt, new BsonDateTime(rec.CapturedAt.UtcDateTime) }
+            };
+    }
+
+    #endregion //  EvDbToBsonDocument(EvDbMessageRecord rec)
+
+    #region GetOutboxPayload
+
+    private static BsonDocument GetOutboxPayload(string serializeType, byte[] payload)
+    {
+        BsonDocument result;
+        if (serializeType == IEvDbOutboxSerializer.DefaultFormat)
+        {
+            string json = Encoding.UTF8.GetString(payload);
+            result = BsonDocument.Parse(json);
+        }
+        else
+        {
+            result = new BsonDocument
+            {
+                { "type", serializeType },
+                { "payload", new BsonBinaryData(payload) }
+            };
+        }
+
+        return result;
+    }
+
+    #endregion //  GetOutboxPayload
 
     #region EvDbToBsonDocument(EvDbStoredSnapshotData rec)
 

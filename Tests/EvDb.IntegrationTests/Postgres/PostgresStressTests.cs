@@ -1,3 +1,4 @@
+using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
@@ -11,4 +12,8 @@ public sealed class PostgresStressTests : StressBaseTests
     }
 
     #endregion //  Ctor
+
+    public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) =>
+                                RelationalOutboxTestHelper.GetOutboxAsync(_storeType, StorageContext, shard);
+
 }

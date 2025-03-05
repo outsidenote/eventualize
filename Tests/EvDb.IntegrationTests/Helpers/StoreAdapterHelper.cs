@@ -106,7 +106,7 @@ public static class StoreAdapterHelper
     }
 
     public static DbConnection GetConnection(StoreType storeType,
-        EvDbTestStorageContext storageContext)
+        EvDbStorageContext storageContext)
     {
         string connectionString = GetConnectionString(storeType);
         DbConnection conn = storeType switch

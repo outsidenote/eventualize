@@ -5,7 +5,7 @@ using EvDb.UnitTests;
 using System.Transactions;
 using Xunit.Abstractions;
 
-public abstract class StreamTxSopeBaseTests : IntegrationTests
+public abstract class StreamTxSopeBaseTests : BaseIntegrationTests
 {
     public StreamTxSopeBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType)

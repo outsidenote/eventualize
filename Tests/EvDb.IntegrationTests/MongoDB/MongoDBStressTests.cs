@@ -1,3 +1,4 @@
+using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
@@ -11,4 +12,7 @@ public sealed class MongoDBStressTests : StressBaseTests
     }
 
     #endregion //  Ctor
+
+    public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => throw new NotImplementedException();
+
 }
