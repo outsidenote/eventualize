@@ -7,7 +7,7 @@ using MongoDB.Driver;
 
 namespace EvDb.Adapters.Store.Postgres;
 
-public class MongoDBStorageAdminFactory 
+public class MongoDBStorageAdminFactory
 {
     //public static readonly IEvDbStorageAdminFactory Create()
     //{
@@ -24,7 +24,7 @@ public class MongoDBStorageAdminFactory
                                              EvDbStorageContext ctx,
                                              EvDbShardName[] shardNames)
     {
-        var settings = MongoClientSettings.FromUrl(new MongoUrl(connectionString)); 
+        var settings = MongoClientSettings.FromUrl(new MongoUrl(connectionString));
         return Create(logger, settings, ctx, shardNames);
     }
 

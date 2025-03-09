@@ -3,6 +3,8 @@
 namespace EvDb.Core.Tests;
 
 using EvDb.Core.Adapters;
+using EvDb.Scenes;
+using System.Text.Json;
 using Xunit.Abstractions;
 
 public class MongoDBStreamTests : StreamBaseTests
@@ -12,6 +14,5 @@ public class MongoDBStreamTests : StreamBaseTests
     {
     }
 
-    public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => throw new NotImplementedException();
-
+    public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => StorageContext.GetOutboxFromMongoDBAsync(shard);
 }

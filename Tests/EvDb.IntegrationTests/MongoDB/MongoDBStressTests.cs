@@ -13,6 +13,5 @@ public sealed class MongoDBStressTests : StressBaseTests
 
     #endregion //  Ctor
 
-    public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => throw new NotImplementedException();
-
+    public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => StorageContext.GetOutboxFromMongoDBAsync(shard);
 }

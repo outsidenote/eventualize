@@ -90,7 +90,7 @@ public class MongoAccessPatternsBenchmarks
     public void GlobalCleanup()
     {
         // Drop the database once the benchmarks have finished.
-       //_client.DropDatabase(DatabaseName);
+        //_client.DropDatabase(DatabaseName);
     }
 
     #endregion //  Setup/Cleanup
@@ -197,7 +197,7 @@ public class MongoAccessPatternsBenchmarks
             {
                 if (result.Count == GET_BATCH_SIZE)
                     break;
-            
+
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Expected {GET_BATCH_SIZE} but got {result.Count}");
                 Console.ResetColor();
@@ -248,7 +248,7 @@ public class MongoAccessPatternsBenchmarks
     }
 
     private IFindFluent<BsonDocument, BsonDocument> CreateByIdQuery(int firstOffset, int i)
-    {        
+    {
         var fromId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", firstOffset).ToString();
         var startwithId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", 0).ToNonOffsetString();
         var filter = Builders<BsonDocument>.Filter.And(

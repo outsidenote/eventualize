@@ -59,5 +59,5 @@ static async Task ManualAsync()
         Console.ResetColor();
         Console.WriteLine("====================================");
     }
-        tests.GlobalCleanup();
+    tests.GlobalCleanup();
 }

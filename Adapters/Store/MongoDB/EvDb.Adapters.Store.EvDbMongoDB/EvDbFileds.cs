@@ -4,7 +4,7 @@ using EvDb.Core.Adapters;
 namespace EvDb.Adapters.Store.EvDbMongoDB.Internals;
 
 public static class EvDbFileds
-{ 
+{
     private static readonly Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
     #region Event

@@ -7,7 +7,6 @@ using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using Xunit.Abstractions;
-using static System.Formats.Asn1.AsnWriter;
 
 [DebuggerDisplay("{_storeType}")]
 public abstract class BaseIntegrationTests : IAsyncLifetime

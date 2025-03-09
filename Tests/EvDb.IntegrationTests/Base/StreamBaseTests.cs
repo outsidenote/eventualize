@@ -2,6 +2,7 @@
 
 namespace EvDb.Core.Tests;
 
+using EvDb.Adapters.Store.MongoDB;
 using EvDb.Adapters.Store.Postgres;
 using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core.Adapters;
@@ -15,6 +16,13 @@ public abstract class StreamBaseTests : BaseIntegrationTests
     public StreamBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType)
     {
+    }
+
+    protected virtual StudentPassedMessage? DeserializeStudentPassed(EvDbMessageRecord rec)
+    {
+        Assert.Equal(42, rec.Payload[0]);
+        StudentPassedMessage? result = JsonSerializer.Deserialize<StudentPassedMessage>(rec.Payload[1..]);
+        return result;
     }
 
     [Fact]
@@ -59,10 +67,9 @@ public abstract class StreamBaseTests : BaseIntegrationTests
             Assert.All(messagingVip, m => Assert.Equal("channel-3", m.Channel));
             Assert.All(messagingVip, msg =>
             {
-                Assert.Equal(42, msg.Payload[0]);
-                var pass = JsonSerializer.Deserialize<StudentPassedMessage>(msg.Payload[1..]);
-                Assert.Equal(2202, pass!.StudentId);
-                Assert.Equal("Lora", pass.Name);
+                var pass = DeserializeStudentPassed(msg);
+                Assert.Equal(2202, pass?.StudentId);
+                Assert.Equal("Lora", pass?.Name);
             });
 
             ICollection<EvDbMessageRecord> commandsCollection = await GetOutboxAsync(OutboxShards.Commands).ToEnumerableAsync();
@@ -86,6 +93,12 @@ public abstract class StreamBaseTests : BaseIntegrationTests
             Assert.All(defaults, m => Assert.Equal("avg", m.MessageType));
             Assert.All(defaults, m => Assert.Equal(EvDbOutbox.DEFAULT_OUTBOX, m.Channel));
 
+            var avg1 = JsonSerializer.Deserialize<AvgMessage>(defaults[0].Payload);
+            Assert.Equal(30, avg1!.Avg);
+            var avg2 = JsonSerializer.Deserialize<AvgMessage>(defaults[1].Payload);
+            Assert.Equal(45, avg2!.Avg);
+            var avg3 = JsonSerializer.Deserialize<AvgMessage>(defaults[2].Payload);
+            Assert.Equal(60, avg3!.Avg);
 
 
             string connectionString = StoreAdapterHelper.GetConnectionString(_storeType);
@@ -93,18 +106,12 @@ public abstract class StreamBaseTests : BaseIntegrationTests
             {
                 StoreType.SqlServer => EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(_logger, connectionString, StorageContext, []),
                 StoreType.Postgres => EvDbPostgresStorageAdapterFactory.CreateStreamAdapter(_logger, connectionString, StorageContext, []),
+                StoreType.MongoDB => EvDbMongoDBStorageAdapterFactory.CreateStreamAdapter(_logger, connectionString, StorageContext, []),
                 _ => throw new NotImplementedException()
             };
             var address = new EvDbStreamCursor(stream.StreamAddress);
             var eventsCollection = await adapter.GetEventsAsync(address).ToEnumerableAsync();
             var events = eventsCollection.ToArray();
-
-            var avg1 = JsonSerializer.Deserialize<AvgMessage>(defaults[0].Payload);
-            Assert.Equal(30, avg1!.Avg);
-            var avg2 = JsonSerializer.Deserialize<AvgMessage>(defaults[1].Payload);
-            Assert.Equal(45, avg2!.Avg);
-            var avg3 = JsonSerializer.Deserialize<AvgMessage>(defaults[2].Payload);
-            Assert.Equal(60, avg3!.Avg);
 
             var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
             Assert.True(eventsOffsets.SequenceEqual([1, 2, 3, 4]));

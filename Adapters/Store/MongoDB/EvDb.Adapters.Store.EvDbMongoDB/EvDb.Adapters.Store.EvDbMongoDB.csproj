@@ -23,4 +23,9 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\..\EvDb.Adapters.Store.Abstractions\EvDb.Adapters.Store.Abstractions.csproj" />
 	</ItemGroup>
+
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="EvDb.IntegrationTests" />
+	</ItemGroup>
 </Project>

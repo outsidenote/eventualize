@@ -2,11 +2,10 @@
 // Ignore Spelling: Admin
 
 using EvDb.Core;
-using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using EvDb.Adapters.Store.Internals;
 using EvDb.Core.Adapters;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace EvDb.Adapters.Store.Postgres;
 
@@ -27,7 +26,7 @@ public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsync
     public MongoDBStorageAdmin(
         ILogger logger,
         MongoClientSettings settings,
-        EvDbStorageContext storageContext, 
+        EvDbStorageContext storageContext,
         StorageFeatures features,
         params EvDbShardName[] shardNames)
     {

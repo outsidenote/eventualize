@@ -9,6 +9,5 @@ public sealed class MongoDBStreamFactoryTests : StreamFactoryBaseTests
     {
     }
 
-    public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => throw new NotImplementedException();
-
+    public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => StorageContext.GetOutboxFromMongoDBAsync(shard);
 }

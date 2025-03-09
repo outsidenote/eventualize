@@ -12,8 +12,6 @@ using System.Data.Common;
 
 namespace EvDb.Core.Tests;
 
-public record StoreAdapters(IEvDbStorageStreamAdapter Stream, IEvDbStorageSnapshotAdapter Snapshot);
-
 public static class StoreAdapterHelper
 {
 
@@ -136,6 +134,7 @@ public static class StoreAdapterHelper
         {
             StoreType.SqlServer => "master",
             StoreType.Postgres => "tests",
+            StoreType.MongoDB => "tests",
             _ => EvDbDatabaseName.Empty
         };
         context = context ?? new EvDbTestStorageContext(schema, dbName);
@@ -149,14 +148,14 @@ public static class StoreAdapterHelper
                 PostgresStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             StoreType.MongoDB => // TODO: [bnaya 2025-03-03] set it right 
                 A.Fake<IEvDbStorageAdmin>(),
-                //MongoDBStorageAdminFactory.Create(logger, connectionString, context, shardNames),
+            //MongoDBStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             _ => throw new NotImplementedException()
         };
 
         return result;
     }
 
-    public static string GetConnectionString(StoreType storeType)
+    public static string GetConnectionString(this StoreType storeType)
     {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
