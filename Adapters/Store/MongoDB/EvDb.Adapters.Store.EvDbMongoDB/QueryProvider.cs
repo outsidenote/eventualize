@@ -1,4 +1,6 @@
-﻿using EvDb.Adapters.Store.Internals;
+﻿// Ignore Spelling: Sharding
+
+using EvDb.Adapters.Store.Internals;
 using EvDb.Core;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
@@ -13,6 +15,8 @@ public static class QueryProvider
     public const string EventsPKName = "evb_events_idx";
     public const string SnapshotsPKName = "evb_snapshots_idx";
 
+    #region EventsCollectionSetting
+
     public static readonly MongoCollectionSettings EventsCollectionSetting = new MongoCollectionSettings
     {// Ask
         AssignIdOnInsert = false,
@@ -21,6 +25,22 @@ public static class QueryProvider
         WriteConcern = WriteConcern.WMajority,
     }.Freeze();
 
+    #endregion //  EventsCollectionSetting
+
+    #region OutboxCollectionSetting
+
+    public static readonly MongoCollectionSettings OutboxCollectionSetting = new MongoCollectionSettings
+    {// Ask
+        AssignIdOnInsert = false,
+        ReadConcern = ReadConcern.Default,
+        ReadPreference = ReadPreference.Nearest,
+        WriteConcern = WriteConcern.WMajority,
+    }.Freeze();
+
+    #endregion //  OutboxCollectionSetting
+
+    #region SnapshotCollectionSetting
+
     public static readonly MongoCollectionSettings SnapshotCollectionSetting = new MongoCollectionSettings
     {// Ask
         AssignIdOnInsert = false,
@@ -28,6 +48,25 @@ public static class QueryProvider
         ReadPreference = ReadPreference.Nearest,
         WriteConcern = WriteConcern.Acknowledged,
     }.Freeze();
+
+    #endregion //  SnapshotCollectionSetting
+
+    #region DefaultCreateCollectionOptions
+
+    public static CreateCollectionOptions DefaultCreateCollectionOptions { get; } = CreateDefaultCreateCollectionOptions();
+
+    private static CreateCollectionOptions CreateDefaultCreateCollectionOptions()
+    {
+        // Ask
+        var options = new CreateCollectionOptions
+        {
+            // EncryptedFields
+            // IndexOptionDefaults 
+        };
+        return options;
+    }
+
+    #endregion //  DefaultCreateCollectionOptions
 
     #region EventsPK
 
@@ -45,33 +84,38 @@ public static class QueryProvider
 
         var options = new CreateIndexOptions
         {
-            Name = EventsPKName
+            Name = EventsPKName,
+            Unique = true
         };
         return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
     }
 
     #endregion //  EventsPK
 
-    private static BsonDocument CreateEnableSahrdingCommand(string databaseName) =>
-                                new BsonDocument { { "enableSharding", databaseName } };
+    public static BsonDocument CreateEnableSahrdingCommand(string databaseName) =>
+                                new BsonDocument { [ "enableSharding"] = databaseName };
 
     #region // OutboxPK
 
-    //public static readonly IndexKeysDefinition<BsonDocument> OutboxPK = CreateOutboxPK();
+    public static readonly CreateIndexModel<BsonDocument> OutboxPK = CreateOutboxPK();
 
-    //private static IndexKeysDefinition<BsonDocument> CreateOutboxPK()
-    //{
-    //    IndexKeysDefinition<BsonDocument> outboxPK = Builders<BsonDocument>.IndexKeys
-    //        .Ascending(EvDbFileds.Outbox.CapturedAt)
-    //        .Ascending(EvDbFileds.Outbox.Domain)
-    //        .Ascending(EvDbFileds.Outbox.Partition)
-    //        .Ascending(EvDbFileds.Outbox.StreamId)
-    //        .Ascending(EvDbFileds.Outbox.Offset)
-    //        .Ascending(EvDbFileds.Outbox.Channel)
-    //        .Ascending(EvDbFileds.Outbox.MessageType);
+    private static CreateIndexModel<BsonDocument> CreateOutboxPK()
+    {
+        IndexKeysDefinition<BsonDocument> indexKeysDefinition = Builders<BsonDocument>.IndexKeys
+            .Ascending(EvDbFileds.Event.Domain)
+            .Ascending(EvDbFileds.Event.Partition)
+            .Ascending(EvDbFileds.Event.StreamId)
+            .Ascending(EvDbFileds.Event.Offset)
+            .Ascending(EvDbFileds.Outbox.Channel)
+            .Ascending(EvDbFileds.Outbox.MessageType);
 
-    //    return outboxPK;
-    //}
+        var options = new CreateIndexOptions
+        {
+            Name = EventsPKName,
+            Unique = true
+        };
+        return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
+    }
 
     #endregion //  OutboxPK
 
@@ -94,6 +138,24 @@ public static class QueryProvider
             Name = SnapshotsPKName
         };
         return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
+    }
+
+    #endregion //  SnapshotPK
+
+    #region SnapshotPK
+
+    public static readonly BsonDocument Sharding = CreateSharding();
+
+    private static BsonDocument CreateSharding()
+    {
+        var sharding = new BsonDocument
+        {
+            [EvDbFileds.Event.Domain] = 1,
+            [EvDbFileds.Event.Partition] = 1,
+            [EvDbFileds.Event.EventType] = 1
+        };
+
+        return sharding;    
     }
 
     #endregion //  SnapshotPK

@@ -52,7 +52,8 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
             {
                 throw new InvalidOperationException($"""
                     EvDb Outbox serialization in strict mode expect 
-                    a single serializer per context.
+                    a single serializer that match handling the message.
+                    according to the implementation of IEvDbOutboxSerializer.ShouldSerialize 
                     Channel: {channel}
                     SerializerType: {shardName}
                     Payload Type {payload?.PayloadType}

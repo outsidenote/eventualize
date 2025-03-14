@@ -61,5 +61,5 @@ internal static class RelationalOutboxTestHelper
         await connection.CloseAsync();
     }
 
-    #endregion //  GetOutboxFromRelationalDBAsync
+    #endregion //  GetOutboxAsync
 }

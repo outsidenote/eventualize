@@ -28,3 +28,7 @@ If you want to learn more, go to [Learn More](https://eventualizedb.comlearn-mor
 You can contribute to this project in many ways (not just coding)!
 If you are interested to learn more about how you can do this, please visit the [Contribution](https://eventualizedb.comcontribution) page.
 
+
+## Sharding setup
+
+- [Clode](https://claude.ai/share/076cd430-53ea-4149-9ffb-549331451dc4)

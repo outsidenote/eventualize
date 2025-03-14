@@ -3,12 +3,13 @@ using EvDb.Core;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Threading;
 
 namespace EvDb.Adapters.Store.EvDbMongoDB.Internals;
 
-internal sealed class CollectionsSetup: IDisposable, IAsyncDisposable
+internal sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 {
     private readonly ILogger _logger;
     private readonly MongoClient _client;
@@ -16,14 +17,18 @@ internal sealed class CollectionsSetup: IDisposable, IAsyncDisposable
     private readonly string _collectionPrefix;
     private readonly IMongoDatabase _db;
     private readonly string _outboxCollectionFormat;
-    private static readonly ConcurrentDictionary<CollectionIdentity, bool> _isShardedCache = new ConcurrentDictionary<CollectionIdentity, bool>();
-    private readonly ConcurrentDictionary<EvDbShardName, IMongoCollection<BsonDocument>> _outboxCollections = new ConcurrentDictionary<EvDbShardName, IMongoCollection<BsonDocument>>();
-    private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+    private static readonly ConcurrentDictionary<CollectionIdentity, object?> _isShardedCache = new ConcurrentDictionary<CollectionIdentity, object?>();
+    private readonly ConcurrentDictionary<string, object?> _isCollectionCreated = new ConcurrentDictionary<string, object?>();
+    private static readonly SemaphoreSlim _collectionCreationSync = new SemaphoreSlim(1);
+    private static readonly SemaphoreSlim _shardsCreationSync = new SemaphoreSlim(1);
     private static readonly CreateOneIndexOptions CREATE_INDEX_OPTIONS = new CreateOneIndexOptions
     {
         CommitQuorum = CreateIndexCommitQuorum.Majority,
     };
+    private static readonly TimeSpan SETUP_TIMEOUT = TimeSpan.FromMinutes(2);
+
     public static CollectionsSetup Create(ILogger logger, MongoClient client, EvDbStorageContext context) => new CollectionsSetup(logger, client, context);
+
 
     #region Ctor
 
@@ -38,26 +43,49 @@ internal sealed class CollectionsSetup: IDisposable, IAsyncDisposable
         _collectionPrefix = storageContext.CalcCollectionPrefix();
         _db = _client.GetDatabase(storageContext.DatabaseName);
         _outboxCollectionFormat = $$"""{{_collectionPrefix}}{0}outbox""";
+        EventsCollectionTask = CreateEventsCollectionAsync();
+        SnapshotsCollectionTask = CreateSnapshotsCollectionAsync();
     }
 
     #endregion //  Ctor
 
     public IMongoDatabase Db => _db;
+    public Task<IMongoCollection<BsonDocument>> EventsCollectionTask { get; }
+    public Task<IMongoCollection<BsonDocument>> SnapshotsCollectionTask { get; }
+    private static readonly SemaphoreSlim _sync = new SemaphoreSlim(1);
 
     #region CreateEventsCollectionAsync
 
-    public async Task<IMongoCollection<BsonDocument>> CreateEventsCollectionAsync(
-                                                        CancellationToken cancellationToken)
+    private async Task<IMongoCollection<BsonDocument>> CreateEventsCollectionAsync(
+                                        CancellationToken cancellationToken = default)
     {
+        using var cts = new CancellationTokenSource(SETUP_TIMEOUT);
+
         string collectionName = $"{_collectionPrefix}events";
-        var collection = _db.GetCollection<BsonDocument>(collectionName,
-                                                         QueryProvider.EventsCollectionSetting);
+        bool exists = await CreateCollectionIfNotExistsAsync(collectionName,
+                                                           QueryProvider.DefaultCreateCollectionOptions,
+                                                           cancellationToken);
+
+        IMongoCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>(collectionName,
+                                                             QueryProvider.EventsCollectionSetting);
+
+        if (exists)
+            return collection;
+
         await collection.Indexes.CreateOneAsync(QueryProvider.EventsPK,
                                                 CREATE_INDEX_OPTIONS,
-                                                cancellationToken);
+                                                cts.Token);
+        try
+        {
+            await _sync.WaitAsync();
+            await _client.ConfigureShardingAsync(_storageContext.DatabaseName, collectionName, QueryProvider.Sharding, _logger);
+        }
+        finally
+        {
+            _sync.Release();
+        }
 
-        var collectionIdentity = new CollectionIdentity(_storageContext.DatabaseName, collectionName);
-        await CreateShardingStrategyIfNotExistsAsync(collectionIdentity, cancellationToken);
+        await CreateShardingStrategyIfNotExistsAsync(_storageContext.DatabaseName, collectionName, cts.Token);
 
         return collection;
     }
@@ -66,19 +94,27 @@ internal sealed class CollectionsSetup: IDisposable, IAsyncDisposable
 
     #region CreateSnapshotsCollectionAsync
 
-    public async Task<IMongoCollection<BsonDocument>> CreateSnapshotsCollectionAsync(
-                                                        CancellationToken cancellationToken)
+    private async Task<IMongoCollection<BsonDocument>> CreateSnapshotsCollectionAsync(
+                                            CancellationToken cancellationToken = default)
     {
         string collectionName = $"{_collectionPrefix}snapshots";
-        var collection = _db.GetCollection<BsonDocument>(
-                                    collectionName,
-                                    QueryProvider.SnapshotCollectionSetting);
+        bool exists = await CreateCollectionIfNotExistsAsync(collectionName,
+                                                   QueryProvider.DefaultCreateCollectionOptions,
+                                                   cancellationToken);
+
+        var collection = _db.GetCollection<BsonDocument>(collectionName,
+                                                 QueryProvider.SnapshotCollectionSetting);
+        if (exists)
+            return collection;
+
+
+        using var cts = new CancellationTokenSource(SETUP_TIMEOUT);
+
         await collection.Indexes.CreateOneAsync(QueryProvider.SnapshotPK,
                                                 CREATE_INDEX_OPTIONS,
-                                                cancellationToken);
+                                                cts.Token);
 
-        var collectionIdentity = new CollectionIdentity(_storageContext.DatabaseName, collectionName);
-        await CreateShardingStrategyIfNotExistsAsync(collectionIdentity, cancellationToken);
+        await CreateShardingStrategyIfNotExistsAsync(_storageContext.DatabaseName, collectionName, cts.Token);
 
         return collection;
     }
@@ -87,43 +123,51 @@ internal sealed class CollectionsSetup: IDisposable, IAsyncDisposable
 
     #region CreateShardingStrategyIfNotExistsAsync
 
-    private async Task CreateShardingStrategyIfNotExistsAsync(
+    private async Task<bool> CreateShardingStrategyIfNotExistsAsync(
+                                                    string databaseName,
+                                                    string collectionName,
+                                                    CancellationToken cancellationToken)
+    {
+        var collectionIdentity = new CollectionIdentity(databaseName, collectionName);
+        bool succeed = await CreateShardingStrategyIfNotExistsAsync(collectionIdentity, cancellationToken);
+        return succeed;
+    }
+
+    private async Task<bool> CreateShardingStrategyIfNotExistsAsync(
                                         CollectionIdentity collectionIdentity,
                                         CancellationToken cancellationToken)
     {
         #region return if exists
 
         if (_isShardedCache.ContainsKey(collectionIdentity))
-            return;
+            return true;
         if (await IsShardedAsync(collectionIdentity))
         {
             _isShardedCache.TryAdd(collectionIdentity, true);
-            return;
+            return true;
         }
 
         #endregion //  return if exists
 
         try
         {
-            await _semaphore.WaitAsync(cancellationToken);
+            await _shardsCreationSync.WaitAsync(cancellationToken);
 
             #region return if exists
 
             if (_isShardedCache.ContainsKey(collectionIdentity))
-                return;
+                return true;
 
             #endregion //  return if exists
 
-            var adminDb = _client.GetDatabase("admin");
-            BsonDocument shardCommand = Commands.CreateEventsShardCommand(collectionIdentity);
-            await adminDb.RunCommandAsync<BsonDocument>(shardCommand);
-
-            // TODO: [bnaya 2025-03-09] hi perf logging
-            _logger.LogInformation($"Collection '{collectionIdentity}' sharded successfully with key {shardCommand.ToJson()}.");
+            bool succeed = await _client.ConfigureShardingAsync(collectionIdentity, QueryProvider.Sharding, _logger);
+            if (succeed)
+                _isShardedCache.TryAdd(collectionIdentity, null);
+            return succeed;
         }
         finally
         {
-            _semaphore.Release();
+            _shardsCreationSync.Release();
         }
     }
 
@@ -140,64 +184,85 @@ internal sealed class CollectionsSetup: IDisposable, IAsyncDisposable
         // Execute the command and return only relevant collections
         BsonDocument result = await adminDb.RunCommandAsync<BsonDocument>(listCollectionsCommand);
 
-        // Extract the first matching collection (if any)
+        // Extract the first matching existingCollection (if any)
         var collectionDoc = result["cursor"]["firstBatch"].AsBsonArray.FirstOrDefault();
 
-        // Check if the collection exists and is sharded
+        // Check if the existingCollection exists and is sharded
         bool isSharded = collectionDoc?.AsBsonDocument?.Contains("sharded") == true;
         return isSharded;
     }
 
     #endregion //  IsShardedAsync
 
-    #region CreateOutboxCollectionAsync
+    #region CreateOutboxCollectionIfNotExistsAsync
 
-    public async Task<IMongoCollection<BsonDocument>> GetOutboxCollectionAsync(EvDbShardName shardName, CancellationToken cancellationToken)
-    {
-        #region return if exists
-
-        if (_outboxCollections.TryGetValue(shardName, out IMongoCollection<BsonDocument>? collection))
-            return collection;
-
-        #endregion //  return if exists
-
-        try
-        {
-            #region return if exists
-
-            if (_outboxCollections.TryGetValue(shardName, out collection))
-                return collection;
-
-            #endregion //  return if exists
-
-            IMongoCollection<BsonDocument> outboxCollection =
-                                await CreateOutboxCollectionAsync(shardName, cancellationToken);
-            _outboxCollections.TryAdd(shardName, outboxCollection);
-            return outboxCollection;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
-    private async Task<IMongoCollection<BsonDocument>> CreateOutboxCollectionAsync(EvDbShardName shardName, CancellationToken cancellationToken)
+    public async Task<IMongoCollection<BsonDocument>> CreateOutboxCollectionIfNotExistsAsync(EvDbShardName shardName)
     {
         string collectionName = string.Format(_outboxCollectionFormat, shardName);
+        IMongoCollection<BsonDocument> outboxCollection =
+                            await CreateOutboxCollectionIfNotExistsAsync(collectionName);
+        return outboxCollection;
+    }
+
+    private async Task<IMongoCollection<BsonDocument>> CreateOutboxCollectionIfNotExistsAsync(string collectionName)
+    {
+        using var cts = new CancellationTokenSource(SETUP_TIMEOUT);
+
+        var exists = await CreateCollectionIfNotExistsAsync(collectionName,
+                                                           QueryProvider.DefaultCreateCollectionOptions,
+                                                           cts.Token);
         var collection = _db.GetCollection<BsonDocument>(collectionName,
-                                                         QueryProvider.EventsCollectionSetting);
+                                         QueryProvider.OutboxCollectionSetting);
 
+        if (exists)
+            return collection;
 
-        await collection.Indexes.CreateOneAsync(QueryProvider.EventsPK,
+        await collection.Indexes.CreateOneAsync(QueryProvider.OutboxPK,
                                                 CREATE_INDEX_OPTIONS,
-                                                cancellationToken);
+                                                cts.Token);
 
-        var collectionIdentity = new CollectionIdentity(_storageContext.DatabaseName, collectionName);
-        await CreateShardingStrategyIfNotExistsAsync(collectionIdentity, cancellationToken);
+        await CreateShardingStrategyIfNotExistsAsync(_storageContext.DatabaseName, collectionName, cts.Token);
 
         return collection;
     }
 
-    #endregion //  CreateOutboxCollectionAsync
+    #endregion //  CreateOutboxCollectionIfNotExistsAsync
+
+    // Ask: CreateCollectionOptions vs. MongoCollectionSettings
+    #region CreateCollectionIfNotExistsAsync
+
+    private async Task<bool> CreateCollectionIfNotExistsAsync(
+        string collectionName,
+        CreateCollectionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        if (_isCollectionCreated.TryGetValue(collectionName, out _))
+            return true;
+        try
+        {
+            await _collectionCreationSync.WaitAsync();
+            if (_isCollectionCreated.TryGetValue(collectionName, out _))
+                return true;
+
+            // Query the list of collections and filter by name
+            var filter = new BsonDocument("name", collectionName);
+            IAsyncCursor<BsonDocument> collections = await _db.ListCollectionsAsync(new ListCollectionsOptions { Filter = filter });
+            bool exists = await collections.AnyAsync();
+            if (!exists)
+            {
+                await _db.CreateCollectionAsync(collectionName, options, cancellationToken);
+            }
+
+            _isCollectionCreated.TryAdd(collectionName, null);
+            return false;
+        }
+        finally
+        {
+            _collectionCreationSync.Release();
+        }
+    }
+
+    #endregion //  CreateCollectionIfNotExistsAsync
 
     #region Commands
 

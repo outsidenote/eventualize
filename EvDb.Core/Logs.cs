@@ -4,7 +4,8 @@ namespace EvDb.Core;
 internal static partial class Logs
 {
     [LoggerMessage(LogLevel.Debug, """
-                    EvDb find multiple Outbox serialization per context.
+                    EvDb find multiple matching Outbox serialization for the message (IEvDbOutboxSerializer.ShouldSerialize ).
+                    All serializer but the first one will be ignored!
                     Channel: {channel}
                     Table Name: {shardName}
                     Payload Type {payloadType}

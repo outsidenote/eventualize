@@ -66,7 +66,5 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
         await (_storageMigrationSnapshot?.CreateEnvironmentAsync() ?? Task.CompletedTask);
     }
 
-    public virtual async Task DisposeAsync()
-    {
-    }
+    public virtual Task DisposeAsync() => Task.CompletedTask;
 }
