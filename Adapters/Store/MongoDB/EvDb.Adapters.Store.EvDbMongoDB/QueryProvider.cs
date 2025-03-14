@@ -178,9 +178,19 @@ public static class QueryProvider
                                             .Ascending(EvDbFileds.Snapshot.Domain)
                                             .Ascending(EvDbFileds.Snapshot.Partition)
                                             .Ascending(EvDbFileds.Snapshot.StreamId)
+                                            .Ascending(EvDbFileds.Snapshot.ViewName)
                                             .Descending(EvDbFileds.Snapshot.Offset);
 
     #endregion //  SortSnapshots
+
+    #region ProjectionSnapshots
+
+    public static ProjectionDefinition<BsonDocument> ProjectionSnapshots { get; } =
+                                    Builders<BsonDocument>.Projection
+                                            .Include(EvDbFileds.Snapshot.Offset)
+                                            .Include(EvDbFileds.Snapshot.State);
+
+    #endregion //  ProjectionSnapshots
 
     #region ToFilter
 

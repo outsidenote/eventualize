@@ -220,11 +220,13 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         IMongoCollection<BsonDocument> snapshotsCollection = await _collectionsSetup.SnapshotsCollectionTask;
         var document = await snapshotsCollection.Find(filter)
                                     .Sort(QueryProvider.SortSnapshots)
+                                    .Project(QueryProvider.ProjectionSnapshots)
                                     .FirstOrDefaultAsync(cancellation);
         if (document == null)
             return EvDbStoredSnapshot.Empty;
 
-        return document.ToSnapshotInfo();
+        var snapshot =  document.ToSnapshotInfo();
+        return snapshot;
     }
 
     #endregion //  GetSnapshotAsync

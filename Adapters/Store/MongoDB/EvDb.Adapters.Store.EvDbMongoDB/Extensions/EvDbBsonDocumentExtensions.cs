@@ -25,7 +25,9 @@ internal static class EvDbBsonDocumentExtensions
         var capturedAt = doc.GetValue(Event.CapturedAt).AsBsonDateTime.ToUniversalTime();
         var cursor = new EvDbStreamCursor(domain, partition, streamId, offset);
 
-        string payloadJson = doc.GetValue(Event.Payload).AsBsonDocument.ToJson();
+        string payloadJson = doc.GetValue(Event.Payload)
+                                .AsBsonDocument
+                                .ToJson();
         byte[] payload = Encoding.UTF8.GetBytes(payloadJson);
 
         return new EvDbEvent(eventType, capturedAt, capturedBy, cursor, payload);
@@ -91,8 +93,13 @@ internal static class EvDbBsonDocumentExtensions
         var viewName = doc.GetValue(Snapshot.ViewName).AsString;
         var offset = doc.GetValue(Snapshot.Offset).ToInt64();
         var storeOffset = doc.GetValue(Snapshot.StoreOffset).ToInt64();
-        var state = doc.GetValue(Snapshot.State).AsBsonDocument.ToBson();
         var address = new EvDbViewAddress(domain, partition, streamId, viewName);
+
+        string stateJson = doc.GetValue(Snapshot.State)
+                                .AsBsonDocument
+                                .ToJson();
+        byte[] state = Encoding.UTF8.GetBytes(stateJson);
+
         return new EvDbStoredSnapshotData(address, offset, storeOffset, state);
     }
 
@@ -102,7 +109,7 @@ internal static class EvDbBsonDocumentExtensions
 
     public static EvDbStoredSnapshot ToSnapshotInfo(this BsonDocument doc)
     {
-        var storeOffset = doc.GetValue(Snapshot.StoreOffset).ToInt64();
+        var storeOffset = doc.GetValue(Snapshot.Offset).ToInt64();
         var state = doc.GetValue(Snapshot.State).AsBsonDocument.ToBson();
         return new EvDbStoredSnapshot(storeOffset, state);
     }
@@ -224,7 +231,7 @@ internal static class EvDbBsonDocumentExtensions
         string json = Encoding.UTF8.GetString(rec.State);
         var state = BsonDocument.Parse(json);
 
-        return new BsonDocument
+        var doc =  new BsonDocument
             {
                 { Snapshot.Id, new BsonBinaryData(rec.Id, GuidRepresentation.Standard) },
                 { Snapshot.Domain, rec.Domain },
@@ -232,9 +239,10 @@ internal static class EvDbBsonDocumentExtensions
                 { Snapshot.StreamId, rec.StreamId },
                 { Snapshot.ViewName, rec.ViewName },
                 { Snapshot.Offset, rec.Offset },
-                { Snapshot.StoreOffset, rec.StoreOffset },
+                // { Snapshot.StoreOffset, rec.StoreOffset },
                 { Snapshot.State, state }
             };
+        return doc;
     }
 
     #endregion //  EvDbToBsonDocument(EvDbStoredSnapshotData rec)
