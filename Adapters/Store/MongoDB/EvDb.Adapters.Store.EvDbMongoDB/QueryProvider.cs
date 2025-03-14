@@ -92,7 +92,7 @@ public static class QueryProvider
 
     #endregion //  EventsPK
 
-    public static BsonDocument CreateEnableSahrdingCommand(string databaseName) =>
+    public static BsonDocument CreateEnableShardingCommand(string databaseName) =>
                                 new BsonDocument { [ "enableSharding"] = databaseName };
 
     #region // OutboxPK

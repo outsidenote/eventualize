@@ -21,10 +21,13 @@ internal static class EvDbBsonDocumentExtensions
         var streamId = doc.GetValue(Event.StreamId).AsString;
         var offset = doc.GetValue(Event.Offset).ToInt64();
         var eventType = doc.GetValue(Event.EventType).AsString;
-        var payload = doc.GetValue(Event.Payload).AsBsonDocument.ToBson();
         var capturedBy = doc.GetValue(Event.CapturedBy).AsString;
         var capturedAt = doc.GetValue(Event.CapturedAt).AsBsonDateTime.ToUniversalTime();
         var cursor = new EvDbStreamCursor(domain, partition, streamId, offset);
+
+        string payloadJson = doc.GetValue(Event.Payload).AsBsonDocument.ToJson();
+        byte[] payload = Encoding.UTF8.GetBytes(payloadJson);
+
         return new EvDbEvent(eventType, capturedAt, capturedBy, cursor, payload);
     }
 
@@ -111,7 +114,7 @@ internal static class EvDbBsonDocumentExtensions
     public static BsonDocument EvDbToBsonDocument(this EvDbEvent rec)
     {
         string json = Encoding.UTF8.GetString(rec.Payload);
-        var payload = BsonDocument.Parse(json);
+        BsonDocument payload = BsonDocument.Parse(json);
 
         var activity = Activity.Current;
         var traceId = activity?.TraceId.ToHexString();

@@ -34,11 +34,11 @@ internal static class MongoDBShardingExtensions
         // 2. check if sharding supported
         bool shrdingSupported = await adminDb.DoesSupportSharding();
         if (!shrdingSupported)
-            return false;
+            return true;
 
-        var enableShardingCommand = QueryProvider.CreateEnableSahrdingCommand(databaseName);
+        var enableShardingCommand = QueryProvider.CreateEnableShardingCommand(databaseName);
 
-        var enableShardingResult = await adminDb.RunCommandAsync<BsonDocument>(enableShardingCommand);
+        await adminDb.RunCommandAsync<BsonDocument>(enableShardingCommand);
 
         // 3. Shard the collection
         var shardCollectionCommand = new BsonDocument

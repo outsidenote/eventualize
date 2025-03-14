@@ -284,27 +284,6 @@ internal sealed class CollectionsSetup : IDisposable, IAsyncDisposable
         }
 
         #endregion //  CreateListCollectionCommand
-
-        #region CreateEventsShardCommand
-
-        public static BsonDocument CreateEventsShardCommand(CollectionIdentity collectionIdentity)
-        {
-            var fullCollectionName = collectionIdentity.ToString();
-
-            var shardCommand = new BsonDocument
-            {
-                ["shardCollection"] = fullCollectionName,
-                ["key"] = new BsonDocument
-                {
-                    [EvDbFileds.Event.Domain] = 1,
-                    [EvDbFileds.Event.Partition] = 1,
-                    [EvDbFileds.Event.EventType] = 1
-                }
-            };
-            return shardCommand;
-        }
-
-        #endregion //  CreateEventsShardCommand
     }
 
     #endregion //  Commands
