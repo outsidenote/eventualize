@@ -23,7 +23,7 @@ public abstract class StreamTxSopeBaseTests : BaseIntegrationTests
             await StorageContext
                                 .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId)
                                 .WhenStreamIsSavedAsync();
-        }
+        } // rollback
         IEvDbSchoolStreamFactory factory = StorageContext.CreateFactory(_storeType);
         var newStream = await factory.GetAsync(streamId);
 

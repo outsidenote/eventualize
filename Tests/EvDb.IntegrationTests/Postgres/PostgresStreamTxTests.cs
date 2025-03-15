@@ -5,10 +5,10 @@ namespace EvDb.Core.Tests;
 using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
-public class SqlServerStreamChaosTests : StreamTxSopeBaseTests
+public class PostgresStreamTxTests : StreamTxSopeBaseTests
 {
-    public SqlServerStreamChaosTests(ITestOutputHelper output) :
-        base(output, StoreType.SqlServer)
+    public PostgresStreamTxTests(ITestOutputHelper output) :
+        base(output, StoreType.Postgres)
     {
     }
 
