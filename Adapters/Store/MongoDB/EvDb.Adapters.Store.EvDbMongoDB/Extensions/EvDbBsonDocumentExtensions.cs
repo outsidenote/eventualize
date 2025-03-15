@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Bson
+﻿// Ignore Spelling: Bson Calc
 
 using EvDb.Core;
 using EvDb.Core.Adapters;
