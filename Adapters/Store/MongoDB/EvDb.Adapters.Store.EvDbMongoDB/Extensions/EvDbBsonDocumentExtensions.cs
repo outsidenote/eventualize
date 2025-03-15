@@ -59,7 +59,7 @@ internal static class EvDbBsonDocumentExtensions
         var payloadDoc = doc.GetValue(Outbox.Payload).AsBsonDocument;
         var payload = payloadDoc.NormalizePayload(serializeType);
 
-        var result =  new EvDbMessageRecord
+        var result = new EvDbMessageRecord
         {
             Domain = domain,
             Partition = partition,
@@ -94,9 +94,13 @@ internal static class EvDbBsonDocumentExtensions
         var storeOffset = doc.GetValue(Snapshot.StoreOffset).ToInt64();
         var address = new EvDbViewAddress(domain, partition, streamId, viewName);
 
-        string stateJson = doc.GetValue(Snapshot.State)
-                                .AsBsonDocument
-                                .ToJson();
+        string stateJson = "null";
+        if (doc.TryGetValue(Snapshot.State, out BsonValue value))
+        {
+            stateJson = value
+                            .AsBsonDocument
+                            .ToJson();
+        }
         byte[] state = Encoding.UTF8.GetBytes(stateJson);
 
         return new EvDbStoredSnapshotData(address, offset, storeOffset, state);
@@ -110,9 +114,21 @@ internal static class EvDbBsonDocumentExtensions
     {
         var storeOffset = doc.GetValue(Snapshot.Offset).ToInt64();
 
-        string json = doc.GetValue(Snapshot.State)
-                                .AsBsonDocument
-                                .ToJson();
+        string json = "null";
+        if (doc.TryGetValue(Snapshot.State, out BsonValue value))
+        {
+            if (value is BsonDocument)
+            {
+                json = value
+                            .AsBsonDocument
+                            .ToJson();
+            }
+            else
+            {
+                json = value.ToJson();
+            }
+        }
+
         byte[] state = Encoding.UTF8.GetBytes(json);
 
         return new EvDbStoredSnapshot(storeOffset, state);
@@ -232,19 +248,24 @@ internal static class EvDbBsonDocumentExtensions
 
     public static BsonDocument EvDbToBsonDocument(this EvDbStoredSnapshotData rec)
     {
-        string json = Encoding.UTF8.GetString(rec.State);
-        var state = BsonDocument.Parse(json);
+        BsonDocument doc = new BsonDocument
+        {
+            [Snapshot.Domain] = rec.Domain,
+            [Snapshot.Partition] = rec.Partition,
+            [Snapshot.StreamId] = rec.StreamId,
+            [Snapshot.ViewName] = rec.ViewName,
+            [Snapshot.Offset] = rec.Offset
+        };
+        if (rec.State.Length > 0)
+        {
+            string json = Encoding.UTF8.GetString(rec.State);
 
-        var doc =  new BsonDocument
+            if (json != "null")
             {
-                { Snapshot.Domain, rec.Domain },
-                { Snapshot.Partition, rec.Partition },
-                { Snapshot.StreamId, rec.StreamId },
-                { Snapshot.ViewName, rec.ViewName },
-                { Snapshot.Offset, rec.Offset },
-                // { Snapshot.StoreOffset, rec.StoreOffset },
-                { Snapshot.State, state }
-            };
+                BsonValue state = BsonSerializer.Deserialize<BsonValue>(json);
+                doc.Add(Snapshot.State, state);
+            }
+        }
         return doc;
     }
 

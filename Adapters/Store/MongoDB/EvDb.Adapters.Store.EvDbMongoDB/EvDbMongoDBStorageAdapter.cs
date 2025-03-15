@@ -269,7 +269,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
         #endregion //  Validation
 
-        var snapshotDoc = snapshotData.EvDbToBsonDocument();
+        BsonDocument snapshotDoc = snapshotData.EvDbToBsonDocument();
         try
         {
             IMongoCollection<BsonDocument> snapshotsCollection = await _collectionsSetup.SnapshotsCollectionTask;
