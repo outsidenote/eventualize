@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Sql
+﻿// Ignore Spelling: Sql Mongo
 
 namespace EvDb.Core.Tests;
 

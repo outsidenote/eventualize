@@ -71,7 +71,7 @@ public abstract class StreamFactoryBaseTests : BaseIntegrationTests
     }
 
     [Fact]
-    public async Task StreamFactory_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
+    public async Task StreamFactory_WhenInstantiatingWithSnapshotAndAnd6Events_Succeed()
     {
         var stream = await StorageContext
                         .GivenFactoryForStoredStreamWithEvents(_output, _storeType, numOfGrades: 6)

@@ -35,7 +35,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                         IEnumerable<IEvDbOutboxTransformer> transformers)
     {
         var client = new MongoClient(settings);
-        _collectionsSetup = CollectionsSetup.Create(logger, client, storageContext);    
+        _collectionsSetup = CollectionsSetup.Create(logger, client, storageContext);
 
         _logger = logger;
         _transformers = transformers.ToImmutableArray();
@@ -103,7 +103,31 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
         if (messages.Count == 0)
         {
-            await StoreEventsAsync(options, eventDocs, null, cancellation);
+            try
+            {
+                await StoreEventsAsync(options, eventDocs, null, cancellation);
+            }
+            #region Exception Handling
+
+            catch (MongoBulkWriteException<BsonDocument> ex)
+            {
+                ServerErrorCategory? cateory = ex.WriteErrors.FirstOrDefault()?.Category;
+                if (cateory == ServerErrorCategory.DuplicateKey)
+                {
+                    var address = events[0].StreamCursor;
+                    var cursor = new EvDbStreamCursor(address);
+                    throw new OCCException(cursor, ex);
+                }
+                throw;
+            }
+            catch (MongoCommandException ex) // when ex.Message.StartsWith("Command insert failed: Caused by ::  :: Please retry your operation or multi-document transaction..")
+            {
+                var address = events[0].StreamCursor;
+                var cursor = new EvDbStreamCursor(address);
+                throw new OCCException(cursor, ex);
+            }
+
+            #endregion //  Exception Handling
         }
         else
         {
@@ -137,7 +161,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                 throw new OCCException(cursor, ex);
             }
             catch (MongoCommandException ex) // when ex.Message.StartsWith("Command insert failed: Caused by ::  :: Please retry your operation or multi-document transaction..")
-            { 
+            {
                 await session.AbortTransactionAsync(cancellation);
                 var address = events[0].StreamCursor;
                 var cursor = new EvDbStreamCursor(address);
@@ -189,7 +213,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                             CancellationToken cancellation)
         {
             using var activity = _trace.StartActivity("EvDb.StoreEventsAsync");
-            if(session == null)
+            if (session == null)
                 await eventsCollection.InsertManyAsync(eventDocs, options, cancellation);
             else
                 await eventsCollection.InsertManyAsync(session, eventDocs, options, cancellation);
@@ -225,7 +249,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (document == null)
             return EvDbStoredSnapshot.Empty;
 
-        var snapshot =  document.ToSnapshotInfo();
+        var snapshot = document.ToSnapshotInfo();
         return snapshot;
     }
 
@@ -255,7 +279,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
         {
             throw new InvalidOperationException("Optimistic concurrency error while inserting snapshot.", ex);
-        } 
+        }
     }
 
     #endregion //  StoreSnapshotAsync

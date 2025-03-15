@@ -57,7 +57,6 @@ internal static class EvDbBsonDocumentExtensions
                                 : null;
 
         var payloadDoc = doc.GetValue(Outbox.Payload).AsBsonDocument;
-
         var payload = payloadDoc.NormalizePayload(serializeType);
 
         var result =  new EvDbMessageRecord
@@ -110,7 +109,12 @@ internal static class EvDbBsonDocumentExtensions
     public static EvDbStoredSnapshot ToSnapshotInfo(this BsonDocument doc)
     {
         var storeOffset = doc.GetValue(Snapshot.Offset).ToInt64();
-        var state = doc.GetValue(Snapshot.State).AsBsonDocument.ToBson();
+
+        string json = doc.GetValue(Snapshot.State)
+                                .AsBsonDocument
+                                .ToJson();
+        byte[] state = Encoding.UTF8.GetBytes(json);
+
         return new EvDbStoredSnapshot(storeOffset, state);
     }
 
@@ -233,7 +237,6 @@ internal static class EvDbBsonDocumentExtensions
 
         var doc =  new BsonDocument
             {
-                { Snapshot.Id, new BsonBinaryData(rec.Id, GuidRepresentation.Standard) },
                 { Snapshot.Domain, rec.Domain },
                 { Snapshot.Partition, rec.Partition },
                 { Snapshot.StreamId, rec.StreamId },
