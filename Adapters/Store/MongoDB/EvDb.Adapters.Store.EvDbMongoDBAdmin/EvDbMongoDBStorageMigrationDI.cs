@@ -1,6 +1,4 @@
-﻿// Ignore Spelling: Postgres
-
-using EvDb.Adapters.Store.Postgres;
+﻿using EvDb.Adapters.Store.MongoDB;
 using EvDb.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -28,7 +26,7 @@ public static class EvDbMongoDBStorageMigrationDI
     {
         return services.AddEvDbMongoDBStoreAdmin(
                             null,
-                            "EvDbPostgresConnection",
+                            "EvDbMongoDBConnection",
                             shardNames);
     }
 

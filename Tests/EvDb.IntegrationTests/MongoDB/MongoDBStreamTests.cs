@@ -3,8 +3,6 @@
 namespace EvDb.Core.Tests;
 
 using EvDb.Core.Adapters;
-using EvDb.Scenes;
-using System.Text.Json;
 using Xunit.Abstractions;
 
 public class MongoDBStreamTests : StreamBaseTests

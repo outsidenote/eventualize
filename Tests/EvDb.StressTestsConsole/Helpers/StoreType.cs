@@ -3,5 +3,6 @@
 public enum StoreType
 {
     SqlServer,
-    Posgres
+    Posgres,
+    MongoDB
 }

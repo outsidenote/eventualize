@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace EvDb.Adapters.Store.Postgres;
+namespace EvDb.Adapters.Store.MongoDB;
 
 public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsyncDisposable
 {
@@ -88,12 +88,14 @@ public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsync
 
     Task IEvDbStorageAdmin.CreateEnvironmentAsync(CancellationToken cancellation)
     {
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     Task IEvDbStorageAdmin.DestroyEnvironmentAsync(CancellationToken cancellation)
     {
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     #region Dispose Pattern

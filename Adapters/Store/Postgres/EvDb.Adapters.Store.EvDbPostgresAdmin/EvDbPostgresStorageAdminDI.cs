@@ -8,26 +8,26 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class EvDbPostgresStorageMigrationDI
+public static class EvDbPostgresStorageAdminDI
 {
     #region Overloads
 
-    public static IServiceCollection AddEvDbPostgresStoreMigration(
+    public static IServiceCollection AddEvDbPostgresStoreAdmin(
             this IServiceCollection services,
             string connectionStringOrKey,
             params EvDbShardName[] shardNames)
     {
-        return services.AddEvDbPostgresStoreMigration(
+        return services.AddEvDbPostgresStoreAdmin(
                             null,
                             connectionStringOrKey,
                             shardNames);
     }
 
-    public static IServiceCollection AddEvDbPostgresStoreMigration(
+    public static IServiceCollection AddEvDbPostgresStoreAdmin(
             this IServiceCollection services,
             params EvDbShardName[] shardNames)
     {
-        return services.AddEvDbPostgresStoreMigration(
+        return services.AddEvDbPostgresStoreAdmin(
                             null,
                             "EvDbPostgresConnection",
                             shardNames);
@@ -35,7 +35,7 @@ public static class EvDbPostgresStorageMigrationDI
 
     #endregion //  Overloads
 
-    public static IServiceCollection AddEvDbPostgresStoreMigration(
+    public static IServiceCollection AddEvDbPostgresStoreAdmin(
             this IServiceCollection services,
             EvDbStorageContext? context = null,
             string connectionStringOrKey = "EvDbPostgresConnection",

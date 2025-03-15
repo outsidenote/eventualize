@@ -2,7 +2,7 @@
 using EvDb.Core.Adapters;
 using System.Text;
 
-namespace EvDb.Adapters.Store.Postgres;
+namespace EvDb.Adapters.Store.MongoDB;
 
 internal static class Scripts
 {

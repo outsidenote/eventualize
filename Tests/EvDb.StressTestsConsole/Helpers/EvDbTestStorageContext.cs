@@ -7,6 +7,7 @@ public record EvDbTestStorageContext(StoreType storeType) : EvDbStorageContext(
      {
          StoreType.SqlServer => "master",
          StoreType.Posgres => "test_db",
+         StoreType.MongoDB => "stress",
          _ => throw new NotSupportedException()
      },
     "test",
@@ -15,5 +16,6 @@ public record EvDbTestStorageContext(StoreType storeType) : EvDbStorageContext(
     {
         StoreType.SqlServer => "dbo",
         StoreType.Posgres => "public",
+        StoreType.MongoDB => "tests",
         _ => throw new NotSupportedException()
     });

@@ -1,4 +1,4 @@
-﻿using EvDb.Adapters.Store.EvDbMongoDB.Internals;
+﻿using EvDb.Adapters.Store.MongoDB.Internals;
 using global::MongoDB.Bson;
 using global::MongoDB.Driver;
 using Microsoft.Extensions.Logging;
@@ -48,7 +48,7 @@ internal static class MongoDBShardingExtensions
             };
 
         BsonDocument shardResult = await adminDb.RunCommandAsync<BsonDocument>(shardCollectionCommand);
-        
+
         // TODO: [bnaya, 2025-03-12] high perf logging
         logger.LogInformation("Sharding [{DatabaseName}:{CollectionName}]: {Sharding}", databaseName, collectionName, shardResult.ToJson());
         return true;

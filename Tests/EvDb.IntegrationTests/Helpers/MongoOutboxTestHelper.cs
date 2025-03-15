@@ -2,16 +2,12 @@
 
 namespace EvDb.Core.Tests;
 
-using Dapper;
-using EvDb.Adapters.Store.EvDbMongoDB.Internals;
 using EvDb.Adapters.Store.Internals;
+using EvDb.Adapters.Store.MongoDB.Internals;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
-using System.Data.Common;
-using System.Text.Json;
 
 internal static class MongoOutboxTestHelper
 {

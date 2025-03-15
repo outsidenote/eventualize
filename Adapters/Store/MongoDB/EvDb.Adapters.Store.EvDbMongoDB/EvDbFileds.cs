@@ -1,7 +1,7 @@
 ﻿using EvDb.Core;
 using EvDb.Core.Adapters;
 
-namespace EvDb.Adapters.Store.EvDbMongoDB.Internals;
+namespace EvDb.Adapters.Store.MongoDB.Internals;
 
 public static class EvDbFileds
 {

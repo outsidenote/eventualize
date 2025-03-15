@@ -21,9 +21,7 @@ using System.Threading.Tasks.Dataflow;
 });
 if (!dbFound)
     Console.WriteLine("Missing database type (`-d` switch)");
-StoreType storeType = string.Compare(storeTypeArg, nameof(StoreType.SqlServer), true) == 0
-    ? StoreType.SqlServer
-    : StoreType.Posgres;
+StoreType storeType = Enum.Parse<StoreType>(storeTypeArg);
 
 
 var context = new EvDbTestStorageContext(storeType);
@@ -51,6 +49,9 @@ services.AddEvDb()
               case StoreType.Posgres:
                   c.UsePostgresStoreForEvDbStream();
                   break;
+              case StoreType.MongoDB:
+                  c.UseMongoDBStoreForEvDbStream();
+                  break;
           }
       })
       .DefaultSnapshotConfiguration(c =>
@@ -63,6 +64,9 @@ services.AddEvDb()
               case StoreType.Posgres:
                   c.UsePostgresForEvDbSnapshot();
                   break;
+              case StoreType.MongoDB:
+                  c.UseMongoDBForEvDbSnapshot();
+                  break;
           }
       });
 switch (storeType)
@@ -71,7 +75,10 @@ switch (storeType)
         services.AddEvDbSqlServerStoreAdmin(OutboxShards.Table1, OutboxShards.Table2);
         break;
     case StoreType.Posgres:
-        services.AddEvDbPostgresStoreMigration(OutboxShards.Table1, OutboxShards.Table2);
+        services.AddEvDbPostgresStoreAdmin(OutboxShards.Table1, OutboxShards.Table2);
+        break;
+    case StoreType.MongoDB:
+        services.AddEvDbMongoDBStoreAdmin(OutboxShards.Table1, OutboxShards.Table2);
         break;
 }
 builder.AddOtel();

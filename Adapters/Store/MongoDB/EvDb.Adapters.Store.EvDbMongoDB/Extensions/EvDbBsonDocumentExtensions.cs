@@ -1,12 +1,13 @@
 ﻿// Ignore Spelling: Bson Calc
 
+using EvDb.Adapters.Store.MongoDB.Internals;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using System.Diagnostics;
 using System.Text;
-using static EvDb.Adapters.Store.EvDbMongoDB.Internals.EvDbFileds;
+using static EvDb.Adapters.Store.MongoDB.Internals.EvDbFileds;
 
 namespace EvDb.Adapters.Store.Internals;
 

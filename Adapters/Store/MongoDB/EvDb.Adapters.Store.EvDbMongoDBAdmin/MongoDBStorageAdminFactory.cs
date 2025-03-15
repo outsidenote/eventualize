@@ -5,7 +5,7 @@ using EvDb.Core;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
-namespace EvDb.Adapters.Store.Postgres;
+namespace EvDb.Adapters.Store.MongoDB;
 
 public class MongoDBStorageAdminFactory
 {
@@ -33,7 +33,16 @@ public class MongoDBStorageAdminFactory
                                              EvDbStorageContext ctx,
                                              EvDbShardName[] shardNames)
     {
-        throw new NotImplementedException();
+        return Create(logger, settings, ctx, StorageFeatures.All, shardNames);
+    }
+
+    internal static IEvDbStorageAdmin Create(ILogger<MongoDBStorageAdminFactory> logger,
+                                             MongoClientSettings settings,
+                                             EvDbStorageContext ctx,
+                                             StorageFeatures features,
+                                             EvDbShardName[] shardNames)
+    {
+        return new MongoDBStorageAdmin(logger, settings, ctx, features, shardNames);
     }
 
     public IEvDbStorageAdmin Create(EvDbStorageContext context,
@@ -42,5 +51,7 @@ public class MongoDBStorageAdminFactory
     {
         throw new NotImplementedException();
     }
+
+
 }
 

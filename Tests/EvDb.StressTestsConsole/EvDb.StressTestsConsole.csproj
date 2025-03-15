@@ -39,6 +39,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Adapters\Store\MongoDB\EvDb.Adapters.Store.EvDbMongoDBAdmin\EvDb.Adapters.Store.EvDbMongoDBAdmin.csproj" />
+		<ProjectReference Include="..\..\Adapters\Store\MongoDB\EvDb.Adapters.Store.EvDbMongoDB\EvDb.Adapters.Store.EvDbMongoDB.csproj" />
 		<ProjectReference Include="..\..\Adapters\Store\Postgres\EvDb.Adapters.Store.EvDbPostgresAdmin\EvDb.Adapters.Store.EvDbPostgresAdmin.csproj" />
 		<ProjectReference Include="..\..\Adapters\Store\Postgres\EvDb.Adapters.Store.EvDbPostgres\EvDb.Adapters.Store.EvDbPostgres.csproj" />
 		<ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerAdmin\EvDb.Adapters.Store.EvDbSqlServerAdmin.csproj" />

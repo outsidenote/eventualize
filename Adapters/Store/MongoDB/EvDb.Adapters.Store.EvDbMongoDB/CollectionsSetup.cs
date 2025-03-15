@@ -3,11 +3,9 @@ using EvDb.Core;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Threading;
 
-namespace EvDb.Adapters.Store.EvDbMongoDB.Internals;
+namespace EvDb.Adapters.Store.MongoDB.Internals;
 
 internal sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 {

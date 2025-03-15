@@ -1,14 +1,10 @@
 ﻿// Ignore Spelling: Sharding
 
-using EvDb.Adapters.Store.Internals;
 using EvDb.Core;
-using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Collections;
-using System.Collections.Concurrent;
 
-namespace EvDb.Adapters.Store.EvDbMongoDB.Internals;
+namespace EvDb.Adapters.Store.MongoDB.Internals;
 
 public static class QueryProvider
 {
@@ -93,7 +89,7 @@ public static class QueryProvider
     #endregion //  EventsPK
 
     public static BsonDocument CreateEnableShardingCommand(string databaseName) =>
-                                new BsonDocument { [ "enableSharding"] = databaseName };
+                                new BsonDocument { ["enableSharding"] = databaseName };
 
     #region // OutboxPK
 
@@ -155,7 +151,7 @@ public static class QueryProvider
             [EvDbFileds.Event.EventType] = 1
         };
 
-        return sharding;    
+        return sharding;
     }
 
     #endregion //  SnapshotPK

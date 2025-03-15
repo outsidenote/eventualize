@@ -4,7 +4,7 @@ using EvDb.Core;
 // Ignore Spelling: Sql
 
 
-namespace EvDb.Adapters.Store.Postgres;
+namespace EvDb.Adapters.Store.MongoDB;
 
 public class MongoStorageScripting : IEvDbStorageScripting
 {

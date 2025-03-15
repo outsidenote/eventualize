@@ -1,4 +1,4 @@
-﻿namespace EvDb.Adapters.Store.EvDbMongoDB.Internals;
+﻿namespace EvDb.Adapters.Store.MongoDB.Internals;
 
 internal readonly record struct CollectionIdentity(string DatabaseName, string CollectionName)
 {

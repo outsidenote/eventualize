@@ -1,13 +1,12 @@
 ﻿// Ignore Spelling: Mongo
 
-using EvDb.Adapters.Store.EvDbMongoDB.Internals;
 using EvDb.Adapters.Store.Internals;
+using EvDb.Adapters.Store.MongoDB.Internals;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
