@@ -81,7 +81,7 @@ public static class QueryProvider
         var options = new CreateIndexOptions
         {
             Name = EventsPKName,
-            // Unique = true
+            Unique = true
         };
         return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
     }

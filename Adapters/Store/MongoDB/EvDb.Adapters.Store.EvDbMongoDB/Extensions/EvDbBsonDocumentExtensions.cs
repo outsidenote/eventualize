@@ -13,8 +13,6 @@ namespace EvDb.Adapters.Store.Internals;
 
 internal static class EvDbBsonDocumentExtensions
 {
-    private const string DOC_ID = "_id";
-
     #region ToEvent
 
     public static EvDbEvent ToEvent(this BsonDocument doc)
@@ -153,7 +151,6 @@ internal static class EvDbBsonDocumentExtensions
         // TODO: [bnaya 2025-02-25] use nameof
         return new BsonDocument
             {
-                [DOC_ID] = rec.StreamCursor.ToString(),
                 [Event.Domain] = rec.StreamCursor.Domain ,
                 [Event.Partition] = rec.StreamCursor.Partition,
                 [Event.StreamId] = rec.StreamCursor.StreamId,
