@@ -13,6 +13,8 @@ namespace EvDb.Adapters.Store.Internals;
 
 internal static class EvDbBsonDocumentExtensions
 {
+    private const string DOC_ID = "_id";
+
     #region ToEvent
 
     public static EvDbEvent ToEvent(this BsonDocument doc)
@@ -151,16 +153,17 @@ internal static class EvDbBsonDocumentExtensions
         // TODO: [bnaya 2025-02-25] use nameof
         return new BsonDocument
             {
-                { Event.Domain, rec.StreamCursor.Domain },
-                { Event.Partition, rec.StreamCursor.Partition },
-                { Event.StreamId, rec.StreamCursor.StreamId },
-                { Event.Offset, rec.StreamCursor.Offset },
-                { Event.EventType, rec.EventType },
-                { Event.TraceId, traceId != null ? (BsonValue) traceId : BsonNull.Value },
-                { Event.SpanId, spanId != null ? (BsonValue) spanId : BsonNull.Value },
-                { Event.Payload, payload },
-                { Event.CapturedBy, rec.CapturedBy },
-                { Event.CapturedAt, new BsonDateTime(rec.CapturedAt.UtcDateTime) }
+                [DOC_ID] = rec.StreamCursor.ToString(),
+                [Event.Domain] = rec.StreamCursor.Domain ,
+                [Event.Partition] = rec.StreamCursor.Partition,
+                [Event.StreamId] = rec.StreamCursor.StreamId,
+                [Event.Offset] = rec.StreamCursor.Offset,
+                [Event.EventType] = rec.EventType,
+                [Event.TraceId] = traceId != null ? (BsonValue) traceId : BsonNull.Value,
+                [Event.SpanId] = spanId != null ? (BsonValue) spanId : BsonNull.Value,
+                [Event.Payload] = payload,
+                [Event.CapturedBy] = rec.CapturedBy,
+                [Event.CapturedAt] = new BsonDateTime(rec.CapturedAt.UtcDateTime)
             };
     }
 
@@ -178,20 +181,20 @@ internal static class EvDbBsonDocumentExtensions
 
         var doc = new BsonDocument
             {
-                { Outbox.Domain, rec.Domain },
-                { Outbox.Partition, rec.Partition },
-                { Outbox.StreamId, rec.StreamId },
-                { Outbox.Offset, rec.Offset },
-                { Outbox.EventType, rec.EventType },
-                { Outbox.MessageType, rec.MessageType },
-                { Outbox.Channel, rec.Channel.ToString() },
-                { Outbox.SerializeType, rec.SerializeType },
-                { Outbox.ShardName, shardName.ToString() },
-                { Outbox.TraceId,traceId != null ? (BsonValue) traceId : BsonNull.Value },
-                { Outbox.SpanId, spanId != null ? (BsonValue) spanId : BsonNull.Value },
-                { Outbox.Payload, payload },
-                { Outbox.CapturedBy, rec.CapturedBy },
-                { Outbox.CapturedAt, new BsonDateTime(rec.CapturedAt.UtcDateTime) }
+                [Outbox.Domain] = rec.Domain,
+                [Outbox.Partition] = rec.Partition,
+                [Outbox.StreamId] = rec.StreamId,
+                [Outbox.Offset] = rec.Offset,
+                [Outbox.EventType] = rec.EventType,
+                [Outbox.MessageType] = rec.MessageType,
+                [Outbox.Channel] = rec.Channel.ToString(),
+                [Outbox.SerializeType] = rec.SerializeType,
+                [Outbox.ShardName] = shardName.ToString(),
+                [Outbox.TraceId] =traceId != null ? (BsonValue) traceId : BsonNull.Value,
+                [Outbox.SpanId] = spanId != null ? (BsonValue) spanId : BsonNull.Value,
+                [Outbox.Payload] = payload,
+                [Outbox.CapturedBy] = rec.CapturedBy,
+                [Outbox.CapturedAt] = new BsonDateTime(rec.CapturedAt.UtcDateTime)
             };
 
         return doc;

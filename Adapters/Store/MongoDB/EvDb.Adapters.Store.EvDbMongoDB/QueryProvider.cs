@@ -81,7 +81,7 @@ public static class QueryProvider
         var options = new CreateIndexOptions
         {
             Name = EventsPKName,
-            Unique = true
+            // Unique = true
         };
         return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
     }
@@ -131,14 +131,15 @@ public static class QueryProvider
 
         var options = new CreateIndexOptions
         {
-            Name = SnapshotsPKName
+            Name = SnapshotsPKName,
+            Unique = true
         };
         return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
     }
 
     #endregion //  SnapshotPK
 
-    #region SnapshotPK
+    #region Sharding
 
     public static readonly BsonDocument Sharding = CreateSharding();
 
@@ -154,7 +155,7 @@ public static class QueryProvider
         return sharding;
     }
 
-    #endregion //  SnapshotPK
+    #endregion //  Sharding
 
     #region SortEvents
 
