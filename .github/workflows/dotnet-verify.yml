@@ -70,22 +70,20 @@ jobs:
         ports:
           - 5432:5432
       mongodb:
-          image: mongo:8
-          ports:
-            - 27017:27017
-          env:
-            MONGO_INITDB_DATABASE: evdb
-          options: >-
-            --name mongodb-event-source
-            --volume mongodb_data:/data/db
-            --health-cmd="echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
-            --health-interval=10s
-            --health-timeout=10s
-            --health-retries=5
-            --health-start-period=40s
-            --restart unless-stopped
-            --entrypoint sh
-            -c "mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0"
+        image: mongo:8
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_DATABASE: evdb
+        options: >-
+          --name mongodb-event-source
+          --health-cmd="echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
+          --health-interval=10s
+          --health-timeout=10s
+          --health-retries=5
+          --health-start-period=40s
+          --entrypoint mongod
+          mongo:8 --bind_ip_all --quiet --logpath /dev/null --replSet rs0
 
     steps:
     - name: Checkout
