@@ -10,7 +10,7 @@ using EvDb.IntegrationTests.EF.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-public abstract class StreamEfBaseTests : IntegrationTests
+public abstract class StreamEfBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbPersonFactory _factory;
 

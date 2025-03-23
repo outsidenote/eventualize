@@ -73,4 +73,20 @@ public readonly partial record struct EvDbStreamCursor(string Domain, string Par
 
 
     #endregion // Casting Overloads
+
+    #region ToString
+
+    /// <summary>
+    /// Get the unique fields as string (domain:partition:stream_id:offset).
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString() => $"{Domain}:{Partition}:{StreamId}:{Offset:000_000_000_000}";
+
+    /// <summary>
+    /// Get the filter fields as string (domain:partition:stream_id:).
+    /// </summary>
+    /// <returns></returns>
+    public string ToFilterString() => $"{Domain}:{Partition}:{StreamId}:";
+
+    #endregion //  ToString
 }

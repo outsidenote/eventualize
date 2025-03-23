@@ -15,9 +15,15 @@
 		</None>
 	</ItemGroup>
 
-	<ItemGroup>
+	<!--<ItemGroup>
 		<InternalsVisibleTo Include="EvDb.Adapters.Store.EvDbRelational" />
-	</ItemGroup>
+	</ItemGroup>-->
+
+	 <ItemGroup>
+		 <None Include="..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		 <None Include="..\StaticAnalysis\EvDb.Core.Analyzer\EvDb.Core.Analyzer.csproj" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		 <None Include="..\StaticAnalysis\EvDb.Core.CodeFixes\EvDb.Core.CodeFixes.csproj" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	 </ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Generator.Equals" Version="3.2.0" />

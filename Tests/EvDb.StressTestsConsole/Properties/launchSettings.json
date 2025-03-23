@@ -2,14 +2,42 @@
   "profiles": {
     "EvDb.StressTestsConsole.SqlServer": {
       "commandName": "Project",
-      "commandLineArgs": "-w 3000 -p 1 -s 1 -b 250 -r 150 -o 20 -d SqlServer",
+      "commandLineArgs": "-w 3000 -p 1 -s 1 -b 150 -r 150 -o 20 -d SqlServer",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "EvDb.StressTestsConsole.SqlServer.OCC": {
+      "commandName": "Project",
+      "commandLineArgs": "-w 3000 -p 10 -s 1 -b 100 -r 50 -o 5 -d SqlServer",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
     "EvDb.StressTestsConsole.Postgres": {
       "commandName": "Project",
-      "commandLineArgs": "-w 3000 -p 1 -s 1 -b 250 -r 150 -o 20 -d Posgres",
+      "commandLineArgs": "-w 3000 -p 1 -s 1 -b 150 -r 150 -o 20 -d Posgres",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "EvDb.StressTestsConsole.Postgres.OCC": {
+      "commandName": "Project",
+      "commandLineArgs": "-w 3000 -p 10 -s 1 -b 100 -r 50 -o 5 -d Posgres",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "EvDb.StressTestsConsole.MongoDB": {
+      "commandName": "Project",
+      "commandLineArgs": "-w 3000 -p 1 -s 1 -b 150 -r 150 -o 20 -d MongoDB",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "EvDb.StressTestsConsole.MongoDB.OCC": {
+      "commandName": "Project",
+      "commandLineArgs": "-w 3000 -p 10 -s 1 -b 100 -r 50 -o 5 -d MongoDB",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

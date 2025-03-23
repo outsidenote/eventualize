@@ -14,4 +14,7 @@ public class OCCException : Exception
     public OCCException(EvDbStreamCursor cursor) : base(cursor.ToString())
     {
     }
+    public OCCException(EvDbStreamCursor cursor, Exception innerException) : base(cursor.ToString(), innerException)
+    {
+    }
 }

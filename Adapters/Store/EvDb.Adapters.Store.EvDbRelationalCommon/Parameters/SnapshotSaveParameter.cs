@@ -2,7 +2,7 @@
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("{StreamAddress}, {PartitionAddress}, {Offset}")]
+[DebuggerDisplay("{Domain}:{Partition}{StreamId}:{ViewName}, Offset = {Offset}")]
 public readonly record struct SnapshotSaveParameter(
                     Guid Id,
                     string Domain,

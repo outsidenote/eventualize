@@ -48,15 +48,20 @@ internal static class DomainRoslynExtensions
     public static StringBuilder DefaultsOnType(
         this StringBuilder builder,
         INamedTypeSymbol typeSymbol,
-        bool isClassOrStruct = true)
+        bool isClassOrStruct = true,
+        string typeXmlDoc = "")
     {
         var asm = typeof(DomainRoslynExtensions).Assembly.GetName();
+        builder.AppendLine("// ReSharper disable once UnusedType.Global");
+        builder.AppendLine();
+        if (!string.IsNullOrWhiteSpace(typeXmlDoc))
+            builder.AppendLine(typeXmlDoc);
         builder.AppendLine($"[System.CodeDom.Compiler.GeneratedCode(\"EvDb.SourceGenerator\",\"{asm.Version}\")]");
         if (isClassOrStruct)
         {
             builder.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]");
         }
-        builder.AppendLine("// ReSharper disable once UnusedType.Global");
+        builder.AppendLine();
         return builder;
     }
 

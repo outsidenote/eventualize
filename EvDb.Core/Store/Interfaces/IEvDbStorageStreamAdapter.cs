@@ -19,7 +19,6 @@ public interface IEvDbStorageStreamAdapter
     /// </summary>
     /// <param name="events">The events to save</param>
     /// <param name="messages">The messages to save.</param>
-    /// <param name="streamStore">The stream store.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns>
     /// Count of added events
@@ -27,6 +26,5 @@ public interface IEvDbStorageStreamAdapter
     Task<StreamStoreAffected> StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
         IImmutableList<EvDbMessage> messages,
-        IEvDbStreamStoreData streamStore,
         CancellationToken cancellation = default);
 }

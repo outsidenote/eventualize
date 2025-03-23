@@ -1,4 +1,5 @@
 ﻿// Ignore Spelling: OutboxProducer Channel
+#pragma warning disable S3881 // "IDisposable" should be implemented correctly
 
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
@@ -34,7 +35,7 @@ public abstract class EvDbStream :
 
     #region Ctor
 
-    public EvDbStream(
+    protected EvDbStream(
         ILogger logger,
         IEvDbStreamConfig streamConfiguration,
         IImmutableList<IEvDbViewStore> views,
@@ -147,7 +148,7 @@ public abstract class EvDbStream :
         }
         try
         {
-            StreamStoreAffected affected = await _storageAdapter.StoreStreamAsync(events, outbox, this, cancellation);
+            StreamStoreAffected affected = await _storageAdapter.StoreStreamAsync(events, outbox, cancellation);
 
             #region Telemetry
 

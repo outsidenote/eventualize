@@ -9,7 +9,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 services.AddScoped<EvDbStorageContext>(_ => new EvDbTestStorageContext());
-services.AddEvDbSqlServerStoreMigration(OutboxShards.Table1, OutboxShards.Table2);
+services.AddEvDbSqlServerStoreAdmin(OutboxShards.Table1, OutboxShards.Table2);
 services.AddEvDb()
         .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
         .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot());

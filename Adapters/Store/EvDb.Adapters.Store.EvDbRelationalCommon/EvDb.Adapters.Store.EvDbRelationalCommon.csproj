@@ -11,7 +11,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\EvDb.Core\EvDb.Core.csproj" />
+	  <ProjectReference Include="..\EvDb.Adapters.Store.Abstractions\EvDb.Adapters.Store.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

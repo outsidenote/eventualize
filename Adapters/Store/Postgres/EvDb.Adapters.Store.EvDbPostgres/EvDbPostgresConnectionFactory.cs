@@ -6,7 +6,7 @@ using System.Data.Common;
 
 namespace EvDb.Adapters.Store.Postgres;
 
-public sealed class EvDbPostgresConnectionFactory : EvDbConnectionFactory
+public sealed class EvDbPostgresConnectionFactory : IEvDbConnectionFactory
 {
     private readonly string _connectionString;
 
@@ -15,10 +15,10 @@ public sealed class EvDbPostgresConnectionFactory : EvDbConnectionFactory
         _connectionString = connectionString;
     }
 
-    public override DbConnection CreateConnection()
+    string IEvDbConnectionFactory.ProviderType { get; } = "Postgres";
+
+    DbConnection IEvDbConnectionFactory.CreateConnection()
     {
         return new NpgsqlConnection(_connectionString);
     }
-
-    public override string ProviderType => "SqlServer";
 }

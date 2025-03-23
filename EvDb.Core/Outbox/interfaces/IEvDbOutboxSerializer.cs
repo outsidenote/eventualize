@@ -2,6 +2,8 @@
 
 public interface IEvDbOutboxSerializer
 {
+    static string DefaultFormat { get; } = "json-default";
+
     /// <summary>
     /// Gets the serializer name.
     /// </summary>

@@ -52,7 +52,8 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
             {
                 throw new InvalidOperationException($"""
                     EvDb Outbox serialization in strict mode expect 
-                    a single serializer per context.
+                    a single serializer that match handling the message.
+                    according to the implementation of IEvDbOutboxSerializer.ShouldSerialize 
                     Channel: {channel}
                     SerializerType: {shardName}
                     Payload Type {payload?.PayloadType}
@@ -70,7 +71,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 
         if (serializers.Length > 0)
             serializer = serializers[0];
-        string serializerType = serializer?.SerializerType ?? "json-default";
+        string serializerType = serializer?.SerializerType ?? IEvDbOutboxSerializer.DefaultFormat;
 
         #region byte[] buffer =  serializer?.Serialize(...) ?? JsonSerializer.SerializeToUtf8Bytes(...)
 

@@ -1,9 +1,7 @@
 ﻿using Generator.Equals;
-using System.Diagnostics;
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("ID:{Id}, Type:{Type}, Seq:{Sequence}")]
 [Equatable]
 public readonly partial record struct EvDbSnapshotCursor(string Domain, string Partition, string StreamId, string ViewName, long Offset = 0)
 {
@@ -78,10 +76,17 @@ public readonly partial record struct EvDbSnapshotCursor(string Domain, string P
 
     #region ToString
 
-    public override string ToString()
-    {
-        return base.ToString() + $"/{Offset}";
-    }
+    /// <summary>
+    /// Get the unique fields as string (domain:partition:stream_id:offset).
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString() => $"{Domain}:{Partition}:{StreamId}:{ViewName}:{Offset:000_000_000_000}";
 
-    #endregion // ToString
+    /// <summary>
+    /// Get the filter fields as string (domain:partition:stream_id:).
+    /// </summary>
+    /// <returns></returns>
+    public string ToFilterString() => $"{Domain}:{Partition}:{StreamId}:{ViewName}:";
+
+    #endregion //  ToString
 }

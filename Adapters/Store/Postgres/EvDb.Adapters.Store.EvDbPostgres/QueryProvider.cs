@@ -5,6 +5,11 @@ namespace EvDb.Adapters.Store.Postgres;
 
 internal static class QueryProvider
 {
+    /// <summary>
+    /// Creates the stream queries.
+    /// </summary>
+    /// <param name="storageContext">The storage context.</param>
+    /// <returns></returns>
     public static EvDbStreamAdapterQueryTemplates CreateStreamQueries(EvDbStorageContext storageContext)
     {
         Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;

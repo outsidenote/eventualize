@@ -6,7 +6,6 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using OpenTelemetry;
 
 namespace EvDb.StressTests;
 
@@ -37,7 +36,6 @@ internal static class OtelExtensions
               | ActivityTrackingOptions.TraceId
               | ActivityTrackingOptions.ParentId
               | ActivityTrackingOptions.Tags;
-            // | ActivityTrackingOptions.TraceState;
         });
 
         #endregion // Logging}
@@ -53,11 +51,11 @@ internal static class OtelExtensions
                 tracing
                         .AddEvDbInstrumentation()
                         .AddEvDbStoreInstrumentation()
-                        .AddSqlClientInstrumentation(o =>
-                        {
-                            o.SetDbStatementForText = true;
-                            o.SetDbStatementForStoredProcedure = true;
-                        })
+                        //.AddSqlClientInstrumentation(o =>
+                        //{
+                        //    o.SetDbStatementForText = true;
+                        //    o.SetDbStatementForStoredProcedure = true;
+                        //})
                         .SetSampler<AlwaysOnSampler>()
                         .AddOtlpExporter()
                         //.AddOtlpExporter("jaeger", o => o.Endpoint = new Uri("http://127.0.0.1:4327/"))
@@ -68,7 +66,7 @@ internal static class OtelExtensions
             .WithMetrics(meterBuilder =>
                     meterBuilder.AddEvDbInstrumentation()
                                 .AddEvDbStoreInstrumentation()
-                                .AddProcessInstrumentation()
+                                //.AddProcessInstrumentation()
                                 //.AddOtlpExporter()
                                 //.AddOtlpExporter("alloy", o => o.Endpoint = new Uri("http://127.0.0.1:12345"))
                                 .AddOtlpExporter("grafana", o => o.Endpoint = new Uri($"http://127.0.0.1:4337"))

@@ -206,31 +206,14 @@ public abstract class EvDbRelationalStorageAdapter :
 
     private async Task<IImmutableDictionary<EvDbShardName, int>> StoreOutboxAsync(
         IImmutableList<EvDbMessage> messages,
-        IEvDbStreamStoreData streamStore,
         DbConnection conn,
         CancellationToken cancellationToken)
     {
-        #region messages = _transformers.Transform(...)
-
-        foreach (var transformer in _transformers)
-        {
-            messages = messages.Select(m =>
-            {
-                var newPayload = transformer.Transform(m.Channel,
-                                                       m.MessageType,
-                                                       m.EventType,
-                                                       m.Payload);
-
-                return m with { Payload = newPayload };
-            }).ToImmutableList();
-        }
-
-        #endregion //  messages = _transformers.Transform(...)
-
         string saveToOutboxQuery = StreamQueries.SaveToOutbox;
 
-        var shards = from message in messages
-                     group (EvDbMessageRecord)message by message.ShardName;
+        EvDbStreamAddress address = messages[0].StreamCursor;
+        IEnumerable<IGrouping<EvDbShardName, EvDbMessageRecord>> shards =
+                                messages.GroupByShards(_transformers);
         KeyValuePair<EvDbShardName, int>[] affctedCollection = IsSupportConcurrentCommands switch
         {
             true => await ExecuteInParallelAsync(),
@@ -245,8 +228,8 @@ public abstract class EvDbRelationalStorageAdapter :
             var tasks = shards.Select(async shard =>
             {
                 EvDbShardName shardName = shard.Key;
-                int affctedMessages = await ExecuteAsync(streamStore, conn, saveToOutboxQuery, shard, shardName, cancellationToken);
-                StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, shard.Key);
+                int affctedMessages = await ExecuteAsync(conn, saveToOutboxQuery, shard, shardName, cancellationToken);
+                StoreMeters.AddMessages(affctedMessages, address, DatabaseType, shard.Key);
                 return KeyValuePair.Create(shardName, affctedMessages);
             });
 
@@ -264,7 +247,7 @@ public abstract class EvDbRelationalStorageAdapter :
             foreach (var shard in shards)
             {
                 EvDbShardName shardName = shard.Key;
-                int affctedMessages = await ExecuteAsync(streamStore, conn, saveToOutboxQuery, shard, shardName, cancellationToken);
+                int affctedMessages = await ExecuteAsync(conn, saveToOutboxQuery, shard, shardName, cancellationToken);
                 results.Add(KeyValuePair.Create(shardName, affctedMessages));
             }
 
@@ -275,7 +258,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
         #region ExecuteAsync
 
-        async Task<int> ExecuteAsync(IEvDbStreamStoreData streamStore,
+        async Task<int> ExecuteAsync(
                                 DbConnection conn,
                                 string saveToOutboxQuery,
                                 IGrouping<EvDbShardName, EvDbMessageRecord> shard,
@@ -292,7 +275,7 @@ public abstract class EvDbRelationalStorageAdapter :
                                                                     query,
                                                                     items,
                                                                     cancellationToken);
-            StoreMeters.AddMessages(affctedMessages, streamStore, DatabaseType, shard.Key);
+            StoreMeters.AddMessages(affctedMessages, address, DatabaseType, shard.Key);
             return affctedMessages;
         }
 
@@ -371,7 +354,6 @@ public abstract class EvDbRelationalStorageAdapter :
     async Task<StreamStoreAffected> IEvDbStorageStreamAdapter.StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
         IImmutableList<EvDbMessage> messages,
-        IEvDbStreamStoreData streamStore,
         CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -408,7 +390,8 @@ public abstract class EvDbRelationalStorageAdapter :
 
         catch (Exception ex) when (IsOccException(ex))
         {
-            var cursor = new EvDbStreamCursor(streamStore.StreamAddress);
+            var address = events[0].StreamCursor;
+            var cursor = new EvDbStreamCursor(address);
             throw new OCCException(cursor);
         }
 
@@ -425,7 +408,8 @@ public abstract class EvDbRelationalStorageAdapter :
                                                                saveEventsQuery,
                                                                eventsRecords,
                                                                cancellation);
-                StoreMeters.AddEvents(affctedEvents, streamStore, DatabaseType);
+                EvDbStreamAddress address = events[0].StreamCursor;
+                StoreMeters.AddEvents(affctedEvents, address, DatabaseType);
             }
 
             return affctedEvents;
@@ -442,7 +426,6 @@ public abstract class EvDbRelationalStorageAdapter :
             if (messages.Count != 0)
             {
                 affectedOnOutbox = await this.StoreOutboxAsync(messages,
-                                                          streamStore,
                                                           conn,
                                                           cancellation);
             }

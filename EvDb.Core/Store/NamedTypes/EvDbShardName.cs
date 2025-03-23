@@ -21,9 +21,9 @@ public partial struct EvDbShardName :
     IComparable,
     IParsable<EvDbShardName>
 {
-    private const string DEFAULT_TABLE_NAME = "outbox";
+    private const string DEFAULT_SHARD_NAME = "outbox";
 
-    public static readonly EvDbShardName Default = new EvDbShardName(DEFAULT_TABLE_NAME);
+    public static readonly EvDbShardName Default = new EvDbShardName(DEFAULT_SHARD_NAME);
 
     #region Validation
 

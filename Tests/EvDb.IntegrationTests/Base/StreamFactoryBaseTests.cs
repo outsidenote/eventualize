@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
-public abstract class StreamFactoryBaseTests : IntegrationTests
+public abstract class StreamFactoryBaseTests : BaseIntegrationTests
 {
     protected StreamFactoryBaseTests(ITestOutputHelper output,
                                     StoreType storeType) : base(output, storeType)
@@ -71,7 +71,7 @@ public abstract class StreamFactoryBaseTests : IntegrationTests
     }
 
     [Fact]
-    public async Task StreamFactory_WhenInstantiatingWithSnapshotAndWithoutEvents_Succeed()
+    public async Task StreamFactory_WhenInstantiatingWithSnapshotAndAnd6Events_Succeed()
     {
         var stream = await StorageContext
                         .GivenFactoryForStoredStreamWithEvents(_output, _storeType, numOfGrades: 6)

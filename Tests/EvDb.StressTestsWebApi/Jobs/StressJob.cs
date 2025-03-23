@@ -52,7 +52,7 @@ public class StressJob : BackgroundService
         using (var scope = _scopeFactory.CreateScope())
         {
             var factory = scope.ServiceProvider.GetRequiredService<IEvDbDemoStreamFactory>();
-            var storageMigration = scope.ServiceProvider.GetRequiredService<IEvDbStorageMigration>();
+            var storageMigration = scope.ServiceProvider.GetRequiredService<IEvDbStorageAdmin>();
             try
             {
                 try

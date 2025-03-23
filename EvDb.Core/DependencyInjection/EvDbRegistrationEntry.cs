@@ -10,7 +10,7 @@ public readonly record struct EvDbRegistrationEntry : IEvDbRegistrationEntry
     private readonly IServiceCollection _services;
 
     public EvDbRegistrationEntry(IServiceCollection services)
-	{
+    {
         _services = services;
     }
 

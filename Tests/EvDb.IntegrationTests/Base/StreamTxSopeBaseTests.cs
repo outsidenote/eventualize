@@ -5,7 +5,7 @@ using EvDb.UnitTests;
 using System.Transactions;
 using Xunit.Abstractions;
 
-public abstract class StreamTxSopeBaseTests : IntegrationTests
+public abstract class StreamTxSopeBaseTests : BaseIntegrationTests
 {
     public StreamTxSopeBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType)
@@ -23,7 +23,7 @@ public abstract class StreamTxSopeBaseTests : IntegrationTests
             await StorageContext
                                 .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId)
                                 .WhenStreamIsSavedAsync();
-        }
+        } // rollback
         IEvDbSchoolStreamFactory factory = StorageContext.CreateFactory(_storeType);
         var newStream = await factory.GetAsync(streamId);
 
