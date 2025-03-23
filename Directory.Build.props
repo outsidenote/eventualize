@@ -12,8 +12,8 @@
 
 	<PropertyGroup>
 		<!-- <PackageId>EvDb</PackageId> -->
-		<Version>1.2.5</Version>
-		<PackageVersion>2.0.0</PackageVersion>
+		<Version>1.2.6</Version>
+		<PackageVersion>2.0.1</PackageVersion>
 		<Authors>Roma Bronstein</Authors>
 		<Company>EvDbDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
