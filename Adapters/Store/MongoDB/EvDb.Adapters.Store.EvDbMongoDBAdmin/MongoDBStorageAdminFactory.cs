@@ -7,28 +7,18 @@ using MongoDB.Driver;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
-public class MongoDBStorageAdminFactory
+public static class MongoDBStorageAdminFactory
 {
-    //public static readonly IEvDbStorageAdminFactory Create()
-    //{
-    //    new MongoStorageAdminFactory()  
-    //}
-
-    public MongoDBStorageAdminFactory()
-    {
-
-    }
-
-    internal static IEvDbStorageAdmin Create(ILogger<MongoDBStorageAdminFactory> logger,
+    public static IEvDbStorageAdmin Create(ILogger logger,
                                              string connectionString,
                                              EvDbStorageContext ctx,
                                              EvDbShardName[] shardNames)
     {
-        var settings = MongoClientSettings.FromUrl(new MongoUrl(connectionString));
+        MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(connectionString));
         return Create(logger, settings, ctx, shardNames);
     }
 
-    internal static IEvDbStorageAdmin Create(ILogger<MongoDBStorageAdminFactory> logger,
+    public static IEvDbStorageAdmin Create(ILogger logger,
                                              MongoClientSettings settings,
                                              EvDbStorageContext ctx,
                                              EvDbShardName[] shardNames)
@@ -36,7 +26,7 @@ public class MongoDBStorageAdminFactory
         return Create(logger, settings, ctx, StorageFeatures.All, shardNames);
     }
 
-    internal static IEvDbStorageAdmin Create(ILogger<MongoDBStorageAdminFactory> logger,
+    public static IEvDbStorageAdmin Create(ILogger logger,
                                              MongoClientSettings settings,
                                              EvDbStorageContext ctx,
                                              StorageFeatures features,
@@ -44,14 +34,5 @@ public class MongoDBStorageAdminFactory
     {
         return new MongoDBStorageAdmin(logger, settings, ctx, features, shardNames);
     }
-
-    public IEvDbStorageAdmin Create(EvDbStorageContext context,
-                                                      StorageFeatures features,
-                                                      params EvDbShardName[] shardNames)
-    {
-        throw new NotImplementedException();
-    }
-
-
 }
 

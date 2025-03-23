@@ -28,7 +28,7 @@ public static class StoreAdapterHelper
                 context.UsePostgresStoreForEvDbStream();
                 break;
             case StoreType.MongoDB:
-                context.UseMongoDBStoreForEvDbStream();
+                context.UseMongoDBStoreForEvDbStream(EvDbMongoDBCreationMode.None);
                 break;
             default:
                 throw new NotImplementedException();
@@ -128,6 +128,7 @@ public static class StoreAdapterHelper
         {
             StoreType.SqlServer => "dbo",
             StoreType.Postgres => "public",
+            // StoreType.MongoDB => "root",
             _ => EvDbSchemaName.Empty
         };
         EvDbDatabaseName dbName = storeType switch
@@ -146,9 +147,8 @@ public static class StoreAdapterHelper
                 SqlServerStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             StoreType.Postgres =>
                 PostgresStorageAdminFactory.Create(logger, connectionString, context, shardNames),
-            StoreType.MongoDB => // TODO: [bnaya 2025-03-03] set it right 
-                A.Fake<IEvDbStorageAdmin>(),
-            //MongoDBStorageAdminFactory.Create(logger, connectionString, context, shardNames),
+            StoreType.MongoDB => 
+                MongoDBStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             _ => throw new NotImplementedException()
         };
 

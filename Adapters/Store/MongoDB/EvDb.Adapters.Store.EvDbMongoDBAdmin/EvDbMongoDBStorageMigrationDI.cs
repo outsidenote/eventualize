@@ -1,4 +1,6 @@
-﻿using EvDb.Adapters.Store.MongoDB;
+﻿// Ignore Spelling: Mongo
+
+using EvDb.Adapters.Store.MongoDB;
 using EvDb.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -54,7 +56,7 @@ public static class EvDbMongoDBStorageMigrationDI
             #endregion // IEvDbConnectionFactory connectionFactory = ...
 
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<MongoDBStorageAdminFactory>();
+            var logger = loggerFactory.CreateLogger<MongoDBStorageAdmin>();
             IEvDbStorageAdmin adapter = MongoDBStorageAdminFactory.Create(logger, connectionString, ctx, shardNames);
             return adapter;
         });

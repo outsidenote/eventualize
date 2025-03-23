@@ -17,8 +17,9 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
     protected readonly StoreType _storeType;
     protected readonly ILogger _logger = A.Fake<ILogger>();
 
-    protected BaseIntegrationTests(ITestOutputHelper output, StoreType storeType,
-        bool seSeparateSnapshotContext = false)
+    protected BaseIntegrationTests(ITestOutputHelper output,
+                                   StoreType storeType,
+                                   bool seSeparateSnapshotContext = false)
     {
         _output = output;
         _storeType = storeType;

@@ -1,27 +1,21 @@
 ﻿// Ignore Spelling: Mongo
 // Ignore Spelling: Admin
 
+using EvDb.Adapters.Store.MongoDB.Internals;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Misc;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
-public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsyncDisposable
+public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin
 {
-    private readonly MongoClient _client;
-    private readonly IMongoDatabase _db;
-    private readonly Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
-    private readonly ILogger _logger;
-    private readonly Task<MongoCollections> _collections;
-
-    private readonly record struct MongoCollections(
-                            IMongoCollection<BsonDocument> EventsCollection,
-                            IMongoCollection<BsonDocument> OutboxCollection,
-                            IMongoCollection<BsonDocument> SnapshotsCollection);
-
+    private readonly CollectionsSetup _collectionsSetup;
+    private readonly StorageFeatures _features;
+    private readonly EvDbShardName[] _shardNames;
 
     public MongoDBStorageAdmin(
         ILogger logger,
@@ -30,73 +24,45 @@ public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsync
         StorageFeatures features,
         params EvDbShardName[] shardNames)
     {
-        //string collectionPrefix = storageContext.CalcCollectionPrefix();
-        //_client = new MongoClient(settings);
-        //string databaseName = storageContext.DatabaseName;
-        //_db = _client.GetDatabase(databaseName);
-        //string eventsCollectionName = $"{collectionPrefix}events";
-        //string snapshotsCollectionName = $"{collectionPrefix}snapshots";
-        //string outboxCollectionName = $$"""{{collectionPrefix}}{0}outbox""";
-
-        //var existingCollections = _db.ListCollectionNames().ToList();
-        //if (!existingCollections.Contains(CollectionById))
-        //{
-        //    _db.CreateCollection(CollectionById);
-        //}
-        //if (!existingCollections.Contains(CollectionComposed))
-        //{
-        //    _db.CreateCollection(CollectionComposed);
-        //}
-
-        _logger = logger;
+        var client = new MongoClient(settings);
+        _collectionsSetup = CollectionsSetup.Create(logger,
+                                                    client,
+                                                    storageContext,
+                                                    EvDbMongoDBCreationMode.CreateIfNotExists);
+        _features = features;
+        _shardNames = shardNames;
     }
-
-    //private async Task CreateCollections()
-    //{
-    //    var unique = new CreateIndexOptions { Unique = true };
-
-    //    var eventsPK = Builders<BsonDocument>.IndexKeys
-    //        .Ascending(toSnakeCase(nameof(EvDbEventRecord.Domain)))
-    //        .Ascending(toSnakeCase(nameof(EvDbEventRecord.Partition)))
-    //        .Ascending(toSnakeCase(nameof(EvDbEventRecord.StreamId)))
-    //        .Ascending(toSnakeCase(nameof(EvDbEventRecord.Offset)));
-    //    var eventsIndexModel = new CreateIndexModel<BsonDocument>(eventsPK, unique);
-    //    await _eventsCollection.Indexes.CreateOneAsync(eventsIndexModel);
-
-    //    var outboxPK = Builders<BsonDocument>.IndexKeys
-    //        .Ascending(toSnakeCase(nameof(EvDbMessageRecord.Domain)))
-    //        .Ascending(toSnakeCase(nameof(EvDbMessageRecord.Partition)))
-    //        .Ascending(toSnakeCase(nameof(EvDbMessageRecord.StreamId)))
-    //        .Ascending(toSnakeCase(nameof(EvDbMessageRecord.Offset)))
-    //        .Ascending(toSnakeCase(nameof(EvDbMessageRecord.Channel)))
-    //        .Ascending(toSnakeCase(nameof(EvDbMessageRecord.MessageType)));
-    //    var outboxIndexModel = new CreateIndexModel<BsonDocument>(outboxPK, unique);
-    //    await _outboxCollection.Indexes.CreateOneAsync(outboxIndexModel);
-
-    //    var snapshotPK = Builders<BsonDocument>.IndexKeys
-    //        .Ascending(toSnakeCase(nameof(EvDbViewAddress.Domain)))
-    //        .Ascending(toSnakeCase(nameof(EvDbViewAddress.Partition)))
-    //        .Ascending(toSnakeCase(nameof(EvDbViewAddress.StreamId)))
-    //        .Ascending(toSnakeCase(nameof(EvDbViewAddress.ViewName)))
-    //        .Ascending(toSnakeCase(nameof(EvDbStoredSnapshot.Offset)));
-    //    var snapshotIndexModel = new CreateIndexModel<BsonDocument>(snapshotPK, unique);
-    //    await _outboxCollection.Indexes.CreateOneAsync(snapshotIndexModel);
-    //}
-
 
     EvDbMigrationQueryTemplates IEvDbStorageAdmin.Scripts => throw new NotImplementedException();
 
-    Task IEvDbStorageAdmin.CreateEnvironmentAsync(CancellationToken cancellation)
+    #region CreateEnvironmentAsync
+
+    async Task IEvDbStorageAdmin.CreateEnvironmentAsync(CancellationToken cancellation)
     {
-        //throw new NotImplementedException();
-        return Task.CompletedTask;
+        if(_features.HasFlag(StorageFeatures.Stream))
+            await _collectionsSetup.CreateEventsCollectionAsync(cancellation);
+        if (_features.HasFlag(StorageFeatures.Outbox))
+        {
+            foreach (var shardName in _shardNames)
+            {
+                await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shardName, cancellation);
+            }
+        }
+        if (_features.HasFlag(StorageFeatures.Snapshot))
+            await _collectionsSetup.CreateSnapshotsCollectionAsync(cancellation);
     }
 
-    Task IEvDbStorageAdmin.DestroyEnvironmentAsync(CancellationToken cancellation)
+    #endregion //  CreateEnvironmentAsync
+
+    #region DestroyEnvironmentAsync
+
+    async Task IEvDbStorageAdmin.DestroyEnvironmentAsync(CancellationToken cancellation)
     {
-        //throw new NotImplementedException();
-        return Task.CompletedTask;
+        IAsyncDisposable disposal = this;
+        await disposal.DisposeAsync();
     }
+
+    #endregion //  DestroyEnvironmentAsync
 
     #region Dispose Pattern
 
@@ -106,16 +72,17 @@ public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin, IDisposable, IAsync
         GC.SuppressFinalize(this);
     }
 
-    ValueTask IAsyncDisposable.DisposeAsync()
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        DisposeAction();
+        IAsyncDisposable collectionsSetup = _collectionsSetup;
+        await collectionsSetup.DisposeAsync();
         GC.SuppressFinalize(this);
-        return ValueTask.CompletedTask;
     }
 
     private void DisposeAction()
     {
-        _client?.Dispose();
+        IDisposable collectionsSetup = _collectionsSetup;
+        collectionsSetup.Dispose();
     }
 
     ~MongoDBStorageAdmin()

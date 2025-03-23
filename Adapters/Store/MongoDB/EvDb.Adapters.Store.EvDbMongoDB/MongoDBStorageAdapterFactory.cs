@@ -13,13 +13,14 @@ public static class EvDbMongoDBStorageAdapterFactory
     #region Overload
 
     public static IEvDbStorageStreamAdapter CreateStreamAdapter(
-        ILogger logger,
-        string connectionString,
-        EvDbStorageContext context,
-        IEnumerable<IEvDbOutboxTransformer> transformers)
+                        ILogger logger,
+                        string connectionString,
+                        EvDbStorageContext context,
+                        IEnumerable<IEvDbOutboxTransformer> transformers,
+                        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
     {
         MongoClientSettings settings = MongoClientSettings.FromConnectionString(connectionString);
-        var result = CreateStreamAdapter(logger, settings, context, transformers);
+        var result = CreateStreamAdapter(logger, settings, context, transformers, creationMode);
         return result;
     }
 
@@ -29,13 +30,15 @@ public static class EvDbMongoDBStorageAdapterFactory
         ILogger logger,
         MongoClientSettings settings,
         EvDbStorageContext context,
-        IEnumerable<IEvDbOutboxTransformer> transformers)
+        IEnumerable<IEvDbOutboxTransformer> transformers,
+        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
     {
         IEvDbStorageStreamAdapter result = new EvDbMongoDBStorageAdapter(
                     settings,
                     logger,
                     context,
-                    transformers);
+                    transformers,
+                    creationMode);
         return result;
     }
 
@@ -46,12 +49,13 @@ public static class EvDbMongoDBStorageAdapterFactory
     #region Overload
 
     public static IEvDbStorageSnapshotAdapter CreateSnapshotAdapter(
-        ILogger logger,
-        string connectionString,
-        EvDbStorageContext context)
+                        ILogger logger,
+                        string connectionString,
+                        EvDbStorageContext context,
+                        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
     {
         MongoClientSettings settings = MongoClientSettings.FromConnectionString(connectionString);
-        var result = CreateSnapshotAdapter(logger, settings, context);
+        var result = CreateSnapshotAdapter(logger, settings, context, creationMode);
         return result;
     }
 
@@ -60,13 +64,15 @@ public static class EvDbMongoDBStorageAdapterFactory
     public static IEvDbStorageSnapshotAdapter CreateSnapshotAdapter(
         ILogger logger,
         MongoClientSettings settings,
-        EvDbStorageContext context)
+        EvDbStorageContext context,
+        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
     {
         IEvDbStorageSnapshotAdapter result = new EvDbMongoDBStorageAdapter(
                     settings,
                     logger,
                     context,
-                    []);
+                    [],
+                    creationMode);
         return result;
     }
 

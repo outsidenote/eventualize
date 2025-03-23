@@ -31,10 +31,11 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                         MongoClientSettings settings,
                         ILogger logger,
                         EvDbStorageContext storageContext,
-                        IEnumerable<IEvDbOutboxTransformer> transformers)
+                        IEnumerable<IEvDbOutboxTransformer> transformers,
+                        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
     {
         var client = new MongoClient(settings);
-        _collectionsSetup = CollectionsSetup.Create(logger, client, storageContext);
+        _collectionsSetup = CollectionsSetup.Create(logger, client, storageContext, creationMode);
 
         _logger = logger;
         _transformers = transformers.ToImmutableArray();

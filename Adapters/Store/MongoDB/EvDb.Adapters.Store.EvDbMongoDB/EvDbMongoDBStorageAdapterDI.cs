@@ -20,18 +20,32 @@ public static class EvDbMongoDBStorageAdapterDI
     public static void UseMongoDBStoreForEvDbStream(
         this EvDbStreamStoreRegistrationContext instance,
         params IEvDbOutboxTransformer[] transformers) =>
-        instance.UseMongoDBStoreForEvDbStream(DEFAULT_CONNECTION_STRING_KEY, transformers);
+        instance.UseMongoDBStoreForEvDbStream(DEFAULT_CONNECTION_STRING_KEY, EvDbMongoDBCreationMode.None, transformers);
+
+    public static void UseMongoDBStoreForEvDbStream(
+        this EvDbStreamStoreRegistrationContext instance,
+        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None,
+        params IEvDbOutboxTransformer[] transformers) =>
+        instance.UseMongoDBStoreForEvDbStream(DEFAULT_CONNECTION_STRING_KEY, creationMode, transformers);
 
     public static void UseMongoDBStoreForEvDbStream(
         this EvDbStreamStoreRegistrationContext instance,
         string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
         params IEvDbOutboxTransformer[] transformers)
-        => instance.UseMongoDBStoreForEvDbStream(transformers, connectionStringOrConfigurationKey);
+        => instance.UseMongoDBStoreForEvDbStream(transformers, connectionStringOrConfigurationKey, EvDbMongoDBCreationMode.None);
+
+    public static void UseMongoDBStoreForEvDbStream(
+        this EvDbStreamStoreRegistrationContext instance,
+        string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
+        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None,
+        params IEvDbOutboxTransformer[] transformers)
+        => instance.UseMongoDBStoreForEvDbStream(transformers, connectionStringOrConfigurationKey, creationMode);
 
     public static void UseMongoDBStoreForEvDbStream(
             this EvDbStreamStoreRegistrationContext instance,
             IEnumerable<IEvDbOutboxTransformer> transformers,
-            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
+            EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
     {
         IEvDbRegistrationContext entry = instance;
         IServiceCollection services = entry.Services;
@@ -55,7 +69,7 @@ public static class EvDbMongoDBStorageAdapterDI
 
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<EvDbMongoDBStorageAdapter>();
-                    IEvDbStorageStreamAdapter adapter = EvDbMongoDBStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, ctx, transformers);
+                    IEvDbStorageStreamAdapter adapter = EvDbMongoDBStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, ctx, transformers, creationMode);
                     return adapter;
                 });
     }
