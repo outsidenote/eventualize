@@ -11,7 +11,7 @@ Eventualize is quick & easy to integrate, and while it is working with new parad
 <iframe width="560" height="315" src="https://www.youtube.com/embed/vpfuuLTBSzQ?si=6cEqGyFroidIi08I" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Quick Start
-If you want to jump right into it, go to [Quick Start](quick-start)
+If you want to jump right into it, go to [Quick Start](quick-start).
 
 ## Learn More
 If you want to learn more, go to [Learn More](learn-more).
