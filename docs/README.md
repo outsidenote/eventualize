@@ -32,3 +32,8 @@ If you are interested to learn more about how you can do this, please visit the 
 ## Sharding setup
 
 - [Clode](https://claude.ai/share/076cd430-53ea-4149-9ffb-549331451dc4)
+
+
+## License
+
+MIT License
