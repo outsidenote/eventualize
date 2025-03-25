@@ -64,7 +64,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: postgres
+          POSTGRES_USER: test_user
           POSTGRES_PASSWORD: MasadNetunim12!@
           POSTGRES_DB: test_db
         ports:
@@ -82,7 +82,7 @@ jobs:
           --health-timeout=10s
           --health-retries=5
           --health-start-period=40s
-        command: mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
+        # command: mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
 
     steps:
     - name: Checkout
@@ -96,24 +96,44 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Wait for MongoDB to be healthy
+    - name: Wait for MongoDB service to be healthy
       run: |
         for i in {1..10}; do
-          if echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet; then
-            echo "MongoDB is up!"
-            break
+          if echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet | grep -q 1; then
+            echo "MongoDB is healthy!"
+            exit 0
           fi
           echo "Waiting for MongoDB..."
           sleep 5
         done
+        echo "MongoDB did not become healthy in time."
+        exit 1
+
+    - name: Restart MongoDB with replica set enabled
+      run: |
+        echo "Killing default mongod process..."
+        docker exec mongodb-event-source pkill mongod || true
+        sleep 2
+        echo "Starting mongod with replica set configuration..."
+        # Restart mongod with the --replSet flag in the background
+        docker exec -d mongodb-event-source mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
+        sleep 5
 
     - name: Initiate Replica Set
       run: |
-        mongosh localhost:27017 --eval 'rs.initiate({_id: "rs0", members: [{ _id: 0, host: "localhost:27017" }]})'
-
-    # # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    # - name: Setup MSBuild.exe
-    #   uses: microsoft/setup-msbuild@v1.0.2
+        echo "Initiating replica set..."
+        docker exec mongodb-event-source mongosh localhost:27017 --eval 'rs.initiate({_id:"rs0", members:[{_id:0, host:"localhost:27017"}]})'
+        # Optionally, wait for the replica set to be fully initialized:
+        for i in {1..10}; do
+          if docker exec mongodb-event-source mongosh localhost:27017 --eval 'JSON.stringify(rs.status())' | grep -q '"ok" : 1'; then
+            echo "Replica set is ready!"
+            exit 0
+          fi
+          echo "Waiting for replica set initialization..."
+          sleep 5
+        done
+        echo "Replica set failed to initialize."
+        exit 1
 
     # Execute all unit tests in the solution
     - name: Execute unit tests

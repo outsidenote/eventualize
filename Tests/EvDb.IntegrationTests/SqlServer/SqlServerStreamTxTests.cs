@@ -5,6 +5,7 @@ namespace EvDb.Core.Tests;
 using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
+[Trait("DB", "SqlServer")]
 public class SqlServerStreamTxTests : StreamTxSopeBaseTests
 {
     public SqlServerStreamTxTests(ITestOutputHelper output) :

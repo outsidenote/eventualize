@@ -3,6 +3,7 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
+[Trait("DB", "Postgres")]
 public sealed class PostgresStressTests : StressBaseTests
 {
     #region Ctor

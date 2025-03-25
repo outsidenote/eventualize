@@ -7,6 +7,7 @@ using EvDb.Core.Adapters;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
+[Trait("DB", "SqlServer")]
 public class SqlServerEfSimpleTests : StreamEfBaseTests
 {
     public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) =>
@@ -75,12 +76,12 @@ public class SqlServerEfSimpleTests : StreamEfBaseTests
 
     public override async Task InitializeAsync()
     {
+        await base.InitializeAsync();
         using var connection = StoreAdapterHelper.GetConnection(_storeType, StorageContext);
         await connection.OpenAsync();
 
         await connection.ExecuteAsync(DROP_SCRIPT);
         await connection.ExecuteAsync(CREATE_SCRIPT);
-        await base.InitializeAsync();
     }
 
     public async override Task DisposeAsync()

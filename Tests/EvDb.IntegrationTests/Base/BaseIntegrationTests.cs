@@ -6,16 +6,17 @@ using EvDb.UnitTests;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Xml.Linq;
 using Xunit.Abstractions;
 
 [DebuggerDisplay("{_storeType}")]
 public abstract class BaseIntegrationTests : IAsyncLifetime
 {
-    private readonly IEvDbStorageAdmin _storageMigration;
-    private readonly IEvDbStorageAdmin? _storageMigrationSnapshot;
     protected readonly ITestOutputHelper _output;
     protected readonly StoreType _storeType;
+    private readonly bool _seSeparateSnapshotContext;
     protected readonly ILogger _logger = A.Fake<ILogger>();
+    // protected readonly TestContainers _containers;
 
     protected BaseIntegrationTests(ITestOutputHelper output,
                                    StoreType storeType,
@@ -23,6 +24,9 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
     {
         _output = output;
         _storeType = storeType;
+        _seSeparateSnapshotContext = seSeparateSnapshotContext;
+        //_containers = new TestContainers();
+
         EvDbSchemaName schema = storeType switch
         {
             StoreType.SqlServer => "dbo",
@@ -39,19 +43,11 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
         };
         var context = new EvDbTestStorageContext(schema, dbName);
         StorageContext = context;
-        _storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, storeType, context,
-                                                    OutboxShards.MessagingVip,
-                                                    OutboxShards.Messaging,
-                                                    OutboxShards.Commands,
-                                                    EvDbShardName.Default);
         if (seSeparateSnapshotContext)
         {
             AlternativeContext = new EvDbStorageContext(dbName, context.Environment,
                                                 $"{context.Prefix}_different",
                                                 schema);
-            _storageMigrationSnapshot = StoreAdapterHelper.CreateStoreMigration(_logger, storeType,
-                                                            AlternativeContext,
-                                                            EvDbShardName.Default);
         }
     }
 
@@ -63,9 +59,26 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
 
     public virtual async Task InitializeAsync()
     {
-        await _storageMigration.CreateEnvironmentAsync();
-        await (_storageMigrationSnapshot?.CreateEnvironmentAsync() ?? Task.CompletedTask);
+        //await _containers.StartAllAsync(_storeType);
+        var storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, _storeType, StorageContext,
+                                                    OutboxShards.MessagingVip,
+                                                    OutboxShards.Messaging,
+                                                    OutboxShards.Commands,
+                                                    EvDbShardName.Default);
+        IEvDbStorageAdmin? storageMigrationSnapshot = null;
+        if (_seSeparateSnapshotContext)
+        {
+            storageMigrationSnapshot = StoreAdapterHelper.CreateStoreMigration(_logger, _storeType,
+                                                            AlternativeContext,
+                                                            EvDbShardName.Default);
+        }
+
+        await storageMigration.CreateEnvironmentAsync();
+        await (storageMigrationSnapshot?.CreateEnvironmentAsync() ?? Task.CompletedTask);
     }
 
-    public virtual Task DisposeAsync() => Task.CompletedTask;
+    public async virtual Task DisposeAsync()
+    {
+        //await _containers.StopAllAsync();
+    }
 }

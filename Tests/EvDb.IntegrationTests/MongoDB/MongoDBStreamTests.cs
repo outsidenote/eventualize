@@ -5,6 +5,7 @@ namespace EvDb.Core.Tests;
 using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
+[Trait("DB", "MongoDB")]
 public class MongoDBStreamTests : StreamBaseTests
 {
     public MongoDBStreamTests(ITestOutputHelper output) :
