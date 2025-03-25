@@ -5,6 +5,7 @@ namespace EvDb.Core.Tests;
 using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
+[Trait("DB", "SqlServer")]
 public class SqlServerStreamStructuresTests : StreamStructuresBaseTests
 {
     public SqlServerStreamStructuresTests(ITestOutputHelper output) :

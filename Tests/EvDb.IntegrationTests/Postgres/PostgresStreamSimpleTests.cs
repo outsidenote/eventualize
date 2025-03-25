@@ -5,6 +5,7 @@ namespace EvDb.Core.Tests;
 using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
+[Trait("DB", "Postgres")]
 public class PostgresStreamSimpleTests : StreamSimpleBaseTests
 {
     public PostgresStreamSimpleTests(ITestOutputHelper output) :

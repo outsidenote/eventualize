@@ -3,6 +3,7 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
+[Trait("DB", "Postgres")]
 public sealed class PostgresStreamFactoryTests : StreamFactoryBaseTests
 {
     public PostgresStreamFactoryTests(ITestOutputHelper output) : base(output, StoreType.Postgres)
