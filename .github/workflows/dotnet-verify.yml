@@ -96,44 +96,31 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    # - name: Wait for MongoDB service to be healthy
-    #   run: |
-    #     for i in {1..10}; do
-    #       if echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet | grep -q 1; then
-    #         echo "MongoDB is healthy!"
-    #         exit 0
-    #       fi
-    #       echo "Waiting for MongoDB..."
-    #       sleep 5
-    #     done
-    #     echo "MongoDB did not become healthy in time."
-    #     exit 1
-    # 
-    - name: Restart MongoDB with replica set enabled
-      run: |
-        echo "Killing default mongod process..."
-        docker exec mongodb-event-source pkill mongod || true
-        sleep 2
-        echo "Starting mongod with replica set configuration..."
-        # Restart mongod with the --replSet flag in the background
-        docker exec -d mongodb-event-source mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
-        sleep 5
-
-    - name: Initiate Replica Set
-      run: |
-        echo "Initiating replica set..."
-        docker exec mongodb-event-source mongosh localhost:27017 --eval 'rs.initiate({_id:"rs0", members:[{_id:0, host:"localhost:27017"}]})'
-        # Optionally, wait for the replica set to be fully initialized:
-        for i in {1..10}; do
-          if docker exec mongodb-event-source mongosh localhost:27017 --eval 'JSON.stringify(rs.status())' | grep -q '"ok" : 1'; then
-            echo "Replica set is ready!"
-            exit 0
-          fi
-          echo "Waiting for replica set initialization..."
+      - name: Initialize MongoDB Replica Set
+        run: |
+          # Stop the default MongoDB instance
+          docker stop mongodb-event-source
+          
+          # Start MongoDB with replica set configuration
+          docker run -d --name mongodb-replica -p 27017:27017 \
+            -e MONGO_INITDB_DATABASE=evdb \
+            mongo:8 mongod --bind_ip_all --replSet rs0
+          
+          # Wait for MongoDB to become available
+          sleep 10
+          
+          # Initialize the replica set
+          docker exec mongodb-replica mongosh --eval "
+            rs.initiate({
+              _id: 'rs0',
+              members: [
+                { _id: 0, host: 'localhost:27017' }
+              ]
+            })
+          "
+          
+          # Wait for the replica set to initialize
           sleep 5
-        done
-        echo "Replica set failed to initialize."
-        exit 1
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
