@@ -96,19 +96,19 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Wait for MongoDB service to be healthy
-      run: |
-        for i in {1..10}; do
-          if echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet | grep -q 1; then
-            echo "MongoDB is healthy!"
-            exit 0
-          fi
-          echo "Waiting for MongoDB..."
-          sleep 5
-        done
-        echo "MongoDB did not become healthy in time."
-        exit 1
-
+    # - name: Wait for MongoDB service to be healthy
+    #   run: |
+    #     for i in {1..10}; do
+    #       if echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet | grep -q 1; then
+    #         echo "MongoDB is healthy!"
+    #         exit 0
+    #       fi
+    #       echo "Waiting for MongoDB..."
+    #       sleep 5
+    #     done
+    #     echo "MongoDB did not become healthy in time."
+    #     exit 1
+    # 
     - name: Restart MongoDB with replica set enabled
       run: |
         echo "Killing default mongod process..."
