@@ -64,7 +64,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: postgres
+          POSTGRES_USER: test_user
           POSTGRES_PASSWORD: MasadNetunim12!@
           POSTGRES_DB: test_db
         ports:
@@ -82,7 +82,7 @@ jobs:
           --health-timeout=10s
           --health-retries=5
           --health-start-period=40s
-        command: mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
+        # command: mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
 
     steps:
     - name: Checkout
@@ -96,24 +96,31 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Wait for MongoDB to be healthy
+    - name: Initialize MongoDB Replica Set
       run: |
-        for i in {1..10}; do
-          if echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet; then
-            echo "MongoDB is up!"
-            break
-          fi
-          echo "Waiting for MongoDB..."
-          sleep 5
-        done
-
-    - name: Initiate Replica Set
-      run: |
-        mongosh localhost:27017 --eval 'rs.initiate({_id: "rs0", members: [{ _id: 0, host: "localhost:27017" }]})'
-
-    # # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    # - name: Setup MSBuild.exe
-    #   uses: microsoft/setup-msbuild@v1.0.2
+        # Stop the default MongoDB instance
+        docker stop mongodb-event-source
+        
+        # Start MongoDB with replica set configuration
+        docker run -d --name mongodb-replica -p 27017:27017 \
+          -e MONGO_INITDB_DATABASE=evdb \
+          mongo:8 mongod --bind_ip_all --replSet rs0
+        
+        # Wait for MongoDB to become available
+        sleep 10
+        
+        # Initialize the replica set
+        docker exec mongodb-replica mongosh --eval "
+          rs.initiate({
+            _id: 'rs0',
+            members: [
+              { _id: 0, host: 'localhost:27017' }
+            ]
+          })
+        "
+        
+        # Wait for the replica set to initialize
+        sleep 5
 
     # Execute all unit tests in the solution
     - name: Execute unit tests

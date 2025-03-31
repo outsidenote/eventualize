@@ -3,6 +3,7 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
+[Trait("DB", "SqlServer")]
 public sealed class SqlServerStreamFactoryTests : StreamFactoryBaseTests
 {
     public SqlServerStreamFactoryTests(ITestOutputHelper output) : base(output, StoreType.SqlServer)
