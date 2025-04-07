@@ -1,11 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Resilience" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" Version="9.0.0" />
-		<PackageReference Include="OpenTelemetry.Api" Version="1.10.0" />
-		<ProjectReference Include="..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="[9.0.0,)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[9.0.0,)" />
+		<PackageReference Include="Microsoft.Extensions.Resilience" Version="[9.0.0,)" />
+		<PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" Version="[9.0.0,)" />
+		<PackageReference Include="OpenTelemetry.Api" Version="[1.10.0,)" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Generator.Equals" Version="[3.2.0,)" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="[8.0.0,)" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -15,18 +22,12 @@
 		</None>
 	</ItemGroup>
 
-	<!--<ItemGroup>
-		<InternalsVisibleTo Include="EvDb.Adapters.Store.EvDbRelational" />
-	</ItemGroup>-->
-
 	 <ItemGroup>
+		<ProjectReference Include="..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 		 <None Include="..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		 <None Include="..\StaticAnalysis\EvDb.Core.Analyzer\EvDb.Core.Analyzer.csproj" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		 <None Include="..\StaticAnalysis\EvDb.Core.CodeFixes\EvDb.Core.CodeFixes.csproj" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 	 </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Generator.Equals" Version="3.2.0" />
-	</ItemGroup>
 </Project>
 
