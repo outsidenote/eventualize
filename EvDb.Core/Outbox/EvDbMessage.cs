@@ -17,7 +17,7 @@ public partial record struct EvDbMessage(
                                 EvDbStreamCursor StreamCursor,
                                 byte[] Payload) :
                                             IEvDbEventConverter,
-                                            IEvDbTopicMeta
+                                            IEvDbMessageMeta
 {
     public static readonly EvDbEvent Empty = new EvDbEvent();
 
