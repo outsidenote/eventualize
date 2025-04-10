@@ -4,28 +4,28 @@ using EvDb.Scenes;
 
 namespace EvDb.UnitTests;
 
-[EvDbEventTypes<CourseCreatedEvent>]
-[EvDbEventTypes<ScheduleTestEvent>]
-[EvDbEventTypes<StudentAppliedToCourseEvent>]
-[EvDbEventTypes<StudentCourseApplicationDeniedEvent>]
-[EvDbEventTypes<StudentEnlistedEvent>]
-[EvDbEventTypes<StudentQuitCourseEvent>]
-[EvDbEventTypes<StudentReceivedGradeEvent>]
-[EvDbEventTypes<StudentRegisteredToCourseEvent>]
-[EvDbEventTypes<StudentTestSubmittedEvent>]
+[EvDbAttachEventType<CourseCreatedEvent>]
+[EvDbAttachEventType<ScheduleTestEvent>]
+[EvDbAttachEventType<StudentAppliedToCourseEvent>]
+[EvDbAttachEventType<StudentCourseApplicationDeniedEvent>]
+[EvDbAttachEventType<StudentEnlistedEvent>]
+[EvDbAttachEventType<StudentQuitCourseEvent>]
+[EvDbAttachEventType<StudentReceivedGradeEvent>]
+[EvDbAttachEventType<StudentRegisteredToCourseEvent>]
+[EvDbAttachEventType<StudentTestSubmittedEvent>]
 public partial interface IEvDbSchoolStreamAdders
 {
 }
 
-[EvDbEventTypes<CourseCreatedEvent>]
-[EvDbEventTypes<ScheduleTestEvent>]
-[EvDbEventTypes<StudentAppliedToCourseEvent>]
-[EvDbEventTypes<StudentCourseApplicationDeniedEvent>]
-[EvDbEventTypes<StudentEnlistedEvent>]
-[EvDbEventTypes<StudentQuitCourseEvent>]
-[EvDbEventTypes<StudentReceivedGradeEvent>]
-[EvDbEventTypes<StudentRegisteredToCourseEvent>]
-[EvDbEventTypes<StudentTestSubmittedEvent>]
+[EvDbAttachEventType<CourseCreatedEvent>]
+[EvDbAttachEventType<ScheduleTestEvent>]
+[EvDbAttachEventType<StudentAppliedToCourseEvent>]
+[EvDbAttachEventType<StudentCourseApplicationDeniedEvent>]
+[EvDbAttachEventType<StudentEnlistedEvent>]
+[EvDbAttachEventType<StudentQuitCourseEvent>]
+[EvDbAttachEventType<StudentReceivedGradeEvent>]
+[EvDbAttachEventType<StudentRegisteredToCourseEvent>]
+[EvDbAttachEventType<StudentTestSubmittedEvent>]
 public partial interface IEvDbSchoolStreamAdders1
 {
 }

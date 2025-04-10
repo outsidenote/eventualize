@@ -1,10 +1,12 @@
-﻿namespace EvDb.Core;
+﻿using System.Diagnostics;
+
+namespace EvDb.Core;
 
 /// <summary>
 /// Represent Semaphore scoping factory.
 /// The semaphore scope will enable the usage of semaphore easy like lock.
 /// </summary>
-public sealed class AsyncLock
+public sealed class AsyncLock : IDisposable
 {
     private readonly SemaphoreSlim _gate;
 
@@ -43,7 +45,10 @@ public sealed class AsyncLock
             {
                 _gate.Release();
             }
-            catch { }
+            catch
+            {
+                Debug.WriteLine("AsyncLock cancellation release failure");
+            }
             throw;
         }
     }

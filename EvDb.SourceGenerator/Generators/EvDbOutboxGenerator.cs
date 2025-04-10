@@ -16,8 +16,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
 {
     internal const string OUTBOX_ATT = "EvDbOutboxAttribute";
     private const string OUTBOX_SERIALIZER_ATT = "EvDbUseOutboxSerializationAttribute";
-    private const string MESSAGE_TYPES = "EvDbMessageTypes";
-    private const string MESSAGE_TYPES_ATT = "EvDbMessageTypesAttribute";
+    private const string MESSAGE_TYPES = "EvDbAttachMessageType";
+    private const string MESSAGE_TYPES_ATT = "EvDbAttachMessageTypeAttribute";
     protected override string EventTargetAttribute { get; } = OUTBOX_ATT;
 
     #region OnGenerate
@@ -108,7 +108,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             public void Add({{info.FullTypeName}} payload)
                             {
                                 IEvDbOutboxProducerGeneric self = this;
-                                self.Add(payload, EvDbOutbox.DEFAULT_OUTBOX, EvDbShardName.Default); 
+                                self.Add(payload, EvDbOutboxConstants.DEFAULT_OUTBOX, EvDbShardName.Default); 
                             }            
 
                         """;
@@ -122,7 +122,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                                 foreach (var shardName in shardNames)
                                 {
                                     IEvDbOutboxProducerGeneric self = this;
-                                    self.Add(payload, EvDbOutbox.DEFAULT_OUTBOX, shardName); 
+                                    self.Add(payload, EvDbOutboxConstants.DEFAULT_OUTBOX, shardName); 
                                 }
                             }
             

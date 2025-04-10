@@ -11,7 +11,7 @@ namespace EvDb.SourceGenerator;
 [Generator]
 public partial class EventTypesGenerator : BaseGenerator
 {
-    internal const string EventTarget = "EvDbEventTypesAttribute";
+    internal const string EventTarget = "EvDbAttachEventTypeAttribute";
     protected override string EventTargetAttribute { get; } = EventTarget;
 
     #region OnGenerate

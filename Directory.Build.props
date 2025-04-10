@@ -7,13 +7,14 @@
 			- 1.2.0: offset starts at 0 for empty stream or empty snapshot
 			- 1.2.3: Default connection string key changed from "EvDbSqlServerConnection" to "EvDbConnection"
 			- 2.0.0: Storage Provider interfaces has changed
+			- 3.0.0: Type Names refactoring of attributes and fundamentals types
 	</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<!-- <PackageId>EvDb</PackageId> -->
-		<Version>1.2.13</Version>
-		<PackageVersion>2.0.8</PackageVersion>
+		<Version>3.0.0</Version>
+		<!--<PackageVersion>3.0.0</PackageVersion>-->
 		<Authors>Roma Bronstein</Authors>
 		<Company>EvDbDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

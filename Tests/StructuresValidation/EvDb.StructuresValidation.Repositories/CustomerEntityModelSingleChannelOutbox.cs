@@ -4,8 +4,8 @@ using EvDb.StructuresValidation.Abstractions.Events;
 
 namespace EvDb.StructuresValidation.Repositories;
 
-[EvDbMessageTypes<PersonChangedSingleChannelMessage>]
-[EvDbMessageTypes<PersonChangedMessage>]
+[EvDbAttachMessageType<PersonChangedSingleChannelMessage>]
+[EvDbAttachMessageType<PersonChangedMessage>]
 [EvDbOutbox<CustomerEntityModelSingleChannelStreamFactory>]
 public partial class CustomerEntityModelSingleChannelOutbox
 {

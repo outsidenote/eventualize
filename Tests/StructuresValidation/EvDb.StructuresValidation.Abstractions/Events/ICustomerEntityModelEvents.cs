@@ -2,7 +2,7 @@
 
 namespace EvDb.StructuresValidation.Abstractions.Events;
 
-[EvDbEventTypes<EmailValidatedEvent>]
+[EvDbAttachEventType<EmailValidatedEvent>]
 public partial interface ICustomerEntityModelEvents
 {
 }

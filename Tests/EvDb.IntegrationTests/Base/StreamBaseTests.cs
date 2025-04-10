@@ -91,7 +91,7 @@ public abstract class StreamBaseTests : BaseIntegrationTests
             Assert.Equal(3, defaults.Length);
             Assert.All(defaults, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(defaults, m => Assert.Equal("avg", m.MessageType));
-            Assert.All(defaults, m => Assert.Equal(EvDbOutbox.DEFAULT_OUTBOX, m.Channel));
+            Assert.All(defaults, m => Assert.Equal(EvDbOutboxConstants.DEFAULT_OUTBOX, m.Channel));
 
             var avg1 = JsonSerializer.Deserialize<AvgMessage>(defaults[0].Payload);
             Assert.Equal(30, avg1!.Avg);
