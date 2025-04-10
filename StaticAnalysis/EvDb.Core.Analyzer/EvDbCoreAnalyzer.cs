@@ -14,7 +14,7 @@ namespace EvDb.Core
             ImmutableHashSet.CreateRange([
                 "EvDbDefineEventPayloadAttribute",
                 "EvDbDefineMessagePayloadAttribute",
-                "EvDbEventTypesAttribute",
+                "EvDbAttachEventTypeAttribute",
                 "EvDbViewTypeAttribute",
                 "EvDbOutboxAttribute",
                 "EvDbStreamFactoryAttribute"]);

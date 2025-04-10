@@ -4,8 +4,8 @@ using EvDb.Core;
 
 namespace EvDb.StressTestsWebApi.Outbox;
 
-[EvDbMessageTypes<Message1>]
-[EvDbMessageTypes<Message2>]
+[EvDbAttachMessageType<Message1>]
+[EvDbAttachMessageType<Message2>]
 [EvDbOutbox<DemoStreamFactory, OutboxShards>]
 [EvDbUseOutboxSerialization<EmbeddedSchemaSerializer>(EvDbOutboxSerializationMode.Strict)]
 public partial class StressTestOutbox

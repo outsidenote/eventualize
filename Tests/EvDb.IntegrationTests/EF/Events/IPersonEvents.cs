@@ -2,12 +2,12 @@
 
 namespace EvDb.IntegrationTests.EF.Events;
 
-[EvDbEventTypes<PersonAddressChanged>]
-[EvDbEventTypes<PersonBirthdayChanged>]
-[EvDbEventTypes<PersonEmailAdded>]
-[EvDbEventTypes<PersonEmailCategoryUpdated>]
-[EvDbEventTypes<PersonEmailRemoved>]
-[EvDbEventTypes<PersonNameChanged>]
+[EvDbAttachEventType<PersonAddressChanged>]
+[EvDbAttachEventType<PersonBirthdayChanged>]
+[EvDbAttachEventType<PersonEmailAdded>]
+[EvDbAttachEventType<PersonEmailCategoryUpdated>]
+[EvDbAttachEventType<PersonEmailRemoved>]
+[EvDbAttachEventType<PersonNameChanged>]
 public partial interface IPersonEvents
 {
 }

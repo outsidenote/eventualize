@@ -5,9 +5,9 @@ using EvDb.Scenes;
 
 namespace EvDb.UnitTests;
 
-[EvDbMessageTypes<AvgMessage>]
-[EvDbMessageTypes<StudentPassedMessage>]
-[EvDbMessageTypes<StudentFailedMessage>]
+[EvDbAttachMessageType<AvgMessage>]
+[EvDbAttachMessageType<StudentPassedMessage>]
+[EvDbAttachMessageType<StudentFailedMessage>]
 [EvDbOutbox<SchoolStreamFactory, OutboxShards>]
 [EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)]
 public partial class EvDbSchoolOutbox

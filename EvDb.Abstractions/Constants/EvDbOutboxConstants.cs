@@ -2,7 +2,7 @@
 
 namespace EvDb.Core;
 
-public static class EvDbOutbox
+public static class EvDbOutboxConstants
 {
     public const string DEFAULT_OUTBOX = "DEFAULT";
 }

@@ -6,21 +6,17 @@ namespace EvDb.Core;
 /// Generate a EventualizeDB client factory
 /// </summary>
 /// <typeparam name="TEventType">The type of the event type.</typeparam>
-/// <typeparam name="TTopicProducer">The type of the public event type.</typeparam>
+/// <typeparam name="TOutboxProducer">The type of the public event type.</typeparam>
 /// <seealso cref="System.Attribute" />
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class EvDbStreamFactoryAttribute<TEventType, TTopicProducer> : EvDbStreamFactoryAttribute<TEventType>
+public class EvDbStreamFactoryAttribute<TEventType, TOutboxProducer> : EvDbStreamFactoryAttribute<TEventType>
     where TEventType : IEvDbEventTypes
-    where TTopicProducer : IEvDbOutboxProducer
+    where TOutboxProducer : IEvDbOutboxProducer
 {
     public EvDbStreamFactoryAttribute(string domain, string partition) : base(domain, partition)
     {
     }
 
-    ///// <summary>
-    ///// Sets the registration lifetime
-    ///// </summary>
-    //public ServiceLifetime Lifetime { get; set; } = ServiceLifetime.Scoped;
 }
 
 /// <summary>
@@ -48,11 +44,6 @@ public class EvDbStreamFactoryAttribute<TEventType> : Attribute
         Domain = domain;
         Partition = partition;
     }
-
-    ///// <summary>
-    ///// Sets the registration lifetime
-    ///// </summary>
-    //public ServiceLifetime Lifetime { get; set; } = ServiceLifetime.Scoped;
 
     /// <summary>
     /// The `domain` and `partition` are the static part of the stream address (uniqueness).
