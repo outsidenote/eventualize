@@ -21,7 +21,7 @@ using System.Threading.Tasks.Dataflow;
 });
 if (!dbFound)
     Console.WriteLine("Missing database type (`-d` switch)");
-StoreType storeType = Enum.Parse<StoreType>(storeTypeArg);
+StoreType storeType = Enum.Parse<StoreType>(storeTypeArg!);
 
 
 var context = new EvDbTestStorageContext(storeType);

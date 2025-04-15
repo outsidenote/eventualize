@@ -1,9 +1,15 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿// Ignore Spelling: Mongo
+
+using BenchmarkDotNet.Attributes;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Immutable;
 using System.Text;
 using Xunit;
+#pragma warning disable S125 // Sections of code should not be commented out
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+#pragma warning disable S1450 // Private fields only used as local variables in methods should become local variables
+#pragma warning disable S1172 // Unused method parameters should be removed
 
 namespace MongoBenchmark;
 
@@ -38,6 +44,7 @@ public class MongoAccessPatternsBenchmarks
     public void IterationSetup()
     {
         // Clear both collections before each iteration.
+
         //_collectionById.DeleteMany(Builders<BsonDocument>.Filter.Empty);
         //_collectionCompund.DeleteMany(Builders<BsonDocument>.Filter.Empty);
 
@@ -71,7 +78,6 @@ public class MongoAccessPatternsBenchmarks
                             .Ascending("domain")
                             .Ascending("partition")
                             .Ascending("stream_id");
-        var j = indexKeys.ToJson();
         var indexPrimaryKeys = indexKeys
                                 .Ascending("offset");
         // var byIdOptions = new CreateIndexOptions { Name = "domain_partition_id" };
@@ -211,7 +217,7 @@ public class MongoAccessPatternsBenchmarks
     [Benchmark]
     public async Task ById_GetViaCursor()
     {
-        ById_InsertMany();
+        await ById_InsertMany();
 
         // Use the current iteration count as the starting offset.
         int baseOffset = _iterationCount * INSERT_BATCH_SIZE * INSERT_TIMES;
@@ -266,7 +272,7 @@ public class MongoAccessPatternsBenchmarks
 
     #endregion //  ById
 
-    private EvDbEvent CreateTestEvent(int index)
+    private static EvDbEvent CreateTestEvent(int index)
     {
         // Create a sample test event.
         var streamCursor = new EvDbStreamCursor("testdomain", "testpartition", "teststream", index);

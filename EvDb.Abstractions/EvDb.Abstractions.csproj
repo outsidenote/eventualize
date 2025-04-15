@@ -15,6 +15,11 @@
 		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="[8.0.0,)" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<None Include="..\EvDb.SourceGenerator\bin\$(Configuration)\netstandard2.0\EvDb.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />  
+	</ItemGroup>
+
 
 	<ItemGroup>
     <None Include="..\docs\README.md" Link="README.md">

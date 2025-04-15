@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Xml.Linq;
 using Xunit.Abstractions;
+#pragma warning disable S125 // Sections of code should not be commented out
 
 [DebuggerDisplay("{_storeType}")]
 public abstract class BaseIntegrationTests : IAsyncLifetime
@@ -77,8 +78,10 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
         await (storageMigrationSnapshot?.CreateEnvironmentAsync() ?? Task.CompletedTask);
     }
 
-    public async virtual Task DisposeAsync()
+    public virtual Task DisposeAsync()
     {
-        //await _containers.StopAllAsync();
+
+                            //await _containers.StopAllAsync();
+        return Task.CompletedTask;
     }
 }

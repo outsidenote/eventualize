@@ -2,16 +2,19 @@
 using MongoBenchmark;
 using System.Diagnostics;
 
+#pragma warning disable S125 // Sections of code should not be commented out
+
 await ManualAsync();
+
 
 //Benchmark();
 Console.ReadKey(false);
 
-static void Benchmark()
-{
-    var summary = BenchmarkRunner.Run<MongoAccessPatternsBenchmarks>();
-    Console.WriteLine(summary.Table);
-}
+//static void Benchmark()
+//{
+//    var summary = BenchmarkRunner.Run<MongoAccessPatternsBenchmarks>();
+//    Console.WriteLine(summary.Table);
+//}
 
 static async Task ManualAsync()
 {
