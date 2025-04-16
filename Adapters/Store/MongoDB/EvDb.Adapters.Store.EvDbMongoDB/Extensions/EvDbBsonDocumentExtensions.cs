@@ -151,7 +151,7 @@ internal static class EvDbBsonDocumentExtensions
         // TODO: [bnaya 2025-02-25] use nameof
         return new BsonDocument
             {
-                [Event.Domain] = rec.StreamCursor.Domain ,
+                [Event.Domain] = rec.StreamCursor.Domain,
                 [Event.Partition] = rec.StreamCursor.Partition,
                 [Event.StreamId] = rec.StreamCursor.StreamId,
                 [Event.Offset] = rec.StreamCursor.Offset,
