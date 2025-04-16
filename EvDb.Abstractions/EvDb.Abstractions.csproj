@@ -17,7 +17,11 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\EvDb.SourceGenerator\EvDb.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\StaticAnalysis\EvDb.Core.Analyzer\EvDb.Core.Analyzer.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\StaticAnalysis\EvDb.Core.CodeFixes\EvDb.Core.CodeFixes.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 		<None Include="..\EvDb.SourceGenerator\bin\$(Configuration)\netstandard2.0\EvDb.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />  
+		<None Include="..\StaticAnalysis\EvDb.Core.Analyzer\bin\$(Configuration)\netstandard2.0\EvDb.Core.Analyzer.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />  
+		<None Include="..\StaticAnalysis\EvDb.Core.CodeFixes\bin\$(Configuration)\netstandard2.0\EvDb.Core.CodeFixes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />  
 	</ItemGroup>
 
 
