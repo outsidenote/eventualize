@@ -93,7 +93,7 @@ public static class QueryProvider
     public static BsonDocument CreateEnableShardingCommand(string databaseName) =>
                                 new BsonDocument { ["enableSharding"] = databaseName };
 
-    #region // OutboxPK
+    #region OutboxPK
 
     public static readonly CreateIndexModel<BsonDocument> OutboxPK = CreateOutboxPK();
 
@@ -103,8 +103,8 @@ public static class QueryProvider
             .Ascending(EvDbFileds.Event.Domain)
             .Ascending(EvDbFileds.Event.Partition)
             .Ascending(EvDbFileds.Event.StreamId)
-            .Ascending(EvDbFileds.Outbox.Channel)
-            .Ascending(EvDbFileds.Outbox.MessageType)
+            //.Ascending(EvDbFileds.Outbox.Channel)
+            //.Ascending(EvDbFileds.Outbox.MessageType)
             .Ascending(EvDbFileds.Event.Offset);
 
         var options = new CreateIndexOptions
@@ -114,6 +114,46 @@ public static class QueryProvider
         };
         return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
     }
+
+    // TODO: [bnaya 2025-04-17] Add index for special cases (use Atlas search on Atlas)
+    // TODO: [bnaya 2025-04-17] Consider to expose to the user Atlas search https://www.mongodb.com/docs/atlas/atlas-search/tutorial/#create-the--index.
+    //private static CreateIndexModel<BsonDocument> CreateOutbox1PK()
+    //{
+    //    IndexKeysDefinition<BsonDocument> indexKeysDefinition = Builders<BsonDocument>.IndexKeys
+    //        .Ascending(EvDbFileds.Event.Domain)
+    //        .Ascending(EvDbFileds.Event.Partition)
+    //        .Ascending(EvDbFileds.Event.StreamId)
+    //        .Ascending(EvDbFileds.Event.Offset);
+
+    //    IndexKeysDefinition<BsonDocument> indexKeysDefinition1 = Builders<BsonDocument>.IndexKeys
+    //        .Ascending(EvDbFileds.Outbox.MessageType)
+    //        .Ascending(EvDbFileds.Outbox.Channel)
+    //        .Ascending(EvDbFileds.Event.Domain)
+    //        .Ascending(EvDbFileds.Event.Partition)
+    //        .Ascending(EvDbFileds.Event.StreamId)
+    //        .Ascending(EvDbFileds.Event.Offset);
+
+    //    IndexKeysDefinition<BsonDocument> indexKeysDefinition2 = Builders<BsonDocument>.IndexKeys
+    //        .Ascending(EvDbFileds.Event.Partition)
+    //        .Ascending(EvDbFileds.Outbox.MessageType)
+    //        .Ascending(EvDbFileds.Event.Domain)
+    //        .Ascending(EvDbFileds.Event.StreamId)
+    //        .Ascending(EvDbFileds.Event.Offset);
+
+    //    IndexKeysDefinition<BsonDocument> indexKeysDefinition3 = Builders<BsonDocument>.IndexKeys
+    //        .Ascending(EvDbFileds.Outbox.Channel)
+    //        .Ascending(EvDbFileds.Event.Domain)
+    //        .Ascending(EvDbFileds.Event.Partition)
+    //        .Ascending(EvDbFileds.Event.StreamId)
+    //        .Ascending(EvDbFileds.Event.Offset);
+
+    //    var options = new CreateIndexOptions
+    //    {
+    //        Name = EventsPKName,
+    //        Unique = true
+    //    };
+    //    return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
+    //}
 
     #endregion //  OutboxPK
 
