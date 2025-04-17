@@ -2,7 +2,6 @@
 
 namespace EvDb.StructuresValidation.Abstractions;
 
-[EvDbOutboxChannels]
 public abstract class OutboxChannels02
 {
     public const string Channel1 = "channel-1";
