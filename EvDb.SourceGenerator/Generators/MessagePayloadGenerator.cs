@@ -20,7 +20,7 @@ public partial class MessagePayloadGenerator : EventPayloadGenerator
 
     protected override void BeforeClassDeclaration(StringBuilder builder)
     {
-        builder.AppendLine("using EvDb.Core.Internals;");
+        // builder.AppendLine("using EvDb.Core.Internals;");
     }
 
     #endregion //  BeforeClassDeclaration
