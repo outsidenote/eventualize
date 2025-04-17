@@ -5,12 +5,25 @@ namespace EvDb.Core;
 
 [DebuggerDisplay("Offset:{Offset}")]
 [Equatable]
-public readonly partial record struct EvDbStreamCursor(string Domain, string Partition, string StreamId, long Offset = 0)
+public readonly partial record struct EvDbStreamCursor
 {
+    public EvDbStreamCursor(EvDbDomainName domain, EvDbPartitionName partition, string streamId, long offset = 0)
+    {
+        Domain = domain;
+        Partition = partition;
+        StreamId = streamId;
+        Offset = offset;
+    }
+
     public EvDbStreamCursor(EvDbStreamAddress streamId, long offset = 0)
         : this(streamId.Domain, streamId.Partition, streamId.StreamId, offset) { }
     public EvDbStreamCursor(EvDbPartitionAddress partition, string streamId, long offset = 0)
         : this(partition.Domain, partition.Partition, streamId, offset) { }
+
+    public string Domain { get; }
+    public string Partition { get; }
+    public string StreamId { get; }
+    public long Offset { get; }
 
     #region IsEquals, ==, !=
 
