@@ -151,10 +151,13 @@ internal static class EvDbBsonDocumentExtensions
         // TODO: [bnaya 2025-02-25] use nameof
         return new BsonDocument
             {
-                [Event.Domain] = rec.StreamCursor.Domain,
-                [Event.Partition] = rec.StreamCursor.Partition,
-                [Event.StreamId] = rec.StreamCursor.StreamId,
-                [Event.Offset] = rec.StreamCursor.Offset,
+                ["metadata"] = new BsonDocument
+                {
+                    [Event.Domain] = rec.StreamCursor.Domain,
+                    [Event.Partition] = rec.StreamCursor.Partition,
+                    [Event.StreamId] = rec.StreamCursor.StreamId,
+                    [Event.Offset] = rec.StreamCursor.Offset
+                },
                 [Event.EventType] = rec.EventType,
                 [Event.TraceId] = traceId != null ? (BsonValue) traceId : BsonNull.Value,
                 [Event.SpanId] = spanId != null ? (BsonValue) spanId : BsonNull.Value,
@@ -178,12 +181,15 @@ internal static class EvDbBsonDocumentExtensions
 
         var doc = new BsonDocument
             {
-                [Outbox.Domain] = rec.Domain,
-                [Outbox.Partition] = rec.Partition,
-                [Outbox.StreamId] = rec.StreamId,
-                [Outbox.Offset] = rec.Offset,
-                [Outbox.EventType] = rec.EventType,
-                [Outbox.MessageType] = rec.MessageType,
+                ["metadata"] = new BsonDocument
+                {
+                    [Outbox.Domain] = rec.Domain,
+                    [Outbox.Partition] = rec.Partition,
+                    [Outbox.StreamId] = rec.StreamId,
+                    [Outbox.Offset] = rec.Offset,
+                    [Outbox.EventType] = rec.EventType,
+                    [Outbox.MessageType] = rec.MessageType
+                },
                 [Outbox.Channel] = rec.Channel.ToString(),
                 [Outbox.SerializeType] = rec.SerializeType,
                 [Outbox.ShardName] = shardName.ToString(),

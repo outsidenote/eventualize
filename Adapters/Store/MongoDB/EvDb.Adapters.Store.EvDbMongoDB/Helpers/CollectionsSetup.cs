@@ -79,7 +79,7 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
         }
 
         bool exists = await CreateCollectionIfNotExistsAsync(collectionName,
-                                                       QueryProvider.DefaultCreateCollectionOptions,
+                                                       QueryProvider.TimeSeriesCreateCollectionOptions,
                                                        cancellationToken);
 
         IMongoCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>(collectionName,
@@ -230,7 +230,7 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsWithTimeout.Token);
 
         var exists = await CreateCollectionIfNotExistsAsync(collectionName,
-                                                           QueryProvider.DefaultCreateCollectionOptions,
+                                                           QueryProvider.TimeSeriesCreateCollectionOptions,
                                                            cts.Token);
         var collection = _db.GetCollection<BsonDocument>(collectionName,
                                          QueryProvider.OutboxCollectionSetting);

@@ -47,22 +47,29 @@ public static class QueryProvider
     #endregion //  SnapshotCollectionSetting
 
     // TODO: [bnaya 2025-04-17] enable to get the Capped from out side, MaxDocuments, MaxSize (NOT for TS)
-    #region DefaultCreateCollectionOptions
+    #region TimeSeriesCreateCollectionOptions
 
-    public static CreateCollectionOptions DefaultCreateCollectionOptions { get; } = CreateDefaultCreateCollectionOptions();
+    public static CreateCollectionOptions TimeSeriesCreateCollectionOptions { get; } = CreateDefaultCreateCollectionOptions();
 
     private static CreateCollectionOptions CreateDefaultCreateCollectionOptions()
     {
+        var opt = new TimeSeriesOptions(EvDbFileds.Event.CapturedAt,
+                                                      "metadata",
+                                                      TimeSeriesGranularity.Seconds);
+
         var options = new CreateCollectionOptions
         {  
-            
+            TimeSeriesOptions = opt,
+            ExpireAfter = TimeSpan.FromDays(30),
             // EncryptedFields
             // IndexOptionDefaults 
         };
         return options;
     }
 
-    #endregion //  DefaultCreateCollectionOptions
+    #endregion //  TimeSeriesCreateCollectionOptions
+
+    public static CreateCollectionOptions DefaultCreateCollectionOptions { get; } = new CreateCollectionOptions();
 
     #region EventsPK
 
@@ -73,10 +80,12 @@ public static class QueryProvider
         // Ask: Go over CreateIndexOptions props?
 
         IndexKeysDefinition<BsonDocument> indexKeysDefinition = Builders<BsonDocument>.IndexKeys
-            .Ascending(EvDbFileds.Event.Domain)
-            .Ascending(EvDbFileds.Event.Partition)
-            .Ascending(EvDbFileds.Event.StreamId)
-            .Ascending(EvDbFileds.Event.Offset);
+            .Ascending("metadata");
+        //IndexKeysDefinition<BsonDocument> indexKeysDefinition = Builders<BsonDocument>.IndexKeys
+        //    .Ascending(EvDbFileds.Event.Domain)
+        //    .Ascending(EvDbFileds.Event.Partition)
+        //    .Ascending(EvDbFileds.Event.StreamId)
+        //    .Ascending(EvDbFileds.Event.Offset);
 
         // TODO: [bnaya 2025-04-17] get it from outside (offload data story) ExpireAfter (none TS)
         var options = new CreateIndexOptions
@@ -102,12 +111,14 @@ public static class QueryProvider
     private static CreateIndexModel<BsonDocument> CreateOutboxPK()
     {
         IndexKeysDefinition<BsonDocument> indexKeysDefinition = Builders<BsonDocument>.IndexKeys
-            .Ascending(EvDbFileds.Event.Domain)
-            .Ascending(EvDbFileds.Event.Partition)
-            .Ascending(EvDbFileds.Event.StreamId)
-            //.Ascending(EvDbFileds.Outbox.Channel)
-            //.Ascending(EvDbFileds.Outbox.MessageType)
-            .Ascending(EvDbFileds.Event.Offset);
+            .Ascending("metadata"); 
+        //IndexKeysDefinition<BsonDocument> indexKeysDefinition = Builders<BsonDocument>.IndexKeys
+        //    .Ascending(EvDbFileds.Event.Domain)
+        //    .Ascending(EvDbFileds.Event.Partition)
+        //    .Ascending(EvDbFileds.Event.StreamId)
+        //    //.Ascending(EvDbFileds.Outbox.Channel)
+        //    //.Ascending(EvDbFileds.Outbox.MessageType)
+        //    .Ascending(EvDbFileds.Event.Offset);
 
         var options = new CreateIndexOptions
         {
