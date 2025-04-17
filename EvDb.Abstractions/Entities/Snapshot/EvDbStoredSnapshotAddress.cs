@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace EvDb.Core;
 
 [Equatable]
-[DebuggerDisplay("{State}, Offset:{Offset}")]
+[DebuggerDisplay("Offset:{Offset}")]
 public abstract partial record EvDbStoredSnapshotDataBase(
             Guid Id,
             string Domain,

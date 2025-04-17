@@ -30,24 +30,24 @@ internal static class MongoOutboxTestHelper
         var collection = db.GetCollection<BsonDocument>(outboxCollectionFormat);
 
         var projection = Builders<BsonDocument>.Projection
-            .Include(EvDbFileds.Outbox.Domain)
-            .Include(EvDbFileds.Outbox.Domain)
-            .Include(EvDbFileds.Outbox.Partition)
-            .Include(EvDbFileds.Outbox.StreamId)
-            .Include(EvDbFileds.Outbox.Offset)
-            .Include(EvDbFileds.Outbox.EventType)
-            .Include(EvDbFileds.Outbox.Channel)
-            .Include(EvDbFileds.Outbox.MessageType)
-            .Include(EvDbFileds.Outbox.SerializeType)
-            .Include(EvDbFileds.Outbox.CapturedAt)
-            .Include(EvDbFileds.Outbox.CapturedBy)
-            .Include(EvDbFileds.Outbox.SpanId)
-            .Include(EvDbFileds.Outbox.TraceId)
-            .Include(EvDbFileds.Outbox.Payload);
+            .Include(EvDbFields.Outbox.Domain)
+            .Include(EvDbFields.Outbox.Domain)
+            .Include(EvDbFields.Outbox.Partition)
+            .Include(EvDbFields.Outbox.StreamId)
+            .Include(EvDbFields.Outbox.Offset)
+            .Include(EvDbFields.Outbox.EventType)
+            .Include(EvDbFields.Outbox.Channel)
+            .Include(EvDbFields.Outbox.MessageType)
+            .Include(EvDbFields.Outbox.SerializeType)
+            .Include(EvDbFields.Outbox.CapturedAt)
+            .Include(EvDbFields.Outbox.CapturedBy)
+            .Include(EvDbFields.Outbox.SpanId)
+            .Include(EvDbFields.Outbox.TraceId)
+            .Include(EvDbFields.Outbox.Payload);
 
         var sort = Builders<BsonDocument>.Sort
-            .Ascending(EvDbFileds.Outbox.Offset)
-            .Ascending(EvDbFileds.Outbox.MessageType);
+            .Ascending(EvDbFields.Outbox.Offset)
+            .Ascending(EvDbFields.Outbox.MessageType);
 
         IFindFluent<BsonDocument, BsonDocument> query = collection.Find(new BsonDocument())
                              .Sort(sort);

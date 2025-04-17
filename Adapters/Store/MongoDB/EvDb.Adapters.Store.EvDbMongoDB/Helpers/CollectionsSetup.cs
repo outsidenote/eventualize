@@ -20,9 +20,14 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
     private readonly ConcurrentDictionary<string, object?> _isCollectionCreated = new ConcurrentDictionary<string, object?>();
     private static readonly SemaphoreSlim _collectionCreationSync = new SemaphoreSlim(1);
     private static readonly SemaphoreSlim _shardsCreationSync = new SemaphoreSlim(1);
-    private static readonly CreateOneIndexOptions CREATE_INDEX_OPTIONS = new CreateOneIndexOptions
+    private static readonly CreateOneIndexOptions CREATE_INDEX_MAJORITY_OPTIONS = new CreateOneIndexOptions
     {
-        CommitQuorum = CreateIndexCommitQuorum.Majority,
+        CommitQuorum = CreateIndexCommitQuorum.Majority
+        // MaxTime
+    };
+    private static readonly CreateOneIndexOptions CREATE_INDEX_SNAPSHOT_OPTIONS = new CreateOneIndexOptions
+    {
+        // MaxTime
     };
     private static readonly TimeSpan SETUP_TIMEOUT = TimeSpan.FromMinutes(2);
 
@@ -88,9 +93,12 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
         if (exists)
             return collection;
 
-        await collection.Indexes.CreateOneAsync(QueryProvider.EventsPK,
-                                                CREATE_INDEX_OPTIONS,
-                                                cts.Token);
+        foreach (var index in QueryProvider.EventsIndexes)
+        {
+            await collection.Indexes.CreateOneAsync(index,
+                                                    CREATE_INDEX_MAJORITY_OPTIONS,
+                                                    cts.Token);
+        }
         try
         {
             await _sync.WaitAsync();
@@ -126,9 +134,12 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 
         using var cts = new CancellationTokenSource(SETUP_TIMEOUT);
 
-        await collection.Indexes.CreateOneAsync(QueryProvider.SnapshotPK,
-                                                CREATE_INDEX_OPTIONS,
-                                                cts.Token);
+        foreach (var index in QueryProvider.SnapshotIndexes)
+        {
+            await collection.Indexes.CreateOneAsync(index,
+                                                    CREATE_INDEX_SNAPSHOT_OPTIONS,
+                                                    cts.Token);
+        }
 
         await CreateShardingStrategyIfNotExistsAsync(_storageContext.DatabaseName, collectionName, cts.Token);
 
@@ -237,10 +248,12 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 
         if (exists)
             return collection;
-
-        await collection.Indexes.CreateOneAsync(QueryProvider.OutboxPK,
-                                                CREATE_INDEX_OPTIONS,
-                                                cts.Token);
+        foreach (var outboxIndex in QueryProvider.OutboxIndexes)
+        {
+            await collection.Indexes.CreateOneAsync(outboxIndex,
+                                                    CREATE_INDEX_MAJORITY_OPTIONS,
+                                                    cts.Token);
+        }
 
         await CreateShardingStrategyIfNotExistsAsync(_storageContext.DatabaseName, collectionName, cts.Token);
 
