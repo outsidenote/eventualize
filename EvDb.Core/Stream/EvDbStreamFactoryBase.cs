@@ -30,8 +30,6 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     public abstract EvDbPartitionAddress PartitionAddress { get; }
 
-    public virtual int MinEventsBetweenSnapshots { get; }
-
     public virtual JsonSerializerOptions? Options { get; }
 
     #region TimeProvider
