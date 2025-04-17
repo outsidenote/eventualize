@@ -141,7 +141,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
             await Task.WhenAll(tasks);
 
             using var session = await db.Client.StartSessionAsync(cancellationToken: cancellation);
-            session.StartTransaction(); // TODO: use transaction scope
+            //session.StartTransaction(); // TODO: use transaction scope
             try
             {
                 await StoreEventsAsync(options, eventDocs, session, cancellation);
@@ -150,7 +150,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                     outboxCountPerShard = await StoreOutbox();
                 }
 
-                await session.CommitTransactionAsync(cancellation);
+                //await session.CommitTransactionAsync(cancellation);
             }
             #region Exception Handling
 

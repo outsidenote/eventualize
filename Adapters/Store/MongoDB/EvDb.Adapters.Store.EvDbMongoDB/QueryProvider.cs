@@ -92,7 +92,7 @@ public static class QueryProvider
         {
             // ExpireAfter
             Name = EventsPKName,
-            Unique = true
+            // Unique = true
         };
         return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
     }
@@ -123,7 +123,7 @@ public static class QueryProvider
         var options = new CreateIndexOptions
         {
             Name = EventsPKName,
-            Unique = true
+            //Unique = true
         };
         return new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
     }
