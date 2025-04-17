@@ -249,7 +249,6 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 
     #endregion //  CreateOutboxCollectionIfNotExistsAsync
 
-    // Ask: CreateCollectionOptions vs. MongoCollectionSettings
     #region CreateCollectionIfNotExistsAsync
 
     private async Task<bool> CreateCollectionIfNotExistsAsync(

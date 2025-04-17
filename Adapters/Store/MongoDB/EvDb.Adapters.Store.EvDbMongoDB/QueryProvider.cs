@@ -14,10 +14,10 @@ public static class QueryProvider
     #region EventsCollectionSetting
 
     public static readonly MongoCollectionSettings EventsCollectionSetting = new MongoCollectionSettings
-    {// Ask
+    {
         AssignIdOnInsert = false,
         ReadConcern = ReadConcern.Majority,
-        ReadPreference = ReadPreference.Primary,
+        ReadPreference = ReadPreference.PrimaryPreferred,
         WriteConcern = WriteConcern.WMajority,
     }.Freeze();
 
@@ -26,7 +26,7 @@ public static class QueryProvider
     #region OutboxCollectionSetting
 
     public static readonly MongoCollectionSettings OutboxCollectionSetting = new MongoCollectionSettings
-    {// Ask
+    {
         AssignIdOnInsert = false,
         ReadConcern = ReadConcern.Default,
         ReadPreference = ReadPreference.Nearest,
@@ -38,24 +38,24 @@ public static class QueryProvider
     #region SnapshotCollectionSetting
 
     public static readonly MongoCollectionSettings SnapshotCollectionSetting = new MongoCollectionSettings
-    {// Ask
-        AssignIdOnInsert = false,
-        //ReadConcern = ReadConcern.Majority, // ASK ReadConcern.Linearizable, 
+    {
+        AssignIdOnInsert = false,        
         ReadPreference = ReadPreference.Nearest,
         WriteConcern = WriteConcern.Acknowledged,
     }.Freeze();
 
     #endregion //  SnapshotCollectionSetting
 
+    // TODO: [bnaya 2025-04-17] enable to get the Capped from out side, MaxDocuments, MaxSize (NOT for TS)
     #region DefaultCreateCollectionOptions
 
     public static CreateCollectionOptions DefaultCreateCollectionOptions { get; } = CreateDefaultCreateCollectionOptions();
 
     private static CreateCollectionOptions CreateDefaultCreateCollectionOptions()
     {
-        // Ask
         var options = new CreateCollectionOptions
-        {
+        {  
+            
             // EncryptedFields
             // IndexOptionDefaults 
         };
@@ -78,8 +78,10 @@ public static class QueryProvider
             .Ascending(EvDbFileds.Event.StreamId)
             .Ascending(EvDbFileds.Event.Offset);
 
+        // TODO: [bnaya 2025-04-17] get it from outside (offload data story) ExpireAfter (none TS)
         var options = new CreateIndexOptions
         {
+            // ExpireAfter
             Name = EventsPKName,
             Unique = true
         };
@@ -101,9 +103,9 @@ public static class QueryProvider
             .Ascending(EvDbFileds.Event.Domain)
             .Ascending(EvDbFileds.Event.Partition)
             .Ascending(EvDbFileds.Event.StreamId)
-            .Ascending(EvDbFileds.Event.Offset)
             .Ascending(EvDbFileds.Outbox.Channel)
-            .Ascending(EvDbFileds.Outbox.MessageType);
+            .Ascending(EvDbFileds.Outbox.MessageType)
+            .Ascending(EvDbFileds.Event.Offset);
 
         var options = new CreateIndexOptions
         {
@@ -121,7 +123,6 @@ public static class QueryProvider
 
     private static CreateIndexModel<BsonDocument> CreateSnapshotPK()
     {
-        // Ask: how do I make sure that the read use this index?
         IndexKeysDefinition<BsonDocument> indexKeysDefinition = Builders<BsonDocument>.IndexKeys
             .Ascending(EvDbFileds.Snapshot.Domain)
             .Ascending(EvDbFileds.Snapshot.Partition)
