@@ -93,6 +93,8 @@ public static class QueryProvider
     public static BsonDocument CreateEnableShardingCommand(string databaseName) =>
                                 new BsonDocument { ["enableSharding"] = databaseName };
 
+    // TODO: [bnaya 2025-04-17] index date-created
+
     #region OutboxPK
 
     public static readonly CreateIndexModel<BsonDocument> OutboxPK = CreateOutboxPK();
