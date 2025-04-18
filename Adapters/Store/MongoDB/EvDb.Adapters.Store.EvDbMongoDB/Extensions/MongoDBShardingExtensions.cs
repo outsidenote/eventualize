@@ -19,7 +19,7 @@ internal static class MongoDBShardingExtensions
         var options = new CreateIndexOptions
         {
             Name = name,
-            Unique = true
+            Unique = unique
         };
         var result = new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
         return result;

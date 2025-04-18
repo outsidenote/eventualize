@@ -219,7 +219,6 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
             int affctedEvents = events.Count;
             EvDbStreamAddress address = events[0].StreamCursor;
             StoreMeters.AddEvents(affctedEvents, address, DATABASE_TYPE);
-
         }
 
         #endregion //  StoreEventsAsync

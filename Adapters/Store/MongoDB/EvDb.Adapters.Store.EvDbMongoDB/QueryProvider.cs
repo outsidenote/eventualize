@@ -78,10 +78,10 @@ public static class QueryProvider
                 .Ascending(EvDbFields.Event.Partition)
                 .Ascending(EvDbFields.Event.StreamId)
                 .Ascending(EvDbFields.Event.Offset)
-            .ToCreateIndexModel("evb_events_type_idx", true),
+            .ToCreateIndexModel("evb_events_type_idx"),
         Builders<BsonDocument>.IndexKeys
                 .Ascending(EvDbFields.Event.CapturedAt)
-            .ToCreateIndexModel("evb_events_create_at_idx", false),
+            .ToCreateIndexModel("evb_events_create_at_idx"),
         ];
 
     #endregion //  EventsIndexes
@@ -94,34 +94,27 @@ public static class QueryProvider
     {
         return [
             Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Event.Domain)
-                .Ascending(EvDbFields.Event.Partition)
-                .Ascending(EvDbFields.Event.StreamId)
-                .Ascending(EvDbFields.Event.Offset)
+                .Ascending(EvDbFields.Outbox.Domain)
+                .Ascending(EvDbFields.Outbox.Partition)
+                .Ascending(EvDbFields.Outbox.StreamId)
+                .Ascending(EvDbFields.Outbox.Channel)
+                .Ascending(EvDbFields.Outbox.MessageType)
+                .Ascending(EvDbFields.Outbox.Offset)
                 .ToCreateIndexModel( "evb_outbox_idx", true),
             Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Event.Domain)
-                .Ascending(EvDbFields.Event.Partition)
-                .Ascending(EvDbFields.Event.CapturedAt) // sort from here
-                .Ascending(EvDbFields.Event.StreamId)
-                .Ascending(EvDbFields.Event.Offset)
-                .ToCreateIndexModel( "evb_read_pattern_idx"),
+                .Ascending(EvDbFields.Outbox.CapturedAt) 
+                .Ascending(EvDbFields.Outbox.Offset)
+                .ToCreateIndexModel( "evb_read_capture_at_idx"),
             Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Outbox.Channel)
-                .Ascending(EvDbFields.Event.Domain)
-                .Ascending(EvDbFields.Event.Partition)
-                .Ascending(EvDbFields.Event.CapturedAt) // sort from here
-                .Ascending(EvDbFields.Event.StreamId)
-                .Ascending(EvDbFields.Event.Offset)
-                .ToCreateIndexModel( "evb_read_pattern_Channel_idx"),
+                .Ascending(EvDbFields.Outbox.Channel) 
+                .Ascending(EvDbFields.Outbox.CapturedAt) 
+                .Ascending(EvDbFields.Outbox.Offset)
+                .ToCreateIndexModel( "evb_read_channel_capture_at_idx"),
             Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Outbox.MessageType)
-                .Ascending(EvDbFields.Event.Domain)
-                .Ascending(EvDbFields.Event.Partition)
-                .Ascending(EvDbFields.Event.CapturedAt) // sort from here
-                .Ascending(EvDbFields.Event.StreamId)
-                .Ascending(EvDbFields.Event.Offset)
-                .ToCreateIndexModel( "evb_read_pattern_message_type_idx"),
+                .Ascending(EvDbFields.Outbox.MessageType) 
+                .Ascending(EvDbFields.Outbox.CapturedAt) 
+                .Ascending(EvDbFields.Outbox.Offset)
+                .ToCreateIndexModel( "evb_read_message_type_capture_at_idx"),
            ];
     }
 
