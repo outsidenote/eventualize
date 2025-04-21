@@ -6,8 +6,10 @@ using MongoDB.Driver;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
+
 public static class EvDbMongoDBStorageAdapterFactory
 {
+    
     #region CreateStreamAdapter
 
     #region Overload

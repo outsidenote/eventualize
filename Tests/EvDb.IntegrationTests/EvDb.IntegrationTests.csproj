@@ -24,6 +24,7 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
 		<PackageReference Include="Riok.Mapperly" Version="4.1.1" />
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 		<PackageReference Include="Testcontainers.MongoDb" Version="4.3.0" />
 		<PackageReference Include="Testcontainers.MsSql" Version="4.3.0" />
 		<PackageReference Include="Testcontainers.PostgreSql" Version="4.3.0" />

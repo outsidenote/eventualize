@@ -60,7 +60,6 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (_logger.IsEnabled(LogLevel.Trace))
             _logger.LogQuery(query.ToJson());
 
-        // TODO: [bnaya 2025-03-05] validate it gets all the data
         using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
 
         while (await cursor.MoveNextAsync(cancellation))
@@ -141,7 +140,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
             await Task.WhenAll(tasks);
 
             using var session = await db.Client.StartSessionAsync(cancellationToken: cancellation);
-            session.StartTransaction(); // TODO: use transaction scope
+            session.StartTransaction(); 
             try
             {
                 await StoreEventsAsync(options, eventDocs, session, cancellation);
@@ -220,7 +219,6 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
             int affctedEvents = events.Count;
             EvDbStreamAddress address = events[0].StreamCursor;
             StoreMeters.AddEvents(affctedEvents, address, DATABASE_TYPE);
-
         }
 
         #endregion //  StoreEventsAsync

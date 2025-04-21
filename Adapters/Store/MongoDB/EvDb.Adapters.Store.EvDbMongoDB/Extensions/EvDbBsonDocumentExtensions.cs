@@ -7,7 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using System.Diagnostics;
 using System.Text;
-using static EvDb.Adapters.Store.MongoDB.Internals.EvDbFileds;
+using static EvDb.Adapters.Store.MongoDB.Internals.EvDbFields;
 
 namespace EvDb.Adapters.Store.Internals;
 
@@ -148,7 +148,6 @@ internal static class EvDbBsonDocumentExtensions
         var traceId = activity?.TraceId.ToHexString();
         var spanId = activity?.SpanId.ToHexString();
 
-        // TODO: [bnaya 2025-02-25] use nameof
         return new BsonDocument
             {
                 [Event.Domain] = rec.StreamCursor.Domain,
@@ -199,6 +198,33 @@ internal static class EvDbBsonDocumentExtensions
 
     #endregion //  EvDbToBsonDocument(EvDbMessageRecord rec)
 
+    #region EvDbToBsonDocument(EvDbStoredSnapshotData rec)
+
+    public static BsonDocument EvDbToBsonDocument(this EvDbStoredSnapshotData rec)
+    {
+        BsonDocument doc = new BsonDocument
+        {
+            [Snapshot.Domain] = rec.Domain,
+            [Snapshot.Partition] = rec.Partition,
+            [Snapshot.StreamId] = rec.StreamId,
+            [Snapshot.ViewName] = rec.ViewName,
+            [Snapshot.Offset] = rec.Offset
+        };
+        if (rec.State.Length > 0)
+        {
+            string json = Encoding.UTF8.GetString(rec.State);
+
+            if (json != "null")
+            {
+                BsonValue state = BsonSerializer.Deserialize<BsonValue>(json);
+                doc.Add(Snapshot.State, state);
+            }
+        }
+        return doc;
+    }
+
+    #endregion //  EvDbToBsonDocument(EvDbStoredSnapshotData rec)
+
     #region NormilizePayload
 
     /// <summary>
@@ -245,33 +271,6 @@ internal static class EvDbBsonDocumentExtensions
 
     #endregion //  GetOutboxPayload
 
-    #region EvDbToBsonDocument(EvDbStoredSnapshotData rec)
-
-    public static BsonDocument EvDbToBsonDocument(this EvDbStoredSnapshotData rec)
-    {
-        BsonDocument doc = new BsonDocument
-        {
-            [Snapshot.Domain] = rec.Domain,
-            [Snapshot.Partition] = rec.Partition,
-            [Snapshot.StreamId] = rec.StreamId,
-            [Snapshot.ViewName] = rec.ViewName,
-            [Snapshot.Offset] = rec.Offset
-        };
-        if (rec.State.Length > 0)
-        {
-            string json = Encoding.UTF8.GetString(rec.State);
-
-            if (json != "null")
-            {
-                BsonValue state = BsonSerializer.Deserialize<BsonValue>(json);
-                doc.Add(Snapshot.State, state);
-            }
-        }
-        return doc;
-    }
-
-    #endregion //  EvDbToBsonDocument(EvDbStoredSnapshotData rec)
-
     #region CalcCollectionPrefix
 
     public static string CalcCollectionPrefix(this EvDbStorageContext storageContext)
@@ -279,8 +278,8 @@ internal static class EvDbBsonDocumentExtensions
         string schema = storageContext.Schema.HasValue
             ? $"{storageContext.Schema}."
             : string.Empty;
-        string tblInitial = $"{schema}{storageContext.ShortId}";
-        return tblInitial;
+        string collectionPrefix = $"{schema}{storageContext.ShortId}";
+        return collectionPrefix;
     }
 
     #endregion //  CalcCollectionPrefix

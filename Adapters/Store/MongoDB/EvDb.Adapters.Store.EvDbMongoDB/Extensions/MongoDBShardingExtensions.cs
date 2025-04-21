@@ -9,6 +9,24 @@ namespace EvDb.Adapters.Store;
 
 internal static class MongoDBShardingExtensions
 {
+    #region ToCreateIndexModel
+
+    public static CreateIndexModel<BsonDocument> ToCreateIndexModel(
+                                this IndexKeysDefinition<BsonDocument> indexKeysDefinition,
+                                string name,
+                                bool unique = false)
+    {
+        var options = new CreateIndexOptions
+        {
+            Name = name,
+            Unique = unique
+        };
+        var result = new CreateIndexModel<BsonDocument>(indexKeysDefinition, options);
+        return result;
+    }
+
+    #endregion //  ToCreateIndexModel
+
     #region ConfigureShardingAsync
 
     public static async Task<bool> ConfigureShardingAsync(this MongoClient adminClient,

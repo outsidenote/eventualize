@@ -158,6 +158,7 @@ await app.RunAsync(async (
                     logger.LogInformation($"""
                                 ------------------------------------------
                                 Total Cycles: {count}
+                                    Total:  {eventsSeconds + outboxSeconds:N0} per second
                                     events: {eventsSeconds:N0} per second, {totalAffectedEvents} total
                                     outbox: {outboxSeconds:N0} per second, {totalAffectedOutbox} total
                                     {cyclePerSeconds:N0} cycle per second

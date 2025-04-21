@@ -3,7 +3,7 @@ using EvDb.Core.Adapters;
 
 namespace EvDb.Adapters.Store.MongoDB.Internals;
 
-public static class EvDbFileds
+public static class EvDbFields
 {
     private static readonly Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
