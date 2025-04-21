@@ -6,6 +6,7 @@ using Cocona;
 using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using Xunit.Abstractions;
@@ -13,6 +14,7 @@ using Xunit.Abstractions;
 public abstract class StreamSimpleBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbSchoolStream _stream;
+    protected readonly IConfiguration _configuration;
 
     protected StreamSimpleBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType, true)
@@ -24,13 +26,14 @@ public abstract class StreamSimpleBaseTests : BaseIntegrationTests
                 .AddSchoolStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
                 .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext));
         var sp = services.BuildServiceProvider();
+        _configuration = sp.GetRequiredService<IConfiguration>();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
         _stream = factory.Create(streamId);
 
     }
 
     [Fact]
-    public async Task Stream_Basic_Succeed_Succed()
+    public virtual async Task Stream_Basic_Succeed_Succed()
     {
         await ProcuceEventsAsync();
 

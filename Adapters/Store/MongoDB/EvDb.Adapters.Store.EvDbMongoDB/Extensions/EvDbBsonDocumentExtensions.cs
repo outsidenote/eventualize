@@ -278,8 +278,8 @@ internal static class EvDbBsonDocumentExtensions
         string schema = storageContext.Schema.HasValue
             ? $"{storageContext.Schema}."
             : string.Empty;
-        string tblInitial = $"{schema}{storageContext.ShortId}";
-        return tblInitial;
+        string collectionPrefix = $"{schema}{storageContext.ShortId}";
+        return collectionPrefix;
     }
 
     #endregion //  CalcCollectionPrefix

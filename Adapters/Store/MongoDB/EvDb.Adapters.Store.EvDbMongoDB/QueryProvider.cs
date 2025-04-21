@@ -45,24 +45,6 @@ public static class QueryProvider
 
     #endregion //  SnapshotCollectionSetting
 
-    // TODO: [bnaya 2025-04-17] enable to get the Capped from out side, MaxDocuments, MaxSize, TTL (NOT for TS)
-    #region DefaultCreateCollectionOptions
-
-    public static CreateCollectionOptions DefaultCreateCollectionOptions { get; } = CreateDefaultCreateCollectionOptions();
-
-    private static CreateCollectionOptions CreateDefaultCreateCollectionOptions()
-    {
-        var options = new CreateCollectionOptions
-        {  
-            
-            // EncryptedFields
-            // IndexOptionDefaults 
-        };
-        return options;
-    }
-
-    #endregion //  DefaultCreateCollectionOptions
-
     #region EventsIndexes
 
     public static readonly IImmutableList<CreateIndexModel<BsonDocument>> EventsIndexes = [

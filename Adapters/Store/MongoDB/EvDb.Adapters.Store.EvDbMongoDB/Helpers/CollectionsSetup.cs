@@ -1,6 +1,7 @@
 ﻿using EvDb.Adapters.Store.Internals;
 using EvDb.Core;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Concurrent;
@@ -9,6 +10,7 @@ namespace EvDb.Adapters.Store.MongoDB.Internals;
 
 public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 {
+    private const string OUTBOX_SUFFX = "outbox";
     private readonly ILogger _logger;
     private readonly MongoClient _client;
     private readonly EvDbStorageContext _storageContext;
@@ -33,6 +35,14 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 
     #region Create
 
+    /// <summary>
+    /// Creates the specified logger.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="client">The client.</param>
+    /// <param name="context">The context.</param>
+    /// <param name="creationMode">The creation mode.</param>
+    /// <returns></returns>
     public static CollectionsSetup Create(ILogger logger,
                                           MongoClient client,
                                           EvDbStorageContext context,
@@ -44,6 +54,7 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
     #endregion //  Create
 
     #region Ctor
+
 
     private CollectionsSetup(
                     ILogger logger,
@@ -57,7 +68,7 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
         _creationMode = creationMode;
         _collectionPrefix = storageContext.CalcCollectionPrefix();
         _db = _client.GetDatabase(storageContext.DatabaseName);
-        _outboxCollectionFormat = $$"""{{_collectionPrefix}}{0}outbox""";
+        _outboxCollectionFormat = $$"""{{_collectionPrefix}}{0}_{{OUTBOX_SUFFX}}""";
         EventsCollectionTask = CreateEventsCollectionAsync();
         SnapshotsCollectionTask = CreateSnapshotsCollectionAsync();
     }
@@ -82,9 +93,9 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
         {
             return _db.GetCollection<BsonDocument>(collectionName, QueryProvider.EventsCollectionSetting);
         }
-
+        CreateCollectionOptions options = new();
         bool exists = await CreateCollectionIfNotExistsAsync(collectionName,
-                                                       QueryProvider.DefaultCreateCollectionOptions,
+                                                       options,
                                                        cancellationToken);
 
         IMongoCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>(collectionName,
@@ -116,14 +127,62 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 
     #endregion //  CreateEventsCollectionAsync
 
+    #region CreateOutboxCollectionIfNotExistsAsync
+
+    public async Task<IMongoCollection<BsonDocument>> CreateOutboxCollectionIfNotExistsAsync(
+                                                            EvDbShardName shardName,
+                                                            CancellationToken cancellation = default)
+    {
+        if (string.Compare(shardName.Value, OUTBOX_SUFFX, true) == 0)
+            shardName = string.Empty;
+        string collectionName = string.Format(_outboxCollectionFormat, shardName);
+        IMongoCollection<BsonDocument> outboxCollection =
+                            await CreateOutboxCollectionIfNotExistsAsync(collectionName, cancellation);
+        return outboxCollection;
+    }
+
+    private async Task<IMongoCollection<BsonDocument>> CreateOutboxCollectionIfNotExistsAsync(
+                                                                string collectionName,
+                                                                CancellationToken cancellationToken = default)
+    {
+        using var ctsWithTimeout = new CancellationTokenSource(SETUP_TIMEOUT);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsWithTimeout.Token);
+
+        CreateCollectionOptions options = new CreateCollectionOptions
+        {
+        };
+
+        var exists = await CreateCollectionIfNotExistsAsync(collectionName,
+                                                           options,
+                                                           cts.Token);
+        var collection = _db.GetCollection<BsonDocument>(collectionName,
+                                         QueryProvider.OutboxCollectionSetting);
+
+        if (exists)
+            return collection;
+        foreach (var outboxIndex in QueryProvider.OutboxIndexes)
+        {
+            await collection.Indexes.CreateOneAsync(outboxIndex,
+                                                    CREATE_INDEX_MAJORITY_OPTIONS,
+                                                    cts.Token);
+        }
+
+        await CreateShardingStrategyIfNotExistsAsync(_storageContext.DatabaseName, collectionName, cts.Token);
+
+        return collection;
+    }
+
+    #endregion //  CreateOutboxCollectionIfNotExistsAsync
+
     #region CreateSnapshotsCollectionAsync
 
     public async Task<IMongoCollection<BsonDocument>> CreateSnapshotsCollectionAsync(
                                             CancellationToken cancellationToken = default)
     {
         string collectionName = $"{_collectionPrefix}snapshots";
+        CreateCollectionOptions options = new ();
         bool exists = await CreateCollectionIfNotExistsAsync(collectionName,
-                                                   QueryProvider.DefaultCreateCollectionOptions,
+                                                   options,
                                                    cancellationToken);
 
         var collection = _db.GetCollection<BsonDocument>(collectionName,
@@ -221,47 +280,6 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 
     #endregion //  IsShardedAsync
 
-    #region CreateOutboxCollectionIfNotExistsAsync
-
-    public async Task<IMongoCollection<BsonDocument>> CreateOutboxCollectionIfNotExistsAsync(
-                                                            EvDbShardName shardName,
-                                                            CancellationToken cancellation = default)
-    {
-        string collectionName = string.Format(_outboxCollectionFormat, shardName);
-        IMongoCollection<BsonDocument> outboxCollection =
-                            await CreateOutboxCollectionIfNotExistsAsync(collectionName, cancellation);
-        return outboxCollection;
-    }
-
-    private async Task<IMongoCollection<BsonDocument>> CreateOutboxCollectionIfNotExistsAsync(
-                                                                string collectionName,
-                                                                CancellationToken cancellationToken = default)
-    {
-        using var ctsWithTimeout = new CancellationTokenSource(SETUP_TIMEOUT);
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsWithTimeout.Token);
-
-        var exists = await CreateCollectionIfNotExistsAsync(collectionName,
-                                                           QueryProvider.DefaultCreateCollectionOptions,
-                                                           cts.Token);
-        var collection = _db.GetCollection<BsonDocument>(collectionName,
-                                         QueryProvider.OutboxCollectionSetting);
-
-        if (exists)
-            return collection;
-        foreach (var outboxIndex in QueryProvider.OutboxIndexes)
-        {
-            await collection.Indexes.CreateOneAsync(outboxIndex,
-                                                    CREATE_INDEX_MAJORITY_OPTIONS,
-                                                    cts.Token);
-        }
-
-        await CreateShardingStrategyIfNotExistsAsync(_storageContext.DatabaseName, collectionName, cts.Token);
-
-        return collection;
-    }
-
-    #endregion //  CreateOutboxCollectionIfNotExistsAsync
-
     #region CreateCollectionIfNotExistsAsync
 
     private async Task<bool> CreateCollectionIfNotExistsAsync(
@@ -347,5 +365,4 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
     }
 
     #endregion //  DisposeAction Pattern
-
 }
