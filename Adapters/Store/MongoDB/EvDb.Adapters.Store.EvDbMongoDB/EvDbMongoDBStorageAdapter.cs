@@ -45,12 +45,9 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #region GetEventsAsync
 
-    /// <summary>
-    /// Retrieves events for the given stream cursor.
-    /// </summary>
-    public async IAsyncEnumerable<EvDbEvent> GetEventsAsync(
+    async IAsyncEnumerable<EvDbEvent> IEvDbStorageStreamAdapter.GetEventsAsync(
         EvDbStreamCursor streamCursor,
-        [EnumeratorCancellation] CancellationToken cancellation = default)
+        [EnumeratorCancellation] CancellationToken cancellation)
     {
         var eventsCollection = await _collectionsSetup.EventsCollectionTask;
 
@@ -73,6 +70,29 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     }
 
     #endregion //  GetEventsAsync
+
+    #region GetLastEventAsync
+
+    async Task<long> IEvDbStorageStreamAdapter.GetLastOffsetAsync(
+        EvDbStreamAddress address,
+        CancellationToken cancellation)
+    {
+        var eventsCollection = await _collectionsSetup.EventsCollectionTask;
+
+        var filter = address.ToFilter();
+        IFindFluent<BsonDocument, BsonDocument> query = eventsCollection.Find(filter)
+                                     .Sort(QueryProvider.SortEventsDesc)
+                                     .Project(QueryProvider.ProjectionOffset)
+                                     .Limit(1);
+        if (_logger.IsEnabled(LogLevel.Trace))
+            _logger.LogQuery(query.ToJson());
+
+        BsonDocument doc = await query.FirstOrDefaultAsync(cancellation);
+        long result = doc?[EvDbFields.Event.Offset].AsInt64 ?? 0;
+        return result;
+    }
+
+    #endregion //  GetLastOffsetAsync
 
     #region StoreStreamAsync
 

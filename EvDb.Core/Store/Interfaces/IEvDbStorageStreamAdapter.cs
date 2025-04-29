@@ -15,6 +15,16 @@ public interface IEvDbStorageStreamAdapter
                                 CancellationToken cancellation = default);
 
     /// <summary>
+    /// Gets last stored event's offset.
+    /// </summary>
+    /// <param name="address">The stream address</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    Task<long> GetLastOffsetAsync(
+                                EvDbStreamAddress address,
+                                CancellationToken cancellation = default);
+
+    /// <summary>
     /// Saves the pending events to the stream
     /// </summary>
     /// <param name="events">The events to save</param>

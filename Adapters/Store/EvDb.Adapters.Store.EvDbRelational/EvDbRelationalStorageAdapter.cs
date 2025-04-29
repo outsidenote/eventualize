@@ -333,6 +333,19 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #region IEvDbStorageStreamAdapter Members
 
+    async Task<long> IEvDbStorageStreamAdapter.GetLastOffsetAsync(
+        EvDbStreamAddress address,
+        CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        string query = StreamQueries.GetLastOffset;
+        _logger.LogQuery(query);
+
+        using DbConnection conn = await InitAsync();
+        long offset = await conn.QueryFirstOrDefaultAsync<long?>(query, address.ToParameters()) ?? 0;
+        return offset;
+    }
+
     async IAsyncEnumerable<EvDbEvent> IEvDbStorageStreamAdapter.GetEventsAsync(
         EvDbStreamCursor streamCursor,
         [EnumeratorCancellation] CancellationToken cancellation)

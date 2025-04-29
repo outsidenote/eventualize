@@ -15,6 +15,15 @@ internal static class QueryProvider
 
         return new EvDbStreamAdapterQueryTemplates
         {
+            GetLastOffset = $"""
+                SELECT
+                    {toSnakeCase(nameof(EvDbEventRecord.Offset))} as {nameof(EvDbEventRecord.Offset)}           
+                FROM {tblInitial}events WITH (READCOMMITTEDLOCK)
+                WHERE {toSnakeCase(nameof(EvDbStreamCursor.Domain))} = @{nameof(EvDbStreamCursor.Domain)}
+                    AND {toSnakeCase(nameof(EvDbStreamCursor.Partition))} = @{nameof(EvDbStreamCursor.Partition)}
+                    AND {toSnakeCase(nameof(EvDbStreamCursor.StreamId))} = @{nameof(EvDbStreamCursor.StreamId)}
+                Order BY {toSnakeCase(nameof(EvDbStreamCursor.Offset))} DESC;
+            """,
             GetEvents = $"""
                 SELECT
                     {toSnakeCase(nameof(EvDbEventRecord.Domain))} as {nameof(EvDbEventRecord.Domain)},

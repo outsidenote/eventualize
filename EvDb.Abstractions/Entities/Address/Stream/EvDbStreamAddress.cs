@@ -54,6 +54,16 @@ public readonly partial record struct EvDbStreamAddress(EvDbDomainName Domain, E
 
     #endregion // Casting Overloads
 
+    #region ToParameters
+
+    /// <summary>
+    /// Converts to parameters (string representation).
+    /// </summary>
+    /// <returns></returns>
+    public Parameters ToParameters() => new Parameters (Domain.Value, Partition.Value, StreamId);
+
+    #endregion //  ToParameters
+
     #region ToOtelTagsToOtelTags
 
     /// <summary>
@@ -63,8 +73,8 @@ public readonly partial record struct EvDbStreamAddress(EvDbDomainName Domain, E
     public OtelTags ToOtelTagsToOtelTags()
     {
         var tags = OtelTags.Empty
-                            .Add(TAG_DOMAIN, Domain)
-                            .Add(TAG_PARTITION, Partition)
+                            .Add(TAG_DOMAIN, Domain.Value)
+                            .Add(TAG_PARTITION, Partition.Value)
                             .Add(TAG_STREAM_ID, StreamId);
         return tags;
     }
@@ -79,4 +89,6 @@ public readonly partial record struct EvDbStreamAddress(EvDbDomainName Domain, E
     }
 
     #endregion // ToString
+
+    public readonly record struct Parameters(string Domain, string Partition, string StreamId);
 }
