@@ -84,24 +84,33 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         #endregion //  Task<IEvDbViewStore> GetViewAsync(IEvDbViewFactory viewFactory)
 
         IEvDbViewStore[] views = await Task.WhenAll(tasks);
-        long lowestOffset = views.Min(m => m.StoreOffset);
-
-        var immutableViews = views.ToImmutableList();
-
-        var cursor = new EvDbStreamCursor(PartitionAddress, id, lowestOffset + 1);
-        IAsyncEnumerable<EvDbEvent> events =
-            _storageAdapter.GetEventsAsync(cursor, cancellationToken);
-
-        long streamOffset = lowestOffset;
-        await foreach (EvDbEvent e in events)
+        T stream;
+        if (views.Length == 0)
         {
-            foreach (IEvDbViewStore view in views)
-            {
-                view.FoldEvent(e);
-            }
-            streamOffset = e.StreamCursor.Offset;
+            long lastOffset = await _storageAdapter.GetLastOffsetAsync(address, cancellationToken);
+            stream = OnCreate(id, ImmutableList<IEvDbViewStore>.Empty, lastOffset);
         }
-        T stream = OnCreate(id, immutableViews, streamOffset);
+        else
+        {
+            long lowestOffset = views.Min(m => m.StoreOffset);
+
+            ImmutableList<IEvDbViewStore> immutableViews = views.ToImmutableList();
+
+            var cursor = new EvDbStreamCursor(address, lowestOffset + 1);
+            IAsyncEnumerable<EvDbEvent> events =
+                _storageAdapter.GetEventsAsync(cursor, cancellationToken);
+
+            long streamOffset = lowestOffset;
+            await foreach (EvDbEvent e in events)
+            {
+                foreach (IEvDbViewStore view in views)
+                {
+                    view.FoldEvent(e);
+                }
+                streamOffset = e.StreamCursor.Offset;
+            }
+            stream = OnCreate(id, immutableViews, streamOffset);
+        }
 
         return stream;
     }

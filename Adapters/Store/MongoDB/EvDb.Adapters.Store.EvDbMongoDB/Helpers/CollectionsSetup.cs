@@ -10,6 +10,9 @@ namespace EvDb.Adapters.Store.MongoDB.Internals;
 
 public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 {
+    /// <summary>
+    /// The outbox suffx
+    /// </summary>
     private const string OUTBOX_SUFFX = "outbox";
     private readonly ILogger _logger;
     private readonly MongoClient _client;

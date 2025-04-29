@@ -152,6 +152,17 @@ public static class QueryProvider
 
     #endregion //  SortEvents
 
+    #region SortEventsDesc
+
+    public static SortDefinition<BsonDocument> SortEventsDesc { get; } =
+                                    Builders<BsonDocument>.Sort
+                                            .Ascending(EvDbFields.Event.Domain)
+                                            .Ascending(EvDbFields.Event.Partition)
+                                            .Ascending(EvDbFields.Event.StreamId)
+                                            .Descending(EvDbFields.Event.Offset);
+
+    #endregion //  SortEventsDesc
+
     #region SortSnapshots
 
     public static SortDefinition<BsonDocument> SortSnapshots { get; } =
@@ -164,6 +175,15 @@ public static class QueryProvider
 
     #endregion //  SortSnapshots
 
+    #region ProjectionOffset
+
+    public static ProjectionDefinition<BsonDocument> ProjectionOffset { get; } =
+                                    Builders<BsonDocument>.Projection
+                                            .Include(EvDbFields.Event.Offset)
+                                            .Exclude("_id");
+
+    #endregion //  ProjectionOffset
+
     #region ProjectionSnapshots
 
     public static ProjectionDefinition<BsonDocument> ProjectionSnapshots { get; } =
@@ -174,6 +194,20 @@ public static class QueryProvider
     #endregion //  ProjectionSnapshots
 
     #region ToFilter
+
+    public static FilterDefinition<BsonDocument> ToFilter(this EvDbStreamAddress address)
+    {
+        FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
+                                    .And(
+                                        Builders<BsonDocument>.Filter
+                                            .Eq(EvDbFields.Event.Domain, address.Domain.Value),
+                                        Builders<BsonDocument>.Filter
+                                            .Eq(EvDbFields.Event.Partition, address.Partition.Value),
+                                        Builders<BsonDocument>.Filter
+                                            .Eq(EvDbFields.Event.StreamId, address.StreamId));
+
+        return filter;
+    }
 
     public static FilterDefinition<BsonDocument> ToFilter(this EvDbStreamCursor address)
     {
