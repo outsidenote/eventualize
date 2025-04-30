@@ -9,6 +9,9 @@ using System.Text.RegularExpressions;
 
 namespace EvDb.Core;
 
+/// <summary>
+/// Shard name represent a the name of the outbox storage unit (table/collection).
+/// </summary>
 [ExcludeFromCodeCoverage]
 [JsonConverter(typeof(EvDbShardNameSystemTextJsonConverter))]
 [TypeConverter(typeof(EvDbShardNameTypeConverter))]

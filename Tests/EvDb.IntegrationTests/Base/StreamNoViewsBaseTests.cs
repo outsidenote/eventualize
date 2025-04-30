@@ -43,7 +43,7 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
         Assert.Equal(4, _stream.StoredOffset);
 
 
-        ICollection<EvDbMessageRecord> messagingCollection = await GetOutboxAsync(EvDbShardName.Default).ToEnumerableAsync();
+        ICollection<EvDbMessageRecord> messagingCollection = await GetOutboxAsync(EvDbNoViewsOutbox.DEFAULT_SHARD_NAME).ToEnumerableAsync();
         EvDbMessageRecord[] messaging = messagingCollection!.ToArray();
         Assert.Equal(3, messaging.Length);
 

@@ -49,6 +49,10 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         ImmutableArray<ITypeSymbol> outboxArgs = attOfOutbox.AttributeClass!.TypeArguments;
         string outboxName = typeSymbol.Name;
 
+        string defaultShardName = attOfOutbox.ConstructorArguments
+            .FirstOrDefault()
+            .Value?.ToString() ?? "outbox";
+
         ITypeSymbol? factoryTypeSymbol = outboxArgs[0];
         #region Validation
 
@@ -108,7 +112,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             public void Add({{info.FullTypeName}} payload)
                             {
                                 IEvDbOutboxProducerGeneric self = this;
-                                self.Add(payload, EvDbOutboxConstants.DEFAULT_OUTBOX, EvDbShardName.Default); 
+                                self.Add(payload, EvDbOutboxConstants.DEFAULT_OUTBOX, DEFAULT_SHARD_NAME); 
                             }            
 
                         """;
@@ -144,7 +148,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                             public void Add({{info.FullTypeName}} payload)
                             {
                                 IEvDbOutboxProducerGeneric self = this;
-                                self.Add(payload, "{{info.Channels[0]}}", EvDbShardName.Default); 
+                                self.Add(payload, "{{info.Channels[0]}}", DEFAULT_SHARD_NAME); 
                             }            
             
                         """;
@@ -185,7 +189,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         {
             multiAdds = """
                         IEvDbOutboxProducerGeneric self = this;
-                        self.Add(payload, outboxText, EvDbShardName.Default);               
+                        self.Add(payload, outboxText, DEFAULT_SHARD_NAME);               
                 """;
         }
         var addMessageTypesMulti = multiChannel.Select((info, i) =>
@@ -248,6 +252,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public sealed class {{outboxName}}Context : EvDbOutboxContextBase
                     {
+                        private const string DEFAULT_SHARD_NAME = "{{defaultShardName}}";
                         protected override IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; } = 
                                                     ImmutableArray<IEvDbOutboxSerializer>.Empty.AddRange(
                                                                         (IEnumerable<IEvDbOutboxSerializer>)
@@ -438,7 +443,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     {
                         Shards[] shards = ChannelToShards(outbox);
                         if(shards.Length == 0)
-                            return [EvDbShardName.Default];
+                            return [DEFAULT_SHARD_NAME];
                         IEnumerable<EvDbShardName> result = ToShardsName(shards);
                         return result;
                     }
@@ -496,6 +501,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public abstract class {{outboxName}}Base : IEvDbOutboxProducer {{iChannelToShards}}
                     {
+                        public const string DEFAULT_SHARD_NAME = "{{defaultShardName}}";
                         private readonly {{streamName}} _evDbStream;
                         private readonly ILogger _logger;
                         private readonly JsonSerializerOptions? _serializationOptions;

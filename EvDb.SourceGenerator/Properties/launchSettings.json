@@ -2,7 +2,7 @@
   "profiles": {
     "Debug": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\Tests\\StructuresValidation\\EvDb.StructuresValidation.Repositories\\EvDb.StructuresValidation.Repositories.csproj"
+      "targetProject": "..\\Samples\\EvDb.Scenes\\EvDb.Scenes.csproj"
     }
   }
 }

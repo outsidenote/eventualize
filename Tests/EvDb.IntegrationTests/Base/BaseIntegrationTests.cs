@@ -65,6 +65,7 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
                                                     OutboxShards.MessagingVip,
                                                     OutboxShards.Messaging,
                                                     OutboxShards.Commands,
+                                                    EvDbNoViewsOutbox.DEFAULT_SHARD_NAME,
                                                     EvDbShardName.Default);
         IEvDbStorageAdmin? storageMigrationSnapshot = null;
         if (_seSeparateSnapshotContext)
