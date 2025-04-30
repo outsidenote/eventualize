@@ -25,6 +25,14 @@ public class EvDbOutboxAttribute<TStreamFactory> : Attribute
 #pragma warning restore CS1712 // Type parameter has no matching typeparam tag in the XML comment (but other type parameters do)
     where TStreamFactory : IEvDbStreamConfig
 {
+    public EvDbOutboxAttribute(string? defaultShardName = null)
+    {
+        DefaultShardName = defaultShardName;
+    }
+    /// <summary>
+    /// Default shard name of the outbox storage unit (table/collection).
+    /// </summary>
+    public string? DefaultShardName { get; }
 }
 
 /// <summary>
@@ -50,4 +58,12 @@ public class EvDbOutboxAttribute<TStreamFactory, TShards> : Attribute
 #pragma warning restore CS1712 // Type parameter has no matching typeparam tag in the XML comment (but other type parameters do)
     where TStreamFactory : IEvDbStreamConfig
 {
+    public EvDbOutboxAttribute(string? defaultShardName = null)
+    {
+        DefaultShardName = defaultShardName;
+    }
+    /// <summary>
+    /// Default shard name of the outbox storage unit (table/collection).
+    /// </summary>
+    public string? DefaultShardName { get; }
 }

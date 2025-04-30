@@ -6,7 +6,7 @@ using EvDb.Scenes;
 namespace EvDb.UnitTests;
 
 [EvDbAttachMessageType<AvgMessage>]
-[EvDbOutbox<NoViewsFactory>]
+[EvDbOutbox<NoViewsFactory>("messages")]
 public partial class EvDbNoViewsOutbox
 {
     protected override void ProduceOutboxMessages(EvDb.Scenes.StudentReceivedGradeEvent payload,
