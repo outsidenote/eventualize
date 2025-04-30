@@ -27,14 +27,27 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #region Ctor
 
+    #region Overloads
+
     public EvDbMongoDBStorageAdapter(
                         MongoClientSettings settings,
                         ILogger logger,
                         EvDbStorageContext storageContext,
                         IEnumerable<IEvDbOutboxTransformer> transformers,
                         EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
+                            : this(new MongoClient(settings), logger, storageContext, transformers, creationMode)
     {
-        var client = new MongoClient(settings);
+    }
+
+    #endregion //  Overloads
+
+    private EvDbMongoDBStorageAdapter(
+                        MongoClient client,
+                        ILogger logger,
+                        EvDbStorageContext storageContext,
+                        IEnumerable<IEvDbOutboxTransformer> transformers,
+                        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
+    {
         _collectionsSetup = CollectionsSetup.Create(logger, client, storageContext, creationMode);
 
         _logger = logger;
@@ -120,106 +133,110 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         IMongoDatabase db = _collectionsSetup.Db;
         var eventsCollection = await _collectionsSetup.EventsCollectionTask;
 
-        if (messages.Count == 0)
-        {
-            try
-            {
-                await StoreEventsAsync(options, eventDocs, null, cancellation);
-            }
-            #region Exception Handling
+        using var session = await db.Client.StartSessionAsync(cancellationToken: cancellation);
+        bool inInExternalTransaction = session.IsInTransaction;
 
-            catch (MongoBulkWriteException<BsonDocument> ex)
+        if (!inInExternalTransaction)
+            session.StartTransaction();
+        try
+        {
+            if (messages.Count == 0)
             {
-                ServerErrorCategory? cateory = ex.WriteErrors.FirstOrDefault()?.Category;
-                if (cateory == ServerErrorCategory.DuplicateKey)
+                try
+                {
+                    await StoreEventsAsync(options, eventDocs, null, cancellation);
+                }
+                #region Exception Handling
+
+                catch (MongoBulkWriteException<BsonDocument> ex)
+                {
+                    ServerErrorCategory? cateory = ex.WriteErrors.FirstOrDefault()?.Category;
+                    if (cateory == ServerErrorCategory.DuplicateKey)
+                    {
+                        var address = events[0].StreamCursor;
+                        var cursor = new EvDbStreamCursor(address);
+                        throw new OCCException(cursor, ex);
+                    }
+                    throw;
+                }
+                catch (MongoCommandException ex) // when ex.Message.StartsWith("Command insert failed: Caused by ::  :: Please retry your operation or multi-document transaction..")
                 {
                     var address = events[0].StreamCursor;
                     var cursor = new EvDbStreamCursor(address);
                     throw new OCCException(cursor, ex);
                 }
-                throw;
-            }
-            catch (MongoCommandException ex) // when ex.Message.StartsWith("Command insert failed: Caused by ::  :: Please retry your operation or multi-document transaction..")
-            {
-                var address = events[0].StreamCursor;
-                var cursor = new EvDbStreamCursor(address);
-                throw new OCCException(cursor, ex);
-            }
 
-            #endregion //  Exception Handling
-        }
-        else
-        {
-            IEnumerable<IGrouping<EvDbShardName, EvDbMessageRecord>> shards =
-                                                messages.GroupByShards(_transformers);
-            // make sure the collection exists before starting the transaction
-            var tasks = shards.Select(async shard =>
+                #endregion //  Exception Handling
+            }
+            else
             {
-                await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shard.Key);
-            });
-            await Task.WhenAll(tasks);
+                IEnumerable<IGrouping<EvDbShardName, EvDbMessageRecord>> shards =
+                                                    messages.GroupByShards(_transformers);
+                // make sure the collection exists before starting the transaction
+                var tasks = shards.Select(async shard =>
+                {
+                    await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shard.Key);
+                });
+                await Task.WhenAll(tasks);
 
-            using var session = await db.Client.StartSessionAsync(cancellationToken: cancellation);
-            session.StartTransaction(); 
-            try
-            {
                 await StoreEventsAsync(options, eventDocs, session, cancellation);
                 if (messages.Count != 0)
                 {
                     outboxCountPerShard = await StoreOutbox();
                 }
 
-                await session.CommitTransactionAsync(cancellation);
-            }
-            #region Exception Handling
+                if (!inInExternalTransaction)
+                    await session.CommitTransactionAsync(cancellation);
 
-            catch (MongoBulkWriteException<BsonDocument> ex)
-            {
-                var cursor = events[0].StreamCursor;
-                await session.AbortTransactionAsync(cancellation);
-                throw new OCCException(cursor, ex);
-            }
-            catch (MongoCommandException ex) // when ex.Message.StartsWith("Command insert failed: Caused by ::  :: Please retry your operation or multi-document transaction..")
-            {
-                await session.AbortTransactionAsync(cancellation);
-                var address = events[0].StreamCursor;
-                var cursor = new EvDbStreamCursor(address);
-                throw new OCCException(cursor, ex);
-            }
-            catch (Exception)
-            {
-                await session.AbortTransactionAsync(cancellation);
-                throw;
-            }
+                #region StoreOutboxAsync
 
-            #endregion //  Exception Handling
-
-            #region StoreOutboxAsync
-
-            async Task<ImmutableDictionary<EvDbShardName, int>> StoreOutbox()
-            {
-                EvDbStreamAddress address = messages[0].StreamCursor;
-
-                var tasks = shards.Select(async g =>
+                async Task<ImmutableDictionary<EvDbShardName, int>> StoreOutbox()
                 {
-                    EvDbShardName shardName = g.Key;
-                    OtelTags tags = OtelTags.Empty.Add("shard", shardName);
-                    using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
-                    var outboxDocs = g.Select(m => m.EvDbToBsonDocument(shardName)).ToArray();
+                    EvDbStreamAddress address = messages[0].StreamCursor;
 
-                    var outboxCollection = await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shardName);
-                    await outboxCollection.InsertManyAsync(session, outboxDocs, options, cancellation);
-                    int affctedMessages = outboxDocs.Length;
-                    StoreMeters.AddMessages(affctedMessages, address, DATABASE_TYPE, shardName);
-                    return KeyValuePair.Create(shardName, affctedMessages);
-                });
-                var pairs = await Task.WhenAll(tasks);
-                var result = pairs.ToImmutableDictionary();
-                return result;
+                    var tasks = shards.Select(async g =>
+                    {
+                        EvDbShardName shardName = g.Key;
+                        OtelTags tags = OtelTags.Empty.Add("shard", shardName);
+                        using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
+                        var outboxDocs = g.Select(m => m.EvDbToBsonDocument(shardName)).ToArray();
+
+                        var outboxCollection = await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shardName);
+                        await outboxCollection.InsertManyAsync(session, outboxDocs, options, cancellation);
+                        int affctedMessages = outboxDocs.Length;
+                        StoreMeters.AddMessages(affctedMessages, address, DATABASE_TYPE, shardName);
+                        return KeyValuePair.Create(shardName, affctedMessages);
+                    });
+                    var pairs = await Task.WhenAll(tasks);
+                    var result = pairs.ToImmutableDictionary();
+                    return result;
+                }
+
+                #endregion //  StoreOutboxAsync
             }
-
-            #endregion //  StoreOutboxAsync
         }
+        #region Exception Handling
+
+        catch (MongoBulkWriteException<BsonDocument> ex)
+        {
+            var cursor = events[0].StreamCursor;
+            await session.AbortTransactionAsync(cancellation);
+            throw new OCCException(cursor, ex);
+        }
+        catch (MongoCommandException ex) // when ex.Message.StartsWith("Command insert failed: Caused by ::  :: Please retry your operation or multi-document transaction..")
+        {
+            await session.AbortTransactionAsync(cancellation);
+            var address = events[0].StreamCursor;
+            var cursor = new EvDbStreamCursor(address);
+            throw new OCCException(cursor, ex);
+        }
+        catch (Exception)
+        {
+            await session.AbortTransactionAsync(cancellation);
+            throw;
+        }
+
+        #endregion //  Exception Handling
 
         return new StreamStoreAffected(events.Count, outboxCountPerShard);
 
