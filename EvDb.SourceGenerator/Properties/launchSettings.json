@@ -3,6 +3,14 @@
     "Debug": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\Samples\\EvDb.Scenes\\EvDb.Scenes.csproj"
+    },
+    "MinimalStructure": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\Samples\\EvDb.MinimalStructure\\EvDb.MinimalStructure.csproj"
+    },
+    "Scenes": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\Samples\\EvDb.Scenes\\EvDb.Scenes.csproj"
     }
   }
 }
