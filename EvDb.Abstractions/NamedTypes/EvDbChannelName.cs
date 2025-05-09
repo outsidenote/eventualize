@@ -27,14 +27,14 @@ public partial struct EvDbChannelName :
 
     #region Validation
 
-    [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_\-@#]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
+    [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_\.\-@#]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
     private static partial Regex Validator();
 
     private static Validation Validate(string value) => Validator().IsMatch(value) switch
     {
 
         true => Validation.Ok,
-        _ => Validation.Invalid("The channel name must start with letters (A-Z) or (a-z), follow by alphabets, numbers, or the characters `-`, `_`, `@`, or `#`     .")
+        _ => Validation.Invalid("The channel name must start with letters (A-Z) or (a-z), follow by alphabets, numbers, or the characters `-`, `.`, `_`, `@`, or `#`     .")
     };
 
     #endregion //  Validation
@@ -89,6 +89,7 @@ public partial struct EvDbChannelName :
     #endregion //  Ctor
 
     private static string Format(string value) => value;
+
 
     #region TryFrom / From
 
