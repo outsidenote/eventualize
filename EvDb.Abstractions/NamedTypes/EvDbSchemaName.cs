@@ -32,7 +32,7 @@ public partial struct EvDbSchemaName :
     {
 
         true => Validation.Ok,
-        _ => Validation.Invalid("The table name must only contain uppercase letters (A-Z), lowercase letters (a-z), digits (0-9), and underscores (_).")
+        _ => Validation.Invalid("The schema name must only contain uppercase letters (A-Z), lowercase letters (a-z), digits (0-9), and underscores (_).")
     };
 
     #endregion //  Validation
@@ -86,7 +86,9 @@ public partial struct EvDbSchemaName :
 
     #endregion //  Ctor
 
-    private static string Format(string value) => value.Replace('-', '_');
+    private static string Format(string value) => value.Replace('-', '_')
+                                                       .Replace(".", "_");
+
 
     #region TryFrom / From
 

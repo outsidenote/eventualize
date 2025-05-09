@@ -91,7 +91,9 @@ public partial struct EvDbShardName :
 
     #endregion //  Ctor
 
-    private static string Format(string value) => value.Replace('-', '_');
+    private static string Format(string value) => value.Replace('-', '_')
+                                                       .Replace(".", "_");
+
 
     #region TryFrom / From
 
