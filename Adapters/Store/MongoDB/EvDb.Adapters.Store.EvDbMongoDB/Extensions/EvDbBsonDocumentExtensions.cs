@@ -11,7 +11,7 @@ using static EvDb.Adapters.Store.MongoDB.Internals.EvDbFields;
 
 namespace EvDb.Adapters.Store.Internals;
 
-internal static class EvDbBsonDocumentExtensions
+public static class EvDbBsonDocumentExtensions
 {
     #region ToEvent
 
