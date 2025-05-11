@@ -38,6 +38,17 @@ public static class EvDbBsonDocumentExtensions
 
     #region ToMessageRecord
 
+    public static IEvDbMessageMeta ToMessageMeta(this BsonDocument doc)
+    {
+        var rec = doc.ToMessageRecord();
+        var meta = rec.GetMetadata();
+        return meta;
+    }
+
+    #endregion //  ToMessageRecord
+
+    #region ToMessageRecord
+
     public static EvDbMessageRecord ToMessageRecord(this BsonDocument doc)
     {
         var domain = doc.GetValue(Outbox.Domain).AsString;
