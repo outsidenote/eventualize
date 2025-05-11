@@ -3,7 +3,7 @@
 namespace EvDb.Core.Adapters;
 
 [DebuggerDisplay("MessageType: {MessageType} ,EventType:{EventType}, Channel:{Channel} Offset:{Offset}, StreamId:{StreamId}")]
-public struct EvDbMessageRecord
+public struct EvDbMessageRecord 
 {
     public Guid Id { get; init; }
     public string Domain { get; init; }
@@ -46,4 +46,33 @@ public struct EvDbMessageRecord
     }
 
     #endregion //  static implicit operator EvDbMessageRecord(EvDbMessage e) ...
+
+    #region GetMetadata
+
+    /// <summary>
+    /// Get the metadata of the message.
+    /// </summary>
+    /// <returns></returns>
+    public IEvDbMessageMeta GetMetadata()
+    {
+        EvDbStreamCursor cursor = new EvDbStreamCursor(Domain, Partition, StreamId, Offset);
+        var result = new EvDbMessageMeta(cursor,
+                                         EventType,
+                                         MessageType,
+                                         CapturedAt,
+                                         CapturedBy);
+        return result;
+    }
+
+    #region readonly record EvDbMessageMeta struct(...): IEvDbMessageMeta
+
+    private readonly record struct EvDbMessageMeta(EvDbStreamCursor StreamCursor,
+                                                  string EventType,
+                                                  string MessageType, 
+                                                  DateTimeOffset CapturedAt,
+                                                  string CapturedBy) : IEvDbMessageMeta;
+
+    #endregion //  readonly record EvDbMessageMeta struct(...): IEvDbMessageMeta
+
+    #endregion //  GetMetadata
 }

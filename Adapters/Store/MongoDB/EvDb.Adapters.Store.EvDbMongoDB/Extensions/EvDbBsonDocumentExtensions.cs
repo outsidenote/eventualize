@@ -11,7 +11,7 @@ using static EvDb.Adapters.Store.MongoDB.Internals.EvDbFields;
 
 namespace EvDb.Adapters.Store.Internals;
 
-internal static class EvDbBsonDocumentExtensions
+public static class EvDbBsonDocumentExtensions
 {
     #region ToEvent
 
@@ -35,6 +35,17 @@ internal static class EvDbBsonDocumentExtensions
     }
 
     #endregion //  ToEvent
+
+    #region ToMessageRecord
+
+    public static IEvDbMessageMeta ToMessageMeta(this BsonDocument doc)
+    {
+        var rec = doc.ToMessageRecord();
+        var meta = rec.GetMetadata();
+        return meta;
+    }
+
+    #endregion //  ToMessageRecord
 
     #region ToMessageRecord
 
