@@ -59,6 +59,7 @@ public struct EvDbMessageRecord
         var result = new EvDbMessageMeta(cursor,
                                          EventType,
                                          MessageType,
+                                         Channel,
                                          CapturedAt,
                                          CapturedBy);
         return result;
@@ -68,7 +69,8 @@ public struct EvDbMessageRecord
 
     private readonly record struct EvDbMessageMeta(EvDbStreamCursor StreamCursor,
                                                   string EventType,
-                                                  string MessageType, 
+                                                  string MessageType,
+                                                  EvDbChannelName Channel,
                                                   DateTimeOffset CapturedAt,
                                                   string CapturedBy) : IEvDbMessageMeta;
 
