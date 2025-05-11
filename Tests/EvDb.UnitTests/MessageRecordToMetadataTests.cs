@@ -21,7 +21,7 @@ public class MessageRecordToMetadataTests
     }
 
     [Fact]
-    public async void MessageRecordToMetadata()
+    public void MessageRecordToMetadata()
     {
         var messageRecord = new EvDbMessageRecord
         {
@@ -55,7 +55,7 @@ public class MessageRecordToMetadataTests
 
 
     [Fact]
-    public async void BsonMessageRecordToMetadata()
+    public void BsonMessageRecordToMetadata()
     {
         var messageRecord = new EvDbMessageRecord
         {
@@ -84,6 +84,7 @@ public class MessageRecordToMetadataTests
         Assert.Equal(messageRecord.StreamId, meta.StreamCursor.StreamId);
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);
+        Assert.Equal(messageRecord.Channel, meta.Channel);
        // Assert.Equal(messageRecord.CapturedAt, meta.CapturedAt);
         Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
     }
