@@ -26,9 +26,12 @@ internal static class MongoOutboxTestHelper
         string databaseName = storageContext.DatabaseName;
         var db = client.GetDatabase(databaseName);
 
+        string separator = "_";
         if (shard.Value == "outbox")
             shard = string.Empty;
-        var outboxCollectionFormat = $"{collectionPrefix}{shard}_outbox";
+        if (string.IsNullOrEmpty(shard.Value))
+            separator = "";
+        var outboxCollectionFormat = $"{collectionPrefix}{shard}{separator}outbox";
         var collection = db.GetCollection<BsonDocument>(outboxCollectionFormat);
 
         var projection = Builders<BsonDocument>.Projection
