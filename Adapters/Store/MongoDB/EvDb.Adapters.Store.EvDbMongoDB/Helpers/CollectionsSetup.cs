@@ -58,7 +58,6 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 
     #region Ctor
 
-
     private CollectionsSetup(
                     ILogger logger,
                     MongoClient client,
@@ -71,7 +70,7 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
         _creationMode = creationMode;
         _collectionPrefix = storageContext.CalcCollectionPrefix();
         _db = _client.GetDatabase(storageContext.DatabaseName);
-        _outboxCollectionFormat = $$"""{{_collectionPrefix}}{0}_{{OUTBOX_SUFFX}}""";
+        _outboxCollectionFormat = $$"""{{_collectionPrefix}}{0}{1}{{OUTBOX_SUFFX}}""";
         EventsCollectionTask = CreateEventsCollectionAsync();
         SnapshotsCollectionTask = CreateSnapshotsCollectionAsync();
     }
@@ -136,9 +135,12 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
                                                             EvDbShardName shardName,
                                                             CancellationToken cancellation = default)
     {
+        string separator = "_";
         if (string.Compare(shardName.Value, OUTBOX_SUFFX, true) == 0)
             shardName = string.Empty;
-        string collectionName = string.Format(_outboxCollectionFormat, shardName);
+        if(string.IsNullOrEmpty(shardName.Value))
+            separator = "";
+        string collectionName = string.Format(_outboxCollectionFormat, shardName, separator);
         IMongoCollection<BsonDocument> outboxCollection =
                             await CreateOutboxCollectionIfNotExistsAsync(collectionName, cancellation);
         return outboxCollection;
