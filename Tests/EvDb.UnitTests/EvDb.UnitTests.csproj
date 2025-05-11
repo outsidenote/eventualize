@@ -32,6 +32,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Adapters\Store\EvDb.Adapters.Store.Abstractions\EvDb.Adapters.Store.Abstractions.csproj" />
 		<ProjectReference Include="..\..\EvDb.Core\EvDb.Core.csproj" />
 		<ProjectReference Include="..\..\Samples\EvDb.MinimalStructure\EvDb.MinimalStructure.csproj" />
 		<ProjectReference Include="..\..\Samples\EvDb.Scenes\EvDb.Scenes.csproj" />
