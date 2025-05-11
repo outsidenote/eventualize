@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
+using EvDb.Adapters.Store.Internals;
 
 namespace EvDb.UnitTests;
 
@@ -49,6 +50,41 @@ public class MessageRecordToMetadataTests
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);
         Assert.Equal(messageRecord.CapturedAt, meta.CapturedAt);
+        Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
+    }
+
+
+    [Fact]
+    public async void BsonMessageRecordToMetadata()
+    {
+        var messageRecord = new EvDbMessageRecord
+        {
+            Domain = "TestDomain",
+            Partition = "TestPartition",
+            StreamId = "TestStreamId",
+            Offset = 1,
+            EventType = "TestEventType",
+            Channel = "TestChannel",
+            MessageType = "TestMessageType",
+            SerializeType = "TestSerializeType",
+            Payload = Encoding.UTF8.GetBytes("TestPayload"),
+            CapturedBy = "TestCapturedBy",
+            CapturedAt = DateTimeOffset.UtcNow,
+            SpanId = "1234",
+            TraceId = "4567"
+        };
+
+        var doc = messageRecord.EvDbToBsonDocument("shard");
+        var meta = doc.ToMessageMeta();
+
+        _output.WriteLine($"MessageRecord: {messageRecord}");
+
+        Assert.Equal(messageRecord.Domain, meta.StreamCursor.Domain);
+        Assert.Equal(messageRecord.Partition, meta.StreamCursor.Partition);
+        Assert.Equal(messageRecord.StreamId, meta.StreamCursor.StreamId);
+        Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
+        Assert.Equal(messageRecord.EventType, meta.EventType);
+       // Assert.Equal(messageRecord.CapturedAt, meta.CapturedAt);
         Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
     }
 
