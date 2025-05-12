@@ -61,7 +61,9 @@ public struct EvDbMessageRecord
                                          MessageType,
                                          Channel,
                                          CapturedAt,
-                                         CapturedBy);
+                                         CapturedBy,
+                                         TraceId,
+                                         SpanId);
         return result;
     }
 
@@ -72,7 +74,9 @@ public struct EvDbMessageRecord
                                                   string MessageType,
                                                   EvDbChannelName Channel,
                                                   DateTimeOffset CapturedAt,
-                                                  string CapturedBy) : IEvDbMessageMeta;
+                                                  string CapturedBy, 
+                                                  string? TraceId,
+                                                  string? SpanId) : IEvDbMessageMeta;
 
     #endregion //  readonly record EvDbMessageMeta struct(...): IEvDbMessageMeta
 

@@ -21,6 +21,11 @@ public partial record struct EvDbMessage(
 {
     public static readonly EvDbEvent Empty = new EvDbEvent();
 
+    [IgnoreEquality]
+    string? IEvDbMessageMeta.TraceId => Activity.Current?.TraceId.ToHexString();
+    [IgnoreEquality]
+    string? IEvDbMessageMeta.SpanId => Activity.Current?.SpanId.ToHexString();
+
     T IEvDbEventConverter.GetData<T>(JsonSerializerOptions? options)
     {
         var json = JsonSerializer.Deserialize<T>(Payload, options) ?? throw new InvalidCastException(typeof(T).Name);

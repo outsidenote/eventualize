@@ -85,7 +85,8 @@ public class MessageRecordToMetadataTests
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);
         Assert.Equal(messageRecord.Channel, meta.Channel);
-       // Assert.Equal(messageRecord.CapturedAt, meta.CapturedAt);
+        Assert.Equal(messageRecord.TraceId, meta.TraceId);
+        Assert.Equal(messageRecord.SpanId, meta.SpanId);
         Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
     }
 
