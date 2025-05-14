@@ -122,9 +122,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Adapters.Store.EvDbMon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Abstractions", "EvDb.Abstractions\EvDb.Abstractions.csproj", "{651ADBF2-F4C1-48B5-BD6D-1E7A44C543D8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InMem", "InMem", "{C8A9FAA5-6742-4837-B587-5CCFA102F45F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{C8A9FAA5-6742-4837-B587-5CCFA102F45F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Adapters.Store.EvDbInMem", "Adapters\Store\InMem\EvDb.Adapters.Store.EvDbInMem\EvDb.Adapters.Store.EvDbInMem.csproj", "{8D92BC21-8FC6-2997-95C5-86CC54D90CE9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Adapters.Store.EvDbTesting", "Adapters\Store\Testing\EvDb.Adapters.Store.EvDbTesting\EvDb.Adapters.Store.EvDbTesting.csproj", "{8D92BC21-8FC6-2997-95C5-86CC54D90CE9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
