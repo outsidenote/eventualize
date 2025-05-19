@@ -9,6 +9,10 @@ using System.Text.RegularExpressions;
 
 namespace EvDb.Core;
 
+/// <summary>
+/// Represents a outbox's message tagging into semantic channel name.
+/// Part of the message metadata
+/// </summary>
 [ExcludeFromCodeCoverage]
 [JsonConverter(typeof(EvDbChannelNameSystemTextJsonConverter))]
 [TypeConverter(typeof(EvDbChannelNameTypeConverter))]

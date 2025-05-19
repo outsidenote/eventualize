@@ -105,7 +105,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
             {
                 foreach (IEvDbViewStore view in views)
                 {
-                    view.FoldEvent(e);
+                    view.ApplyEvent(e);
                 }
                 streamOffset = e.StreamCursor.Offset;
             }

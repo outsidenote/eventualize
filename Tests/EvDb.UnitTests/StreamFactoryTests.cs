@@ -87,7 +87,7 @@ public sealed class StreamFactoryTests
         {
             Assert.Equal(60, stream.StoredOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.FoldOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.MemoryOffset));
 
             Assert.Equal(200, stream.Views.ALL.Sum);
             Assert.Equal(100, stream.Views.ALL.Count);
@@ -114,7 +114,7 @@ public sealed class StreamFactoryTests
         {
             Assert.Equal(63, stream.StoredOffset);
             Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(60, v.StoreOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.FoldOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.MemoryOffset));
 
             Assert.Equal(380, stream.Views.ALL.Sum);
             Assert.Equal(103, stream.Views.ALL.Count);
@@ -142,7 +142,7 @@ public sealed class StreamFactoryTests
             Assert.Equal(63, stream.StoredOffset);
             Assert.Equal(61, meta.First().StoreOffset);
             Assert.Equal(60, meta.Last().StoreOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.FoldOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(63, v.MemoryOffset));
 
             Assert.Equal(380, stream.Views.ALL.Sum);
             Assert.Equal(103, stream.Views.ALL.Count);

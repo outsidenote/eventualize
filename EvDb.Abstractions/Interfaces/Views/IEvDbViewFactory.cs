@@ -17,25 +17,3 @@ public interface IEvDbViewFactory
         TimeProvider? timeProvider = null,
         CancellationToken cancellationToken = default);
 }
-
-//public interface IEvDbViewFactory: IEvDbViewFactoryBase
-//{
-//    IEvDbViewStore CreateFromSnapshot(
-//        EvDbStreamAddress address,
-//        EvDbStoredSnapshot snapshot,
-//        JsonSerializerOptions? options,
-//        TimeProvider? timeProvider = null);
-
-//    //IEvDbTypedStorageSnapshotAdapter StoreAdapter { get; }
-//}
-
-//public interface IEvDbViewFactory<TState>: IEvDbViewFactoryBase
-//{
-//    IEvDbViewStore CreateFromSnapshot(
-//        EvDbStreamAddress address,
-//        EvDbStoredSnapshot<TState> snapshot,
-//        JsonSerializerOptions? options,
-//        TimeProvider? timeProvider = null);
-
-//   // IEvDbTypedStorageSnapshotAdapter<TState> StoreAdapter { get; }
-//}

@@ -61,9 +61,9 @@ public abstract class EvDbStream :
 
     #endregion // Views
 
-    #region AddEventAsync
+    #region AppendEventAsync
 
-    protected async ValueTask<IEvDbEventMeta> AddEventAsync<T>(T payload, string? capturedBy = null)
+    protected async ValueTask<IEvDbEventMeta> AppendEventAsync<T>(T payload, string? capturedBy = null)
         where T : IEvDbPayload
     {
         capturedBy = capturedBy ?? DEFAULT_CAPTURE_BY;
@@ -80,7 +80,7 @@ public abstract class EvDbStream :
         #endregion // _pendingEvents
 
         foreach (IEvDbViewStore folding in _views)
-            folding.FoldEvent(e);
+            folding.ApplyEvent(e);
 
         OutboxProducer?.OnProduceOutboxMessages(e, _views);
 
@@ -101,7 +101,7 @@ public abstract class EvDbStream :
         }
     }
 
-    #endregion // AddEventAsync
+    #endregion // AppendEventAsync
 
     #region IEvDbOutboxProducer
 
@@ -112,18 +112,18 @@ public abstract class EvDbStream :
 
     #endregion //  IEvDbOutboxProducer
 
-    #region AddToOutbox
+    #region AppendToOutbox
 
     /// <summary>
     /// Put a row into the publication (out-box pattern).
     /// </summary>
     /// <param name="e">The e.</param>
-    public void AddToOutbox(EvDbMessage e)
+    public void AppendToOutbox(EvDbMessage e)
     {
         _pendingOutput = _pendingOutput.Add(e);
     }
 
-    #endregion //  AddToOutbox
+    #endregion //  AppendToOutbox
 
     #region StoreAsync
 

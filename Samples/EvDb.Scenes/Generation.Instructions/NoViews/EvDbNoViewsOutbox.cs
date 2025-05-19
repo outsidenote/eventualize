@@ -15,6 +15,6 @@ public partial class EvDbNoViewsOutbox
                                                  EvDbNoViewsOutboxContext outbox)
     {
         AvgMessage avg = new(payload.Grade);
-        outbox.Add(avg);
+        outbox.Append(avg);
     }
 }

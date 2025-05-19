@@ -72,11 +72,11 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
     {
         var student = new StudentEntity(10, "Mikey");
         var studentEnlisted = new StudentEnlistedEvent(student);
-        await _stream.AddAsync(studentEnlisted);
+        await _stream.AppendAsync(studentEnlisted);
         for (int i = 1; i <= numOfGrades; i++)
         {
             var grade = new StudentReceivedGradeEvent(i, student.Id, i % 2 == 0 ? 80 : 90);
-            await _stream.AddAsync(grade);
+            await _stream.AppendAsync(grade);
         }
         await _stream.StoreAsync();
     }

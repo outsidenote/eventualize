@@ -29,7 +29,7 @@ public abstract class StreamTxSopeBaseTests : BaseIntegrationTests
 
         Assert.Equal(0, newStream.StoredOffset);
         Assert.All(newStream.Views.ToMetadata(), v => Assert.Equal(0, v.StoreOffset));
-        Assert.All(newStream.Views.ToMetadata(), v => Assert.Equal(0, v.FoldOffset));
+        Assert.All(newStream.Views.ToMetadata(), v => Assert.Equal(0, v.MemoryOffset));
     }
 
     [Fact]
@@ -51,6 +51,6 @@ public abstract class StreamTxSopeBaseTests : BaseIntegrationTests
 
         Assert.Equal(stream.StoredOffset, newStream.StoredOffset);
         Assert.All(newStream.Views.ToMetadata(), v => Assert.Equal(0, v.StoreOffset));
-        Assert.All(newStream.Views.ToMetadata(), v => Assert.Equal(stream.StoredOffset, v.FoldOffset));
+        Assert.All(newStream.Views.ToMetadata(), v => Assert.Equal(stream.StoredOffset, v.MemoryOffset));
     }
 }

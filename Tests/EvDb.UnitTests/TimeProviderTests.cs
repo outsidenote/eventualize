@@ -57,7 +57,7 @@ public class TimeProviderTests
         var stream = _factory.Create(streamId);
         for (int k = 0; k < 4; k++)
         {
-            var meta = await stream.AddAsync(new Event1(1, $"Person {k}", k));
+            var meta = await stream.AppendAsync(new Event1(1, $"Person {k}", k));
             _output.WriteLine($"{meta.CapturedAt}");
         }
 

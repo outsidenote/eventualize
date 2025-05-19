@@ -109,10 +109,10 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     {
                         return $$"""
 
-                            public void Add({{info.FullTypeName}} payload)
+                            public void Append({{info.FullTypeName}} payload)
                             {
                                 IEvDbOutboxProducerGeneric self = this;
-                                self.Add(payload, EvDbOutboxConstants.DEFAULT_OUTBOX, DEFAULT_SHARD_NAME); 
+                                self.Append(payload, EvDbOutboxConstants.DEFAULT_OUTBOX, DEFAULT_SHARD_NAME); 
                             }            
 
                         """;
@@ -120,13 +120,13 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     return
                         $$"""
 
-                            public void Add({{info.FullTypeName}} payload)
+                            public void Append({{info.FullTypeName}} payload)
                             {
                                 var shardNames = _outboxToShards.ChannelToShards({{outboxName}}.Channels.DEFAULT);
                                 foreach (var shardName in shardNames)
                                 {
                                     IEvDbOutboxProducerGeneric self = this;
-                                    self.Add(payload, EvDbOutboxConstants.DEFAULT_OUTBOX, shardName); 
+                                    self.Append(payload, EvDbOutboxConstants.DEFAULT_OUTBOX, shardName); 
                                 }
                             }
             
@@ -145,23 +145,23 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                     if (!hasAnyChannel || !hasShards)
                     {
                         return $$"""
-                            public void Add({{info.FullTypeName}} payload)
+                            public void Append({{info.FullTypeName}} payload)
                             {
                                 IEvDbOutboxProducerGeneric self = this;
-                                self.Add(payload, "{{info.Channels[0]}}", DEFAULT_SHARD_NAME); 
+                                self.Append(payload, "{{info.Channels[0]}}", DEFAULT_SHARD_NAME); 
                             }            
             
                         """;
                     }
                     return $$"""
 
-                            public void Add({{info.FullTypeName}} payload)
+                            public void Append({{info.FullTypeName}} payload)
                             {
                                 var shardNames = _outboxToShards.ChannelToShards({{outboxName}}.Channels.{{info.Channels[0].FixNameForClass()}});
                                 foreach (var shardName in shardNames)
                                 {
                                     IEvDbOutboxProducerGeneric self = this;
-                                    self.Add(payload, "{{info.Channels[0]}}", shardName); 
+                                    self.Append(payload, "{{info.Channels[0]}}", shardName); 
                                 }
                             }
             
@@ -180,7 +180,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                         foreach (var shardName in shardNames)
                         {
                             IEvDbOutboxProducerGeneric self = this;
-                            self.Add(payload, outboxText, shardName);
+                            self.Append(payload, outboxText, shardName);
                         }
                         
                 """;
@@ -189,13 +189,13 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         {
             multiAdds = """
                         IEvDbOutboxProducerGeneric self = this;
-                        self.Add(payload, outboxText, DEFAULT_SHARD_NAME);               
+                        self.Append(payload, outboxText, DEFAULT_SHARD_NAME);               
                 """;
         }
         var addMessageTypesMulti = multiChannel.Select((info, i) =>
             $$"""
 
-                public void Add({{info.FullTypeName}} payload, {{info.TypeName}}.Channels outbox)
+                public void Append({{info.FullTypeName}} payload, {{info.TypeName}}.Channels outbox)
                 {
                     string outboxText = outbox switch
                         {

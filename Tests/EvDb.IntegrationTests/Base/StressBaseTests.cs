@@ -122,7 +122,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
                     do
                     {
                         IEvDbDemoStream stream = await _factory.GetAsync(streamId);
-                        var tasks = events.Select(async e => await stream.AddAsync(e));
+                        var tasks = events.Select(async e => await stream.AppendAsync(e));
                         IEvDbEventMeta[] es = await Task.WhenAll(tasks);
                         for (int q = 0; q < es.Length; q++)
                         {
@@ -207,7 +207,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
                                               .Select(async k =>
                                         {
                                             var e = new Event1(1, $"Person [{i}]: {j} in <{k}>", i * j * k);
-                                            await stream.AddAsync(e);
+                                            await stream.AppendAsync(e);
                                         });
                         await Task.WhenAll(tasks);
                         try

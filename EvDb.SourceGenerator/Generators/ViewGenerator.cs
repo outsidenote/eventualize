@@ -79,7 +79,7 @@ public partial class ViewGenerator : BaseGenerator
 
         var foldAbstracts = eventsPayloads.Select(p =>
                 $"""
-                    protected virtual {stateType} Fold(
+                    protected virtual {stateType} Apply(
                             {stateType} state,
                             {p.Type} payload,
                             IEvDbEventMeta meta) => state;
@@ -91,7 +91,7 @@ public partial class ViewGenerator : BaseGenerator
                     case "{{p.Key}}":
                             {
                                 var payload = c.GetData<{{p.Type}}>(_options);
-                                State = Fold(State, payload, e);
+                                State = Apply(State, payload, e);
                                 break;
                             }
                         
@@ -176,9 +176,9 @@ public partial class ViewGenerator : BaseGenerator
                     
                         #endregion // Ctor
 
-                        #region OnFoldEvent
+                        #region OnApplyEvent
 
-                        protected sealed override void OnFoldEvent(EvDbEvent e)
+                        protected sealed override void OnApplyEvent(EvDbEvent e)
                         {
                             IEvDbEventConverter c = e;
                             switch (e.EventType)
@@ -189,12 +189,12 @@ public partial class ViewGenerator : BaseGenerator
                             }
                         }
 
-                        #endregion // OnFoldEvent
+                        #endregion // OnApplyEvent
 
-                        #region Fold
+                        #region Apply
 
                     {{string.Join("", foldAbstracts)}}
-                        #endregion // Fold
+                        #endregion // Apply
                     }
                     """);
         context.AddSource(typeSymbol.StandardPathIgnoreSymbolName($"{viewClassName}Base"), builder.ToString());

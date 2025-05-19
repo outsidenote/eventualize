@@ -55,7 +55,7 @@ public abstract class StreamStructuresBaseTests : BaseIntegrationTests
     public async Task Stream_Simple_Outbox_NoChannels_Succeed()
     {
         var emailValidated = new EmailValidatedEvent("bnaya@somewhere.com", true);
-        await _streamNo.AddAsync(emailValidated);
+        await _streamNo.AppendAsync(emailValidated);
 
         await _streamNo.StoreAsync();
 
@@ -72,7 +72,7 @@ public abstract class StreamStructuresBaseTests : BaseIntegrationTests
     public async Task Stream_Simple_Outbox_SingleChannel_Succeed()
     {
         var emailValidated = new EmailValidatedEvent("bnaya@somewhere.com", true);
-        await _streamSingle.AddAsync(emailValidated);
+        await _streamSingle.AppendAsync(emailValidated);
 
         await _streamSingle.StoreAsync();
 
@@ -89,7 +89,7 @@ public abstract class StreamStructuresBaseTests : BaseIntegrationTests
     public async Task Stream_Simple_Outbox_DefaultAndSingleChannels_Succeed()
     {
         var emailValidated = new EmailValidatedEvent("bnaya@somewhere.com", true);
-        await _streamDefaultAndSingle.AddAsync(emailValidated);
+        await _streamDefaultAndSingle.AppendAsync(emailValidated);
 
         await _streamDefaultAndSingle.StoreAsync();
 
@@ -107,7 +107,7 @@ public abstract class StreamStructuresBaseTests : BaseIntegrationTests
     public async Task Stream_Simple_Outbox_DefaultChannel_Succeed()
     {
         var emailValidated = new EmailValidatedEvent("bnaya@somewhere.com", true);
-        await _streamDefault.AddAsync(emailValidated);
+        await _streamDefault.AppendAsync(emailValidated);
 
         await _streamDefault.StoreAsync();
 
@@ -125,7 +125,7 @@ public abstract class StreamStructuresBaseTests : BaseIntegrationTests
     public async Task Stream_Simple_Outbox_MultiChannels_Succeed()
     {
         var emailValidated = new EmailValidatedEvent("bnaya@somewhere.com", true);
-        await _streamMulti.AddAsync(emailValidated);
+        await _streamMulti.AppendAsync(emailValidated);
 
         await _streamMulti.StoreAsync();
 

@@ -40,7 +40,7 @@ public partial class EventTypesGenerator : BaseGenerator
                          let genLen = fullName.Length - genStart - 1
                          let generic = fullName.Substring(genStart, genLen)
                          select generic;
-        var adds = attributes.Select(m => $"ValueTask<IEvDbEventMeta> AddAsync({m} payload, string? capturedBy = null);");
+        var adds = attributes.Select(m => $"ValueTask<IEvDbEventMeta> AppendAsync({m} payload, string? capturedBy = null);");
 
         builder.DefaultsOnType(typeSymbol, false);
         builder.AppendLine($$"""       

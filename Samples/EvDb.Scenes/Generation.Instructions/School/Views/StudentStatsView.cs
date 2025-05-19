@@ -10,9 +10,9 @@ internal partial class StudentStatsView
 
     public override int MinEventsBetweenSnapshots => 5;
 
-    #region Fold
+    #region Apply
 
-    protected override StudentStatsState Fold(
+    protected override StudentStatsState Apply(
         StudentStatsState state,
         StudentEnlistedEvent payload,
         IEvDbEventMeta meta)
@@ -21,7 +21,7 @@ internal partial class StudentStatsView
     }
 
 
-    protected override StudentStatsState Fold(
+    protected override StudentStatsState Apply(
         StudentStatsState state,
         StudentReceivedGradeEvent payload,
         IEvDbEventMeta meta)
@@ -29,5 +29,5 @@ internal partial class StudentStatsView
         return state.Update(payload);
     }
 
-    #endregion // Fold
+    #endregion // Append
 }

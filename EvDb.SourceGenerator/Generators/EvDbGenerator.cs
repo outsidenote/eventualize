@@ -279,11 +279,11 @@ public partial class EvDbGenerator : BaseGenerator
 
         var adds = eventsPayloads.Select(ep =>
                     $$"""
-                        async ValueTask<IEvDbEventMeta> {{relatedEventsTypesFullName}}.AddAsync(
+                        async ValueTask<IEvDbEventMeta> {{relatedEventsTypesFullName}}.AppendAsync(
                                 {{ep.FullTypeName}} payload, 
                                 string? capturedBy)
                         {
-                            IEvDbEventMeta meta = await AddEventAsync(payload, capturedBy);
+                            IEvDbEventMeta meta = await AppendEventAsync(payload, capturedBy);
                             return meta;
                         }
 
@@ -316,10 +316,10 @@ public partial class EvDbGenerator : BaseGenerator
                     
                         public {{streamName}}Views Views { get; }
                     
-                        #region Add
+                        #region AppendAsync
 
                     {{string.Join("", adds)}}
-                        #endregion // Add
+                        #endregion // AppendAsync
                     }
                     """);
         context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("Streams", streamName), builder.ToString());

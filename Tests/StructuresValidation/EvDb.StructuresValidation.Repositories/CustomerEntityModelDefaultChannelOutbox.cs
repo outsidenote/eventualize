@@ -17,6 +17,6 @@ public partial class CustomerEntityModelDefaultChannelOutbox
             Email = payload.Email,
             EmailIsValid = payload.IsValid
         };
-        outbox.Add(personChanged);
+        outbox.Append(personChanged);
     }
 }

@@ -8,8 +8,8 @@ internal partial class View
 {
     protected override int DefaultState { get; } = 0;
 
-    protected override int Fold(int state, CourseCreatedEvent payload, IEvDbEventMeta meta)
+    protected override int Apply(int state, CourseCreatedEvent payload, IEvDbEventMeta meta)
     {
-        return base.Fold(state + 1, payload, meta);
+        return base.Apply(state + 1, payload, meta);
     }
 }
