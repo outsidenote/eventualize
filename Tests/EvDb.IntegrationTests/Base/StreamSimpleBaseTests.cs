@@ -23,8 +23,8 @@ public abstract class StreamSimpleBaseTests : BaseIntegrationTests
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-                .AddSchoolStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
-                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext));
+                .AddSchoolStreamFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
+                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
         var sp = services.BuildServiceProvider();
         _configuration = sp.GetRequiredService<IConfiguration>();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
@@ -33,7 +33,7 @@ public abstract class StreamSimpleBaseTests : BaseIntegrationTests
     }
 
     [Fact]
-    public virtual async Task Stream_Basic_Succeed_Succed()
+    public virtual async Task Stream_Basic_Succeed()
     {
         await ProcuceEventsAsync();
 

@@ -17,11 +17,8 @@ namespace EvDb.Adapters.Store.Testing;
 /// </summary>
 internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorageSnapshotAdapter
 {
-    private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly EvDbStreamTestingStorage _streamStorage;
-    private readonly EvDbSnapshotTestingStorage _snapshotStorage;
-    private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
-    private const string DATABASE_TYPE = "Testing";
+    private EvDbSnapshotTestingStorage _snapshotStorage;
 
     #region Ctor
 
@@ -33,7 +30,6 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
     {
         _streamStorage = streamStorage ?? new EvDbStreamTestingStorage();
         _snapshotStorage = snapshotStorage ?? new EvDbSnapshotTestingStorage();
-        _transformers = transformers.ToImmutableArray();
     }
 
     #endregion //  Ctor
@@ -44,7 +40,18 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
         EvDbStreamCursor streamCursor,
         [EnumeratorCancellation] CancellationToken cancellation)
     {
-        throw new NotImplementedException("GetEventsAsync is not implemented in EvDbTestingStorageAdapter.");
+        if (cancellation.IsCancellationRequested)
+            yield break;
+        await Task.Yield(); // Simulate async operation
+        if (_streamStorage.Store.TryGetValue(streamCursor, out EvDbTestingStreamData? storedStream))
+        {
+            var events = storedStream.Events
+                                     .SkipWhile(e => e.StreamCursor.Offset <= streamCursor.Offset);
+            foreach (var storedEvent in events)
+            {
+                yield return storedEvent;
+            }
+        }
     }
 
     #endregion //  GetEventsAsync
@@ -55,37 +62,56 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
         EvDbStreamAddress address,
         CancellationToken cancellation)
     {
-        throw new NotImplementedException("GetLastOffsetAsync is not implemented in EvDbTestingStorageAdapter.");
+        if (cancellation.IsCancellationRequested)
+            return 0;
+        await Task.Yield(); // Simulate async operation
+
+        if (!_streamStorage.Store.TryGetValue(address, out EvDbTestingStreamData? storedStream))
+            return 0;
+        var lastStoredEvent = storedStream.Events[^1];
+        return lastStoredEvent.StreamCursor.Offset;
     }
 
     #endregion //  GetLastOffsetAsync
 
     #region StoreStreamAsync
 
-    async Task<Core.StreamStoreAffected> IEvDbStorageStreamAdapter.StoreStreamAsync(IImmutableList<EvDbEvent> events,
+    async Task<StreamStoreAffected> IEvDbStorageStreamAdapter.StoreStreamAsync(IImmutableList<EvDbEvent> events,
                                                                               IImmutableList<EvDbMessage> messages,
                                                                               CancellationToken cancellation)
     {
+        await Task.Yield(); // Simulate async operation
         if (events.Count == 0)
             return StreamStoreAffected.Empty;
 
         EvDbEvent firstEvent = events.FirstOrDefault();
-        var cursor = firstEvent.StreamCursor;
+        EvDbStreamCursor cursor = firstEvent.StreamCursor;
         EvDbStreamAddress address = cursor;
 
-        if(!_streamStorage.Store.TryGetValue(address, out EvDbTestingStreamData? storedStream))
+        if (!_streamStorage.Store.TryGetValue(address, out EvDbTestingStreamData? storedStream))
             storedStream = EvDbTestingStreamData.Empty;
 
-        var lasStoredtEvent = storedStream.Events[^1];
-        if(firstEvent.StreamCursor.Offset - 1 != lasStoredtEvent.StreamCursor.Offset)
+        if (storedStream.Events.Count != 0)
         {
-            throw new OCCException(lasStoredtEvent.StreamCursor);
+            var lasStoredtEvent = storedStream.Events[^1];
+            if (firstEvent.StreamCursor.Offset - 1 != lasStoredtEvent.StreamCursor.Offset)
+            {
+                throw new OCCException(lasStoredtEvent.StreamCursor);
+            }
         }
 
-        // Interlocked.Exchange(ref storedStream, new EvDbTestingStreamData(storedStream.Events.AddRange(events), storedStream.Messages.AddRange(messages)));
-        // occ use interlocked
+        storedStream = storedStream with
+        {
+            Events = storedStream.Events.AddRange(events),
+            Messages = storedStream.Messages.AddRange(messages)
+        };
 
-        throw new NotImplementedException("StoreStreamAsync is not implemented in EvDbTestingStorageAdapter.");
+        var store = _streamStorage.Store.Remove(address)
+                                        .Add(address, storedStream);
+        _streamStorage.SetStore(store, cursor);
+
+        var storeAffected = new StreamStoreAffected(events.Count, ImmutableDictionary<EvDbShardName, int>.Empty);
+        return storeAffected;
     }
 
     #endregion //  StoreStreamAsync
@@ -99,7 +125,17 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
                                                 EvDbViewAddress viewAddress,
                                                 CancellationToken cancellation)
     {
-        throw new NotImplementedException("GetSnapshotAsync is not implemented in EvDbTestingStorageAdapter.");
+        if (cancellation.IsCancellationRequested)
+            return EvDbStoredSnapshot.Empty;
+        await Task.Yield(); // Simulate async operation
+
+        if (!_snapshotStorage.Store.TryGetValue(viewAddress, out IImmutableList<EvDbStoredSnapshotData>? storedSnapshot))
+            return EvDbStoredSnapshot.Empty;
+        var last = storedSnapshot[^1];
+        EvDbStoredSnapshot result = new EvDbStoredSnapshot(
+            last.Offset,
+            last.State);
+        return result;
     }
 
     #endregion //  GetSnapshotAsync
@@ -111,7 +147,19 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
     /// </summary>
     async Task IEvDbStorageSnapshotAdapter.StoreSnapshotAsync(EvDbStoredSnapshotData snapshotData, CancellationToken cancellation)
     {
-        throw new NotImplementedException("StoreSnapshotAsync is not implemented in EvDbTestingStorageAdapter.");
+        if (cancellation.IsCancellationRequested)
+            return;
+        await Task.Yield(); // Simulate async operation
+
+        EvDbViewAddress address = snapshotData;
+        EvDbSnapshotTestingStorage oldStorage = _snapshotStorage;
+        if (!_snapshotStorage.Store.TryGetValue(address, out IImmutableList<EvDbStoredSnapshotData>? storedSnapshot))
+            storedSnapshot = ImmutableList<EvDbStoredSnapshotData>.Empty;
+
+        _snapshotStorage = oldStorage with
+        {
+            Store = oldStorage.Store.Add(address, storedSnapshot.Add(snapshotData))
+        };
     }
 
     #endregion //  StoreSnapshotAsync

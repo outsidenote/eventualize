@@ -46,6 +46,7 @@
 		<ProjectReference Include="..\..\Adapters\Store\Postgres\EvDb.Adapters.Store.EvDbPostgres\EvDb.Adapters.Store.EvDbPostgres.csproj" />
 		<ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServerAdmin\EvDb.Adapters.Store.EvDbSqlServerAdmin.csproj" />
 		<ProjectReference Include="..\..\Adapters\Store\SqlServer\EvDb.Adapters.Store.EvDbSqlServer\EvDb.Adapters.Store.EvDbSqlServer.csproj" />
+		<ProjectReference Include="..\..\Adapters\Store\Testing\EvDb.Adapters.Store.EvDbTesting\EvDb.Adapters.Store.EvDbTesting.csproj" />
 		<ProjectReference Include="..\..\Samples\EvDb.MinimalStructure\EvDb.MinimalStructure.csproj" />
 		<ProjectReference Include="..\..\Samples\EvDb.Scenes\EvDb.Scenes.csproj" />
 		<ProjectReference Include="..\EvDb.TestsHelper\EvDb.TestsHelper.csproj" />

@@ -8,12 +8,13 @@ using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using Xunit.Abstractions;
 
 public abstract class StreamBaseTests : BaseIntegrationTests
 {
-    public StreamBaseTests(ITestOutputHelper output, StoreType storeType) :
+    protected StreamBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType)
     {
     }
@@ -30,7 +31,7 @@ public abstract class StreamBaseTests : BaseIntegrationTests
     {
         var streamId = Steps.GenerateStreamId();
         IEvDbSchoolStream stream = await StorageContext
-                            .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId)
+                            .GivenLocalStreamWithPendingEvents(_storeType, TestingStreamStore, streamId: streamId)
                             .WhenStreamIsSavedAsync();
 
         await ThenStreamSavedWithoutSnapshot();
@@ -107,6 +108,7 @@ public abstract class StreamBaseTests : BaseIntegrationTests
                 StoreType.SqlServer => EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(_logger, connectionString, StorageContext, []),
                 StoreType.Postgres => EvDbPostgresStorageAdapterFactory.CreateStreamAdapter(_logger, connectionString, StorageContext, []),
                 StoreType.MongoDB => EvDbMongoDBStorageAdapterFactory.CreateStreamAdapter(_logger, connectionString, StorageContext, []),
+                StoreType.Testing => EvDbTestingStorageAdapterFactory.CreateStreamAdapter(StorageContext, TestingStreamStore),
                 _ => throw new NotImplementedException()
             };
             var address = new EvDbStreamCursor(stream.StreamAddress);
@@ -130,7 +132,7 @@ public abstract class StreamBaseTests : BaseIntegrationTests
     public async Task Stream_WhenStoringWithSnapshotting_Succeed()
     {
         IEvDbSchoolStream stream = await StorageContext
-                            .GivenLocalStreamWithPendingEvents(_storeType, 6)
+                            .GivenLocalStreamWithPendingEvents(_storeType, TestingStreamStore, 6)
                             .WhenStreamIsSavedAsync();
 
         ThenStreamSavedWithSnapshot();
@@ -158,7 +160,7 @@ public abstract class StreamBaseTests : BaseIntegrationTests
     public async Task Stream_WhenStoringWithSnapshottingWhenStoringTwice_Succeed()
     {
         IEvDbSchoolStream stream = await StorageContext
-                            .GivenLocalStreamWithPendingEvents(_storeType)
+                            .GivenLocalStreamWithPendingEvents(_storeType, TestingStreamStore)
                             .GivenStreamIsSavedAsync()
                             .GivenAddingPendingEventsAsync()
                             .WhenStreamIsSavedAsync();
@@ -191,9 +193,9 @@ public abstract class StreamBaseTests : BaseIntegrationTests
         string streamId = $"occ-{Guid.NewGuid():N}";
 
         IEvDbSchoolStream stream1 = await StorageContext
-                    .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId);
+                    .GivenLocalStreamWithPendingEvents(_storeType, TestingStreamStore, streamId: streamId);
         IEvDbSchoolStream stream2 = await StorageContext
-                    .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId);
+                    .GivenLocalStreamWithPendingEvents(_storeType, TestingStreamStore, streamId: streamId);
 
         await Assert.ThrowsAsync<OCCException>(() =>
             Task.WhenAll(

@@ -17,7 +17,8 @@ public static class StoreAdapterHelper
 
     public static EvDbStreamStoreRegistrationContext ChooseStoreAdapter(
                                         this EvDbStreamStoreRegistrationContext context,
-                                        StoreType storeType)
+                                        StoreType storeType,
+                                        EvDbStreamTestingStorage testingStore)
     {
         switch (storeType)
         {
@@ -30,6 +31,9 @@ public static class StoreAdapterHelper
             case StoreType.MongoDB:
                 context.UseMongoDBStoreForEvDbStream(EvDbMongoDBCreationMode.None);
                 break;
+            case StoreType.Testing:
+                context.UseTestingStoreForEvDbStream(testingStore);
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -40,6 +44,7 @@ public static class StoreAdapterHelper
     public static EvDbSnapshotStoreRegistrationContext ChooseSnapshotAdapter(
         this EvDbSnapshotStoreRegistrationContext context,
         StoreType storeType,
+        EvDbStreamTestingStorage testingStore,
         EvDbStorageContext? overrideContext = null)
     {
         switch (storeType)
@@ -53,54 +58,13 @@ public static class StoreAdapterHelper
             case StoreType.MongoDB:
                 context.UseMongoDBForEvDbSnapshot(overrideContext);
                 break;
+            case StoreType.Testing:
+                context.UseTestingForEvDbSnapshot(overrideContext, testingStore);
+                break;
             default:
                 throw new NotImplementedException();
         }
         return context;
-    }
-
-
-    public static StoreAdapters CreateStoreAdapter(
-        this ILogger logger,
-        StoreType storeType,
-        EvDbTestStorageContext context)
-    {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-        .Build();
-
-        string connectionKey = storeType switch
-        {
-            StoreType.SqlServer => "EvDbSqlServerConnection",
-            StoreType.Postgres => "EvDbPostgresConnection",
-            StoreType.MongoDB => "EvDbMongoDBConnection",
-            _ => throw new NotImplementedException()
-        };
-
-
-        string connectionString = configuration.GetConnectionString(connectionKey) ?? throw new ArgumentNullException(connectionKey);
-
-        IEvDbStorageStreamAdapter streamStoreAdapter = storeType switch
-        {
-            StoreType.SqlServer =>
-                EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []),
-            StoreType.Postgres =>
-                EvDbPostgresStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []),
-            StoreType.MongoDB =>
-                EvDbMongoDBStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []),
-            _ => throw new NotImplementedException()
-        };
-
-        IEvDbStorageSnapshotAdapter snapshotStoreAdapter = storeType switch
-        {
-            StoreType.SqlServer =>
-                EvDbSqlServerStorageAdapterFactory.CreateSnapshotAdapter(logger, connectionString, context),
-            StoreType.Postgres =>
-                EvDbPostgresStorageAdapterFactory.CreateSnapshotAdapter(logger, connectionString, context),
-            _ => throw new NotImplementedException()
-        };
-        return new StoreAdapters(streamStoreAdapter, snapshotStoreAdapter);
     }
 
     public static DbConnection GetConnection(StoreType storeType,
@@ -112,6 +76,7 @@ public static class StoreAdapterHelper
             StoreType.SqlServer => new SqlConnection(connectionString),
             StoreType.Postgres => new NpgsqlConnection(connectionString),
             //StoreType.MongoDB => ,
+            //StoreType.Testing => ,
             _ => throw new NotImplementedException()
         };
 
@@ -129,6 +94,7 @@ public static class StoreAdapterHelper
             StoreType.SqlServer => "dbo",
             StoreType.Postgres => "public",
             // StoreType.MongoDB => "root",
+            // StoreType.Testing => "root",
             _ => EvDbSchemaName.Empty
         };
         EvDbDatabaseName dbName = storeType switch
@@ -136,6 +102,7 @@ public static class StoreAdapterHelper
             StoreType.SqlServer => "master",
             StoreType.Postgres => "tests",
             StoreType.MongoDB => "tests",
+            // StoreType.Testing => "tests",
             _ => EvDbDatabaseName.Empty
         };
         context = context ?? new EvDbTestStorageContext(schema, dbName);
@@ -149,6 +116,7 @@ public static class StoreAdapterHelper
                 PostgresStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             StoreType.MongoDB => 
                 MongoDBStorageAdminFactory.Create(logger, connectionString, context, shardNames),
+            StoreType.Testing => A.Fake<IEvDbStorageAdmin>(),
             _ => throw new NotImplementedException()
         };
 
@@ -157,6 +125,9 @@ public static class StoreAdapterHelper
 
     public static string GetConnectionString(this StoreType storeType)
     {
+        if(storeType == StoreType.Testing)
+            return string.Empty;
+
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)

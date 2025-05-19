@@ -29,10 +29,10 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
                 break;
         }
         services.AddEvDb()
-                .AddPersonFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
+                .AddPersonFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
                 .DefaultSnapshotConfiguration(c =>
                 {
-                    c.ChooseSnapshotAdapter(storeType, AlternativeContext);
+                    c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext);
                     switch (storeType)
                     {
                         case StoreType.SqlServer:

@@ -24,20 +24,20 @@ public abstract class StreamStructuresBaseTests : BaseIntegrationTests
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-                .AddCustomerEntityModelSingleChannelStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
-                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext));
+                .AddCustomerEntityModelSingleChannelStreamFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
+                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
         services.AddEvDb()
-                .AddCustomerEntityModelDefaultAndSingleChannelsStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
-                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext));
+                .AddCustomerEntityModelDefaultAndSingleChannelsStreamFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
+                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
         services.AddEvDb()
-                .AddCustomerEntityModelDefaultChannelStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
-                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext));
+                .AddCustomerEntityModelDefaultChannelStreamFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
+                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
         services.AddEvDb()
-                .AddCustomerEntityModelMultiChannelsStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
-                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext));
+                .AddCustomerEntityModelMultiChannelsStreamFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
+                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
         services.AddEvDb()
-                .AddCustomerEntityModelNoChannelsStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
-                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext));
+                .AddCustomerEntityModelNoChannelsStreamFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
+                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
         var sp = services.BuildServiceProvider();
         IEvDbCustomerEntityModelSingleChannelStreamFactory factorySingle = sp.GetRequiredService<IEvDbCustomerEntityModelSingleChannelStreamFactory>();
         IEvDbCustomerEntityModelDefaultAndSingleChannelsStreamFactory factoryDefaultAndSingle = sp.GetRequiredService<IEvDbCustomerEntityModelDefaultAndSingleChannelsStreamFactory>();

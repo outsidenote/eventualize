@@ -18,8 +18,24 @@ public static class EvDbTestingStorageAdapterDI
 
     public static void UseTestingStoreForEvDbStream(
             this EvDbStreamStoreRegistrationContext instance,
-            IEnumerable<IEvDbOutboxTransformer> transformers,
             EvDbStreamTestingStorage? storage = null)
+    {
+#pragma warning disable S3878 // Arrays should not be created for params parameters
+        instance.UseTestingStoreForEvDbStream(storage, []);
+#pragma warning restore S3878 // Arrays should not be created for params parameters
+    }
+
+    public static void UseTestingStoreForEvDbStream(
+            this EvDbStreamStoreRegistrationContext instance,
+            params IEvDbOutboxTransformer[] transformers)
+    {
+        instance.UseTestingStoreForEvDbStream(null, transformers);
+    }
+
+    public static void UseTestingStoreForEvDbStream(
+            this EvDbStreamStoreRegistrationContext instance,
+            EvDbStreamTestingStorage? storage,
+            params IEvDbOutboxTransformer[] transformers)
     {
         IEvDbRegistrationContext entry = instance;
         IServiceCollection services = entry.Services;
@@ -36,13 +52,8 @@ public static class EvDbTestingStorageAdapterDI
                         ?? sp.GetService<EvDbStorageContext>()
                         ?? EvDbStorageContext.CreateWithEnvironment("evdb");
 
-                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-                    var logger = loggerFactory.CreateLogger<EvDbTestingStorageAdapter>();
-                    IEvDbStorageStreamAdapter adapter = new EvDbTestingStorageAdapter(
-                                                                                logger,
-                                                                                ctx,
-                                                                                transformers,
-                                                                                storage);
+                    IEvDbStorageStreamAdapter adapter = ctx.CreateStreamAdapter(storage,
+                                                                                transformers);
                     return adapter;
                 });
     }
@@ -50,7 +61,6 @@ public static class EvDbTestingStorageAdapterDI
     #endregion //  UseTestingStoreForEvDbStream
 
     #region UseTestingForEvDbSnapshot
-
 
     public static void UseTestingForEvDbSnapshot(
             this EvDbSnapshotStoreRegistrationContext instance,
@@ -71,13 +81,7 @@ public static class EvDbTestingStorageAdapterDI
                         ?? sp.GetService<EvDbStorageContext>()
                         ?? EvDbStorageContext.CreateWithEnvironment("evdb");
 
-                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-                    var logger = loggerFactory.CreateLogger<EvDbTestingStorageAdapter>();
-                    IEvDbStorageSnapshotAdapter adapter = new EvDbTestingStorageAdapter(
-                                                                                logger,
-                                                                                ctx,
-                                                                                [],
-                                                                                storage);
+                    IEvDbStorageSnapshotAdapter adapter = ctx.CreateSnapshotAdapter(storage);
                     return adapter;
                 });
     }

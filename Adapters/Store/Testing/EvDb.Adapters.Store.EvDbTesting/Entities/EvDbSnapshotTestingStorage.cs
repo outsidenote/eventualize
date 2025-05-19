@@ -8,7 +8,7 @@ using SNAPSHOTS = System.Collections.Immutable.IImmutableList<EvDb.Core.EvDbStor
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public class EvDbSnapshotTestingStorage
+public record EvDbSnapshotTestingStorage
 {
     public IImmutableDictionary<EvDbViewAddress, SNAPSHOTS> Store { get; init; } = ImmutableDictionary<EvDbViewAddress, SNAPSHOTS>.Empty;
 }

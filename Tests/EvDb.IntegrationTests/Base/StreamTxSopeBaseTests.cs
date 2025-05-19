@@ -21,10 +21,10 @@ public abstract class StreamTxSopeBaseTests : BaseIntegrationTests
                                          TransactionScopeAsyncFlowOption.Enabled))
         {
             await StorageContext
-                                .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId)
+                                .GivenLocalStreamWithPendingEvents(_storeType, TestingStreamStore, streamId: streamId)
                                 .WhenStreamIsSavedAsync();
         } // rollback
-        IEvDbSchoolStreamFactory factory = StorageContext.CreateFactory(_storeType);
+        IEvDbSchoolStreamFactory factory = StorageContext.CreateFactory(_storeType, TestingStreamStore);
         var newStream = await factory.GetAsync(streamId);
 
         Assert.Equal(0, newStream.StoredOffset);
@@ -41,12 +41,12 @@ public abstract class StreamTxSopeBaseTests : BaseIntegrationTests
                                          TransactionScopeAsyncFlowOption.Enabled))
         {
             stream = await StorageContext
-                                .GivenLocalStreamWithPendingEvents(_storeType, streamId: streamId)
+                                .GivenLocalStreamWithPendingEvents(_storeType, TestingStreamStore, streamId: streamId)
                                 .WhenStreamIsSavedAsync();
 
             tx.Complete();
         }
-        IEvDbSchoolStreamFactory factory = StorageContext.CreateFactory(_storeType);
+        IEvDbSchoolStreamFactory factory = StorageContext.CreateFactory(_storeType, TestingStreamStore);
         var newStream = await factory.GetAsync(streamId);
 
         Assert.Equal(stream.StoredOffset, newStream.StoredOffset);
