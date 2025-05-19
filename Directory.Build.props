@@ -13,8 +13,8 @@
 
 	<PropertyGroup>
 		<!-- <PackageId>EvDb</PackageId> -->
-		<Version>3.0.16</Version>
-		<!--<PackageVersion>3.0.16</PackageVersion>-->
+		<Version>3.0.17</Version>
+		<!--<PackageVersion>3.0.17</PackageVersion>-->
 		<Authors>Roma Bronstein</Authors>
 		<Company>EvDbDB.com</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
