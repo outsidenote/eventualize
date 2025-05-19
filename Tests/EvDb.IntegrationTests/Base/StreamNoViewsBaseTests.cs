@@ -24,8 +24,8 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-                .AddNoViewsFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
-                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, AlternativeContext));
+                .AddNoViewsFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
+                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
         var sp = services.BuildServiceProvider();
         _configuration = sp.GetRequiredService<IConfiguration>();
         _factory = sp.GetRequiredService<IEvDbNoViewsFactory>();
@@ -34,7 +34,7 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
     }
 
     [Fact]
-    public virtual async Task Stream_NoView_Succeed_Succed()
+    public virtual async Task Stream_NoView_Succeed()
     {
         await ProcuceEventsAsync();
 
@@ -59,7 +59,7 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
     }
 
     [Fact]
-    public virtual async Task Stream_NoViewEmpty_Succeed_Succed()
+    public virtual async Task Stream_NoViewEmpty_Succeed()
     {
         Assert.Equal(0, _stream.StoredOffset);
 

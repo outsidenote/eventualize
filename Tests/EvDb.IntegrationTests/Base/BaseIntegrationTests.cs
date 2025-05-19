@@ -4,6 +4,7 @@ using EvDb.Core;
 using EvDb.Core.Adapters;
 using EvDb.UnitTests;
 using FakeItEasy;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Xml.Linq;
@@ -17,6 +18,9 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
     protected readonly StoreType _storeType;
     private readonly bool _seSeparateSnapshotContext;
     protected readonly ILogger _logger = A.Fake<ILogger>();
+
+    protected EvDbStreamTestingStorage TestingStreamStore { get; } = new EvDbStreamTestingStorage();
+
     // protected readonly TestContainers _containers;
 
     protected BaseIntegrationTests(ITestOutputHelper output,

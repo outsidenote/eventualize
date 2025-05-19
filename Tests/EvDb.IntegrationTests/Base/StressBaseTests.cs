@@ -22,8 +22,8 @@ public abstract class StressBaseTests : BaseIntegrationTests
         CoconaAppBuilder builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
         services.AddEvDb()
-            .AddDemoStreamFactory(c => c.ChooseStoreAdapter(storeType), StorageContext)
-            .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType));
+            .AddDemoStreamFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
+            .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore));
         Otel(builder);
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();

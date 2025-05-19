@@ -40,14 +40,14 @@ public class MongoDBStreamSimpleTests : StreamSimpleBaseTests
     public override IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => StorageContext.GetOutboxFromMongoDBAsync(shard);
 
     [Fact]
-    public async Task Stream_Change_Stream_Succeed_Succed()
+    public async Task Stream_Change_Stream_Succeed()
     {
         var startTime = new BsonTimestamp((int)(DateTime.UtcNow
                                             .AddSeconds(-2)
                                             .Subtract(new DateTime(1970, 1, 1)))
                                             .TotalSeconds, 1);
 
-        await base.Stream_Basic_Succeed_Succed();
+        await base.Stream_Basic_Succeed();
 
         string connectionString = _configuration.GetConnectionString("EvDbMongoDBConnection") ?? throw new EntryPointNotFoundException("EvDbMongoDBConnection");
 

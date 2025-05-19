@@ -4,5 +4,6 @@ public enum StoreType
 {
     SqlServer,
     Postgres,
-    MongoDB
+    MongoDB,
+    Testing
 }
