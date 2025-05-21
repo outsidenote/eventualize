@@ -57,7 +57,7 @@ internal static class Scripts
             : $"""
             CREATE TABLE {tblInitial}events (
                 {Fields.Event.Id} UUID NOT NULL,
-                {Fields.Event.RootAddress} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Event.StreamType} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Event.StreamId} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 "{Fields.Event.Offset}" BIGINT NOT NULL,
                 {Fields.Event.EventType} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -68,10 +68,10 @@ internal static class Scripts
                 {Fields.Event.Payload} JSON NOT NULL,
     
                 PRIMARY KEY (
-                    {Fields.Event.RootAddress}, 
+                    {Fields.Event.StreamType}, 
                     {Fields.Event.StreamId}, 
                     "{Fields.Event.Offset}"),
-                CONSTRAINT CK_event_root_address_not_empty CHECK (CHAR_LENGTH({Fields.Event.RootAddress}) > 0),
+                CONSTRAINT CK_event_root_address_not_empty CHECK (CHAR_LENGTH({Fields.Event.StreamType}) > 0),
                 CONSTRAINT CK_event_stream_id_not_empty CHECK (CHAR_LENGTH({Fields.Event.StreamId}) > 0),
                 CONSTRAINT CK_event_event_type_not_empty CHECK (CHAR_LENGTH({Fields.Event.EventType}) > 0),
                 CONSTRAINT CK_event_captured_by_not_empty CHECK (CHAR_LENGTH({Fields.Event.CapturedBy}) > 0)
@@ -80,7 +80,7 @@ internal static class Scripts
             -- Index for getting distinct values for columns root-address, and event_type together
             CREATE INDEX ix_event_{unique:N}
             ON {tblInitial}events (
-                    {Fields.Event.RootAddress}, 
+                    {Fields.Event.StreamType}, 
                     {Fields.Event.StreamId}, 
                     "{Fields.Event.Offset}" 
             );
@@ -102,7 +102,7 @@ internal static class Scripts
 
             CREATE TABLE {tblInitial}{t} (
                 {Fields.Message.Id} UUID  NOT NULL, 
-                {Fields.Message.RootAddress} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Message.StreamType} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Message.StreamId} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 "{Fields.Message.Offset}" BIGINT NOT NULL,
                 {Fields.Message.EventType} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -117,12 +117,12 @@ internal static class Scripts
             
                 PRIMARY KEY (
                         {Fields.Message.CapturedAt},
-                        {Fields.Message.RootAddress}, 
+                        {Fields.Message.StreamType}, 
                         {Fields.Message.StreamId}, 
                         "{Fields.Message.Offset}",
                         {Fields.Message.Channel},
                         {Fields.Message.MessageType}),
-                CONSTRAINT CK_{t}_root_address_not_empty CHECK (CHAR_LENGTH({Fields.Message.RootAddress}) > 0),
+                CONSTRAINT CK_{t}_root_address_not_empty CHECK (CHAR_LENGTH({Fields.Message.StreamType}) > 0),
                 CONSTRAINT CK_{t}_stream_id_not_empty CHECK (CHAR_LENGTH({Fields.Message.StreamId}) > 0),
                 CONSTRAINT CK_{t}_event_type_not_empty CHECK (CHAR_LENGTH({Fields.Message.EventType}) > 0),
                 CONSTRAINT CK_{t}_outbox_type_not_empty CHECK (CHAR_LENGTH({Fields.Message.Channel}) > 0),
@@ -153,7 +153,7 @@ internal static class Scripts
             : $"""
             CREATE TABLE {tblInitial}snapshot (
                 {Fields.Snapshot.Id} UUID NOT NULL,
-                {Fields.Snapshot.RootAddress} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Snapshot.StreamType} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Snapshot.StreamId} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Snapshot.ViewName} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 "{Fields.Snapshot.Offset}" BIGINT NOT NULL,
@@ -161,18 +161,18 @@ internal static class Scripts
                 stored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
     
                 PRIMARY KEY (
-                    {Fields.Snapshot.RootAddress},  
+                    {Fields.Snapshot.StreamType},  
                     {Fields.Snapshot.StreamId}, 
                     {Fields.Snapshot.ViewName},
                     "{Fields.Snapshot.Offset}"),
-                CONSTRAINT CK_snapshot_root_address_not_empty CHECK (CHAR_LENGTH({Fields.Snapshot.RootAddress}) > 0),
+                CONSTRAINT CK_snapshot_root_address_not_empty CHECK (CHAR_LENGTH({Fields.Snapshot.StreamType}) > 0),
                 CONSTRAINT CK_snapshot_stream_id_not_empty CHECK (CHAR_LENGTH({Fields.Snapshot.StreamId}) > 0),
                 CONSTRAINT CK_snapshot_aggregate_type_not_empty CHECK (CHAR_LENGTH({Fields.Snapshot.ViewName}) > 0)
             );
 
             CREATE INDEX ix_snapshot_earlier_stored_at_{unique:N}
             ON {tblInitial}snapshot (
-                {Fields.Snapshot.RootAddress}, 
+                {Fields.Snapshot.StreamType}, 
                 {Fields.Snapshot.StreamId},
                 {Fields.Snapshot.ViewName}, stored_at);
             """;

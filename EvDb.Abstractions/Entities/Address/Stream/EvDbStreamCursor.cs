@@ -10,26 +10,26 @@ namespace EvDb.Core;
 [Equatable]
 public readonly partial record struct EvDbStreamCursor
 {
-    public EvDbStreamCursor(EvDbRootAddressName rootAddress, string streamId, long offset = 0)
+    public EvDbStreamCursor(EvDbStreamTypeName streamType, string streamId, long offset = 0)
     {
-        RootAddress = rootAddress;
+        StreamType = streamType;
         StreamId = streamId;
         Offset = offset;
     }
 
     public EvDbStreamCursor(EvDbStreamAddress streamId, long offset = 0)
-        : this(streamId.RootAddress, streamId.StreamId, offset) { }
+        : this(streamId.StreamType, streamId.StreamId, offset) { }
 
-    public string RootAddress { get; }
+    public string StreamType { get; }
     public string StreamId { get; }
     public long Offset { get; }
 
     #region IsEquals, ==, !=
 
 
-    private bool IsEquals(EvDbRootAddressName rootAddress)
+    private bool IsEquals(EvDbStreamTypeName streamType)
     {
-        if (this.RootAddress != rootAddress)
+        if (this.StreamType != streamType)
             return false;
 
         return true;
@@ -37,7 +37,7 @@ public readonly partial record struct EvDbStreamCursor
 
     private bool IsEquals(EvDbStreamAddress address)
     {
-        if (this.RootAddress != address.RootAddress)
+        if (this.StreamType != address.StreamType)
             return false;
         if (this.StreamId != address.StreamId)
             return false;
@@ -55,12 +55,12 @@ public readonly partial record struct EvDbStreamCursor
         return !cursor.IsEquals(streamAddress);
     }
 
-    public static bool operator ==(EvDbStreamCursor cursor, EvDbRootAddressName streamAddress)
+    public static bool operator ==(EvDbStreamCursor cursor, EvDbStreamTypeName streamAddress)
     {
         return cursor.IsEquals(streamAddress);
     }
 
-    public static bool operator !=(EvDbStreamCursor cursor, EvDbRootAddressName streamAddress)
+    public static bool operator !=(EvDbStreamCursor cursor, EvDbStreamTypeName streamAddress)
     {
         return !cursor.IsEquals(streamAddress);
     }
@@ -71,12 +71,12 @@ public readonly partial record struct EvDbStreamCursor
 
     public static implicit operator EvDbStreamAddress(EvDbStreamCursor instance)
     {
-        return new EvDbStreamAddress(instance.RootAddress, instance.StreamId);
+        return new EvDbStreamAddress(instance.StreamType, instance.StreamId);
     }
 
-    public static implicit operator EvDbRootAddressName(EvDbStreamCursor instance)
+    public static implicit operator EvDbStreamTypeName(EvDbStreamCursor instance)
     {
-        return instance.RootAddress;
+        return instance.StreamType;
     }
 
 
@@ -88,13 +88,13 @@ public readonly partial record struct EvDbStreamCursor
     /// Get the unique fields as string (root_address:stream_id:offset).
     /// </summary>
     /// <returns></returns>
-    public override string ToString() => $"{RootAddress}:{StreamId}:{Offset:000_000_000_000}";
+    public override string ToString() => $"{StreamType}:{StreamId}:{Offset:000_000_000_000}";
 
     /// <summary>
     /// Get the filter fields as string (root_address:stream_id:).
     /// </summary>
     /// <returns></returns>
-    public string ToFilterString() => $"{RootAddress}:{StreamId}:";
+    public string ToFilterString() => $"{StreamType}:{StreamId}:";
 
     #endregion //  ToString
 }

@@ -23,9 +23,9 @@ public class NamedTypesTests
     [InlineData("Test#123", false)]
     [InlineData("Test$123", false)]
     [InlineData("Test%123", false)]
-    public void EvDbRootAddressName_Validition_Test(string name, bool shouldSucceed)
+    public void EvDbStreamTypeName_Validition_Test(string name, bool shouldSucceed)
     {
-        bool isValid = EvDbRootAddressName.TryFrom(name, out EvDbRootAddressName root);
+        bool isValid = EvDbStreamTypeName.TryFrom(name, out EvDbStreamTypeName root);
         Assert.Equal(isValid, shouldSucceed);
     }
 }

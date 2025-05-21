@@ -5,23 +5,23 @@ namespace EvDb.Core;
 /// <summary>
 /// Specific location of a snapshot, root-address:view_name:offset.
 /// </summary>
-/// <param name="RootAddress"></param>
+/// <param name="StreamType"></param>
 /// <param name="StreamId"></param>
 /// <param name="ViewName"></param>
 /// <param name="Offset"></param>
 [Equatable]
-public readonly partial record struct EvDbSnapshotCursor(string RootAddress, string StreamId, string ViewName, long Offset = 0)
+public readonly partial record struct EvDbSnapshotCursor(string StreamType, string StreamId, string ViewName, long Offset = 0)
 {
     public static readonly EvDbSnapshotCursor Empty = new EvDbSnapshotCursor("N/A",  "N/A", "N/A", 0);
 
     public EvDbSnapshotCursor(EvDbStreamAddress streamAddress, string viewName, long offset = 0)
-        : this(streamAddress.RootAddress, streamAddress.StreamId, viewName, offset) { }
+        : this(streamAddress.StreamType, streamAddress.StreamId, viewName, offset) { }
 
     #region IsEquals, ==, !=
 
     private bool IsEquals(EvDbViewAddress viewAddress)
     {
-        if (this.RootAddress != viewAddress.RootAddress)
+        if (this.StreamType != viewAddress.StreamType)
             return false;
         if (this.StreamId != viewAddress.StreamId)
             return false;
@@ -33,7 +33,7 @@ public readonly partial record struct EvDbSnapshotCursor(string RootAddress, str
 
     private bool IsEquals(EvDbStreamAddress address)
     {
-        if (this.RootAddress != address.RootAddress)
+        if (this.StreamType != address.StreamType)
             return false;
         if (this.StreamId != address.StreamId)
             return false;
@@ -67,12 +67,12 @@ public readonly partial record struct EvDbSnapshotCursor(string RootAddress, str
 
     public static implicit operator EvDbStreamAddress(EvDbSnapshotCursor instance)
     {
-        return new EvDbStreamAddress(instance.RootAddress, instance.StreamId);
+        return new EvDbStreamAddress(instance.StreamType, instance.StreamId);
     }
 
     public static implicit operator EvDbViewAddress(EvDbSnapshotCursor instance)
     {
-        return new EvDbViewAddress(instance.RootAddress, instance.StreamId, instance.ViewName);
+        return new EvDbViewAddress(instance.StreamType, instance.StreamId, instance.ViewName);
     }
 
     #endregion // Casting Overloads
@@ -83,13 +83,13 @@ public readonly partial record struct EvDbSnapshotCursor(string RootAddress, str
     /// Get the unique fields as string (root_address:stream_id:offset).
     /// </summary>
     /// <returns></returns>
-    public override string ToString() => $"{RootAddress}:{StreamId}:{ViewName}:{Offset:000_000_000_000}";
+    public override string ToString() => $"{StreamType}:{StreamId}:{ViewName}:{Offset:000_000_000_000}";
 
     /// <summary>
     /// Get the filter fields as string (root_address:stream_id:).
     /// </summary>
     /// <returns></returns>
-    public string ToFilterString() => $"{RootAddress}:{StreamId}:{ViewName}:";
+    public string ToFilterString() => $"{StreamType}:{StreamId}:{ViewName}:";
 
     #endregion //  ToString
 }

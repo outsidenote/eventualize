@@ -26,7 +26,7 @@ internal static class RelationalOutboxTestHelper
 
         var outboxQuery = $$"""
                 SELECT
-                    {{Fields.Message.RootAddress}} as {{Projection.Message.RootAddress}},
+                    {{Fields.Message.StreamType}} as {{Projection.Message.StreamType}},
                     {{Fields.Message.StreamId}} as {{Projection.Message.StreamId}},                    
                     {{escape}}{{Fields.Message.Offset}}{{escape}} as {{Projection.Message.Offset}},
                     {{Fields.Message.EventType}} as {{Projection.Message.EventType}},

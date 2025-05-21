@@ -5,7 +5,7 @@ namespace EvDb.Core;
 
 public interface IEvDbStreamConfig
 {
-    EvDbRootAddressName RootAddress { get; }
+    EvDbStreamTypeName StreamType { get; }
 
     JsonSerializerOptions? Options { get; }
 

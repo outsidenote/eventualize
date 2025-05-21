@@ -37,11 +37,11 @@ partial class CustomerEntityModelStreamFactory1 : EvDbStreamFactoryBase<IEvDbCus
 
     protected override IEvDbViewFactory[] ViewFactories { get; }
 
-    #region RootAddress
+    #region StreamType
 
-    public override EvDbRootAddressName RootAddress { get; } = "CLM_CEM";
+    public override EvDbStreamTypeName StreamType { get; } = "CLM_CEM";
 
-    #endregion // RootAddress
+    #endregion // StreamType
 
     #region OnCreate
 

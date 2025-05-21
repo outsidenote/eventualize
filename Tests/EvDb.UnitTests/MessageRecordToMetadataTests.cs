@@ -41,7 +41,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         var messageRecord = new EvDbMessageRecord
         {
-            RootAddress = "TestDomain:TestPartition",
+            StreamType = "TestDomain:TestPartition",
             StreamId = "TestStreamId",
             Offset = 1,
             EventType = "TestEventType",
@@ -58,7 +58,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         _output.WriteLine($"MessageRecord: {messageRecord}");
 
-        Assert.Equal(messageRecord.RootAddress, meta.StreamCursor.RootAddress);
+        Assert.Equal(messageRecord.StreamType, meta.StreamCursor.StreamType);
         Assert.Equal(messageRecord.StreamId, meta.StreamCursor.StreamId);
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);
@@ -74,7 +74,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         var messageRecord = new EvDbMessageRecord
         {
-            RootAddress = "TestDomain:TestPartition",
+            StreamType = "TestDomain:TestPartition",
             StreamId = "TestStreamId",
             Offset = 1,
             EventType = "TestEventType",
@@ -92,7 +92,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         _output.WriteLine($"MessageRecord: {messageRecord}");
 
-        Assert.Equal(messageRecord.RootAddress, meta.StreamCursor.RootAddress);
+        Assert.Equal(messageRecord.StreamType, meta.StreamCursor.StreamType);
         Assert.Equal(messageRecord.StreamId, meta.StreamCursor.StreamId);
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);
@@ -109,7 +109,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         var messageRecord = new EvDbMessageRecord
         {
-            RootAddress = "TestDomain:TestPartition",
+            StreamType = "TestDomain:TestPartition",
             StreamId = "TestStreamId",
             Offset = 1,
             EventType = "TestEventType",
@@ -126,7 +126,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         _output.WriteLine($"MessageRecord: {messageRecord}");
 
-        Assert.Equal(messageRecord.RootAddress, meta.StreamCursor.RootAddress);
+        Assert.Equal(messageRecord.StreamType, meta.StreamCursor.StreamType);
         Assert.Equal(messageRecord.StreamId, meta.StreamCursor.StreamId);
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);

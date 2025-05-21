@@ -7,11 +7,11 @@ public readonly record struct EvDbStreamStoreRegistrationContext : IEvDbRegistra
 {
     private readonly IServiceCollection _services;
     private readonly EvDbStorageContext? _context;
-    private readonly EvDbRootAddressName _address;
+    private readonly EvDbStreamTypeName _address;
 
     public EvDbStreamStoreRegistrationContext(
         EvDbStorageContext? context,
-        EvDbRootAddressName address,
+        EvDbStreamTypeName address,
         IServiceCollection services)
     {
         _services = services;
@@ -20,7 +20,7 @@ public readonly record struct EvDbStreamStoreRegistrationContext : IEvDbRegistra
     }
 
     EvDbStorageContext? IEvDbRegistrationContext.Context => _context;
-    EvDbRootAddressName IEvDbRegistrationContext.Address => _address;
+    EvDbStreamTypeName IEvDbRegistrationContext.Address => _address;
     IServiceCollection IEvDbRegistrationEntry.Services => _services;
 }
 

@@ -2,10 +2,10 @@
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("{RootAddress}{StreamId}:{ViewName}, Offset = {Offset}")]
+[DebuggerDisplay("{StreamType}{StreamId}:{ViewName}, Offset = {Offset}")]
 public readonly record struct SnapshotSaveParameter(
                     Guid Id,
-                    string RootAddress,
+                    string StreamType,
                     string StreamId,
                     string ViewName,
                     long Offset,
@@ -14,7 +14,7 @@ public readonly record struct SnapshotSaveParameter(
     public SnapshotSaveParameter(EvDbViewAddress viewAddress, EvDbStoredSnapshot storedSnapshot)
         : this(
               Guid.NewGuid(),
-              viewAddress.RootAddress,
+              viewAddress.StreamType,
               viewAddress.StreamId,
               viewAddress.ViewName,
               storedSnapshot.Offset,

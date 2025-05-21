@@ -8,21 +8,21 @@ namespace EvDb.Core;
 /// The address of a view. 
 /// Built of the root address, stream id and view name.
 /// </summary>
-/// <param name="RootAddress"></param>
+/// <param name="StreamType"></param>
 /// <param name="StreamId"></param>
 /// <param name="ViewName"></param>
 [Equatable]
-public readonly partial record struct EvDbViewAddress(string RootAddress, string StreamId, string ViewName)
+public readonly partial record struct EvDbViewAddress(string StreamType, string StreamId, string ViewName)
 {
     public EvDbViewAddress(EvDbStreamAddress streamAddress, string viewName)
-        : this(streamAddress.RootAddress, streamAddress.StreamId, viewName) { }
+        : this(streamAddress.StreamType, streamAddress.StreamId, viewName) { }
 
     #region IsEquals, ==, !=
 
 
-    private bool IsEquals(EvDbRootAddressName rootAddress)
+    private bool IsEquals(EvDbStreamTypeName streamType)
     {
-        if (this.RootAddress != rootAddress)
+        if (this.StreamType != streamType)
             return false;
 
         return true;
@@ -30,7 +30,7 @@ public readonly partial record struct EvDbViewAddress(string RootAddress, string
 
     private bool IsEquals(EvDbStreamAddress address)
     {
-        if (this.RootAddress != address.RootAddress)
+        if (this.StreamType != address.StreamType)
             return false;
         if (this.StreamId != address.StreamId)
             return false;
@@ -48,12 +48,12 @@ public readonly partial record struct EvDbViewAddress(string RootAddress, string
         return !viewAddress.IsEquals(streamAddress);
     }
 
-    public static bool operator ==(EvDbViewAddress viewAddress, EvDbRootAddressName streamAddress)
+    public static bool operator ==(EvDbViewAddress viewAddress, EvDbStreamTypeName streamAddress)
     {
         return viewAddress.IsEquals(streamAddress);
     }
 
-    public static bool operator !=(EvDbViewAddress viewAddress, EvDbRootAddressName streamAddress)
+    public static bool operator !=(EvDbViewAddress viewAddress, EvDbStreamTypeName streamAddress)
     {
         return !viewAddress.IsEquals(streamAddress);
     }
@@ -64,17 +64,17 @@ public readonly partial record struct EvDbViewAddress(string RootAddress, string
 
     public static implicit operator EvDbStreamAddress(EvDbViewAddress instance)
     {
-        return new EvDbStreamAddress(instance.RootAddress, instance.StreamId);
+        return new EvDbStreamAddress(instance.StreamType, instance.StreamId);
     }
 
-    public static implicit operator EvDbRootAddressName(EvDbViewAddress instance)
+    public static implicit operator EvDbStreamTypeName(EvDbViewAddress instance)
     {
-        return instance.RootAddress;
+        return instance.StreamType;
     }
 
     public static implicit operator EvDbViewBasicAddress(EvDbViewAddress instance)
     {
-        return new EvDbViewBasicAddress(instance.RootAddress, instance.ViewName);
+        return new EvDbViewBasicAddress(instance.StreamType, instance.ViewName);
     }
 
     #endregion // Casting Overloads
@@ -88,7 +88,7 @@ public readonly partial record struct EvDbViewAddress(string RootAddress, string
     public OtelTags ToOtelTagsToOtelTags()
     {
         OtelTags tags = OtelTags.Empty
-                            .Add(TAG_ROOT_ADDRESS, RootAddress)
+                            .Add(TAG_ROOT_ADDRESS, StreamType)
                             .Add(TAG_STREAM_ID, StreamId)
                             .Add(TAG_VIEW_NAME, ViewName);
         return tags;
@@ -100,7 +100,7 @@ public readonly partial record struct EvDbViewAddress(string RootAddress, string
 
     public override string ToString()
     {
-        return $"{RootAddress}:{StreamId}:{ViewName}";
+        return $"{StreamType}:{StreamId}:{ViewName}";
     }
 
     #endregion // ToString

@@ -35,7 +35,7 @@ public static class EvDbTestingStorageAdapterDI
     {
         IEvDbRegistrationContext entry = instance;
         IServiceCollection services = entry.Services;
-        EvDbRootAddressName key = entry.Address;
+        EvDbStreamTypeName key = entry.Address;
         var context = entry.Context;
         services.AddKeyedSingleton(
             key.ToString(),

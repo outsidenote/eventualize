@@ -4,6 +4,6 @@ using EvDb.Core.Internals;
 namespace Microsoft.Extensions.DependencyInjection;
 public interface IEvDbRegistrationContext : IEvDbRegistrationEntry
 {
-    EvDbRootAddressName Address { get; }
+    EvDbStreamTypeName Address { get; }
     EvDbStorageContext? Context { get; }
 }

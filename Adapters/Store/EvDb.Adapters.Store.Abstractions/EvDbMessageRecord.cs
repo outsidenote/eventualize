@@ -12,7 +12,7 @@ public struct EvDbMessageRecord
     /// <summary>
     /// The address of the stream that the message produced from
     /// </summary>
-    public string RootAddress { get; init; }
+    public string StreamType { get; init; }
     /// <summary>
     /// The identifier of the stream instance
     /// </summary>
@@ -62,7 +62,7 @@ public struct EvDbMessageRecord
         var result = new EvDbMessageRecord
         {
             Id = Guid.NewGuid(), // TODO: GuidV7
-            RootAddress = e.StreamCursor.RootAddress,
+            StreamType = e.StreamCursor.StreamType,
             StreamId = e.StreamCursor.StreamId,
             Offset = e.StreamCursor.Offset,
             EventType = e.EventType,
@@ -87,7 +87,7 @@ public struct EvDbMessageRecord
     /// <returns></returns>
     public IEvDbMessageMeta GetMetadata()
     {
-        EvDbStreamCursor cursor = new EvDbStreamCursor(RootAddress, StreamId, Offset);
+        EvDbStreamCursor cursor = new EvDbStreamCursor(StreamType, StreamId, Offset);
         var result = new EvDbMessageMeta(cursor,
                                          EventType,
                                          MessageType,
