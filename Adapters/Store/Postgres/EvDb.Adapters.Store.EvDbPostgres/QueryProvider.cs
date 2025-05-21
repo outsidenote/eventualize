@@ -24,13 +24,13 @@ internal static class QueryProvider
                 SELECT
                     "{Fields.Event.Offset}" as {Projection.Event.Offset}                  
                 FROM {tblInitial}events
-                WHERE {Fields.Event.RootAddress} = {Parameters.Event.RootAddress}
+                WHERE {Fields.Event.StreamType} = {Parameters.Event.StreamType}
                     AND {Fields.Event.StreamId} = {Parameters.Event.StreamId}
                 ORDER BY "{Fields.Event.Offset}" DESC;
                 """,
             GetEvents = $"""
                 SELECT
-                    {Fields.Event.RootAddress} as {Projection.Event.RootAddress},
+                    {Fields.Event.StreamType} as {Projection.Event.StreamType},
                     {Fields.Event.StreamId} as {Projection.Event.StreamId},
                     "{Fields.Event.Offset}" as {Projection.Event.Offset},
                     {Fields.Event.EventType} as {Projection.Event.EventType},
@@ -38,14 +38,14 @@ internal static class QueryProvider
                     {Fields.Event.CapturedBy} as {Projection.Event.CapturedBy},
                     {Fields.Event.Payload} as {Projection.Event.Payload}                  
                 FROM {tblInitial}events
-                WHERE {Fields.Event.RootAddress} = {Parameters.Event.RootAddress}
+                WHERE {Fields.Event.StreamType} = {Parameters.Event.StreamType}
                     AND {Fields.Event.StreamId} = {Parameters.Event.StreamId}
                     AND "{Fields.Event.Offset}" >= {Parameters.Event.Offset};
                 """,
             SaveEvents = $$"""
              INSERT INTO {{tblInitial}}events 
                     ({{Fields.Event.Id}}, 
-                    {{Fields.Event.RootAddress}}, 
+                    {{Fields.Event.StreamType}}, 
                     {{Fields.Event.StreamId}}, 
                     "{{Fields.Event.Offset}}", 
                     {{Fields.Event.EventType}}, 
@@ -55,7 +55,7 @@ internal static class QueryProvider
                     {{Fields.Event.Payload}})
                 SELECT 
                     UNNEST({{Parameters.Event.Id}}), 
-                    UNNEST({{Parameters.Event.RootAddress}}), 
+                    UNNEST({{Parameters.Event.StreamType}}), 
                     UNNEST({{Parameters.Event.StreamId}}), 
                     UNNEST({{Parameters.Event.Offset}}), 
                     UNNEST({{Parameters.Event.EventType}}), 
@@ -67,7 +67,7 @@ internal static class QueryProvider
             SaveToOutbox = $$"""
              INSERT INTO {{tblInitial}}{0}
                     ({{Fields.Message.Id}}, 
-                    {{Fields.Message.RootAddress}}, 
+                    {{Fields.Message.StreamType}}, 
                     {{Fields.Message.StreamId}}, 
                     "{{Fields.Message.Offset}}", 
                     {{Fields.Message.Channel}}, 
@@ -80,7 +80,7 @@ internal static class QueryProvider
                     {{Fields.Message.Payload}})
                 SELECT 
                     UNNEST({{Parameters.Message.Id}}), 
-                    UNNEST({{Parameters.Message.RootAddress}}), 
+                    UNNEST({{Parameters.Message.StreamType}}), 
                     UNNEST({{Parameters.Message.StreamId}}), 
                     UNNEST({{Parameters.Message.Offset}}), 
                     UNNEST({{Parameters.Message.Channel}}), 
@@ -106,7 +106,7 @@ internal static class QueryProvider
                 SELECT {Fields.Snapshot.State} as {Projection.Snapshot.State}, 
                         "{Fields.Snapshot.Offset}" as {Projection.Snapshot.Offset}
                 FROM {tabInitial}snapshot
-                WHERE {Fields.Snapshot.RootAddress} = {Parameters.Snapshot.RootAddress}
+                WHERE {Fields.Snapshot.StreamType} = {Parameters.Snapshot.StreamType}
                     AND {Fields.Snapshot.StreamId} = {Parameters.Snapshot.StreamId}
                     AND {Fields.Snapshot.ViewName} = {Parameters.Snapshot.ViewName}
                 ORDER BY "{Fields.Snapshot.Offset}" DESC
@@ -115,14 +115,14 @@ internal static class QueryProvider
             SaveSnapshot = $"""
             INSERT INTO {tabInitial}snapshot (
                         {Fields.Snapshot.Id},
-                        {Fields.Snapshot.RootAddress},
+                        {Fields.Snapshot.StreamType},
                         {Fields.Snapshot.StreamId},
                         {Fields.Snapshot.ViewName},
                         "{Fields.Snapshot.Offset}",
                         {Fields.Snapshot.State})
             VALUES (
                         {Parameters.Snapshot.Id},
-                        {Parameters.Snapshot.RootAddress},
+                        {Parameters.Snapshot.StreamType},
                         {Parameters.Snapshot.StreamId},
                         {Parameters.Snapshot.ViewName},
                         {Parameters.Snapshot.Offset},

@@ -13,7 +13,7 @@ public class EvDbStreamFactoryAttribute<TEventType, TOutboxProducer> : EvDbStrea
     where TEventType : IEvDbEventTypes
     where TOutboxProducer : IEvDbOutboxProducer
 {
-    public EvDbStreamFactoryAttribute(string rootAddress) : base(rootAddress)
+    public EvDbStreamFactoryAttribute(string streamType) : base(streamType)
     {
     }
 
@@ -31,20 +31,20 @@ public class EvDbStreamFactoryAttribute<TEventType> : Attribute
     /// <summary>
     /// Generate a EventualizeDB client factory
     /// </summary>
-    /// <param name="rootAddress">
-    /// The `rootAddress` is the static part of the stream address (uniqueness).
+    /// <param name="streamType">
+    /// The `streamType` is the static part of the stream address (uniqueness).
     /// Along with the stream id that is the dynamic part of the address
     /// </param>
-    public EvDbStreamFactoryAttribute(string rootAddress)
+    public EvDbStreamFactoryAttribute(string streamType)
     {
-        RootAddress = rootAddress;
+        StreamType = streamType;
     }
 
     /// <summary>
-    /// The `rootAddress` is the static part of the stream address (uniqueness).
+    /// The `streamType` is the static part of the stream address (uniqueness).
     /// Along with the stream id that is the dynamic part of the address
     /// </summary>
-    public string RootAddress { get; }
+    public string StreamType { get; }
 
     /// <summary>
     /// Set the name of the stream object

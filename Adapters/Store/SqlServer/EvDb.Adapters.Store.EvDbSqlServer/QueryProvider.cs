@@ -19,13 +19,13 @@ internal static class QueryProvider
                 SELECT
                     {Fields.Event.Offset} as {Projection.Event.Offset}           
                 FROM {tblInitial}events WITH (READCOMMITTEDLOCK)
-                WHERE {Parameters.Event.RootAddress} = {Parameters.Event.RootAddress}
+                WHERE {Parameters.Event.StreamType} = {Parameters.Event.StreamType}
                     AND {Parameters.Event.StreamId} = {Parameters.Event.StreamId}
                 Order BY {Fields.Event.Offset} DESC;
             """,
             GetEvents = $"""
                 SELECT
-                    {Fields.Event.RootAddress} as {Projection.Event.RootAddress},
+                    {Fields.Event.StreamType} as {Projection.Event.StreamType},
                     {Fields.Event.StreamId} as {Projection.Event.StreamId},
                     {Fields.Event.Offset} as {Projection.Event.Offset},
                     {Fields.Event.EventType} as {Projection.Event.EventType},
@@ -34,7 +34,7 @@ internal static class QueryProvider
                     {Fields.Event.TelemetryContext} as {Projection.Event.TelemetryContext},
                     {Fields.Event.Payload} as {Projection.Event.Payload}                  
                 FROM {tblInitial}events WITH (READCOMMITTEDLOCK)
-                WHERE {Fields.Event.RootAddress} = {Parameters.Event.RootAddress}
+                WHERE {Fields.Event.StreamType} = {Parameters.Event.StreamType}
                     AND {Fields.Event.StreamId} = {Parameters.Event.StreamId}
                     AND {Fields.Event.Offset} >= {Parameters.Event.Offset};
                 """,
@@ -55,7 +55,7 @@ internal static class QueryProvider
                 SELECT {Fields.Snapshot.State} as {Projection.Snapshot.State}, 
                         {Fields.Snapshot.Offset} as {Projection.Snapshot.Offset}
                 FROM {tabInitial}snapshot
-                WHERE {Fields.Snapshot.RootAddress} = {Parameters.Snapshot.RootAddress}
+                WHERE {Fields.Snapshot.StreamType} = {Parameters.Snapshot.StreamType}
                     AND {Fields.Snapshot.StreamId} = {Parameters.Snapshot.StreamId}
                     AND {Fields.Snapshot.ViewName} = {Parameters.Snapshot.ViewName}
                 ORDER BY offset DESC
@@ -64,14 +64,14 @@ internal static class QueryProvider
             SaveSnapshot = $"""
             INSERT INTO {tabInitial}snapshot (
                         {Fields.Snapshot.Id},
-                        {Fields.Snapshot.RootAddress},
+                        {Fields.Snapshot.StreamType},
                         {Fields.Snapshot.StreamId},
                         {Fields.Snapshot.ViewName},
                         {Fields.Snapshot.Offset},
                         {Fields.Snapshot.State})
             VALUES (
                         {Parameters.Snapshot.Id},
-                        {Parameters.Snapshot.RootAddress},
+                        {Parameters.Snapshot.StreamType},
                         {Parameters.Snapshot.StreamId},
                         {Parameters.Snapshot.ViewName},
                         {Parameters.Snapshot.Offset},

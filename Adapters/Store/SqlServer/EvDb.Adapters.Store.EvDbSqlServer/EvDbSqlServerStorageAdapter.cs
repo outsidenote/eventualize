@@ -104,7 +104,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         var metaData = new[]
         {
             new SqlMetaData(Event.Id, SqlDbType.UniqueIdentifier),
-            new SqlMetaData(Event.RootAddress, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Event.StreamType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Event.StreamId, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Event.Offset, SqlDbType.BigInt),
             new SqlMetaData(Event.EventType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
@@ -122,7 +122,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             var record = new SqlDataRecord(metaData);
 
             record.SetGuid(0, message.Id);
-            record.SetString(1, message.RootAddress);
+            record.SetString(1, message.StreamType);
             record.SetString(2, message.StreamId);
             record.SetInt64(3, message.Offset);
             record.SetString(4, message.EventType);
@@ -153,7 +153,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         var metaData = new[]
         {
             new SqlMetaData(Message.Id, SqlDbType.UniqueIdentifier),
-            new SqlMetaData(Message.RootAddress, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.StreamType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Message.StreamId, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Message.Offset, SqlDbType.BigInt),
             new SqlMetaData(Message.EventType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
@@ -174,7 +174,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             var record = new SqlDataRecord(metaData);
 
             record.SetGuid(0, message.Id);
-            record.SetString(1, message.RootAddress);
+            record.SetString(1, message.StreamType);
             record.SetString(2, message.StreamId);
             record.SetInt64(3, message.Offset);
             record.SetString(4, message.EventType);

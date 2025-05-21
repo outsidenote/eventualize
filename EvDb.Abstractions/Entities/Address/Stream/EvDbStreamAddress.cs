@@ -7,40 +7,40 @@ namespace EvDb.Core;
 /// <summary>
 /// Identify the stream address, a unique instance of a stream
 /// </summary>
-/// <param name="RootAddress"></param>
+/// <param name="StreamType"></param>
 /// <param name="StreamId">The instance of a stream entity like { User: 'Joe' }</param>
 [Equatable]
-[DebuggerDisplay("{RootAddress}:{StreamId}")]
-public readonly partial record struct EvDbStreamAddress(EvDbRootAddressName RootAddress, string StreamId)
+[DebuggerDisplay("{StreamType}:{StreamId}")]
+public readonly partial record struct EvDbStreamAddress(EvDbStreamTypeName StreamType, string StreamId)
 {
     #region IsEquals, ==, !=
 
 
-    private bool IsEquals(EvDbRootAddressName rootAddress)
+    private bool IsEquals(EvDbStreamTypeName streamType)
     {
-        if (this.RootAddress != rootAddress)
+        if (this.StreamType != streamType)
             return false;
 
         return true;
     }
 
-    public static bool operator ==(EvDbStreamAddress streamAddress, EvDbRootAddressName rootAddress)
+    public static bool operator ==(EvDbStreamAddress streamAddress, EvDbStreamTypeName streamType)
     {
-        return streamAddress.IsEquals(rootAddress);
+        return streamAddress.IsEquals(streamType);
     }
 
-    public static bool operator !=(EvDbStreamAddress streamAddress, EvDbRootAddressName rootAddress)
+    public static bool operator !=(EvDbStreamAddress streamAddress, EvDbStreamTypeName streamType)
     {
-        return !streamAddress.IsEquals(rootAddress);
+        return !streamAddress.IsEquals(streamType);
     }
 
     #endregion // IsEquals, ==, !=
 
     #region Casting Overloads
 
-    public static implicit operator EvDbRootAddressName(EvDbStreamAddress instance)
+    public static implicit operator EvDbStreamTypeName(EvDbStreamAddress instance)
     {
-        return instance.RootAddress;
+        return instance.StreamType;
     }
 
 
@@ -52,7 +52,7 @@ public readonly partial record struct EvDbStreamAddress(EvDbRootAddressName Root
     /// Converts to parameters (string representation).
     /// </summary>
     /// <returns></returns>
-    public Parameters ToParameters() => new Parameters(RootAddress.Value,  StreamId);
+    public Parameters ToParameters() => new Parameters(StreamType.Value,  StreamId);
 
     #endregion //  ToParameters
 
@@ -65,7 +65,7 @@ public readonly partial record struct EvDbStreamAddress(EvDbRootAddressName Root
     public OtelTags ToOtelTagsToOtelTags()
     {
         var tags = OtelTags.Empty
-                            .Add(TAG_ROOT_ADDRESS, RootAddress.Value)
+                            .Add(TAG_ROOT_ADDRESS, StreamType.Value)
                             .Add(TAG_STREAM_ID, StreamId);
         return tags;
     }
@@ -76,10 +76,10 @@ public readonly partial record struct EvDbStreamAddress(EvDbRootAddressName Root
 
     public override string ToString()
     {
-        return $"{RootAddress}:{StreamId}";
+        return $"{StreamType}:{StreamId}";
     }
 
     #endregion // ToString
 
-    public readonly record struct Parameters(string RootAddress, string StreamId);
+    public readonly record struct Parameters(string StreamType, string StreamId);
 }

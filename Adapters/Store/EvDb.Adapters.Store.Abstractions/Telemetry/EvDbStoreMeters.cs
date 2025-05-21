@@ -48,7 +48,7 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
             return;
 
         _eventsStored.Add(count, tags => tags.Add("evdb_store_db", dbType)
-                                                          .Add("evdb_store_root_address", address.RootAddress));
+                                                          .Add("evdb_store_root_address", address.StreamType));
     }
 
     void IEvDbStoreMeters.AddMessages(int count,
@@ -60,7 +60,7 @@ internal class EvDbStoreMeters : IEvDbStoreMeters
             return;
 
         _eventsStored.Add(count, tags => tags.Add("evdb_store_db", dbType)
-                                                      .Add("evdb_store_root_address", address.RootAddress)
+                                                      .Add("evdb_store_root_address", address.StreamType)
                                                       .Add("evdb_store_shard", shardName));
     }
 }

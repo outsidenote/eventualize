@@ -15,16 +15,16 @@ namespace EvDb.Core;
 /// adding the offset we can get a stream's cursor
 /// </summary>
 [ExcludeFromCodeCoverage]
-[JsonConverter(typeof(EvDbRootAddressNameSystemTextJsonConverter))]
-[TypeConverter(typeof(EvDbRootAddressNameTypeConverter))]
-[DebuggerTypeProxy(typeof(EvDbRootAddressNameDebugView))]
+[JsonConverter(typeof(EvDbStreamTypeNameSystemTextJsonConverter))]
+[TypeConverter(typeof(EvDbStreamTypeNameTypeConverter))]
+[DebuggerTypeProxy(typeof(EvDbStreamTypeNameDebugView))]
 [DebuggerDisplay("{ _value }")]
-public partial struct EvDbRootAddressName :
-    IEquatable<EvDbRootAddressName>,
+public partial struct EvDbStreamTypeName :
+    IEquatable<EvDbStreamTypeName>,
     IEquatable<string>,
-    IComparable<EvDbRootAddressName>,
+    IComparable<EvDbStreamTypeName>,
     IComparable,
-    IParsable<EvDbRootAddressName>
+    IParsable<EvDbStreamTypeName>
 {
     #region Validation
 
@@ -71,7 +71,7 @@ public partial struct EvDbRootAddressName :
 
     [DebuggerStepThroughAttribute]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public EvDbRootAddressName()
+    public EvDbStreamTypeName()
     {
 #if DEBUG
         _stackTrace = new StackTrace();
@@ -81,7 +81,7 @@ public partial struct EvDbRootAddressName :
     }
 
     [DebuggerStepThroughAttribute]
-    private EvDbRootAddressName(string value)
+    private EvDbStreamTypeName(string value)
     {
         _value = value;
         _isInitialized = true;
@@ -99,16 +99,16 @@ public partial struct EvDbRootAddressName :
     /// <param name = "value">The underlying type.</param>
     /// <returns>An instance of this type.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbRootAddressName From(string value)
+    public static EvDbStreamTypeName From(string value)
     {
         value = Format(value);
-        var validation = EvDbRootAddressName.Validate(value);
+        var validation = EvDbStreamTypeName.Validate(value);
         if (validation != Validation.Ok)
         {
             ThrowHelper.ThrowWhenValidationFails(validation);
         }
 
-        return new EvDbRootAddressName(value);
+        return new EvDbStreamTypeName(value);
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public partial struct EvDbRootAddressName :
                             [NotNullWhen(true)]
                             string? value,
                             [MaybeNullWhen(false)]
-                            out EvDbRootAddressName vo)
+                            out EvDbStreamTypeName vo)
     {
         if (value is null)
         {
@@ -131,14 +131,14 @@ public partial struct EvDbRootAddressName :
             return false;
         }
 
-        var validation = EvDbRootAddressName.Validate(value);
+        var validation = EvDbStreamTypeName.Validate(value);
         if (validation != Validation.Ok)
         {
             vo = default!;
             return false;
         }
 
-        vo = new EvDbRootAddressName(value);
+        vo = new EvDbStreamTypeName(value);
         return true;
     }
 
@@ -149,21 +149,21 @@ public partial struct EvDbRootAddressName :
     /// </summary>
     /// <param name = "value">The primitive value.</param>
     /// <returns>A <see cref = "ValueObjectOrError{T}"/> containing either the value object, or an error.</returns>
-    public static ValueObjectOrError<EvDbRootAddressName> TryFrom(string value)
+    public static ValueObjectOrError<EvDbStreamTypeName> TryFrom(string value)
     {
         if (value is null)
         {
-            return new ValueObjectOrError<EvDbRootAddressName>(Validation.Invalid("The value provided was null"));
+            return new ValueObjectOrError<EvDbStreamTypeName>(Validation.Invalid("The value provided was null"));
         }
 
         value = Format(value);
-        var validation = EvDbRootAddressName.Validate(value);
+        var validation = EvDbStreamTypeName.Validate(value);
         if (validation != Validation.Ok)
         {
-            return new ValueObjectOrError<EvDbRootAddressName>(validation);
+            return new ValueObjectOrError<EvDbStreamTypeName>(validation);
         }
 
-        return new ValueObjectOrError<EvDbRootAddressName>(new EvDbRootAddressName(value));
+        return new ValueObjectOrError<EvDbStreamTypeName>(new EvDbStreamTypeName(value));
     }
 
     #endregion //  TryFrom / From
@@ -195,16 +195,16 @@ public partial struct EvDbRootAddressName :
     // only called internally when something has been deserialized into
     // its primitive type.
 #pragma warning disable S4144 // Methods should not have identical implementations
-    private static EvDbRootAddressName __Deserialize(string value)
+    private static EvDbStreamTypeName __Deserialize(string value)
     {
         value = Format(value);
-        var validation = EvDbRootAddressName.Validate(value);
+        var validation = EvDbStreamTypeName.Validate(value);
         if (validation != Validation.Ok)
         {
             ThrowHelper.ThrowWhenValidationFails(validation);
         }
 
-        return new EvDbRootAddressName(value);
+        return new EvDbStreamTypeName(value);
     }
 #pragma warning restore S4144 // Methods should not have identical implementations
 
@@ -212,7 +212,7 @@ public partial struct EvDbRootAddressName :
 
     #region Equals / CompaareTo / GetHashCode
 
-    public readonly bool Equals(EvDbRootAddressName other)
+    public readonly bool Equals(EvDbStreamTypeName other)
     {
         // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
         // We treat anything uninitialized as not equal to anything, even obj uninitialized instances of this type.
@@ -221,7 +221,7 @@ public partial struct EvDbRootAddressName :
         return EqualityComparer<string>.Default.Equals(Value, other.Value);
     }
 
-    public bool Equals(EvDbRootAddressName other, IEqualityComparer<EvDbRootAddressName> comparer)
+    public bool Equals(EvDbStreamTypeName other, IEqualityComparer<EvDbStreamTypeName> comparer)
     {
         return comparer.Equals(this, other);
     }
@@ -238,17 +238,17 @@ public partial struct EvDbRootAddressName :
 
     public readonly override bool Equals(Object? obj)
     {
-        return obj is EvDbRootAddressName && Equals((EvDbRootAddressName)obj);
+        return obj is EvDbStreamTypeName && Equals((EvDbStreamTypeName)obj);
     }
 
-    public int CompareTo(EvDbRootAddressName other) => Value.CompareTo(other.Value);
+    public int CompareTo(EvDbStreamTypeName other) => Value.CompareTo(other.Value);
     public int CompareTo(object? obj)
     {
         if (obj is null)
             return 1;
-        if (obj is EvDbRootAddressName x)
+        if (obj is EvDbStreamTypeName x)
             return CompareTo(x);
-        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbRootAddressName", nameof(obj));
+        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbStreamTypeName", nameof(obj));
         return 0;
     }
 
@@ -261,35 +261,35 @@ public partial struct EvDbRootAddressName :
 
     #region Operator Overloads
 
-    public static implicit operator string(EvDbRootAddressName vo) => vo._value!;
-    public static implicit operator EvDbRootAddressName(string value)
+    public static implicit operator string(EvDbStreamTypeName vo) => vo._value!;
+    public static implicit operator EvDbStreamTypeName(string value)
     {
-        return EvDbRootAddressName.From(value);
+        return EvDbStreamTypeName.From(value);
     }
 
-    public static bool operator ==(EvDbRootAddressName left, EvDbRootAddressName right) => left.Equals(right);
-    public static bool operator !=(EvDbRootAddressName left, EvDbRootAddressName right) => !(left == right);
-    public static bool operator ==(EvDbRootAddressName left, string? right) => left.Value.Equals(right);
-    public static bool operator ==(string? left, EvDbRootAddressName right) => right.Value.Equals(left);
-    public static bool operator !=(string? left, EvDbRootAddressName right) => !(left == right);
-    public static bool operator !=(EvDbRootAddressName left, string? right) => !(left == right);
+    public static bool operator ==(EvDbStreamTypeName left, EvDbStreamTypeName right) => left.Equals(right);
+    public static bool operator !=(EvDbStreamTypeName left, EvDbStreamTypeName right) => !(left == right);
+    public static bool operator ==(EvDbStreamTypeName left, string? right) => left.Value.Equals(right);
+    public static bool operator ==(string? left, EvDbStreamTypeName right) => right.Value.Equals(left);
+    public static bool operator !=(string? left, EvDbStreamTypeName right) => !(left == right);
+    public static bool operator !=(EvDbStreamTypeName left, string? right) => !(left == right);
 
-    public static bool operator <(EvDbRootAddressName left, EvDbRootAddressName right)
+    public static bool operator <(EvDbStreamTypeName left, EvDbStreamTypeName right)
     {
         return left.CompareTo(right) < 0;
     }
 
-    public static bool operator <=(EvDbRootAddressName left, EvDbRootAddressName right)
+    public static bool operator <=(EvDbStreamTypeName left, EvDbStreamTypeName right)
     {
         return left.CompareTo(right) <= 0;
     }
 
-    public static bool operator >(EvDbRootAddressName left, EvDbRootAddressName right)
+    public static bool operator >(EvDbStreamTypeName left, EvDbStreamTypeName right)
     {
         return left.CompareTo(right) > 0;
     }
 
-    public static bool operator >=(EvDbRootAddressName left, EvDbRootAddressName right)
+    public static bool operator >=(EvDbStreamTypeName left, EvDbStreamTypeName right)
     {
         return left.CompareTo(right) >= 0;
     }
@@ -308,7 +308,7 @@ public partial struct EvDbRootAddressName :
         string? s,
         IFormatProvider? provider,
         [MaybeNullWhen(false)]
-        out EvDbRootAddressName result)
+        out EvDbStreamTypeName result)
     {
         if (s is null)
         {
@@ -316,14 +316,14 @@ public partial struct EvDbRootAddressName :
             return false;
         }
 
-        var validation = EvDbRootAddressName.Validate(s);
+        var validation = EvDbStreamTypeName.Validate(s);
         if (validation != Validation.Ok)
         {
             result = default;
             return false;
         }
 
-        result = new EvDbRootAddressName(s);
+        result = new EvDbStreamTypeName(s);
         return true;
     }
 
@@ -332,7 +332,7 @@ public partial struct EvDbRootAddressName :
     /// <returns>
     /// The value created via the <see cref = "From(string)"/> method.
     /// </returns>
-    public static EvDbRootAddressName Parse(string s, IFormatProvider? provider)
+    public static EvDbStreamTypeName Parse(string s, IFormatProvider? provider)
     {
         return From(s!);
     }
@@ -343,30 +343,30 @@ public partial struct EvDbRootAddressName :
     public readonly override string ToString() =>
                     IsInitialized() ? Value.ToString() : "[UNINITIALIZED]";
 
-    #region EvDbRootAddressNameSystemTextJsonConverter
+    #region EvDbStreamTypeNameSystemTextJsonConverter
 
 #nullable disable
     /// <summary>
-    /// Converts a EvDbRootAddressName to or from JSON.
+    /// Converts a EvDbStreamTypeName to or from JSON.
     /// </summary>
-    public class EvDbRootAddressNameSystemTextJsonConverter : JsonConverter<EvDbRootAddressName>
+    public class EvDbStreamTypeNameSystemTextJsonConverter : JsonConverter<EvDbStreamTypeName>
     {
-        public override EvDbRootAddressName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override EvDbStreamTypeName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return EvDbRootAddressName.__Deserialize(reader.GetString());
+            return EvDbStreamTypeName.__Deserialize(reader.GetString());
         }
 
-        public override void Write(Utf8JsonWriter writer, EvDbRootAddressName value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, EvDbStreamTypeName value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.Value);
         }
 
-        public override EvDbRootAddressName ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override EvDbStreamTypeName ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return EvDbRootAddressName.__Deserialize(reader.GetString());
+            return EvDbStreamTypeName.__Deserialize(reader.GetString());
         }
 
-        public override void WriteAsPropertyName(Utf8JsonWriter writer, EvDbRootAddressName value, JsonSerializerOptions options)
+        public override void WriteAsPropertyName(Utf8JsonWriter writer, EvDbStreamTypeName value, JsonSerializerOptions options)
         {
             writer.WritePropertyName(value.Value);
         }
@@ -374,12 +374,12 @@ public partial struct EvDbRootAddressName :
 
 #nullable restore
 
-    #endregion //  EvDbRootAddressNameSystemTextJsonConverter
+    #endregion //  EvDbStreamTypeNameSystemTextJsonConverter
 
 #nullable disable
-    #region EvDbRootAddressNameTypeConverter
+    #region EvDbStreamTypeNameTypeConverter
 
-    class EvDbRootAddressNameTypeConverter : TypeConverter
+    class EvDbStreamTypeNameTypeConverter : TypeConverter
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
@@ -391,7 +391,7 @@ public partial struct EvDbRootAddressName :
             var stringValue = value as string;
             if (stringValue is not null)
             {
-                return EvDbRootAddressName.__Deserialize(stringValue);
+                return EvDbStreamTypeName.__Deserialize(stringValue);
             }
 
             return base.ConvertFrom(context, culture, value);
@@ -404,7 +404,7 @@ public partial struct EvDbRootAddressName :
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, Object value, Type destinationType)
         {
-            if (value is EvDbRootAddressName idValue && destinationType == typeof(string))
+            if (value is EvDbStreamTypeName idValue && destinationType == typeof(string))
             {
                 return idValue.Value;
             }
@@ -413,7 +413,7 @@ public partial struct EvDbRootAddressName :
         }
     }
 
-    #endregion //  EvDbRootAddressNameTypeConverter
+    #endregion //  EvDbStreamTypeNameTypeConverter
 #nullable restore
 
     #region Validation
@@ -482,7 +482,7 @@ public partial struct EvDbRootAddressName :
 
     #endregion //  ValueObjectValidationException
 
-    #region EvDbRootAddressNameDebugView
+    #region EvDbStreamTypeNameDebugView
 
 #nullable restore
 #nullable disable
@@ -490,10 +490,10 @@ public partial struct EvDbRootAddressName :
 #pragma warning disable S2325 // Methods and properties that don't access instance data should be static
 #pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable S1144 // Unused private types or members should be removed
-    internal sealed class EvDbRootAddressNameDebugView
+    internal sealed class EvDbStreamTypeNameDebugView
     {
-        private readonly EvDbRootAddressName _t;
-        EvDbRootAddressNameDebugView(EvDbRootAddressName t)
+        private readonly EvDbStreamTypeName _t;
+        EvDbStreamTypeNameDebugView(EvDbStreamTypeName t)
         {
             _t = t;
         }
@@ -511,7 +511,7 @@ public partial struct EvDbRootAddressName :
 #pragma warning restore S1144 // Unused private types or members should be removed
 #pragma warning restore S2325 // Methods and properties that don't access instance data should be static
 
-    #endregion //  EvDbRootAddressNameDebugView
+    #endregion //  EvDbStreamTypeNameDebugView
 
     #region ThrowHelper
 
