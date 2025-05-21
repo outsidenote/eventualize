@@ -5,6 +5,7 @@ using EvDb.Core;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Immutable;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 
 namespace EvDb.Adapters.Store.MongoDB.Internals;
 
@@ -38,7 +39,7 @@ public static class QueryProvider
 
     public static readonly MongoCollectionSettings SnapshotCollectionSetting = new MongoCollectionSettings
     {
-        AssignIdOnInsert = false,        
+        AssignIdOnInsert = false,
         ReadPreference = ReadPreference.Nearest,
         WriteConcern = WriteConcern.Acknowledged,
     }.Freeze();
@@ -49,20 +50,20 @@ public static class QueryProvider
 
     public static readonly IImmutableList<CreateIndexModel<BsonDocument>> EventsIndexes = [
         Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Event.Domain)
-                .Ascending(EvDbFields.Event.Partition)
-                .Ascending(EvDbFields.Event.StreamId)
-                .Ascending(EvDbFields.Event.Offset)
-            .ToCreateIndexModel("evb_events_idx", true),
+                .Ascending(Fields.Event.Domain)
+        .Ascending(Fields.Event.Partition)
+        .Ascending(Fields.Event.StreamId)
+        .Ascending(Fields.Event.Offset)
+        .ToCreateIndexModel("evb_events_idx", true),
         Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Event.EventType)
-                .Ascending(EvDbFields.Event.Domain)
-                .Ascending(EvDbFields.Event.Partition)
-                .Ascending(EvDbFields.Event.StreamId)
-                .Ascending(EvDbFields.Event.Offset)
+                .Ascending(Fields.Event.EventType)
+                .Ascending(Fields.Event.Domain)
+                .Ascending(Fields.Event.Partition)
+                .Ascending(Fields.Event.StreamId)
+                .Ascending(Fields.Event.Offset)
             .ToCreateIndexModel("evb_events_type_idx"),
         Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Event.CapturedAt)
+                .Ascending(Fields.Event.CapturedAt)
             .ToCreateIndexModel("evb_events_create_at_idx"),
         ];
 
@@ -76,26 +77,26 @@ public static class QueryProvider
     {
         return [
             Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Outbox.Domain)
-                .Ascending(EvDbFields.Outbox.Partition)
-                .Ascending(EvDbFields.Outbox.StreamId)
-                .Ascending(EvDbFields.Outbox.Channel)
-                .Ascending(EvDbFields.Outbox.MessageType)
-                .Ascending(EvDbFields.Outbox.Offset)
+                .Ascending(Fields.Message.Domain)
+                .Ascending(Fields.Message.Partition)
+                .Ascending(Fields.Message.StreamId)
+                .Ascending(Fields.Message.Channel)
+                .Ascending(Fields.Message.MessageType)
+                .Ascending(Fields.Message.Offset)
                 .ToCreateIndexModel( "evb_outbox_idx", true),
             Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Outbox.CapturedAt) 
-                .Ascending(EvDbFields.Outbox.Offset)
+                .Ascending(Fields.Message.CapturedAt)
+                .Ascending(Fields.Message.Offset)
                 .ToCreateIndexModel( "evb_read_capture_at_idx"),
             Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Outbox.Channel) 
-                .Ascending(EvDbFields.Outbox.CapturedAt) 
-                .Ascending(EvDbFields.Outbox.Offset)
+                .Ascending(Fields.Message.Channel)
+                .Ascending(Fields.Message.CapturedAt)
+                .Ascending(Fields.Message.Offset)
                 .ToCreateIndexModel( "evb_read_channel_capture_at_idx"),
             Builders<BsonDocument>.IndexKeys
-                .Ascending(EvDbFields.Outbox.MessageType) 
-                .Ascending(EvDbFields.Outbox.CapturedAt) 
-                .Ascending(EvDbFields.Outbox.Offset)
+                .Ascending(Fields.Message.MessageType)
+                .Ascending(Fields.Message.CapturedAt)
+                .Ascending(Fields.Message.Offset)
                 .ToCreateIndexModel( "evb_read_message_type_capture_at_idx"),
            ];
     }
@@ -106,11 +107,11 @@ public static class QueryProvider
 
     public static readonly IImmutableList<CreateIndexModel<BsonDocument>> SnapshotIndexes = [
         Builders<BsonDocument>.IndexKeys
-                    .Ascending(EvDbFields.Snapshot.Domain)
-                    .Ascending(EvDbFields.Snapshot.Partition)
-                    .Ascending(EvDbFields.Snapshot.StreamId)
-                    .Ascending(EvDbFields.Snapshot.ViewName)
-                    .Descending(EvDbFields.Snapshot.Offset)
+                    .Ascending(Fields.Snapshot.Domain)
+                    .Ascending(Fields.Snapshot.Partition)
+                    .Ascending(Fields.Snapshot.StreamId)
+                    .Ascending(Fields.Snapshot.ViewName)
+                    .Descending(Fields.Snapshot.Offset)
             .ToCreateIndexModel("evb_snapshots_idx", true)
         ];
 
@@ -131,9 +132,9 @@ public static class QueryProvider
     {
         var sharding = new BsonDocument
         {
-            [EvDbFields.Event.Domain] = 1,
-            [EvDbFields.Event.Partition] = 1,
-            [EvDbFields.Event.EventType] = 1
+            [Fields.Event.Domain] = 1,
+            [Fields.Event.Partition] = 1,
+            [Fields.Event.EventType] = 1
         };
 
         return sharding;
@@ -145,10 +146,10 @@ public static class QueryProvider
 
     public static SortDefinition<BsonDocument> SortEvents { get; } =
                                     Builders<BsonDocument>.Sort
-                                            .Ascending(EvDbFields.Event.Domain)
-                                            .Ascending(EvDbFields.Event.Partition)
-                                            .Ascending(EvDbFields.Event.StreamId)
-                                            .Ascending(EvDbFields.Event.Offset);
+                                            .Ascending(Fields.Event.Domain)
+                                            .Ascending(Fields.Event.Partition)
+                                            .Ascending(Fields.Event.StreamId)
+                                            .Ascending(Fields.Event.Offset);
 
     #endregion //  SortEvents
 
@@ -156,10 +157,10 @@ public static class QueryProvider
 
     public static SortDefinition<BsonDocument> SortEventsDesc { get; } =
                                     Builders<BsonDocument>.Sort
-                                            .Ascending(EvDbFields.Event.Domain)
-                                            .Ascending(EvDbFields.Event.Partition)
-                                            .Ascending(EvDbFields.Event.StreamId)
-                                            .Descending(EvDbFields.Event.Offset);
+                                            .Ascending(Fields.Event.Domain)
+                                            .Ascending(Fields.Event.Partition)
+                                            .Ascending(Fields.Event.StreamId)
+                                            .Descending(Fields.Event.Offset);
 
     #endregion //  SortEventsDesc
 
@@ -167,11 +168,11 @@ public static class QueryProvider
 
     public static SortDefinition<BsonDocument> SortSnapshots { get; } =
                                     Builders<BsonDocument>.Sort
-                                            .Ascending(EvDbFields.Snapshot.Domain)
-                                            .Ascending(EvDbFields.Snapshot.Partition)
-                                            .Ascending(EvDbFields.Snapshot.StreamId)
-                                            .Ascending(EvDbFields.Snapshot.ViewName)
-                                            .Descending(EvDbFields.Snapshot.Offset);
+                                            .Ascending(Fields.Snapshot.Domain)
+                                            .Ascending(Fields.Snapshot.Partition)
+                                            .Ascending(Fields.Snapshot.StreamId)
+                                            .Ascending(Fields.Snapshot.ViewName)
+                                            .Descending(Fields.Snapshot.Offset);
 
     #endregion //  SortSnapshots
 
@@ -179,7 +180,7 @@ public static class QueryProvider
 
     public static ProjectionDefinition<BsonDocument> ProjectionOffset { get; } =
                                     Builders<BsonDocument>.Projection
-                                            .Include(EvDbFields.Event.Offset)
+                                            .Include(Fields.Event.Offset)
                                             .Exclude("_id");
 
     #endregion //  ProjectionOffset
@@ -188,8 +189,8 @@ public static class QueryProvider
 
     public static ProjectionDefinition<BsonDocument> ProjectionSnapshots { get; } =
                                     Builders<BsonDocument>.Projection
-                                            .Include(EvDbFields.Snapshot.Offset)
-                                            .Include(EvDbFields.Snapshot.State);
+                                            .Include(Fields.Snapshot.Offset)
+                                            .Include(Fields.Snapshot.State);
 
     #endregion //  ProjectionSnapshots
 
@@ -200,11 +201,11 @@ public static class QueryProvider
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Event.Domain, address.Domain.Value),
+                                            .Eq(Fields.Event.Domain, address.Domain.Value),
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Event.Partition, address.Partition.Value),
+                                            .Eq(Fields.Event.Partition, address.Partition.Value),
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Event.StreamId, address.StreamId));
+                                            .Eq(Fields.Event.StreamId, address.StreamId));
 
         return filter;
     }
@@ -214,13 +215,13 @@ public static class QueryProvider
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Event.Domain, address.Domain),
+                                            .Eq(Fields.Event.Domain, address.Domain),
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Event.Partition, address.Partition),
+                                            .Eq(Fields.Event.Partition, address.Partition),
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Event.StreamId, address.StreamId),
+                                            .Eq(Fields.Event.StreamId, address.StreamId),
                                         Builders<BsonDocument>.Filter
-                                            .Gte(EvDbFields.Event.Offset, address.Offset));
+                                            .Gte(Fields.Event.Offset, address.Offset));
 
         return filter;
     }
@@ -230,13 +231,13 @@ public static class QueryProvider
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Snapshot.Domain, address.Domain),
+                                            .Eq(Fields.Snapshot.Domain, address.Domain),
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Snapshot.Partition, address.Partition),
+                                            .Eq(Fields.Snapshot.Partition, address.Partition),
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Snapshot.StreamId, address.StreamId),
+                                            .Eq(Fields.Snapshot.StreamId, address.StreamId),
                                         Builders<BsonDocument>.Filter
-                                            .Eq(EvDbFields.Snapshot.ViewName, address.ViewName));
+                                            .Eq(Fields.Snapshot.ViewName, address.ViewName));
 
         return filter;
     }

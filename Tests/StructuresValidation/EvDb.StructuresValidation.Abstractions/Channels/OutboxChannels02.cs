@@ -1,6 +1,4 @@
-﻿using EvDb.Core;
-
-namespace EvDb.StructuresValidation.Abstractions;
+﻿namespace EvDb.StructuresValidation.Abstractions;
 
 public abstract class OutboxChannels02
 {

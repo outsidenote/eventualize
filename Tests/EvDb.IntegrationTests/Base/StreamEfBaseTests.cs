@@ -69,7 +69,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         const int id = 10;
         IEvDbPerson stream = _factory.Create(id);
         PersonNameChanged personName = new(id, "Nora");
-        await stream.AddAsync(personName);
+        await stream.AppendAsync(personName);
 
         #region Validation
 
@@ -91,7 +91,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
 
         var email1 = new PersonEmailAdded(id, "nora@gmail.com", "personal");
-        await stream.AddAsync(email1);
+        await stream.AppendAsync(email1);
 
         #region Validation
 
@@ -111,7 +111,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
 
         var email2 = new PersonEmailAdded(id, "nora@work.com", "work");
-        await stream.AddAsync(email2);
+        await stream.AppendAsync(email2);
 
         #region Validation
 
@@ -132,7 +132,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
 
         var address = new Address("US", "Anytown", "123 Main St");
         var addressEvent = new PersonAddressChanged(id, address);
-        await stream.AddAsync(addressEvent);
+        await stream.AppendAsync(addressEvent);
 
         #region Validation
 
@@ -157,7 +157,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
 
         var birthday = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-10));
         var birthdayEvent = new PersonBirthdayChanged(id, birthday);
-        await stream.AddAsync(birthdayEvent);
+        await stream.AppendAsync(birthdayEvent);
 
         #region Validation
 
@@ -175,9 +175,9 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
 
         var email3 = new PersonEmailRemoved(id, "nora@work.com");
-        await stream.AddAsync(email3);
+        await stream.AppendAsync(email3);
         var email4 = new PersonEmailCategoryUpdated(id, "nora@gmail.com", "family");
-        await stream.AddAsync(email4);
+        await stream.AppendAsync(email4);
 
         #region Validation
 
@@ -208,7 +208,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         const int id = 10;
         IEvDbPerson stream = _factory.Create(id);
         PersonNameChanged personName = new(id, "Nora");
-        await stream.AddAsync(personName);
+        await stream.AppendAsync(personName);
 
         #region Validation
 
@@ -230,7 +230,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
 
         var email1 = new PersonEmailAdded(id, "nora@gmail.com", "personal");
-        await stream.AddAsync(email1);
+        await stream.AppendAsync(email1);
 
         #region Validation
 
@@ -250,7 +250,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
 
         var email2 = new PersonEmailAdded(id, "nora@work.com", "work");
-        await stream.AddAsync(email2);
+        await stream.AppendAsync(email2);
 
         #region Validation
 
@@ -271,7 +271,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
 
         var address = new Address("US", "Anytown", "123 Main St");
         var addressEvent = new PersonAddressChanged(id, address);
-        await stream.AddAsync(addressEvent);
+        await stream.AppendAsync(addressEvent);
 
         #region Validation
 
@@ -296,7 +296,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
 
         var birthday = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-10));
         var birthdayEvent = new PersonBirthdayChanged(id, birthday);
-        await stream.AddAsync(birthdayEvent);
+        await stream.AppendAsync(birthdayEvent);
 
         #region Validation
 
@@ -314,9 +314,9 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
 
         var email3 = new PersonEmailRemoved(id, "nora@work.com");
-        await stream.AddAsync(email3);
+        await stream.AppendAsync(email3);
         var email4 = new PersonEmailCategoryUpdated(id, "nora@gmail.com", "family");
-        await stream.AddAsync(email4);
+        await stream.AppendAsync(email4);
 
         #region Validation
 
@@ -347,7 +347,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         const int id = 10;
         IEvDbPerson stream = _factory.Create(id);
         PersonNameChanged personName = new(id, "Nora");
-        await stream.AddAsync(personName);
+        await stream.AppendAsync(personName);
 
         #region Validation
 
@@ -369,7 +369,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
 
         var email1 = new PersonEmailAdded(id, "nora@gmail.com", "personal");
-        await stream.AddAsync(email1);
+        await stream.AppendAsync(email1);
 
         #region Validation
 
@@ -389,7 +389,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
 
         var email2 = new PersonEmailAdded(id, "nora@work.com", "work");
-        await stream.AddAsync(email2);
+        await stream.AppendAsync(email2);
 
         #region Validation
 
@@ -410,7 +410,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
 
         var address = new Address("US", "Anytown", "123 Main St");
         var addressEvent = new PersonAddressChanged(id, address);
-        await stream.AddAsync(addressEvent);
+        await stream.AppendAsync(addressEvent);
 
         #region Validation
 
@@ -435,7 +435,7 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
 
         var birthday = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-10));
         var birthdayEvent = new PersonBirthdayChanged(id, birthday);
-        await stream.AddAsync(birthdayEvent);
+        await stream.AppendAsync(birthdayEvent);
 
         #region Validation
 
@@ -453,9 +453,9 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
 
         var email3 = new PersonEmailRemoved(id, "nora@work.com");
-        await stream.AddAsync(email3);
+        await stream.AppendAsync(email3);
         var email4 = new PersonEmailCategoryUpdated(id, "nora@gmail.com", "family");
-        await stream.AddAsync(email4);
+        await stream.AppendAsync(email4);
 
         #region Validation
 

@@ -28,7 +28,7 @@ public partial class EvDbSchoolOutbox
     {
         Stats state = views.ALL;
         AvgMessage avg = new(state.Sum / (double)state.Count);
-        outbox.Add(avg);
+        outbox.Append(avg);
         var studentName = views.StudentStats.Students
             .First(m => m.StudentId == payload.StudentId)
             .StudentName;
@@ -38,8 +38,8 @@ public partial class EvDbSchoolOutbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            outbox.Add(pass, StudentPassedMessage.Channels.Channel2);
-            outbox.Add(pass, StudentPassedMessage.Channels.Channel3);
+            outbox.Append(pass, StudentPassedMessage.Channels.Channel2);
+            outbox.Append(pass, StudentPassedMessage.Channels.Channel3);
         }
         else
         {
@@ -47,7 +47,7 @@ public partial class EvDbSchoolOutbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            outbox.Add(fail);
+            outbox.Append(fail);
         }
     }
 }

@@ -125,9 +125,9 @@ public class StressJob : BackgroundService
                     do
                     {
                         IEvDbDemoStream stream = await factory.GetAsync(streamId, stoppingToken);
-                        var tasks = events.Select(async e => await stream.AddAsync(e));
+                        var tasks = events.Select(async e => await stream.AppendAsync(e));
                         await Task.WhenAll(tasks);
-                        tasks = faultEvents.Select(async e => await stream.AddAsync(e));
+                        tasks = faultEvents.Select(async e => await stream.AppendAsync(e));
                         await Task.WhenAll(tasks);
 
                         try

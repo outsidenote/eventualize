@@ -84,7 +84,7 @@ public abstract class StreamFactoryBaseTests : BaseIntegrationTests
             Assert.Equal(7, stream.StoredOffset);
             var viewsMeta = stream.Views.ToMetadata();
             Assert.All(viewsMeta, v => Assert.Equal(7, v.StoreOffset));
-            Assert.All(viewsMeta, v => Assert.Equal(7, v.FoldOffset));
+            Assert.All(viewsMeta, v => Assert.Equal(7, v.MemoryOffset));
 
             Assert.Equal(630, stream.Views.ALL.Sum);
             Assert.Equal(6, stream.Views.ALL.Count);
@@ -111,8 +111,8 @@ public abstract class StreamFactoryBaseTests : BaseIntegrationTests
             Assert.Equal(5, stream.StoredOffset);
             Assert.Equal(0, meta.First().StoreOffset);
             Assert.Equal(5, meta.Last().StoreOffset);
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(5, v.FoldOffset));
-            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(5, v.FoldOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(5, v.MemoryOffset));
+            Assert.All(stream.Views.ToMetadata(), v => Assert.Equal(5, v.MemoryOffset));
 
             Assert.Equal(210, stream.Views.ALL.Sum);
             Assert.Equal(4, stream.Views.ALL.Count);

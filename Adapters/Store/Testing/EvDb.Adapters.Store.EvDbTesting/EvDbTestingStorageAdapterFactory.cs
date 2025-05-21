@@ -2,8 +2,6 @@
 
 using EvDb.Adapters.Store.Testing;
 using EvDb.Core;
-using EvDb.Core.Store.Internals;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

@@ -1,13 +1,12 @@
 ﻿// Ignore Spelling: Mongo
 
-namespace EvDb.Core.Tests;
-
 using EvDb.Adapters.Store.Internals;
-using EvDb.Adapters.Store.MongoDB.Internals;
-using EvDb.Core;
 using EvDb.Core.Adapters;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
+
+namespace EvDb.Core.Tests;
 
 internal static class MongoOutboxTestHelper
 {
@@ -35,24 +34,23 @@ internal static class MongoOutboxTestHelper
         var collection = db.GetCollection<BsonDocument>(outboxCollectionFormat);
 
         var projection = Builders<BsonDocument>.Projection
-            .Include(EvDbFields.Outbox.Domain)
-            .Include(EvDbFields.Outbox.Domain)
-            .Include(EvDbFields.Outbox.Partition)
-            .Include(EvDbFields.Outbox.StreamId)
-            .Include(EvDbFields.Outbox.Offset)
-            .Include(EvDbFields.Outbox.EventType)
-            .Include(EvDbFields.Outbox.Channel)
-            .Include(EvDbFields.Outbox.MessageType)
-            .Include(EvDbFields.Outbox.SerializeType)
-            .Include(EvDbFields.Outbox.CapturedAt)
-            .Include(EvDbFields.Outbox.CapturedBy)
-            .Include(EvDbFields.Outbox.SpanId)
-            .Include(EvDbFields.Outbox.TraceId)
-            .Include(EvDbFields.Outbox.Payload);
+            .Include(Fields.Message.Domain)
+            .Include(Fields.Message.Domain)
+            .Include(Fields.Message.Partition)
+            .Include(Fields.Message.StreamId)
+            .Include(Fields.Message.Offset)
+            .Include(Fields.Message.EventType)
+            .Include(Fields.Message.Channel)
+            .Include(Fields.Message.MessageType)
+            .Include(Fields.Message.SerializeType)
+            .Include(Fields.Message.CapturedAt)
+            .Include(Fields.Message.CapturedBy)
+            .Include(Fields.Message.TelemetryContext)
+            .Include(Fields.Message.Payload);
 
         var sort = Builders<BsonDocument>.Sort
-            .Ascending(EvDbFields.Outbox.Offset)
-            .Ascending(EvDbFields.Outbox.MessageType);
+            .Ascending(Fields.Message.Offset)
+            .Ascending(Fields.Message.MessageType);
 
         IFindFluent<BsonDocument, BsonDocument> query = collection.Find(new BsonDocument())
                              .Sort(sort);

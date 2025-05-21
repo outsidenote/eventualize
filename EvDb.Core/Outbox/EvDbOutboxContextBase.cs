@@ -31,7 +31,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 
     protected abstract IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; }
 
-    void IEvDbOutboxProducerGeneric.Add<T>(T payload, EvDbChannelName channel, EvDbShardName shardName)
+    void IEvDbOutboxProducerGeneric.Append<T>(T payload, EvDbChannelName channel, EvDbShardName shardName)
     {
 #pragma warning disable S2955 // Generic parameters not constrained to reference types should not be compared to "null"
         if (payload == null)
@@ -75,10 +75,9 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 
         #region byte[] buffer =  serializer?.Serialize(...) ?? JsonSerializer.SerializeToUtf8Bytes(...)
 
-        byte[] buffer = Array.Empty<byte>();
+        byte[] buffer;
         if (serializer == null)
             buffer = JsonSerializer.SerializeToUtf8Bytes(payload!, _options);
-
         else
             buffer = serializer.Serialize(channel, shardName, payload!);
 
@@ -95,6 +94,6 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
                                     _relatedEventMeta.StreamCursor,
                                     buffer);
 
-        _evDbStream.AddToOutbox(e);
+        _evDbStream.AppendToOutbox(e);
     }
 }

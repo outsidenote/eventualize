@@ -173,7 +173,7 @@ internal static class Steps
         string studentName = "Lora")
     {
         var studentEnlisted = CreateStudentEnlistedEvent();
-        await stream.AddAsync(studentEnlisted);
+        await stream.AppendAsync(studentEnlisted);
         return stream;
     }
 
@@ -191,7 +191,7 @@ internal static class Steps
         for (int i = 1; i <= numOfGrades; i++)
         {
             var grade = new StudentReceivedGradeEvent(testId, studentId, gradeStrategy(i));
-            await stream.AddAsync(grade);
+            await stream.AppendAsync(grade);
         }
 
         return stream;

@@ -1,5 +1,6 @@
 ﻿using EvDb.Core;
 using EvDb.Core.Adapters;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
@@ -7,7 +8,6 @@ internal static class QueryProvider
 {
     public static EvDbStreamAdapterQueryTemplates CreateStreamQueries(EvDbStorageContext storageContext)
     {
-        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
         string schema = storageContext.Schema.HasValue
             ? $"{storageContext.Schema}."
             : string.Empty;
@@ -17,28 +17,29 @@ internal static class QueryProvider
         {
             GetLastOffset = $"""
                 SELECT
-                    {toSnakeCase(nameof(EvDbEventRecord.Offset))} as {nameof(EvDbEventRecord.Offset)}           
+                    {Fields.Event.Offset} as {Projection.Event.Offset}           
                 FROM {tblInitial}events WITH (READCOMMITTEDLOCK)
-                WHERE {toSnakeCase(nameof(EvDbStreamCursor.Domain))} = @{nameof(EvDbStreamCursor.Domain)}
-                    AND {toSnakeCase(nameof(EvDbStreamCursor.Partition))} = @{nameof(EvDbStreamCursor.Partition)}
-                    AND {toSnakeCase(nameof(EvDbStreamCursor.StreamId))} = @{nameof(EvDbStreamCursor.StreamId)}
-                Order BY {toSnakeCase(nameof(EvDbStreamCursor.Offset))} DESC;
+                WHERE {Parameters.Event.Domain} = {Parameters.Event.Domain}
+                    AND {Parameters.Event.Partition} = {Parameters.Event.Partition}
+                    AND {Parameters.Event.StreamId} = {Parameters.Event.StreamId}
+                Order BY {Fields.Event.Offset} DESC;
             """,
             GetEvents = $"""
                 SELECT
-                    {toSnakeCase(nameof(EvDbEventRecord.Domain))} as {nameof(EvDbEventRecord.Domain)},
-                    {toSnakeCase(nameof(EvDbEventRecord.Partition))} as {nameof(EvDbEventRecord.Partition)},
-                    {toSnakeCase(nameof(EvDbEventRecord.StreamId))} as {nameof(EvDbEventRecord.StreamId)},
-                    {toSnakeCase(nameof(EvDbEventRecord.Offset))} as {nameof(EvDbEventRecord.Offset)},
-                    {toSnakeCase(nameof(EvDbEventRecord.EventType))} as {nameof(EvDbEventRecord.EventType)},
-                    {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} as {nameof(EvDbEventRecord.CapturedAt)},
-                    {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} as {nameof(EvDbEventRecord.CapturedBy)},
-                    {toSnakeCase(nameof(EvDbEventRecord.Payload))} as {nameof(EvDbEventRecord.Payload)}                  
+                    {Fields.Event.Domain} as {Projection.Event.Domain},
+                    {Fields.Event.Partition} as {Projection.Event.Partition},
+                    {Fields.Event.StreamId} as {Projection.Event.StreamId},
+                    {Fields.Event.Offset} as {Projection.Event.Offset},
+                    {Fields.Event.EventType} as {Projection.Event.EventType},
+                    {Fields.Event.CapturedAt} as {Projection.Event.CapturedAt},
+                    {Fields.Event.CapturedBy} as {Projection.Event.CapturedBy},
+                    {Fields.Event.TelemetryContext} as {Projection.Event.TelemetryContext},
+                    {Fields.Event.Payload} as {Projection.Event.Payload}                  
                 FROM {tblInitial}events WITH (READCOMMITTEDLOCK)
-                WHERE {toSnakeCase(nameof(EvDbStreamCursor.Domain))} = @{nameof(EvDbStreamCursor.Domain)}
-                    AND {toSnakeCase(nameof(EvDbStreamCursor.Partition))} = @{nameof(EvDbStreamCursor.Partition)}
-                    AND {toSnakeCase(nameof(EvDbStreamCursor.StreamId))} = @{nameof(EvDbStreamCursor.StreamId)}
-                    AND {toSnakeCase(nameof(EvDbStreamCursor.Offset))} >= @{nameof(EvDbStreamCursor.Offset)};
+                WHERE {Fields.Event.Domain} = {Parameters.Event.Domain}
+                    AND {Fields.Event.Partition} = {Parameters.Event.Partition}
+                    AND {Fields.Event.StreamId} = {Parameters.Event.StreamId}
+                    AND {Fields.Event.Offset} >= {Parameters.Event.Offset};
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"{tblInitial}InsertEventsBatch_Events",
@@ -54,33 +55,33 @@ internal static class QueryProvider
         return new EvDbSnapshotAdapterQueryTemplates
         {
             GetSnapshot = $"""
-                SELECT {toSnakeCase(nameof(EvDbStoredSnapshot.State))} as {nameof(EvDbStoredSnapshot.State)}, 
-                        {toSnakeCase(nameof(EvDbStoredSnapshot.Offset))} as {nameof(EvDbStoredSnapshot.Offset)}
+                SELECT {Fields.Snapshot.State} as {Projection.Snapshot.State}, 
+                        {Fields.Snapshot.Offset} as {Projection.Snapshot.Offset}
                 FROM {tabInitial}snapshot
-                WHERE {toSnakeCase(nameof(EvDbViewAddress.Domain))} = @{nameof(EvDbViewAddress.Domain)}
-                    AND {toSnakeCase(nameof(EvDbViewAddress.Partition))} = @{nameof(EvDbViewAddress.Partition)}
-                    AND {toSnakeCase(nameof(EvDbViewAddress.StreamId))} = @{nameof(EvDbViewAddress.StreamId)}
-                    AND {toSnakeCase(nameof(EvDbViewAddress.ViewName))} = @{nameof(EvDbViewAddress.ViewName)}
+                WHERE {Fields.Snapshot.Domain} = {Parameters.Snapshot.Domain}
+                    AND {Fields.Snapshot.Partition} = {Parameters.Snapshot.Partition}
+                    AND {Fields.Snapshot.StreamId} = {Parameters.Snapshot.StreamId}
+                    AND {Fields.Snapshot.ViewName} = {Parameters.Snapshot.ViewName}
                 ORDER BY offset DESC
                 OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
                 """,
             SaveSnapshot = $"""
             INSERT INTO {tabInitial}snapshot (
-                        {toSnakeCase(nameof(SnapshotSaveParameter.Id))},
-                        {toSnakeCase(nameof(SnapshotSaveParameter.Domain))},
-                        {toSnakeCase(nameof(SnapshotSaveParameter.Partition))},
-                        {toSnakeCase(nameof(SnapshotSaveParameter.StreamId))},
-                        {toSnakeCase(nameof(SnapshotSaveParameter.ViewName))},
-                        {toSnakeCase(nameof(SnapshotSaveParameter.Offset))},
-                        {toSnakeCase(nameof(SnapshotSaveParameter.State))})
+                        {Fields.Snapshot.Id},
+                        {Fields.Snapshot.Domain},
+                        {Fields.Snapshot.Partition},
+                        {Fields.Snapshot.StreamId},
+                        {Fields.Snapshot.ViewName},
+                        {Fields.Snapshot.Offset},
+                        {Fields.Snapshot.State})
             VALUES (
-                        @{nameof(SnapshotSaveParameter.Id)},
-                        @{nameof(SnapshotSaveParameter.Domain)},
-                        @{nameof(SnapshotSaveParameter.Partition)},
-                        @{nameof(SnapshotSaveParameter.StreamId)},
-                        @{nameof(SnapshotSaveParameter.ViewName)},
-                        @{nameof(SnapshotSaveParameter.Offset)},
-                        @{nameof(SnapshotSaveParameter.State)})
+                        {Parameters.Snapshot.Id},
+                        {Parameters.Snapshot.Domain},
+                        {Parameters.Snapshot.Partition},
+                        {Parameters.Snapshot.StreamId},
+                        {Parameters.Snapshot.ViewName},
+                        {Parameters.Snapshot.Offset},
+                        {Parameters.Snapshot.State})
             """
         };
     }

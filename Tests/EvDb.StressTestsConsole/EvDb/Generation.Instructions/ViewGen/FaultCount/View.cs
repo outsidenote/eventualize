@@ -7,5 +7,5 @@ internal partial class View
 {
     protected override int DefaultState { get; } = 0;
 
-    protected override int Fold(int state, FaultOccurred payload, IEvDbEventMeta meta) => state + 1;
+    protected override int Apply(int state, FaultOccurred payload, IEvDbEventMeta meta) => state + 1;
 }

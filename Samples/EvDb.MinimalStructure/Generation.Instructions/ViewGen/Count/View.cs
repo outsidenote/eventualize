@@ -10,14 +10,14 @@ internal partial class View
     protected override int DefaultState { get; } = 0;
     private long _lastOffset = 0;
 
-    protected override int Fold(int state, Event2 payload, IEvDbEventMeta meta)
+    protected override int Apply(int state, Event2 payload, IEvDbEventMeta meta)
     {
         //Assert(meta);
 
         return state + 1;
     }
 
-    protected override int Fold(int state, Event1 payload, IEvDbEventMeta meta)
+    protected override int Apply(int state, Event1 payload, IEvDbEventMeta meta)
     {
         //Assert(meta);
         return state + 1;

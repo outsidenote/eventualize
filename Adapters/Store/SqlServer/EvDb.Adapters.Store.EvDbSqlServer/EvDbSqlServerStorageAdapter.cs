@@ -7,6 +7,8 @@ using Microsoft.Data.SqlClient.Server;
 using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames.Projection;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
@@ -101,18 +103,19 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         // Define the schema for the TVP with correct sizes
         var metaData = new[]
         {
-            new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-            new SqlMetaData("Domain", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("Partition", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("StreamId", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("Offset", SqlDbType.BigInt),
-            new SqlMetaData("EventType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("SpanId", SqlDbType.VarChar, 16),
-            new SqlMetaData("TraceId", SqlDbType.VarChar, 32),
-            new SqlMetaData("CapturedBy", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData("CapturedAt", SqlDbType.DateTimeOffset),
-            new SqlMetaData("Payload", SqlDbType.VarBinary, 4000)
+            new SqlMetaData(Event.Id, SqlDbType.UniqueIdentifier),
+            new SqlMetaData(Event.Domain, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Event.Partition, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Event.StreamId, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Event.Offset, SqlDbType.BigInt),
+            new SqlMetaData(Event.EventType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Event.CapturedBy, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Event.CapturedAt, SqlDbType.DateTimeOffset),
+            new SqlMetaData(Event.TelemetryContext, SqlDbType.VarBinary, 2000),
+            new SqlMetaData(Event.Payload, SqlDbType.VarBinary, 4000)
         };
+
+        var otelContext = Activity.Current?.SerializeTelemetryContext();
 
         // Populate the TVP
         foreach (var message in events)
@@ -126,19 +129,14 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             record.SetInt64(4, message.Offset);
             record.SetString(5, message.EventType);
 
-            if (message.SpanId is null)
-                record.SetDBNull(6);
-            else
-                record.SetString(6, message.SpanId);
+            record.SetString(6, message.CapturedBy);
+            record.SetDateTimeOffset(7, message.CapturedAt);
 
-            if (message.TraceId is null)
-                record.SetDBNull(7);
+            if (otelContext is null)
+                record.SetDBNull(8);
             else
-                record.SetString(7, message.TraceId);
-
-            record.SetString(8, message.CapturedBy);
-            record.SetDateTimeOffset(9, message.CapturedAt);
-            record.SetBytes(10, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
+                record.SetBytes(8, 0, otelContext, 0, otelContext?.Length ?? 0);
+            record.SetBytes(9, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
 
             yield return record;
         }
@@ -156,21 +154,22 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         // Define the schema for the TVP with correct sizes
         var metaData = new[]
         {
-        new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-        new SqlMetaData("Domain", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("Partition", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("StreamId", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("Offset", SqlDbType.BigInt),
-        new SqlMetaData("EventType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("Channel", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("MessageType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("SerializeType", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("SpanId", SqlDbType.VarChar, 16),
-        new SqlMetaData("TraceId", SqlDbType.VarChar, 32),
-        new SqlMetaData("CapturedBy", SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-        new SqlMetaData("CapturedAt", SqlDbType.DateTimeOffset),
-        new SqlMetaData("Payload", SqlDbType.VarBinary, 4000)
-    };
+            new SqlMetaData(Message.Id, SqlDbType.UniqueIdentifier),
+            new SqlMetaData(Message.Domain, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.Partition, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.StreamId, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.Offset, SqlDbType.BigInt),
+            new SqlMetaData(Message.EventType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.Channel, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.MessageType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.SerializeType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.CapturedBy, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.CapturedAt, SqlDbType.DateTimeOffset),
+            new SqlMetaData(Message.TelemetryContext, SqlDbType.VarBinary, 2000),
+            new SqlMetaData(Message.Payload, SqlDbType.VarBinary, 4000)
+        };
+
+        var otelContext = Activity.Current?.SerializeTelemetryContext();
 
         // Populate the TVP
         foreach (var message in messages)
@@ -187,19 +186,15 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             record.SetString(7, message.MessageType);
             record.SetString(8, message.SerializeType);
 
-            if (message.SpanId is null)
-                record.SetDBNull(9);
-            else
-                record.SetString(9, message.SpanId);
 
-            if (message.TraceId is null)
-                record.SetDBNull(10);
-            else
-                record.SetString(10, message.TraceId);
+            record.SetString(9, message.CapturedBy);
+            record.SetDateTimeOffset(10, message.CapturedAt);
 
-            record.SetString(11, message.CapturedBy);
-            record.SetDateTimeOffset(12, message.CapturedAt);
-            record.SetBytes(13, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
+            if (otelContext is null)
+                record.SetDBNull(11);
+            else
+                record.SetBytes(11, 0, otelContext, 0, otelContext.Length);
+            record.SetBytes(12, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
 
             yield return record;
         }

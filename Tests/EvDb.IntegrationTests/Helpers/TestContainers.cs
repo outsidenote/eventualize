@@ -3,10 +3,9 @@
 namespace EvDb.Core.Tests;
 
 using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 
-public class TestContainers 
+public class TestContainers
 {
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public IContainer Container { get; private set; }

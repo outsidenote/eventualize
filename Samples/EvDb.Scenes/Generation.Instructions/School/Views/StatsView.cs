@@ -10,9 +10,9 @@ internal partial class StatsView
 
     public override int MinEventsBetweenSnapshots => 4;
 
-    #region Fold
+    #region Apply
 
-    protected override Stats Fold(
+    protected override Stats Apply(
         Stats state,
         StudentReceivedGradeEvent payload,
         IEvDbEventMeta meta)
@@ -25,5 +25,5 @@ internal partial class StatsView
         return result;
     }
 
-    #endregion // Fold
+    #endregion // Append
 }

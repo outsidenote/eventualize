@@ -46,7 +46,7 @@ public class ApiDesignTests
         IEvDbDemoStream stream = _factory.Create(streamId);
         for (int k = 0; k < 4; k++)
         {
-            await stream.AddAsync(new Event1(1, $"Person {k}", k));
+            await stream.AppendAsync(new Event1(1, $"Person {k}", k));
 
         }
     }

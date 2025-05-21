@@ -5,7 +5,7 @@ public interface IEvDbView
     /// <summary>
     /// Gets the offset of the last folded event (in-memory).
     /// </summary>
-    long FoldOffset { get; }
+    long MemoryOffset { get; }
 
     /// <summary>
     /// Gets the name of the view.

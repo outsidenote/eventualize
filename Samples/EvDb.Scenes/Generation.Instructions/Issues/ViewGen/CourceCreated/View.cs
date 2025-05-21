@@ -9,8 +9,8 @@ internal partial class View
 {
     protected override IImmutableList<CourseCreatedEvent> DefaultState { get; } = ImmutableList<CourseCreatedEvent>.Empty;
 
-    protected override IImmutableList<CourseCreatedEvent> Fold(IImmutableList<CourseCreatedEvent> state, CourseCreatedEvent payload, IEvDbEventMeta meta)
+    protected override IImmutableList<CourseCreatedEvent> Apply(IImmutableList<CourseCreatedEvent> state, CourseCreatedEvent payload, IEvDbEventMeta meta)
     {
-        return base.Fold(state.Add(payload), payload, meta);
+        return base.Apply(state.Add(payload), payload, meta);
     }
 }

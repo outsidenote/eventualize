@@ -1,14 +1,10 @@
 ﻿// Ignore Spelling: Testing
 
 using EvDb.Core;
-using EvDb.Core.Adapters;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using static EvDb.Core.Adapters.StoreTelemetry;
-using System.Collections.Concurrent;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace EvDb.Adapters.Store.Testing;
 
@@ -84,6 +80,11 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (events.Count == 0)
             return StreamStoreAffected.Empty;
 
+        byte[]? otel = Activity.Current?.SerializeTelemetryContext();
+        events = events.Select(e => e with { TelemetryContext = otel })
+                       .ToImmutableList();
+        messages = messages.Select(e => e with { TelemetryContext = otel })
+                       .ToImmutableList();
         EvDbEvent firstEvent = events.FirstOrDefault();
         EvDbStreamCursor cursor = firstEvent.StreamCursor;
         EvDbStreamAddress address = cursor;

@@ -15,8 +15,7 @@ public class MongoStorageScripting : IEvDbStorageScripting
                                                         StorageFeatures features,
                                                         IEnumerable<EvDbShardName> shardNames)
     {
-        EvDbMigrationQueryTemplates scripts = Scripts.Create(context, features, shardNames);
-        return scripts;
+        throw new NotImplementedException("MongoDB does not support migration scripts.");
     }
 }
 

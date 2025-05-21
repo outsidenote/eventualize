@@ -8,7 +8,7 @@ public partial class CustomerEntityModelView
 {
     protected override CustomerEntityModelState DefaultState { get; } = new CustomerEntityModelState();
 
-    protected override CustomerEntityModelState Fold(CustomerEntityModelState state,
+    protected override CustomerEntityModelState Apply(CustomerEntityModelState state,
                                                      EmailValidatedEvent payload,
                                                      IEvDbEventMeta meta)
     {

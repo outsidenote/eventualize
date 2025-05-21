@@ -7,7 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using System.Diagnostics;
 using System.Text;
-using static EvDb.Adapters.Store.MongoDB.Internals.EvDbFields;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames.Fields;
 
 namespace EvDb.Adapters.Store.Internals;
 
@@ -40,8 +40,8 @@ public static class EvDbBsonDocumentExtensions
 
     public static IEvDbMessageMeta ToMessageMeta(this BsonDocument doc)
     {
-        var rec = doc.ToMessageRecord();
-        var meta = rec.GetMetadata();
+        EvDbMessageRecord rec = doc.ToMessageRecord();
+        IEvDbMessageMeta meta = rec.GetMetadata();
         return meta;
     }
 
@@ -51,24 +51,27 @@ public static class EvDbBsonDocumentExtensions
 
     public static EvDbMessageRecord ToMessageRecord(this BsonDocument doc)
     {
-        var domain = doc.GetValue(Outbox.Domain).AsString;
-        var partition = doc.GetValue(Outbox.Partition).AsString;
-        var streamId = doc.GetValue(Outbox.StreamId).AsString;
-        var offset = doc.GetValue(Outbox.Offset).ToInt64();
-        var eventType = doc.GetValue(Outbox.EventType).AsString;
-        var capturedBy = doc.GetValue(Outbox.CapturedBy).AsString;
-        var capturedAt = doc.GetValue(Outbox.CapturedAt).AsBsonDateTime.ToUniversalTime();
-        var channel = doc.GetValue(Outbox.Channel).AsString;
-        var serializeType = doc.GetValue(Outbox.SerializeType).AsString;
-        var meaageType = doc.GetValue(Outbox.MessageType).AsString;
-        string? traceId = doc.TryGetValue(Outbox.TraceId, out var traceBson) && !traceBson.IsBsonNull
-                                ? traceBson.AsString
-                                : null;
-        string? spanId = doc.TryGetValue(Outbox.SpanId, out var spanBson) && !spanBson.IsBsonNull
-                                ? spanBson.AsString
-                                : null;
+        var domain = doc.GetValue(Message.Domain).AsString;
+        var partition = doc.GetValue(Message.Partition).AsString;
+        var streamId = doc.GetValue(Message.StreamId).AsString;
+        var offset = doc.GetValue(Message.Offset).ToInt64();
+        var eventType = doc.GetValue(Message.EventType).AsString;
+        var capturedBy = doc.GetValue(Message.CapturedBy).AsString;
+        var capturedAt = doc.GetValue(Message.CapturedAt).AsBsonDateTime.ToUniversalTime();
+        var channel = doc.GetValue(Message.Channel).AsString;
+        var serializeType = doc.GetValue(Message.SerializeType).AsString;
+        var meaageType = doc.GetValue(Message.MessageType).AsString;
 
-        var payloadDoc = doc.GetValue(Outbox.Payload).AsBsonDocument;
+        var otelBson = doc.GetValue(Message.TelemetryContext);
+        byte[]? otelContext = null;
+        if (otelBson.IsBsonDocument)
+        {
+            var otlDoc = otelBson.AsBsonDocument;
+            string jsonString = otlDoc.ToJson();
+            otelContext = Encoding.UTF8.GetBytes(jsonString);
+        }
+
+        var payloadDoc = doc.GetValue(Message.Payload).AsBsonDocument;
         var payload = payloadDoc.NormalizePayload(serializeType);
 
         var result = new EvDbMessageRecord
@@ -83,9 +86,8 @@ public static class EvDbBsonDocumentExtensions
             SerializeType = serializeType,
             CapturedAt = capturedAt,
             CapturedBy = capturedBy,
+            TelemetryContext = otelContext,
             Payload = payload,
-            TraceId = traceId,
-            SpanId = spanId,
         };
 
         return result;
@@ -156,8 +158,10 @@ public static class EvDbBsonDocumentExtensions
         BsonDocument payload = BsonDocument.Parse(json);
 
         var activity = Activity.Current;
-        var traceId = activity?.TraceId.ToHexString();
-        var spanId = activity?.SpanId.ToHexString();
+        var otelContext = activity?.SerializeTelemetryContext();
+        BsonValue bsonTelemetryContext = otelContext != null
+            ? BsonDocument.Parse(Encoding.UTF8.GetString(otelContext))
+            : BsonNull.Value;
 
         return new BsonDocument
         {
@@ -166,8 +170,7 @@ public static class EvDbBsonDocumentExtensions
             [Event.StreamId] = rec.StreamCursor.StreamId,
             [Event.Offset] = rec.StreamCursor.Offset,
             [Event.EventType] = rec.EventType,
-            [Event.TraceId] = traceId != null ? (BsonValue)traceId : BsonNull.Value,
-            [Event.SpanId] = spanId != null ? (BsonValue)spanId : BsonNull.Value,
+            [Event.TelemetryContext] = otelContext != null ? bsonTelemetryContext : BsonNull.Value,
             [Event.Payload] = payload,
             [Event.CapturedBy] = rec.CapturedBy,
             [Event.CapturedAt] = new BsonDateTime(rec.CapturedAt.UtcDateTime)
@@ -182,26 +185,26 @@ public static class EvDbBsonDocumentExtensions
     {
         BsonDocument payload = GetOutboxPayload(rec.SerializeType, rec.Payload);
 
-        var activity = Activity.Current;
-        var traceId = rec.TraceId ?? activity?.TraceId.ToHexString();
-        var spanId = rec.SpanId ?? activity?.SpanId.ToHexString();
+        byte[]? otelContext = Activity.Current?.SerializeTelemetryContext(); ;
+        BsonValue bsonTelemetryContext = otelContext != null
+            ? BsonDocument.Parse(Encoding.UTF8.GetString(otelContext))
+            : BsonNull.Value;
 
         var doc = new BsonDocument
         {
-            [Outbox.Domain] = rec.Domain,
-            [Outbox.Partition] = rec.Partition,
-            [Outbox.StreamId] = rec.StreamId,
-            [Outbox.Offset] = rec.Offset,
-            [Outbox.EventType] = rec.EventType,
-            [Outbox.MessageType] = rec.MessageType,
-            [Outbox.Channel] = rec.Channel.ToString(),
-            [Outbox.SerializeType] = rec.SerializeType,
-            [Outbox.ShardName] = shardName.ToString(),
-            [Outbox.TraceId] = traceId != null ? (BsonValue)traceId : BsonNull.Value,
-            [Outbox.SpanId] = spanId != null ? (BsonValue)spanId : BsonNull.Value,
-            [Outbox.Payload] = payload,
-            [Outbox.CapturedBy] = rec.CapturedBy,
-            [Outbox.CapturedAt] = new BsonDateTime(rec.CapturedAt.UtcDateTime)
+            [Message.Domain] = rec.Domain,
+            [Message.Partition] = rec.Partition,
+            [Message.StreamId] = rec.StreamId,
+            [Message.Offset] = rec.Offset,
+            [Message.EventType] = rec.EventType,
+            [Message.MessageType] = rec.MessageType,
+            [Message.Channel] = rec.Channel.ToString(),
+            [Message.SerializeType] = rec.SerializeType,
+            [Message.ShardName] = shardName.ToString(),
+            [Message.TelemetryContext] = bsonTelemetryContext,
+            [Message.Payload] = payload,
+            [Message.CapturedBy] = rec.CapturedBy,
+            [Message.CapturedAt] = new BsonDateTime(rec.CapturedAt.UtcDateTime)
         };
 
         return doc;
@@ -235,6 +238,29 @@ public static class EvDbBsonDocumentExtensions
     }
 
     #endregion //  EvDbToBsonDocument(EvDbStoredSnapshotData rec)
+
+    #region NormilizeTelemetryContext
+
+    /// <summary>
+    /// Normalizes the OTEL context.
+    /// The payload is a Bson byte[] representation of BsonDocument
+    /// </summary>
+    /// <param name="bson">The BSON representation.</param>
+    /// <returns>Byte[] that can be deserialize using System.Text.Json</returns>
+    private static byte[]? NormalizeTelemetryContext(this BsonValue bson)
+    {
+        if (bson.IsBsonNull)
+            return null;
+        // Deserialize the BsonValue to a BsonDocument
+        var doc = bson.AsBsonDocument;
+        // Convert the BsonDocument to a JSON string and then to a byte[]
+        // This is assuming that the it is a valid JSON 
+        string jsonString = doc.ToJson();
+        byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
+        return jsonBytes;
+    }
+
+    #endregion //  NormalizeTelemetryContext
 
     #region NormilizePayload
 

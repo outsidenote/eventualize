@@ -53,7 +53,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
         var snapshotData = new EvDbStoredSnapshotData<TState>(
                                         Address,
-                                        FoldOffset,
+                                        MemoryOffset,
                                         StoreOffset,
                                         State);
 
@@ -72,7 +72,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
     public override EvDbStoredSnapshotData GetSnapshotData()
     {
         byte[] state = JsonSerializer.SerializeToUtf8Bytes(State, _options);
-        var snapshot = new EvDbStoredSnapshotData(Address, FoldOffset, StoreOffset, state);
+        var snapshot = new EvDbStoredSnapshotData(Address, MemoryOffset, StoreOffset, state);
         return snapshot;
     }
 
@@ -100,7 +100,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
     #endregion //  NonStorageSnapshotAdapter
 }
 
-[DebuggerDisplay("Offset:[Folded:{FoldOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
+[DebuggerDisplay("Offset:[MemoryOffset:{MemoryOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
 public abstract class EvDbView : IEvDbViewStore
 {
     private readonly static ActivitySource _trace = Telemetry.Trace;
@@ -125,7 +125,7 @@ public abstract class EvDbView : IEvDbViewStore
         _logger = logger;
         _options = options;
         StoreOffset = storedOffset;
-        FoldOffset = storedOffset;
+        MemoryOffset = storedOffset;
         Address = address;
     }
 
@@ -135,7 +135,7 @@ public abstract class EvDbView : IEvDbViewStore
 
     public TimeProvider TimeProvider { get; }
 
-    public long FoldOffset { get; private set; }
+    public long MemoryOffset { get; private set; }
 
     public long StoreOffset { get; set; }
 
@@ -148,8 +148,8 @@ public abstract class EvDbView : IEvDbViewStore
         get
         {
             long numEventsSinceLatestSnapshot = StoreOffset == 0
-                ? FoldOffset
-                : FoldOffset - StoreOffset;
+                ? MemoryOffset
+                : MemoryOffset - StoreOffset;
             bool result = numEventsSinceLatestSnapshot > MinEventsBetweenSnapshots;
             return result;
         }
@@ -184,23 +184,35 @@ public abstract class EvDbView : IEvDbViewStore
         }
         _sysMeters.SnapshotStored.Add(1, tags);
 
-        StoreOffset = FoldOffset;
+        StoreOffset = MemoryOffset;
     }
 
     #endregion //  StoreAsync
 
-    #region FoldEvent
+    #region ApplyEvent
 
-    public void FoldEvent(EvDbEvent e)
+    /// <summary>
+    /// Append event into the view/aggregate.
+    /// </summary>
+    /// <param name="e"></param>
+    public void ApplyEvent(EvDbEvent e)
     {
         long offset = e.StreamCursor.Offset;
-        if (FoldOffset >= offset)
+        if (MemoryOffset >= offset)
             return;
-        OnFoldEvent(e);
-        FoldOffset = offset;
+        OnApplyEvent(e);
+        MemoryOffset = offset;
     }
 
-    #endregion // FoldEvent
+    #endregion // ApplyEvent
 
-    protected abstract void OnFoldEvent(EvDbEvent e);
+    #region OnApplyEvent
+
+    /// <summary>
+    /// Append event into the view/aggregate.
+    /// </summary>
+    /// <param name="e"></param>
+    protected abstract void OnApplyEvent(EvDbEvent e);
+
+    #endregion //  OnApplyEvent
 }

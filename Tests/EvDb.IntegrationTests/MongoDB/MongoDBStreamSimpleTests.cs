@@ -43,9 +43,9 @@ public class MongoDBStreamSimpleTests : StreamSimpleBaseTests
     public async Task Stream_Change_Stream_Succeed()
     {
         var startTime = new BsonTimestamp((int)(DateTime.UtcNow
-                                            .AddSeconds(-2)
-                                            .Subtract(new DateTime(1970, 1, 1)))
-                                            .TotalSeconds, 1);
+                                                .AddSeconds(-2)
+                                                .Subtract(DateTime.UnixEpoch))
+                                                .TotalSeconds, 1);
 
         await base.Stream_Basic_Succeed();
 
@@ -70,10 +70,10 @@ public class MongoDBStreamSimpleTests : StreamSimpleBaseTests
     }
 
 
-    private async IAsyncEnumerable<ChangeStreamDocument<BsonDocument>> WatchCollectionChangesAsync(
+    private static async IAsyncEnumerable<ChangeStreamDocument<BsonDocument>> WatchCollectionChangesAsync(
                                 IMongoCollection<BsonDocument> collection,
                                 ChangeStreamOptions options,
-                                CancellationToken cancellationToken = default)
+                                [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var pipeline = new EmptyPipelineDefinition<ChangeStreamDocument<BsonDocument>>()
             .Match(change =>

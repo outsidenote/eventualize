@@ -60,7 +60,7 @@ public readonly partial record struct EvDbStreamAddress(EvDbDomainName Domain, E
     /// Converts to parameters (string representation).
     /// </summary>
     /// <returns></returns>
-    public Parameters ToParameters() => new Parameters (Domain.Value, Partition.Value, StreamId);
+    public Parameters ToParameters() => new Parameters(Domain.Value, Partition.Value, StreamId);
 
     #endregion //  ToParameters
 

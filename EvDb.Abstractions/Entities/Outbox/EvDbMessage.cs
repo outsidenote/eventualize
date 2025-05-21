@@ -16,15 +16,16 @@ public partial record struct EvDbMessage(
                                 string CapturedBy,
                                 EvDbStreamCursor StreamCursor,
                                 byte[] Payload) :
-                                            IEvDbEventConverter,
-                                            IEvDbMessageMeta
+                                            IEvDbEventConverter//,
+                                                               //IEvDbMessageMeta
 {
     public static readonly EvDbEvent Empty = new EvDbEvent();
 
-    [IgnoreEquality]
-    string? IEvDbMessageMeta.TraceId => Activity.Current?.TraceId.ToHexString();
-    [IgnoreEquality]
-    string? IEvDbMessageMeta.SpanId => Activity.Current?.SpanId.ToHexString();
+    /// <summary>
+    /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
+    /// The value will be null if the Trace is null when persisting the record or before persistent.
+    /// </summary>
+    public byte[]? TelemetryContext { get; init; }
 
     T IEvDbEventConverter.GetData<T>(JsonSerializerOptions? options)
     {

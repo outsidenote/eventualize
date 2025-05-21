@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Text;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 
 namespace EvDb.Adapters.Store.Postgres;
 
@@ -45,13 +46,10 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         string[] eventTypes = new string[records.Length];
         DateTimeOffset[] capturedAts = new DateTimeOffset[records.Length];
         string[] capturedBys = new string[records.Length];
-        string?[] traceIds = new string[records.Length];
-        string?[] spanIds = new string[records.Length];
+        List<byte[]?> otelContexts = new();
         List<byte[]> payloads = new();
 
-        var traceId = Activity.Current?.TraceId.ToHexString();
-        var spanId = Activity.Current?.SpanId.ToHexString();
-
+        var otelContext = Activity.Current?.SerializeTelemetryContext();
         for (int i = 0; i < records.Length; i++)
         {
             EvDbEventRecord record = records[i];
@@ -63,8 +61,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
             eventTypes[i] = record.EventType;
             capturedBys[i] = record.CapturedBy;
             capturedAts[i] = record.CapturedAt;
-            traceIds[i] = traceId;
-            spanIds[i] = spanId;
+            otelContexts.Add(otelContext);
             payloads.Add(record.Payload);
         }
 
@@ -74,17 +71,16 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
         #region Setup Parameters
 
-        command.Parameters.AddWithValue("@Id", NpgsqlTypes.NpgsqlDbType.Uuid | NpgsqlTypes.NpgsqlDbType.Array, ids);
-        command.Parameters.AddWithValue("@Domain", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, domains);
-        command.Parameters.AddWithValue("@Partition", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, partitions);
-        command.Parameters.AddWithValue("@StreamId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, streamIds);
-        command.Parameters.AddWithValue("@Offset", NpgsqlTypes.NpgsqlDbType.Bigint | NpgsqlTypes.NpgsqlDbType.Array, offsets);
-        command.Parameters.AddWithValue("@EventType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
-        command.Parameters.AddWithValue("@CapturedAt", NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
-        command.Parameters.AddWithValue("@CapturedBy", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
-        command.Parameters.AddWithValue("@TraceId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, traceIds);
-        command.Parameters.AddWithValue("@SpanId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, spanIds);
-        command.Parameters.AddWithValue("@Payload", NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, payloads);
+        command.Parameters.AddWithValue(Parameters.Event.Id, NpgsqlTypes.NpgsqlDbType.Uuid | NpgsqlTypes.NpgsqlDbType.Array, ids);
+        command.Parameters.AddWithValue(Parameters.Event.Domain, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, domains);
+        command.Parameters.AddWithValue(Parameters.Event.Partition, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, partitions);
+        command.Parameters.AddWithValue(Parameters.Event.StreamId, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, streamIds);
+        command.Parameters.AddWithValue(Parameters.Event.Offset, NpgsqlTypes.NpgsqlDbType.Bigint | NpgsqlTypes.NpgsqlDbType.Array, offsets);
+        command.Parameters.AddWithValue(Parameters.Event.EventType, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
+        command.Parameters.AddWithValue(Parameters.Event.CapturedAt, NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
+        command.Parameters.AddWithValue(Parameters.Event.CapturedBy, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
+        command.Parameters.AddWithValue(Parameters.Event.TelemetryContext, NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, otelContexts);
+        command.Parameters.AddWithValue(Parameters.Event.Payload, NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, payloads);
 
         #endregion //  Setup Parameters
 
@@ -108,6 +104,8 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
         #region Parameters 
 
+        var otelContext = Activity.Current?.SerializeTelemetryContext();
+
         Guid[] ids = new Guid[records.Length];
         string[] domains = new string[records.Length];
         string[] partitions = new string[records.Length];
@@ -119,13 +117,8 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         string[] serializationTypes = new string[records.Length];
         DateTimeOffset[] capturedAts = new DateTimeOffset[records.Length];
         string[] capturedBys = new string[records.Length];
-        string?[] traceIds = new string[records.Length];
-        string?[] spanIds = new string[records.Length];
+        List<byte[]?> otelContexts = new();
         List<byte[]> payloads = new();
-
-        var traceId = Activity.Current?.TraceId.ToHexString();
-        var spanId = Activity.Current?.SpanId.ToHexString();
-
         for (int i = 0; i < records.Length; i++)
         {
             EvDbMessageRecord record = records[i];
@@ -140,8 +133,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
             messageTypes[i] = record.MessageType;
             serializationTypes[i] = record.SerializeType;
             channels[i] = record.Channel;
-            traceIds[i] = traceId;
-            spanIds[i] = spanId;
+            otelContexts.Add(otelContext);
             payloads.Add(record.Payload);
         }
 
@@ -151,19 +143,18 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
         #region Setup Parameters
 
-        command.Parameters.AddWithValue("@Id", NpgsqlTypes.NpgsqlDbType.Uuid | NpgsqlTypes.NpgsqlDbType.Array, ids);
-        command.Parameters.AddWithValue("@Domain", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, domains);
-        command.Parameters.AddWithValue("@Partition", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, partitions);
-        command.Parameters.AddWithValue("@StreamId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, streamIds);
-        command.Parameters.AddWithValue("@Offset", NpgsqlTypes.NpgsqlDbType.Bigint | NpgsqlTypes.NpgsqlDbType.Array, offsets);
-        command.Parameters.AddWithValue("@Channel", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, channels);
-        command.Parameters.AddWithValue("@MessageType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, messageTypes);
-        command.Parameters.AddWithValue("@SerializeType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, serializationTypes);
-        command.Parameters.AddWithValue("@EventType", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
-        command.Parameters.AddWithValue("@CapturedAt", NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
-        command.Parameters.AddWithValue("@CapturedBy", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
-        command.Parameters.AddWithValue("@TraceId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, traceIds);
-        command.Parameters.AddWithValue("@SpanId", NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, spanIds);
+        command.Parameters.AddWithValue(Parameters.Message.Id, NpgsqlTypes.NpgsqlDbType.Uuid | NpgsqlTypes.NpgsqlDbType.Array, ids);
+        command.Parameters.AddWithValue(Parameters.Message.Domain, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, domains);
+        command.Parameters.AddWithValue(Parameters.Message.Partition, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, partitions);
+        command.Parameters.AddWithValue(Parameters.Message.StreamId, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, streamIds);
+        command.Parameters.AddWithValue(Parameters.Message.Offset, NpgsqlTypes.NpgsqlDbType.Bigint | NpgsqlTypes.NpgsqlDbType.Array, offsets);
+        command.Parameters.AddWithValue(Parameters.Message.Channel, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, channels);
+        command.Parameters.AddWithValue(Parameters.Message.MessageType, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, messageTypes);
+        command.Parameters.AddWithValue(Parameters.Message.SerializeType, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, serializationTypes);
+        command.Parameters.AddWithValue(Parameters.Message.EventType, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
+        command.Parameters.AddWithValue(Parameters.Message.CapturedAt, NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
+        command.Parameters.AddWithValue(Parameters.Message.CapturedBy, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
+        command.Parameters.AddWithValue(Parameters.Message.TelemetryContext, NpgsqlTypes.NpgsqlDbType.Bytea | NpgsqlTypes.NpgsqlDbType.Array, otelContexts);
         command.Parameters.AddWithValue("@Payload", NpgsqlTypes.NpgsqlDbType.Bytea | NpgsqlTypes.NpgsqlDbType.Array, payloads);
 
         #endregion // Setup Parameters
@@ -186,13 +177,13 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
         #region Setup Parameters
 
-        command.Parameters.AddWithValue("@Id", NpgsqlTypes.NpgsqlDbType.Uuid, snapshot.Id);
-        command.Parameters.AddWithValue("@Domain", NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.Domain);
-        command.Parameters.AddWithValue("@Partition", NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.Partition);
-        command.Parameters.AddWithValue("@StreamId", NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.StreamId);
-        command.Parameters.AddWithValue("@ViewName", NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.ViewName);
-        command.Parameters.AddWithValue("@Offset", NpgsqlTypes.NpgsqlDbType.Bigint, snapshot.Offset);
-        command.Parameters.AddWithValue("@State", NpgsqlTypes.NpgsqlDbType.Json, snapshot.State);
+        command.Parameters.AddWithValue(Parameters.Snapshot.Id, NpgsqlTypes.NpgsqlDbType.Uuid, snapshot.Id);
+        command.Parameters.AddWithValue(Parameters.Snapshot.Domain, NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.Domain);
+        command.Parameters.AddWithValue(Parameters.Snapshot.Partition, NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.Partition);
+        command.Parameters.AddWithValue(Parameters.Snapshot.StreamId, NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.StreamId);
+        command.Parameters.AddWithValue(Parameters.Snapshot.ViewName, NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.ViewName);
+        command.Parameters.AddWithValue(Parameters.Snapshot.Offset, NpgsqlTypes.NpgsqlDbType.Bigint, snapshot.Offset);
+        command.Parameters.AddWithValue(Parameters.Snapshot.State, NpgsqlTypes.NpgsqlDbType.Json, snapshot.State);
 
         #endregion //  Setup Parameters
 

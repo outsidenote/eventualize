@@ -12,12 +12,12 @@ internal partial class View
 
     #region override ...
 
-    protected override double Fold(double state, FaultOccurred payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, FaultOccurred payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
 
-    protected override double Fold(double state, SomethingHappened payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, SomethingHappened payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
@@ -34,6 +34,4 @@ internal partial class View
         _lastEventTime = meta.CapturedAt;
         return state;
     }
-
-
 }

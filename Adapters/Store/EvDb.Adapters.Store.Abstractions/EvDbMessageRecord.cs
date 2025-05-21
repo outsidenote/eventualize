@@ -3,22 +3,61 @@
 namespace EvDb.Core.Adapters;
 
 [DebuggerDisplay("MessageType: {MessageType} ,EventType:{EventType}, Channel:{Channel} Offset:{Offset}, StreamId:{StreamId}")]
-public struct EvDbMessageRecord 
+public struct EvDbMessageRecord
 {
+    /// <summary>
+    /// Unique identifier of the message
+    /// </summary>
     public Guid Id { get; init; }
+    /// <summary>
+    /// The address of the stream that the message produced from
+    /// </summary>
     public string Domain { get; init; }
+    /// <summary>
+    /// The address of the stream that produced the message
+    /// </summary>
     public string Partition { get; init; }
+    /// <summary>
+    /// The identifier of the stream instance
+    /// </summary>
     public string StreamId { get; init; }
+    /// <summary>
+    /// The offset of the event that produced the message
+    /// </summary>
     public long Offset { get; init; }
+    /// <summary>
+    /// The type of the event that produced the message 
+    /// </summary>
     public string EventType { get; init; }
+    /// <summary>
+    /// Represents a outbox's message tagging into semantic channel name
+    /// </summary>
     public string Channel { get; init; }
-    public string? TraceId { get; init; }
-    public string? SpanId { get; init; }
+    /// <summary>
+    /// The type of the message
+    /// </summary>
     public string MessageType { get; init; }
+    /// <summary>
+    /// The type of the serialization used to serialize the message's payload
+    /// </summary>
     public string SerializeType { get; init; }
+    /// <summary>
+    /// The payload of the message
+    /// </summary>
     public byte[] Payload { get; init; }
+    /// <summary>
+    /// The user that captured the event that produced the message
+    /// </summary>
     public string CapturedBy { get; init; }
+    /// <summary>
+    /// The date and time that the event that produced the message was captured
+    /// </summary>
     public DateTimeOffset CapturedAt { get; init; }
+    /// <summary>
+    /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
+    /// The value will be null if the Trace is null when persisting the record or before persistent.
+    /// </summary>
+    public byte[]? TelemetryContext { get; init; }
 
     #region static implicit operator EvDbMessageRecord(EvDbMessage e) ...
 
@@ -39,8 +78,7 @@ public struct EvDbMessageRecord
             Payload = e.Payload,
             CapturedBy = e.CapturedBy,
             CapturedAt = e.CapturedAt,
-            SpanId = activity?.SpanId.ToHexString(),
-            TraceId = activity?.TraceId.ToHexString()
+            TelemetryContext = e.TelemetryContext
         };
         return result;
     }
@@ -61,9 +99,10 @@ public struct EvDbMessageRecord
                                          MessageType,
                                          Channel,
                                          CapturedAt,
-                                         CapturedBy,
-                                         TraceId,
-                                         SpanId);
+                                         CapturedBy)
+        {
+            TelemetryContext = TelemetryContext
+        };
         return result;
     }
 
@@ -74,9 +113,14 @@ public struct EvDbMessageRecord
                                                   string MessageType,
                                                   EvDbChannelName Channel,
                                                   DateTimeOffset CapturedAt,
-                                                  string CapturedBy, 
-                                                  string? TraceId,
-                                                  string? SpanId) : IEvDbMessageMeta;
+                                                  string CapturedBy) : IEvDbMessageMeta
+    {
+        /// <summary>
+        /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
+        /// The value will be null if the Trace is null when persisting the record or before persistent.
+        /// </summary>
+        public byte[]? TelemetryContext { get; init; }
+    }
 
     #endregion //  readonly record EvDbMessageMeta struct(...): IEvDbMessageMeta
 

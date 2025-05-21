@@ -13,47 +13,47 @@ public partial class MinEventIntervalSecondsView
 
     #region override ...
 
-    protected override double Fold(double state, CourseCreatedEvent payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, CourseCreatedEvent payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
 
-    protected override double Fold(double state, ScheduleTestEvent payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, ScheduleTestEvent payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
 
-    protected override double Fold(double state, StudentAppliedToCourseEvent payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, StudentAppliedToCourseEvent payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
 
-    protected override double Fold(double state, StudentCourseApplicationDeniedEvent payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, StudentCourseApplicationDeniedEvent payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
 
-    protected override double Fold(double state, StudentEnlistedEvent payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, StudentEnlistedEvent payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
 
-    protected override double Fold(double state, StudentQuitCourseEvent payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, StudentQuitCourseEvent payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
 
-    protected override double Fold(double state, StudentReceivedGradeEvent payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, StudentReceivedGradeEvent payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
 
-    protected override double Fold(double state, StudentRegisteredToCourseEvent payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, StudentRegisteredToCourseEvent payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }
 
-    protected override double Fold(double state, StudentTestSubmittedEvent payload, IEvDbEventMeta meta)
+    protected override double Apply(double state, StudentTestSubmittedEvent payload, IEvDbEventMeta meta)
     {
         return CalcInterval(ref state, meta);
     }

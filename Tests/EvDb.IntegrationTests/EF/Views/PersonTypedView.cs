@@ -11,28 +11,28 @@ public partial class PersonTypedView
     public override int MinEventsBetweenSnapshots { get; } = 3;
 
 
-    protected override Person Fold(Person state, PersonAddressChanged payload, IEvDbEventMeta meta)
+    protected override Person Apply(Person state, PersonAddressChanged payload, IEvDbEventMeta meta)
     {
         return state with { Id = payload.Id, Address = payload.Address };
     }
 
-    protected override Person Fold(Person state, PersonBirthdayChanged payload, IEvDbEventMeta meta)
+    protected override Person Apply(Person state, PersonBirthdayChanged payload, IEvDbEventMeta meta)
     {
         return state with { Id = payload.Id, Birthday = payload.Date };
     }
 
-    protected override Person Fold(Person state, PersonNameChanged payload, IEvDbEventMeta meta)
+    protected override Person Apply(Person state, PersonNameChanged payload, IEvDbEventMeta meta)
     {
         return state with { Id = payload.Id, Name = payload.Name };
     }
 
-    protected override Person Fold(Person state, PersonEmailRemoved payload, IEvDbEventMeta meta)
+    protected override Person Apply(Person state, PersonEmailRemoved payload, IEvDbEventMeta meta)
     {
         var emails = state.Emails.Where(e => e.Value != payload.Email).ToArray();
         return state with { Emails = emails };
     }
 
-    protected override Person Fold(Person state, PersonEmailCategoryUpdated payload, IEvDbEventMeta meta)
+    protected override Person Apply(Person state, PersonEmailCategoryUpdated payload, IEvDbEventMeta meta)
     {
         var emails = state.Emails.Select(e =>
         {
@@ -44,7 +44,7 @@ public partial class PersonTypedView
         return state with { Emails = emails };
     }
 
-    protected override Person Fold(Person state, PersonEmailAdded payload, IEvDbEventMeta meta)
+    protected override Person Apply(Person state, PersonEmailAdded payload, IEvDbEventMeta meta)
     {
         Email email = payload.Email;
         email = email with { Category = payload.Category };
