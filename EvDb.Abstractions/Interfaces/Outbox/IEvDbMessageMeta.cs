@@ -1,4 +1,6 @@
-﻿namespace EvDb.Core;
+﻿using System.Diagnostics;
+
+namespace EvDb.Core;
 
 /// <summary>
 /// Messsage metadata
@@ -9,16 +11,9 @@ public interface IEvDbMessageMeta : IEvDbEventMeta
     /// The message type
     /// </summary>
     string MessageType { get; }
+
     /// <summary>
     /// A channel attached to the message
     /// </summary>
     EvDbChannelName Channel { get; }
-    /// <summary>
-    /// OTEL trace
-    /// </summary>
-    public string? TraceId { get; }
-    /// <summary>
-    /// OTEL Span
-    /// </summary>
-    public string? SpanId { get; }
 }

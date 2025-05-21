@@ -102,7 +102,7 @@ public static class EvDbTestingStreamStoreExtensions
     }
 
     public static IEnumerable<EvDbMessage> GetRecordMessages(this EvDbStreamTestingStorage storage,
-                                                             EvDbStreamAddress address, 
+                                                             EvDbStreamAddress address,
                                                              Func<EvDbMessage, bool>? predicate = null)
     {
         foreach (var m in storage.GetMessages(address, predicate))

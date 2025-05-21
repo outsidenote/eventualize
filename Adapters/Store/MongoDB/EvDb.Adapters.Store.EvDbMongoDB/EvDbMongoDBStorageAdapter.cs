@@ -10,6 +10,7 @@ using MongoDB.Driver;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 using static EvDb.Core.Adapters.StoreTelemetry;
 
 namespace EvDb.Adapters.Store.MongoDB;
@@ -101,7 +102,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
             _logger.LogQuery(query.ToJson());
 
         BsonDocument doc = await query.FirstOrDefaultAsync(cancellation);
-        long result = doc?[EvDbFields.Event.Offset].AsInt64 ?? 0;
+        long result = doc?[Fields.Event.Offset].AsInt64 ?? 0;
         return result;
     }
 

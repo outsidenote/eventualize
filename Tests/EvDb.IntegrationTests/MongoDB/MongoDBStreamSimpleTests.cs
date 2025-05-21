@@ -73,7 +73,7 @@ public class MongoDBStreamSimpleTests : StreamSimpleBaseTests
     private static async IAsyncEnumerable<ChangeStreamDocument<BsonDocument>> WatchCollectionChangesAsync(
                                 IMongoCollection<BsonDocument> collection,
                                 ChangeStreamOptions options,
-                                [EnumeratorCancellation]CancellationToken cancellationToken = default)
+                                [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var pipeline = new EmptyPipelineDefinition<ChangeStreamDocument<BsonDocument>>()
             .Match(change =>

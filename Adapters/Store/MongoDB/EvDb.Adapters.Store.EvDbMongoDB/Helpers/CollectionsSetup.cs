@@ -1,7 +1,6 @@
 ﻿using EvDb.Adapters.Store.Internals;
 using EvDb.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Concurrent;
@@ -138,7 +137,7 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
         string separator = "_";
         if (string.Compare(shardName.Value, OUTBOX_SUFFX, true) == 0)
             shardName = string.Empty;
-        if(string.IsNullOrEmpty(shardName.Value))
+        if (string.IsNullOrEmpty(shardName.Value))
             separator = "";
         string collectionName = string.Format(_outboxCollectionFormat, shardName, separator);
         IMongoCollection<BsonDocument> outboxCollection =
@@ -185,7 +184,7 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
                                             CancellationToken cancellationToken = default)
     {
         string collectionName = $"{_collectionPrefix}snapshots";
-        CreateCollectionOptions options = new ();
+        CreateCollectionOptions options = new();
         bool exists = await CreateCollectionIfNotExistsAsync(collectionName,
                                                    options,
                                                    cancellationToken);

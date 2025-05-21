@@ -1,11 +1,7 @@
 ﻿// Ignore Spelling: Sql Testing
 
-using EvDb.Adapters.Store.Testing;
 using EvDb.Core;
 using EvDb.Core.Store.Internals;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

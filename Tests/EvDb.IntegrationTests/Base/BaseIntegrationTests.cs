@@ -7,7 +7,6 @@ using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using System.Xml.Linq;
 using Xunit.Abstractions;
 #pragma warning disable S125 // Sections of code should not be commented out
 
@@ -86,7 +85,7 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
     public virtual Task DisposeAsync()
     {
 
-                            //await _containers.StopAllAsync();
+        //await _containers.StopAllAsync();
         return Task.CompletedTask;
     }
 }

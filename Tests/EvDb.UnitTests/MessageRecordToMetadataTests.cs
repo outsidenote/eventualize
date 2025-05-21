@@ -1,29 +1,44 @@
-﻿using EvDb.Core;
+﻿using EvDb.Adapters.Store.Internals;
+using EvDb.Core;
 using EvDb.Core.Adapters;
-using FakeItEasy;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit.Abstractions;
-using EvDb.Adapters.Store.Internals;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 using System.Diagnostics;
+using System.Text;
+using Xunit.Abstractions;
 
 namespace EvDb.UnitTests;
 
-public class MessageRecordToMetadataTests
+public sealed class MessageRecordToMetadataTests : IDisposable
 {
     private readonly ITestOutputHelper _output;
+    private readonly ActivitySource TraceSource = new ActivitySource("Test");
+    private readonly TracerProvider _tracerProvider;
 
     public MessageRecordToMetadataTests(ITestOutputHelper output)
     {
         _output = output;
+
+        _tracerProvider = Sdk.CreateTracerProviderBuilder()
+                 .SetSampler<AlwaysOnSampler>()
+                 .AddSource(TraceSource.Name)
+                 .Build();
+    }
+
+    [Fact]
+    public void Test_With_Activity()
+    {
+        using var activity = TraceSource.StartActivity("test-scope");
+
+        Assert.NotNull(activity);
+        Assert.Equal(activity, Activity.Current);
     }
 
     [Fact]
     public void MessageRecordToMetadata()
     {
+        using var activity = TraceSource.StartActivity("test-scope");
+
         var messageRecord = new EvDbMessageRecord
         {
             Domain = "TestDomain",
@@ -37,8 +52,7 @@ public class MessageRecordToMetadataTests
             Payload = Encoding.UTF8.GetBytes("TestPayload"),
             CapturedBy = "TestCapturedBy",
             CapturedAt = DateTimeOffset.UtcNow,
-            SpanId = "1234",
-            TraceId = "4567"
+            TelemetryContext = activity?.SerializeTelemetryContext(),
         };
 
         IEvDbEventMeta meta = messageRecord.GetMetadata();
@@ -58,6 +72,8 @@ public class MessageRecordToMetadataTests
     [Fact]
     public void BsonMessageRecordToMetadata()
     {
+        using var activity = TraceSource.StartActivity("test-scope");
+
         var messageRecord = new EvDbMessageRecord
         {
             Domain = "TestDomain",
@@ -71,8 +87,7 @@ public class MessageRecordToMetadataTests
             Payload = Encoding.UTF8.GetBytes("TestPayload"),
             CapturedBy = "TestCapturedBy",
             CapturedAt = DateTimeOffset.UtcNow,
-            SpanId = "1234",
-            TraceId = "4567"
+            TelemetryContext = activity?.SerializeTelemetryContext()
         };
 
         var doc = messageRecord.EvDbToBsonDocument("shard");
@@ -86,14 +101,16 @@ public class MessageRecordToMetadataTests
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);
         Assert.Equal(messageRecord.Channel, meta.Channel);
-        Assert.Equal(messageRecord.TraceId, meta.TraceId);
-        Assert.Equal(messageRecord.SpanId, meta.SpanId);
         Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
+        messageRecord.AssertTelemetryContextEquals(meta);
     }
 
     [Fact]
     public void BsonMessageRecordToMetadataFromActivityTelemetry()
     {
+        var activity = new Activity("test-scope");
+        activity.Start();
+
         var messageRecord = new EvDbMessageRecord
         {
             Domain = "TestDomain",
@@ -109,10 +126,6 @@ public class MessageRecordToMetadataTests
             CapturedAt = DateTimeOffset.UtcNow,
         };
 
-        ActivitySource activitySource = new ActivitySource("Test");
-        var activity = new Activity("test-scope");
-        activity.Start();
-        Activity.Current = activity;
         var doc = messageRecord.EvDbToBsonDocument("shard");
         var meta = doc.ToMessageMeta();
 
@@ -124,9 +137,14 @@ public class MessageRecordToMetadataTests
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);
         Assert.Equal(messageRecord.Channel, meta.Channel);
-        Assert.Equal(Activity.Current?.TraceId.ToHexString(), meta.TraceId);
-        Assert.Equal(Activity.Current?.SpanId.ToHexString(), meta.SpanId);
         Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
+
+        var currentOtelBuffer = Activity.Current?.SerializeTelemetryContext();
+        meta.AssertTelemetryContextEquals(currentOtelBuffer);
     }
 
+    public void Dispose()
+    {
+        _tracerProvider.Dispose();
+    }
 }

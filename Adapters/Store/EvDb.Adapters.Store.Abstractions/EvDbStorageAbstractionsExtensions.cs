@@ -4,6 +4,12 @@ namespace EvDb.Core.Adapters;
 
 public static class EvDbStorageAbstractionsExtensions
 {
+    /// <summary>
+    /// Groups the messages by their shard name.
+    /// </summary>
+    /// <param name="messages"></param>
+    /// <param name="transformers"></param>
+    /// <returns></returns>
     public static IEnumerable<IGrouping<EvDbShardName, EvDbMessageRecord>> GroupByShards(
                         this IImmutableList<EvDbMessage> messages,
                         IImmutableList<IEvDbOutboxTransformer> transformers)

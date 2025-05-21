@@ -1,6 +1,4 @@
-﻿using EvDb.Core;
-
-namespace EvDb.UnitTests;
+﻿namespace EvDb.UnitTests;
 
 // TODO: [bnaya 2024-11-07] Consider how to expose it as a const (for pattern matching keys)
 public abstract class OutboxChannels

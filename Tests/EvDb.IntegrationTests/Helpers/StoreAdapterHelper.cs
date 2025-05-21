@@ -114,7 +114,7 @@ public static class StoreAdapterHelper
                 SqlServerStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             StoreType.Postgres =>
                 PostgresStorageAdminFactory.Create(logger, connectionString, context, shardNames),
-            StoreType.MongoDB => 
+            StoreType.MongoDB =>
                 MongoDBStorageAdminFactory.Create(logger, connectionString, context, shardNames),
             StoreType.Testing => A.Fake<IEvDbStorageAdmin>(),
             _ => throw new NotImplementedException()
@@ -125,7 +125,7 @@ public static class StoreAdapterHelper
 
     public static string GetConnectionString(this StoreType storeType)
     {
-        if(storeType == StoreType.Testing)
+        if (storeType == StoreType.Testing)
             return string.Empty;
 
         var configuration = new ConfigurationBuilder()

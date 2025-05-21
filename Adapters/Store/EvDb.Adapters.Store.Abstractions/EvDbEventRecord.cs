@@ -6,17 +6,47 @@ namespace EvDb.Core.Adapters;
 [DebuggerDisplay("EventType:{EventType}, Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbEventRecord
 {
+    /// <summary>
+    /// Unique identifier of the event
+    /// </summary>
     public Guid Id { get; init; }
+    /// <summary>
+    /// The address of the stream  
+    /// </summary>
     public string Domain { get; init; }
+    /// <summary>
+    /// The address of the stream   
+    /// </summary>
     public string Partition { get; init; }
+    /// <summary>
+    /// The identifier of the stream instance
+    /// </summary>
     public string StreamId { get; init; }
+    /// <summary>
+    /// The offset of the event 
+    /// </summary>
     public long Offset { get; init; }
+    /// <summary>
+    /// The type of the event  
+    /// </summary>
     public string EventType { get; init; }
-    public string? TraceId { get; init; }
-    public string? SpanId { get; init; }
+    /// <summary>
+    /// The payload of the event
+    /// </summary>
     public byte[] Payload { get; init; }
+    /// <summary>
+    /// The user that captured the event 
+    /// </summary>
     public string CapturedBy { get; init; }
+    /// <summary>
+    /// The date and time that the event 
+    /// </summary>
     public DateTimeOffset CapturedAt { get; init; }
+    /// <summary>
+    /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
+    /// The value will be null if the Trace is null when persisting the record or before persistent.
+    /// </summary>
+    public byte[]? TelemetryContext { get; init; }
 
     #region Casting Overloads
 
@@ -32,12 +62,14 @@ public struct EvDbEventRecord
                     entity.CapturedAt,
                     entity.CapturedBy,
                     StreamCursor,
-                    entity.Payload);
+                    entity.Payload)
+        {
+            TelemetryContext = entity.TelemetryContext
+        };
     }
 
     public static implicit operator EvDbEventRecord(EvDbEvent e)
     {
-        Activity? activity = Activity.Current;
         return new EvDbEventRecord
         {
             Id = Guid.NewGuid(), // TODO: GuidV7
@@ -49,8 +81,7 @@ public struct EvDbEventRecord
             Payload = e.Payload,
             CapturedBy = e.CapturedBy,
             CapturedAt = e.CapturedAt,
-            SpanId = activity?.SpanId.ToHexString(),
-            TraceId = activity?.TraceId.ToHexString()
+            TelemetryContext = e.TelemetryContext
         };
     }
 

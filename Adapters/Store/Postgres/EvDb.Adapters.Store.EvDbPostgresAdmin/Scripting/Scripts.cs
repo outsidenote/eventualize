@@ -1,6 +1,6 @@
 ﻿using EvDb.Core;
-using EvDb.Core.Adapters;
 using System.Text;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 
 namespace EvDb.Adapters.Store.Postgres;
 
@@ -18,7 +18,6 @@ internal static class Scripts
             ? $"{storageContext.Schema}."
             : string.Empty;
         string tblInitial = $"{schema}{storageContext.ShortId}";
-        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
         if (!outboxShardNames.Any())
             outboxShardNames = new[] { EvDbShardName.Default };
@@ -57,38 +56,37 @@ internal static class Scripts
             ? string.Empty
             : $"""
             CREATE TABLE {tblInitial}events (
-                {toSnakeCase(nameof(EvDbEventRecord.Id))} UUID NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.Domain))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.Partition))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.StreamId))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                "{toSnakeCase(nameof(EvDbEventRecord.Offset))}" BIGINT NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.EventType))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.SpanId))} VARCHAR(16),
-                {toSnakeCase(nameof(EvDbEventRecord.TraceId))} VARCHAR(32),
-                {toSnakeCase(nameof(EvDbEventRecord.CapturedBy))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.CapturedAt))} TIMESTAMPTZ NOT NULL,
+                {Fields.Event.Id} UUID NOT NULL,
+                {Fields.Event.Domain} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Event.Partition} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Event.StreamId} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                "{Fields.Event.Offset}" BIGINT NOT NULL,
+                {Fields.Event.EventType} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Event.TelemetryContext} JSON NULL,
+                {Fields.Event.CapturedBy} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Event.CapturedAt} TIMESTAMPTZ NOT NULL,
                 stored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                {toSnakeCase(nameof(EvDbEventRecord.Payload))} JSON NOT NULL,
+                {Fields.Event.Payload} JSON NOT NULL,
     
                 PRIMARY KEY (
-                    {toSnakeCase(nameof(EvDbEventRecord.Domain))}, 
-                    {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
-                    {toSnakeCase(nameof(EvDbEventRecord.StreamId))}, 
-                    "{toSnakeCase(nameof(EvDbEventRecord.Offset))}"),
-                CONSTRAINT CK_event_domain_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbEventRecord.Domain))}) > 0),
-                CONSTRAINT CK_event_stream_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbEventRecord.Partition))}) > 0),
-                CONSTRAINT CK_event_stream_id_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbEventRecord.StreamId))}) > 0),
-                CONSTRAINT CK_event_event_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbEventRecord.EventType))}) > 0),
-                CONSTRAINT CK_event_captured_by_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbEventRecord.CapturedBy))}) > 0)
+                    {Fields.Event.Domain}, 
+                    {Fields.Event.Partition}, 
+                    {Fields.Event.StreamId}, 
+                    "{Fields.Event.Offset}"),
+                CONSTRAINT CK_event_domain_not_empty CHECK (CHAR_LENGTH({Fields.Event.Domain}) > 0),
+                CONSTRAINT CK_event_stream_type_not_empty CHECK (CHAR_LENGTH({Fields.Event.Partition}) > 0),
+                CONSTRAINT CK_event_stream_id_not_empty CHECK (CHAR_LENGTH({Fields.Event.StreamId}) > 0),
+                CONSTRAINT CK_event_event_type_not_empty CHECK (CHAR_LENGTH({Fields.Event.EventType}) > 0),
+                CONSTRAINT CK_event_captured_by_not_empty CHECK (CHAR_LENGTH({Fields.Event.CapturedBy}) > 0)
             );
 
             -- Index for getting distinct values for columns domain, partition, and event_type together
             CREATE INDEX ix_event_{unique:N}
             ON {tblInitial}events (
-                    {toSnakeCase(nameof(EvDbEventRecord.Domain))}, 
-                    {toSnakeCase(nameof(EvDbEventRecord.Partition))}, 
-                    {toSnakeCase(nameof(EvDbEventRecord.StreamId))}, 
-                    "{toSnakeCase(nameof(EvDbEventRecord.Offset))}" 
+                    {Fields.Event.Domain}, 
+                    {Fields.Event.Partition}, 
+                    {Fields.Event.StreamId}, 
+                    "{Fields.Event.Offset}" 
             );
             CREATE INDEX ix_event_stored_at_{unique:N}
             ON {tblInitial}events (
@@ -107,50 +105,49 @@ internal static class Scripts
             $"""
 
             CREATE TABLE {tblInitial}{t} (
-                {toSnakeCase(nameof(EvDbMessageRecord.Id))} UUID  NOT NULL, 
-                {toSnakeCase(nameof(EvDbMessageRecord.Domain))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.Partition))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.StreamId))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                "{toSnakeCase(nameof(EvDbMessageRecord.Offset))}" BIGINT NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.EventType))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.Channel))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.MessageType))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.SerializeType))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.SpanId))} VARCHAR(16) NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.TraceId))} VARCHAR(32) NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))} TIMESTAMPTZ NOT NULL,
+                {Fields.Message.Id} UUID  NOT NULL, 
+                {Fields.Message.Domain} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Message.Partition} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Message.StreamId} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                "{Fields.Message.Offset}" BIGINT NOT NULL,
+                {Fields.Message.EventType} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Message.Channel} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Message.MessageType} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Message.SerializeType} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Message.TelemetryContext} BYTEA NULL,
+                {Fields.Message.CapturedBy} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Message.CapturedAt} TIMESTAMPTZ NOT NULL,
                 stored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                {toSnakeCase(nameof(EvDbMessageRecord.Payload))} BYTEA NOT NULL CHECK (octet_length({toSnakeCase(nameof(EvDbMessageRecord.Payload))}) > 0 AND octet_length({toSnakeCase(nameof(EvDbMessageRecord.Payload))}) <= 4000),
+                {Fields.Message.Payload} BYTEA NOT NULL CHECK (octet_length({Fields.Message.Payload}) > 0 AND octet_length({Fields.Message.Payload}) <= 4000),
             
                 PRIMARY KEY (
-                        {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.Domain))}, 
-                        {toSnakeCase(nameof(EvDbMessageRecord.Partition))}, 
-                        {toSnakeCase(nameof(EvDbMessageRecord.StreamId))}, 
-                        "{toSnakeCase(nameof(EvDbMessageRecord.Offset))}",
-                        {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
-                        {toSnakeCase(nameof(EvDbMessageRecord.MessageType))}),
-                CONSTRAINT CK_{t}_domain_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.Domain))}) > 0),
-                CONSTRAINT CK_{t}_stream_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.Partition))}) > 0),
-                CONSTRAINT CK_{t}_stream_id_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.StreamId))}) > 0),
-                CONSTRAINT CK_{t}_event_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.EventType))}) > 0),
-                CONSTRAINT CK_{t}_outbox_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.Channel))}) > 0),
-                CONSTRAINT CK_{t}_message_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.MessageType))}) > 0),
-                CONSTRAINT CK_{t}_captured_by_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbMessageRecord.CapturedBy))}) > 0)
+                        {Fields.Message.CapturedAt},
+                        {Fields.Message.Domain}, 
+                        {Fields.Message.Partition}, 
+                        {Fields.Message.StreamId}, 
+                        "{Fields.Message.Offset}",
+                        {Fields.Message.Channel},
+                        {Fields.Message.MessageType}),
+                CONSTRAINT CK_{t}_domain_not_empty CHECK (CHAR_LENGTH({Fields.Message.Domain}) > 0),
+                CONSTRAINT CK_{t}_stream_type_not_empty CHECK (CHAR_LENGTH({Fields.Message.Partition}) > 0),
+                CONSTRAINT CK_{t}_stream_id_not_empty CHECK (CHAR_LENGTH({Fields.Message.StreamId}) > 0),
+                CONSTRAINT CK_{t}_event_type_not_empty CHECK (CHAR_LENGTH({Fields.Message.EventType}) > 0),
+                CONSTRAINT CK_{t}_outbox_type_not_empty CHECK (CHAR_LENGTH({Fields.Message.Channel}) > 0),
+                CONSTRAINT CK_{t}_message_type_not_empty CHECK (CHAR_LENGTH({Fields.Message.MessageType}) > 0),
+                CONSTRAINT CK_{t}_captured_by_not_empty CHECK (CHAR_LENGTH({Fields.Message.CapturedBy}) > 0)
             );
             
             CREATE INDEX ix_{t}_{unique:N}
             ON {tblInitial}{t} (
-                {toSnakeCase(nameof(EvDbMessageRecord.Channel))},
-                {toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))},
-                "{toSnakeCase(nameof(EvDbEventRecord.Offset))}"
+                {Fields.Message.Channel},
+                {Fields.Message.CapturedAt},
+                "{Fields.Message.Offset}"
             );
                         
-            CREATE INDEX ix_StoredAt_{t}_{toSnakeCase(nameof(EvDbMessageRecord.CapturedAt))}_{unique:N}
+            CREATE INDEX ix_StoredAt_{t}_{Fields.Message.CapturedAt}_{unique:N}
             ON {tblInitial}{t} (
                     stored_at,
-                    "{toSnakeCase(nameof(EvDbEventRecord.Offset))}");
+                    "{Fields.Message.Offset}");
 
             """);
 
@@ -162,33 +159,33 @@ internal static class Scripts
             ? string.Empty
             : $"""
             CREATE TABLE {tblInitial}snapshot (
-                {toSnakeCase(nameof(EvDbStoredSnapshotData.Id))} UUID NOT NULL,
-                {toSnakeCase(nameof(EvDbViewAddress.Domain))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbViewAddress.Partition))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbViewAddress.StreamId))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {toSnakeCase(nameof(EvDbViewAddress.ViewName))} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                "{toSnakeCase(nameof(EvDbStoredSnapshot.Offset))}" BIGINT NOT NULL,
-                {toSnakeCase(nameof(EvDbStoredSnapshot.State))} JSON NOT NULL,
+                {Fields.Snapshot.Id} UUID NOT NULL,
+                {Fields.Snapshot.Domain} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Snapshot.Partition} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Snapshot.StreamId} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Snapshot.ViewName} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                "{Fields.Snapshot.Offset}" BIGINT NOT NULL,
+                {Fields.Snapshot.State} JSON NOT NULL,
                 stored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
     
                 PRIMARY KEY (
-                    {toSnakeCase(nameof(EvDbViewAddress.Domain))},  
-                    {toSnakeCase(nameof(EvDbViewAddress.Partition))},   
-                    {toSnakeCase(nameof(EvDbViewAddress.StreamId))}, 
-                    {toSnakeCase(nameof(EvDbViewAddress.ViewName))},
-                    "{toSnakeCase(nameof(EvDbStoredSnapshot.Offset))}"),
-                CONSTRAINT CK_snapshot_domain_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbViewAddress.Domain))}) > 0),
-                CONSTRAINT CK_snapshot_stream_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbViewAddress.Partition))}) > 0),
-                CONSTRAINT CK_snapshot_stream_id_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbViewAddress.StreamId))}) > 0),
-                CONSTRAINT CK_snapshot_aggregate_type_not_empty CHECK (CHAR_LENGTH({toSnakeCase(nameof(EvDbViewAddress.ViewName))}) > 0)
+                    {Fields.Snapshot.Domain},  
+                    {Fields.Snapshot.Partition},   
+                    {Fields.Snapshot.StreamId}, 
+                    {Fields.Snapshot.ViewName},
+                    "{Fields.Snapshot.Offset}"),
+                CONSTRAINT CK_snapshot_domain_not_empty CHECK (CHAR_LENGTH({Fields.Snapshot.Domain}) > 0),
+                CONSTRAINT CK_snapshot_stream_type_not_empty CHECK (CHAR_LENGTH({Fields.Snapshot.Partition}) > 0),
+                CONSTRAINT CK_snapshot_stream_id_not_empty CHECK (CHAR_LENGTH({Fields.Snapshot.StreamId}) > 0),
+                CONSTRAINT CK_snapshot_aggregate_type_not_empty CHECK (CHAR_LENGTH({Fields.Snapshot.ViewName}) > 0)
             );
 
             CREATE INDEX ix_snapshot_earlier_stored_at_{unique:N}
             ON {tblInitial}snapshot (
-                {toSnakeCase(nameof(EvDbViewAddress.Domain))}, 
-                {toSnakeCase(nameof(EvDbViewAddress.Partition))}, 
-                {toSnakeCase(nameof(EvDbViewAddress.StreamId))},
-                {toSnakeCase(nameof(EvDbViewAddress.ViewName))}, stored_at);
+                {Fields.Snapshot.Domain}, 
+                {Fields.Snapshot.Partition}, 
+                {Fields.Snapshot.StreamId},
+                {Fields.Snapshot.ViewName}, stored_at);
             """;
 
         #endregion

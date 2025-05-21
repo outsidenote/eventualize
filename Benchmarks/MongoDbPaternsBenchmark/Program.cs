@@ -1,5 +1,4 @@
-﻿using BenchmarkDotNet.Running;
-using MongoBenchmark;
+﻿using MongoBenchmark;
 using System.Diagnostics;
 
 #pragma warning disable S125 // Sections of code should not be commented out

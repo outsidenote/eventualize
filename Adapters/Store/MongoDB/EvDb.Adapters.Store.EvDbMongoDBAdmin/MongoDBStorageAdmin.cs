@@ -3,11 +3,8 @@
 
 using EvDb.Adapters.Store.MongoDB.Internals;
 using EvDb.Core;
-using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Core.Misc;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
@@ -39,7 +36,7 @@ public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin
 
     async Task IEvDbStorageAdmin.CreateEnvironmentAsync(CancellationToken cancellation)
     {
-        if(_features.HasFlag(StorageFeatures.Stream))
+        if (_features.HasFlag(StorageFeatures.Stream))
             await _collectionsSetup.CreateEventsCollectionAsync(cancellation);
         if (_features.HasFlag(StorageFeatures.Outbox))
         {

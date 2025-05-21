@@ -4,9 +4,9 @@ namespace EvDb.Core.Tests;
 
 using EvDb.Core;
 using EvDb.Core.Adapters;
+using Microsoft.Extensions;
 using System.Collections.Generic;
 using Xunit.Abstractions;
-using Microsoft.Extensions;
 
 [Trait("DB", "TestingStreamStore")]
 public class TestingStoreNoViewsTests : StreamNoViewsBaseTests
