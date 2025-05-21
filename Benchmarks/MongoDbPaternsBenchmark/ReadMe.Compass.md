@@ -25,8 +25,7 @@ $sort
 $match
 ```json
 {
-  "domain": "testdomain", 
-    "partition": "testpartition", 
+  "root_address": "testdomain:testpartition", 
     "stream_id": "teststream", 
     "offset": { $gte: 1001 }
 }
@@ -35,8 +34,7 @@ $match
 $sort
 ```json
 {
-  domain: 1,
-  partition: 1,
+  root_address: 1,
   stream_id:1,
   offset: 1
 }

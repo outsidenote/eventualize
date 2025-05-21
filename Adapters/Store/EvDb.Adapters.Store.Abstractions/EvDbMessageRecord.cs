@@ -12,11 +12,7 @@ public struct EvDbMessageRecord
     /// <summary>
     /// The address of the stream that the message produced from
     /// </summary>
-    public string Domain { get; init; }
-    /// <summary>
-    /// The address of the stream that produced the message
-    /// </summary>
-    public string Partition { get; init; }
+    public string RootAddress { get; init; }
     /// <summary>
     /// The identifier of the stream instance
     /// </summary>
@@ -63,12 +59,10 @@ public struct EvDbMessageRecord
 
     public static implicit operator EvDbMessageRecord(EvDbMessage e)
     {
-        Activity? activity = Activity.Current;
         var result = new EvDbMessageRecord
         {
             Id = Guid.NewGuid(), // TODO: GuidV7
-            Domain = e.StreamCursor.Domain,
-            Partition = e.StreamCursor.Partition,
+            RootAddress = e.StreamCursor.RootAddress,
             StreamId = e.StreamCursor.StreamId,
             Offset = e.StreamCursor.Offset,
             EventType = e.EventType,
@@ -93,7 +87,7 @@ public struct EvDbMessageRecord
     /// <returns></returns>
     public IEvDbMessageMeta GetMetadata()
     {
-        EvDbStreamCursor cursor = new EvDbStreamCursor(Domain, Partition, StreamId, Offset);
+        EvDbStreamCursor cursor = new EvDbStreamCursor(RootAddress, StreamId, Offset);
         var result = new EvDbMessageMeta(cursor,
                                          EventType,
                                          MessageType,

@@ -8,7 +8,8 @@
 			- 1.2.3: Default connection string key changed from "EvDbSqlServerConnection" to "EvDbConnection"
 			- 2.0.0: Storage Provider interfaces has changed
 			- 3.0.0: Type Names refactoring of attributes and fundamentals types
-			- 4.0.0: Domain and Partition become Address, Message got TelemetryContext instead of TraceId and SpanId
+			- 4.0.0: Message got TelemetryContext instead of TraceId and SpanId
+			- 4.0.1: Domain and Partition become Address
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

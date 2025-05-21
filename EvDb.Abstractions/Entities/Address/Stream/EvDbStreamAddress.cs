@@ -7,48 +7,40 @@ namespace EvDb.Core;
 /// <summary>
 /// Identify the stream address, a unique instance of a stream
 /// </summary>
-/// <param name="Domain"></param>
-/// <param name="Partition">Representation of a stream partition under the domain, like a User</param>
+/// <param name="RootAddress"></param>
 /// <param name="StreamId">The instance of a stream entity like { User: 'Joe' }</param>
 [Equatable]
-[DebuggerDisplay("{Domain}:{Partition}:{StreamId}")]
-public readonly partial record struct EvDbStreamAddress(EvDbDomainName Domain, EvDbPartitionName Partition, string StreamId)
+[DebuggerDisplay("{RootAddress}:{StreamId}")]
+public readonly partial record struct EvDbStreamAddress(EvDbRootAddressName RootAddress, string StreamId)
 {
-    public EvDbStreamAddress(EvDbPartitionAddress baseAddress, string streamId)
-        : this(baseAddress.Domain, baseAddress.Partition, streamId)
-    {
-    }
-
     #region IsEquals, ==, !=
 
 
-    private bool IsEquals(EvDbPartitionAddress partitionAddress)
+    private bool IsEquals(EvDbRootAddressName rootAddress)
     {
-        if (this.Domain != partitionAddress.Domain)
-            return false;
-        if (this.Partition != partitionAddress.Partition)
+        if (this.RootAddress != rootAddress)
             return false;
 
         return true;
     }
 
-    public static bool operator ==(EvDbStreamAddress streamAddress, EvDbPartitionAddress partitionAddress)
+    public static bool operator ==(EvDbStreamAddress streamAddress, EvDbRootAddressName rootAddress)
     {
-        return streamAddress.IsEquals(partitionAddress);
+        return streamAddress.IsEquals(rootAddress);
     }
 
-    public static bool operator !=(EvDbStreamAddress streamAddress, EvDbPartitionAddress partitionAddress)
+    public static bool operator !=(EvDbStreamAddress streamAddress, EvDbRootAddressName rootAddress)
     {
-        return !streamAddress.IsEquals(partitionAddress);
+        return !streamAddress.IsEquals(rootAddress);
     }
 
     #endregion // IsEquals, ==, !=
 
     #region Casting Overloads
 
-    public static implicit operator EvDbPartitionAddress(EvDbStreamAddress instance)
+    public static implicit operator EvDbRootAddressName(EvDbStreamAddress instance)
     {
-        return new EvDbPartitionAddress(instance.Domain, instance.Partition);
+        return instance.RootAddress;
     }
 
 
@@ -60,7 +52,7 @@ public readonly partial record struct EvDbStreamAddress(EvDbDomainName Domain, E
     /// Converts to parameters (string representation).
     /// </summary>
     /// <returns></returns>
-    public Parameters ToParameters() => new Parameters(Domain.Value, Partition.Value, StreamId);
+    public Parameters ToParameters() => new Parameters(RootAddress.Value,  StreamId);
 
     #endregion //  ToParameters
 
@@ -73,8 +65,7 @@ public readonly partial record struct EvDbStreamAddress(EvDbDomainName Domain, E
     public OtelTags ToOtelTagsToOtelTags()
     {
         var tags = OtelTags.Empty
-                            .Add(TAG_DOMAIN, Domain.Value)
-                            .Add(TAG_PARTITION, Partition.Value)
+                            .Add(TAG_ROOT_ADDRESS, RootAddress.Value)
                             .Add(TAG_STREAM_ID, StreamId);
         return tags;
     }
@@ -85,10 +76,10 @@ public readonly partial record struct EvDbStreamAddress(EvDbDomainName Domain, E
 
     public override string ToString()
     {
-        return $"{Domain}:{Partition}:{StreamId}";
+        return $"{RootAddress}:{StreamId}";
     }
 
     #endregion // ToString
 
-    public readonly record struct Parameters(string Domain, string Partition, string StreamId);
+    public readonly record struct Parameters(string RootAddress, string StreamId);
 }

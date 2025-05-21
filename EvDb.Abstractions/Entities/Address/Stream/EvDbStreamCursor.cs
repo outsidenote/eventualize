@@ -3,36 +3,33 @@ using System.Diagnostics;
 
 namespace EvDb.Core;
 
+/// <summary>
+/// Specific stream location.
+/// </summary>
 [DebuggerDisplay("Offset:{Offset}")]
 [Equatable]
 public readonly partial record struct EvDbStreamCursor
 {
-    public EvDbStreamCursor(EvDbDomainName domain, EvDbPartitionName partition, string streamId, long offset = 0)
+    public EvDbStreamCursor(EvDbRootAddressName rootAddress, string streamId, long offset = 0)
     {
-        Domain = domain;
-        Partition = partition;
+        RootAddress = rootAddress;
         StreamId = streamId;
         Offset = offset;
     }
 
     public EvDbStreamCursor(EvDbStreamAddress streamId, long offset = 0)
-        : this(streamId.Domain, streamId.Partition, streamId.StreamId, offset) { }
-    public EvDbStreamCursor(EvDbPartitionAddress partition, string streamId, long offset = 0)
-        : this(partition.Domain, partition.Partition, streamId, offset) { }
+        : this(streamId.RootAddress, streamId.StreamId, offset) { }
 
-    public string Domain { get; }
-    public string Partition { get; }
+    public string RootAddress { get; }
     public string StreamId { get; }
     public long Offset { get; }
 
     #region IsEquals, ==, !=
 
 
-    private bool IsEquals(EvDbPartitionAddress partitionAddress)
+    private bool IsEquals(EvDbRootAddressName rootAddress)
     {
-        if (this.Domain != partitionAddress.Domain)
-            return false;
-        if (this.Partition != partitionAddress.Partition)
+        if (this.RootAddress != rootAddress)
             return false;
 
         return true;
@@ -40,9 +37,7 @@ public readonly partial record struct EvDbStreamCursor
 
     private bool IsEquals(EvDbStreamAddress address)
     {
-        if (this.Domain != address.Domain)
-            return false;
-        if (this.Partition != address.Partition)
+        if (this.RootAddress != address.RootAddress)
             return false;
         if (this.StreamId != address.StreamId)
             return false;
@@ -60,12 +55,12 @@ public readonly partial record struct EvDbStreamCursor
         return !cursor.IsEquals(streamAddress);
     }
 
-    public static bool operator ==(EvDbStreamCursor cursor, EvDbPartitionAddress streamAddress)
+    public static bool operator ==(EvDbStreamCursor cursor, EvDbRootAddressName streamAddress)
     {
         return cursor.IsEquals(streamAddress);
     }
 
-    public static bool operator !=(EvDbStreamCursor cursor, EvDbPartitionAddress streamAddress)
+    public static bool operator !=(EvDbStreamCursor cursor, EvDbRootAddressName streamAddress)
     {
         return !cursor.IsEquals(streamAddress);
     }
@@ -76,12 +71,12 @@ public readonly partial record struct EvDbStreamCursor
 
     public static implicit operator EvDbStreamAddress(EvDbStreamCursor instance)
     {
-        return new EvDbStreamAddress(instance.Domain, instance.Partition, instance.StreamId);
+        return new EvDbStreamAddress(instance.RootAddress, instance.StreamId);
     }
 
-    public static implicit operator EvDbPartitionAddress(EvDbStreamCursor instance)
+    public static implicit operator EvDbRootAddressName(EvDbStreamCursor instance)
     {
-        return new EvDbPartitionAddress(instance.Domain, instance.Partition);
+        return instance.RootAddress;
     }
 
 
@@ -90,16 +85,16 @@ public readonly partial record struct EvDbStreamCursor
     #region ToString
 
     /// <summary>
-    /// Get the unique fields as string (domain:partition:stream_id:offset).
+    /// Get the unique fields as string (root_address:stream_id:offset).
     /// </summary>
     /// <returns></returns>
-    public override string ToString() => $"{Domain}:{Partition}:{StreamId}:{Offset:000_000_000_000}";
+    public override string ToString() => $"{RootAddress}:{StreamId}:{Offset:000_000_000_000}";
 
     /// <summary>
-    /// Get the filter fields as string (domain:partition:stream_id:).
+    /// Get the filter fields as string (root_address:stream_id:).
     /// </summary>
     /// <returns></returns>
-    public string ToFilterString() => $"{Domain}:{Partition}:{StreamId}:";
+    public string ToFilterString() => $"{RootAddress}:{StreamId}:";
 
     #endregion //  ToString
 }

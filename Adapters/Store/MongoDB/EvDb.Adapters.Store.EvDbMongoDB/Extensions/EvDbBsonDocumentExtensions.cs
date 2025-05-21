@@ -17,14 +17,13 @@ public static class EvDbBsonDocumentExtensions
 
     public static EvDbEvent ToEvent(this BsonDocument doc)
     {
-        var domain = doc.GetValue(Event.Domain).AsString;
-        var partition = doc.GetValue(Event.Partition).AsString;
+        var rootAddress = doc.GetValue(Event.RootAddress).AsString;
         var streamId = doc.GetValue(Event.StreamId).AsString;
         var offset = doc.GetValue(Event.Offset).ToInt64();
         var eventType = doc.GetValue(Event.EventType).AsString;
         var capturedBy = doc.GetValue(Event.CapturedBy).AsString;
         var capturedAt = doc.GetValue(Event.CapturedAt).AsBsonDateTime.ToUniversalTime();
-        var cursor = new EvDbStreamCursor(domain, partition, streamId, offset);
+        var cursor = new EvDbStreamCursor(rootAddress, streamId, offset);
 
         string payloadJson = doc.GetValue(Event.Payload)
                                 .AsBsonDocument
@@ -51,8 +50,7 @@ public static class EvDbBsonDocumentExtensions
 
     public static EvDbMessageRecord ToMessageRecord(this BsonDocument doc)
     {
-        var domain = doc.GetValue(Message.Domain).AsString;
-        var partition = doc.GetValue(Message.Partition).AsString;
+        var rootAddress = doc.GetValue(Message.RootAddress).AsString;
         var streamId = doc.GetValue(Message.StreamId).AsString;
         var offset = doc.GetValue(Message.Offset).ToInt64();
         var eventType = doc.GetValue(Message.EventType).AsString;
@@ -76,8 +74,7 @@ public static class EvDbBsonDocumentExtensions
 
         var result = new EvDbMessageRecord
         {
-            Domain = domain,
-            Partition = partition,
+            RootAddress = rootAddress,
             StreamId = streamId,
             Offset = offset,
             EventType = eventType,
@@ -100,13 +97,12 @@ public static class EvDbBsonDocumentExtensions
     public static EvDbStoredSnapshotData ToSnapshotData(this BsonDocument doc)
     {
         // Map fields from the BsonDocument back to an EvDbEvent.
-        var domain = doc.GetValue(Snapshot.Domain).AsString;
-        var partition = doc.GetValue(Snapshot.Partition).AsString;
+        var rootAddress = doc.GetValue(Snapshot.RootAddress).AsString;
         var streamId = doc.GetValue(Snapshot.StreamId).AsString;
         var viewName = doc.GetValue(Snapshot.ViewName).AsString;
         var offset = doc.GetValue(Snapshot.Offset).ToInt64();
         var storeOffset = doc.GetValue(Snapshot.StoreOffset).ToInt64();
-        var address = new EvDbViewAddress(domain, partition, streamId, viewName);
+        var address = new EvDbViewAddress(rootAddress, streamId, viewName);
 
         string stateJson = "null";
         if (doc.TryGetValue(Snapshot.State, out BsonValue value))
@@ -165,8 +161,7 @@ public static class EvDbBsonDocumentExtensions
 
         return new BsonDocument
         {
-            [Event.Domain] = rec.StreamCursor.Domain,
-            [Event.Partition] = rec.StreamCursor.Partition,
+            [Event.RootAddress] = rec.StreamCursor.RootAddress,
             [Event.StreamId] = rec.StreamCursor.StreamId,
             [Event.Offset] = rec.StreamCursor.Offset,
             [Event.EventType] = rec.EventType,
@@ -192,8 +187,7 @@ public static class EvDbBsonDocumentExtensions
 
         var doc = new BsonDocument
         {
-            [Message.Domain] = rec.Domain,
-            [Message.Partition] = rec.Partition,
+            [Message.RootAddress] = rec.RootAddress,
             [Message.StreamId] = rec.StreamId,
             [Message.Offset] = rec.Offset,
             [Message.EventType] = rec.EventType,
@@ -218,8 +212,7 @@ public static class EvDbBsonDocumentExtensions
     {
         BsonDocument doc = new BsonDocument
         {
-            [Snapshot.Domain] = rec.Domain,
-            [Snapshot.Partition] = rec.Partition,
+            [Snapshot.RootAddress] = rec.RootAddress,
             [Snapshot.StreamId] = rec.StreamId,
             [Snapshot.ViewName] = rec.ViewName,
             [Snapshot.Offset] = rec.Offset

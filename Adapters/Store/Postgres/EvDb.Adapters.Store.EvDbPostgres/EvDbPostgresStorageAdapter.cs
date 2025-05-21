@@ -39,8 +39,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         #region Parameters
 
         Guid[] ids = new Guid[records.Length];
-        string[] domains = new string[records.Length];
-        string[] partitions = new string[records.Length];
+        string[] rootAddresses = new string[records.Length];
         string[] streamIds = new string[records.Length];
         long[] offsets = new long[records.Length];
         string[] eventTypes = new string[records.Length];
@@ -54,8 +53,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         {
             EvDbEventRecord record = records[i];
             ids[i] = record.Id;
-            domains[i] = record.Domain;
-            partitions[i] = record.Partition;
+            rootAddresses[i] = record.RootAddress;
             streamIds[i] = record.StreamId;
             offsets[i] = record.Offset;
             eventTypes[i] = record.EventType;
@@ -72,8 +70,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         #region Setup Parameters
 
         command.Parameters.AddWithValue(Parameters.Event.Id, NpgsqlTypes.NpgsqlDbType.Uuid | NpgsqlTypes.NpgsqlDbType.Array, ids);
-        command.Parameters.AddWithValue(Parameters.Event.Domain, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, domains);
-        command.Parameters.AddWithValue(Parameters.Event.Partition, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, partitions);
+        command.Parameters.AddWithValue(Parameters.Event.RootAddress, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, rootAddresses);
         command.Parameters.AddWithValue(Parameters.Event.StreamId, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, streamIds);
         command.Parameters.AddWithValue(Parameters.Event.Offset, NpgsqlTypes.NpgsqlDbType.Bigint | NpgsqlTypes.NpgsqlDbType.Array, offsets);
         command.Parameters.AddWithValue(Parameters.Event.EventType, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
@@ -107,8 +104,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         var otelContext = Activity.Current?.SerializeTelemetryContext();
 
         Guid[] ids = new Guid[records.Length];
-        string[] domains = new string[records.Length];
-        string[] partitions = new string[records.Length];
+        string[] rootAddresses = new string[records.Length];
         string[] streamIds = new string[records.Length];
         long[] offsets = new long[records.Length];
         string[] eventTypes = new string[records.Length];
@@ -123,8 +119,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         {
             EvDbMessageRecord record = records[i];
             ids[i] = record.Id;
-            domains[i] = record.Domain;
-            partitions[i] = record.Partition;
+            rootAddresses[i] = record.RootAddress;
             streamIds[i] = record.StreamId;
             offsets[i] = record.Offset;
             eventTypes[i] = record.EventType;
@@ -144,8 +139,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         #region Setup Parameters
 
         command.Parameters.AddWithValue(Parameters.Message.Id, NpgsqlTypes.NpgsqlDbType.Uuid | NpgsqlTypes.NpgsqlDbType.Array, ids);
-        command.Parameters.AddWithValue(Parameters.Message.Domain, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, domains);
-        command.Parameters.AddWithValue(Parameters.Message.Partition, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, partitions);
+        command.Parameters.AddWithValue(Parameters.Message.RootAddress, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, rootAddresses);
         command.Parameters.AddWithValue(Parameters.Message.StreamId, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, streamIds);
         command.Parameters.AddWithValue(Parameters.Message.Offset, NpgsqlTypes.NpgsqlDbType.Bigint | NpgsqlTypes.NpgsqlDbType.Array, offsets);
         command.Parameters.AddWithValue(Parameters.Message.Channel, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, channels);
@@ -178,8 +172,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         #region Setup Parameters
 
         command.Parameters.AddWithValue(Parameters.Snapshot.Id, NpgsqlTypes.NpgsqlDbType.Uuid, snapshot.Id);
-        command.Parameters.AddWithValue(Parameters.Snapshot.Domain, NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.Domain);
-        command.Parameters.AddWithValue(Parameters.Snapshot.Partition, NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.Partition);
+        command.Parameters.AddWithValue(Parameters.Snapshot.RootAddress, NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.RootAddress);
         command.Parameters.AddWithValue(Parameters.Snapshot.StreamId, NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.StreamId);
         command.Parameters.AddWithValue(Parameters.Snapshot.ViewName, NpgsqlTypes.NpgsqlDbType.Varchar, snapshot.ViewName);
         command.Parameters.AddWithValue(Parameters.Snapshot.Offset, NpgsqlTypes.NpgsqlDbType.Bigint, snapshot.Offset);
@@ -203,8 +196,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
                                                             CancellationToken cancellation)
     {
         var command = new NpgsqlCommand(query, (NpgsqlConnection)conn);
-        command.Parameters.AddWithValue(nameof(EvDbViewAddress.Domain), viewAddress.Domain);
-        command.Parameters.AddWithValue(nameof(EvDbViewAddress.Partition), viewAddress.Partition);
+        command.Parameters.AddWithValue(nameof(EvDbViewAddress.RootAddress), viewAddress.RootAddress);
         command.Parameters.AddWithValue(nameof(EvDbViewAddress.StreamId), viewAddress.StreamId);
         command.Parameters.AddWithValue(nameof(EvDbViewAddress.ViewName), viewAddress.ViewName);
 
@@ -250,8 +242,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
             var payloadIndex = _reader.GetOrdinal(nameof(EvDbEventRecord.Payload));
             var record = new EvDbEventRecord
             {
-                Domain = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.Domain))), // Non-nullable
-                Partition = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.Partition))), // Non-nullable
+                RootAddress = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.RootAddress))), // Non-nullable
                 StreamId = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.StreamId))), // Non-nullable
                 Offset = _reader.GetInt64(_reader.GetOrdinal(nameof(EvDbEventRecord.Offset))), // Non-nullable
                 EventType = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.EventType))), // Non-nullable

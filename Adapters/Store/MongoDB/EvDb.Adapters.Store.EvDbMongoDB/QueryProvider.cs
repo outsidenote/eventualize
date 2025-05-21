@@ -50,15 +50,13 @@ public static class QueryProvider
 
     public static readonly IImmutableList<CreateIndexModel<BsonDocument>> EventsIndexes = [
         Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Event.Domain)
-        .Ascending(Fields.Event.Partition)
+                .Ascending(Fields.Event.RootAddress)
         .Ascending(Fields.Event.StreamId)
         .Ascending(Fields.Event.Offset)
         .ToCreateIndexModel("evb_events_idx", true),
         Builders<BsonDocument>.IndexKeys
                 .Ascending(Fields.Event.EventType)
-                .Ascending(Fields.Event.Domain)
-                .Ascending(Fields.Event.Partition)
+                .Ascending(Fields.Event.RootAddress)
                 .Ascending(Fields.Event.StreamId)
                 .Ascending(Fields.Event.Offset)
             .ToCreateIndexModel("evb_events_type_idx"),
@@ -77,8 +75,7 @@ public static class QueryProvider
     {
         return [
             Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Message.Domain)
-                .Ascending(Fields.Message.Partition)
+                .Ascending(Fields.Message.RootAddress)
                 .Ascending(Fields.Message.StreamId)
                 .Ascending(Fields.Message.Channel)
                 .Ascending(Fields.Message.MessageType)
@@ -107,8 +104,7 @@ public static class QueryProvider
 
     public static readonly IImmutableList<CreateIndexModel<BsonDocument>> SnapshotIndexes = [
         Builders<BsonDocument>.IndexKeys
-                    .Ascending(Fields.Snapshot.Domain)
-                    .Ascending(Fields.Snapshot.Partition)
+                    .Ascending(Fields.Snapshot.RootAddress)
                     .Ascending(Fields.Snapshot.StreamId)
                     .Ascending(Fields.Snapshot.ViewName)
                     .Descending(Fields.Snapshot.Offset)
@@ -132,8 +128,7 @@ public static class QueryProvider
     {
         var sharding = new BsonDocument
         {
-            [Fields.Event.Domain] = 1,
-            [Fields.Event.Partition] = 1,
+            [Fields.Event.RootAddress] = 1,
             [Fields.Event.EventType] = 1
         };
 
@@ -146,8 +141,7 @@ public static class QueryProvider
 
     public static SortDefinition<BsonDocument> SortEvents { get; } =
                                     Builders<BsonDocument>.Sort
-                                            .Ascending(Fields.Event.Domain)
-                                            .Ascending(Fields.Event.Partition)
+                                            .Ascending(Fields.Event.RootAddress)
                                             .Ascending(Fields.Event.StreamId)
                                             .Ascending(Fields.Event.Offset);
 
@@ -157,8 +151,7 @@ public static class QueryProvider
 
     public static SortDefinition<BsonDocument> SortEventsDesc { get; } =
                                     Builders<BsonDocument>.Sort
-                                            .Ascending(Fields.Event.Domain)
-                                            .Ascending(Fields.Event.Partition)
+                                            .Ascending(Fields.Event.RootAddress)
                                             .Ascending(Fields.Event.StreamId)
                                             .Descending(Fields.Event.Offset);
 
@@ -168,8 +161,7 @@ public static class QueryProvider
 
     public static SortDefinition<BsonDocument> SortSnapshots { get; } =
                                     Builders<BsonDocument>.Sort
-                                            .Ascending(Fields.Snapshot.Domain)
-                                            .Ascending(Fields.Snapshot.Partition)
+                                            .Ascending(Fields.Snapshot.RootAddress)
                                             .Ascending(Fields.Snapshot.StreamId)
                                             .Ascending(Fields.Snapshot.ViewName)
                                             .Descending(Fields.Snapshot.Offset);
@@ -201,9 +193,7 @@ public static class QueryProvider
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
                                         Builders<BsonDocument>.Filter
-                                            .Eq(Fields.Event.Domain, address.Domain.Value),
-                                        Builders<BsonDocument>.Filter
-                                            .Eq(Fields.Event.Partition, address.Partition.Value),
+                                            .Eq(Fields.Event.RootAddress, address.RootAddress.Value),
                                         Builders<BsonDocument>.Filter
                                             .Eq(Fields.Event.StreamId, address.StreamId));
 
@@ -215,9 +205,7 @@ public static class QueryProvider
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
                                         Builders<BsonDocument>.Filter
-                                            .Eq(Fields.Event.Domain, address.Domain),
-                                        Builders<BsonDocument>.Filter
-                                            .Eq(Fields.Event.Partition, address.Partition),
+                                            .Eq(Fields.Event.RootAddress, address.RootAddress),
                                         Builders<BsonDocument>.Filter
                                             .Eq(Fields.Event.StreamId, address.StreamId),
                                         Builders<BsonDocument>.Filter
@@ -231,9 +219,7 @@ public static class QueryProvider
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
                                         Builders<BsonDocument>.Filter
-                                            .Eq(Fields.Snapshot.Domain, address.Domain),
-                                        Builders<BsonDocument>.Filter
-                                            .Eq(Fields.Snapshot.Partition, address.Partition),
+                                            .Eq(Fields.Snapshot.RootAddress, address.RootAddress),
                                         Builders<BsonDocument>.Filter
                                             .Eq(Fields.Snapshot.StreamId, address.StreamId),
                                         Builders<BsonDocument>.Filter

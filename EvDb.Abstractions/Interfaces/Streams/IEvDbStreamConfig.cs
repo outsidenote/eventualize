@@ -5,7 +5,7 @@ namespace EvDb.Core;
 
 public interface IEvDbStreamConfig
 {
-    EvDbPartitionAddress PartitionAddress { get; }
+    EvDbRootAddressName RootAddress { get; }
 
     JsonSerializerOptions? Options { get; }
 

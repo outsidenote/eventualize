@@ -46,7 +46,7 @@ public abstract class EvDbStream :
         _logger = logger;
         _views = views;
         _storageAdapter = storageAdapter;
-        StreamAddress = new EvDbStreamAddress(streamConfiguration.PartitionAddress, streamId);
+        StreamAddress = new EvDbStreamAddress(streamConfiguration.RootAddress, streamId);
         StoredOffset = lastStoredOffset;
         Options = streamConfiguration.Options;
         TimeProvider = streamConfiguration.TimeProvider ?? TimeProvider.System;

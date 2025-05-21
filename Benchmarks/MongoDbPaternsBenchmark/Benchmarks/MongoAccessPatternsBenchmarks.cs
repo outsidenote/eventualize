@@ -6,6 +6,7 @@ using MongoDB.Driver;
 using System.Collections.Immutable;
 using System.Text;
 using Xunit;
+
 #pragma warning disable S125 // Sections of code should not be commented out
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 #pragma warning disable S1450 // Private fields only used as local variables in methods should become local variables
@@ -73,23 +74,14 @@ public class MongoAccessPatternsBenchmarks
         if (!existingCollections.Contains(CollectionComposed))
             _db.CreateCollection(CollectionComposed);
 
-        // Create indexes for both collections: domain, partition, stream_id, offset.
+        // Create indexes for both collections: root_address, stream_id, offset.
         var indexKeys = Builders<BsonDocument>.IndexKeys
-                            .Ascending("domain")
-                            .Ascending("partition")
+                            .Ascending("root_address")
                             .Ascending("stream_id");
         var indexPrimaryKeys = indexKeys
                                 .Ascending("offset");
-        // var byIdOptions = new CreateIndexOptions { Name = "domain_partition_id" };
-        // _collectionById.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexKeys, byIdOptions));
-        var compoundOptions = new CreateIndexOptions { Name = "domain_partition_id_offset", Unique = true };
+        var compoundOptions = new CreateIndexOptions { Name = "root_address_id_offset", Unique = true };
         _collectionCompund.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexPrimaryKeys, compoundOptions));
-
-
-        // (Optional) For pattern2, you might create an additional unique index on a separate field.
-        //_collectionCompund.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(
-        //   Builders<BsonDocument>.IndexKeys.Ascending("unique_id"),
-        //   new CreateIndexOptions { Unique = true }));
     }
 
     [GlobalCleanup]
@@ -131,13 +123,11 @@ public class MongoAccessPatternsBenchmarks
         {
             int firstOffset = baseOffset + (i * GET_BATCH_SIZE);
             var filter = Builders<BsonDocument>.Filter.And(
-                Builders<BsonDocument>.Filter.Eq("domain", "testdomain"),
-                Builders<BsonDocument>.Filter.Eq("partition", "testpartition"),
+                Builders<BsonDocument>.Filter.Eq("root_address", "testdomain:testpartition"),
                 Builders<BsonDocument>.Filter.Eq("stream_id", "teststream"),
                 Builders<BsonDocument>.Filter.Gte("offset", firstOffset)
             );
-            var sorting = Builders<BsonDocument>.Sort.Ascending("domain")
-                                                                          .Ascending("partition")
+            var sorting = Builders<BsonDocument>.Sort.Ascending("root_address")
                                                                           .Ascending("stream_id")
                                                                           .Ascending("offset");
             var cursor = _collectionCompund.Find(filter)
@@ -174,7 +164,7 @@ public class MongoAccessPatternsBenchmarks
                                    .Select(ev =>
             {
                 var doc = ev.ToBsonDocument();
-                // Set _id to the concatenated string (e.g., "domain:partition:stream:offset")
+                // Set _id to the concatenated string (e.g., "root_address:stream:offset")
                 doc["_id"] = ev.StreamCursor.ToString();
                 return doc;
             });
@@ -255,8 +245,8 @@ public class MongoAccessPatternsBenchmarks
 
     private IFindFluent<BsonDocument, BsonDocument> CreateByIdQuery(int firstOffset, int i)
     {
-        var fromId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", firstOffset).ToString();
-        var startwithId = new EvDbStreamCursor("testdomain", "testpartition", "teststream", 0).ToNonOffsetString();
+        var fromId = new EvDbStreamCursor("testdomain:testpartition", "teststream", firstOffset).ToString();
+        var startwithId = new EvDbStreamCursor("testdomain:testpartition", "teststream", 0).ToNonOffsetString();
         var filter = Builders<BsonDocument>.Filter.And(
                                             Builders<BsonDocument>.Filter.Regex(
                                                 "_id", new BsonRegularExpression($"^{startwithId}")),
@@ -275,7 +265,7 @@ public class MongoAccessPatternsBenchmarks
     private static EvDbEvent CreateTestEvent(int index)
     {
         // Create a sample test event.
-        var streamCursor = new EvDbStreamCursor("testdomain", "testpartition", "teststream", index);
+        var streamCursor = new EvDbStreamCursor("testdomain:testpartition", "teststream", index);
         var payload = Encoding.UTF8.GetBytes("{\"sample\":\"data\"}");
         return new EvDbEvent("TestEvent", DateTimeOffset.UtcNow, "benchmark", streamCursor, payload);
     }

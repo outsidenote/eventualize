@@ -6,5 +6,5 @@ public static class TestAggregateFactoryConfigs
     public static readonly string AggregateType2 = "TestAggregateType2";
     public static readonly Type TestStateType = typeof(TestState);
 
-    public static readonly EvDbPartitionAddress GetStreamType = new("default", "testStreamType");
+    public static readonly EvDbRootAddressName GetStreamType = "default:testStreamType";
 }

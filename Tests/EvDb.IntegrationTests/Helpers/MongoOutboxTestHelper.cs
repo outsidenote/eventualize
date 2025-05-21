@@ -34,9 +34,8 @@ internal static class MongoOutboxTestHelper
         var collection = db.GetCollection<BsonDocument>(outboxCollectionFormat);
 
         var projection = Builders<BsonDocument>.Projection
-            .Include(Fields.Message.Domain)
-            .Include(Fields.Message.Domain)
-            .Include(Fields.Message.Partition)
+            .Include(Fields.Message.RootAddress)
+            .Include(Fields.Message.RootAddress)
             .Include(Fields.Message.StreamId)
             .Include(Fields.Message.Offset)
             .Include(Fields.Message.EventType)

@@ -15,7 +15,7 @@ public interface IEvDbStreamFactory<T> : IEvDbStreamConfig
     /// <typeparam name="TId"></typeparam>
     /// <param name="streamId">
     /// The stream identifier.
-    /// It's the dynamic part of the stream address along with the static part of `domain` and `partition`
+    /// It's the dynamic part of the stream address along with the static part of `address` 
     /// </param>
     /// <returns></returns>
     T Create<TId>(in TId streamId)
@@ -27,7 +27,7 @@ public interface IEvDbStreamFactory<T> : IEvDbStreamConfig
     /// <typeparam name="TId"></typeparam>
     /// <param name="streamId">
     /// The stream identifier.
-    /// It's the dynamic part of the stream address along with the static part of `domain` and `partition`
+    /// It's the dynamic part of the stream address along with the static part of `address` 
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
