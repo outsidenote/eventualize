@@ -9,28 +9,33 @@ using System.Text.RegularExpressions;
 
 namespace EvDb.Core;
 
+/// <summary>
+/// Name of stream root address (represent the uniqueness of the stream)
+/// along with the stream id it represent the stream's address.
+/// adding the offset we can get a stream's cursor
+/// </summary>
 [ExcludeFromCodeCoverage]
-[JsonConverter(typeof(EvDbPartitionNameSystemTextJsonConverter))]
-[TypeConverter(typeof(EvDbPartitionNameTypeConverter))]
-[DebuggerTypeProxy(typeof(EvDbPartitionNameDebugView))]
-[DebuggerDisplay("Underlying type: string, Value = { _value }")]
-public partial struct EvDbPartitionName :
-    IEquatable<EvDbPartitionName>,
+[JsonConverter(typeof(EvDbRootAddressNameSystemTextJsonConverter))]
+[TypeConverter(typeof(EvDbRootAddressNameTypeConverter))]
+[DebuggerTypeProxy(typeof(EvDbRootAddressNameDebugView))]
+[DebuggerDisplay("{ _value }")]
+public partial struct EvDbRootAddressName :
+    IEquatable<EvDbRootAddressName>,
     IEquatable<string>,
-    IComparable<EvDbPartitionName>,
+    IComparable<EvDbRootAddressName>,
     IComparable,
-    IParsable<EvDbPartitionName>
+    IParsable<EvDbRootAddressName>
 {
     #region Validation
 
-    [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_\-\.@#]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
+    [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_\-\./:]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
     private static partial Regex Validator();
 
     private static Validation Validate(string value) => Validator().IsMatch(value) switch
     {
 
         true => Validation.Ok,
-        _ => Validation.Invalid("The partition name must start with letters (A-Z) or (a-z), follow by alphabets, numbers, or the characters `-`, `_`, `.`, `@`, or `#`     .")
+        _ => Validation.Invalid(@"The address name must start with letters (A-Z) or (a-z), follow by alphabets, numbers, or the characters `-`, `_`, `.`, `:`, `/`")
     };
 
     #endregion //  Validation
@@ -66,7 +71,7 @@ public partial struct EvDbPartitionName :
 
     [DebuggerStepThroughAttribute]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public EvDbPartitionName()
+    public EvDbRootAddressName()
     {
 #if DEBUG
         _stackTrace = new StackTrace();
@@ -76,7 +81,7 @@ public partial struct EvDbPartitionName :
     }
 
     [DebuggerStepThroughAttribute]
-    private EvDbPartitionName(string value)
+    private EvDbRootAddressName(string value)
     {
         _value = value;
         _isInitialized = true;
@@ -94,16 +99,16 @@ public partial struct EvDbPartitionName :
     /// <param name = "value">The underlying type.</param>
     /// <returns>An instance of this type.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbPartitionName From(string value)
+    public static EvDbRootAddressName From(string value)
     {
         value = Format(value);
-        var validation = EvDbPartitionName.Validate(value);
+        var validation = EvDbRootAddressName.Validate(value);
         if (validation != Validation.Ok)
         {
             ThrowHelper.ThrowWhenValidationFails(validation);
         }
 
-        return new EvDbPartitionName(value);
+        return new EvDbRootAddressName(value);
     }
 
     /// <summary>
@@ -118,7 +123,7 @@ public partial struct EvDbPartitionName :
                             [NotNullWhen(true)]
                             string? value,
                             [MaybeNullWhen(false)]
-                            out EvDbPartitionName vo)
+                            out EvDbRootAddressName vo)
     {
         if (value is null)
         {
@@ -126,14 +131,14 @@ public partial struct EvDbPartitionName :
             return false;
         }
 
-        var validation = EvDbPartitionName.Validate(value);
+        var validation = EvDbRootAddressName.Validate(value);
         if (validation != Validation.Ok)
         {
             vo = default!;
             return false;
         }
 
-        vo = new EvDbPartitionName(value);
+        vo = new EvDbRootAddressName(value);
         return true;
     }
 
@@ -144,21 +149,21 @@ public partial struct EvDbPartitionName :
     /// </summary>
     /// <param name = "value">The primitive value.</param>
     /// <returns>A <see cref = "ValueObjectOrError{T}"/> containing either the value object, or an error.</returns>
-    public static ValueObjectOrError<EvDbPartitionName> TryFrom(string value)
+    public static ValueObjectOrError<EvDbRootAddressName> TryFrom(string value)
     {
         if (value is null)
         {
-            return new ValueObjectOrError<EvDbPartitionName>(Validation.Invalid("The value provided was null"));
+            return new ValueObjectOrError<EvDbRootAddressName>(Validation.Invalid("The value provided was null"));
         }
 
         value = Format(value);
-        var validation = EvDbPartitionName.Validate(value);
+        var validation = EvDbRootAddressName.Validate(value);
         if (validation != Validation.Ok)
         {
-            return new ValueObjectOrError<EvDbPartitionName>(validation);
+            return new ValueObjectOrError<EvDbRootAddressName>(validation);
         }
 
-        return new ValueObjectOrError<EvDbPartitionName>(new EvDbPartitionName(value));
+        return new ValueObjectOrError<EvDbRootAddressName>(new EvDbRootAddressName(value));
     }
 
     #endregion //  TryFrom / From
@@ -190,16 +195,16 @@ public partial struct EvDbPartitionName :
     // only called internally when something has been deserialized into
     // its primitive type.
 #pragma warning disable S4144 // Methods should not have identical implementations
-    private static EvDbPartitionName __Deserialize(string value)
+    private static EvDbRootAddressName __Deserialize(string value)
     {
         value = Format(value);
-        var validation = EvDbPartitionName.Validate(value);
+        var validation = EvDbRootAddressName.Validate(value);
         if (validation != Validation.Ok)
         {
             ThrowHelper.ThrowWhenValidationFails(validation);
         }
 
-        return new EvDbPartitionName(value);
+        return new EvDbRootAddressName(value);
     }
 #pragma warning restore S4144 // Methods should not have identical implementations
 
@@ -207,7 +212,7 @@ public partial struct EvDbPartitionName :
 
     #region Equals / CompaareTo / GetHashCode
 
-    public readonly bool Equals(EvDbPartitionName other)
+    public readonly bool Equals(EvDbRootAddressName other)
     {
         // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
         // We treat anything uninitialized as not equal to anything, even obj uninitialized instances of this type.
@@ -216,7 +221,7 @@ public partial struct EvDbPartitionName :
         return EqualityComparer<string>.Default.Equals(Value, other.Value);
     }
 
-    public bool Equals(EvDbPartitionName other, IEqualityComparer<EvDbPartitionName> comparer)
+    public bool Equals(EvDbRootAddressName other, IEqualityComparer<EvDbRootAddressName> comparer)
     {
         return comparer.Equals(this, other);
     }
@@ -233,17 +238,17 @@ public partial struct EvDbPartitionName :
 
     public readonly override bool Equals(Object? obj)
     {
-        return obj is EvDbPartitionName && Equals((EvDbPartitionName)obj);
+        return obj is EvDbRootAddressName && Equals((EvDbRootAddressName)obj);
     }
 
-    public int CompareTo(EvDbPartitionName other) => Value.CompareTo(other.Value);
+    public int CompareTo(EvDbRootAddressName other) => Value.CompareTo(other.Value);
     public int CompareTo(object? obj)
     {
         if (obj is null)
             return 1;
-        if (obj is EvDbPartitionName x)
+        if (obj is EvDbRootAddressName x)
             return CompareTo(x);
-        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbPartitionName", nameof(obj));
+        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbRootAddressName", nameof(obj));
         return 0;
     }
 
@@ -256,35 +261,35 @@ public partial struct EvDbPartitionName :
 
     #region Operator Overloads
 
-    public static implicit operator string(EvDbPartitionName vo) => vo._value!;
-    public static implicit operator EvDbPartitionName(string value)
+    public static implicit operator string(EvDbRootAddressName vo) => vo._value!;
+    public static implicit operator EvDbRootAddressName(string value)
     {
-        return EvDbPartitionName.From(value);
+        return EvDbRootAddressName.From(value);
     }
 
-    public static bool operator ==(EvDbPartitionName left, EvDbPartitionName right) => left.Equals(right);
-    public static bool operator !=(EvDbPartitionName left, EvDbPartitionName right) => !(left == right);
-    public static bool operator ==(EvDbPartitionName left, string? right) => left.Value.Equals(right);
-    public static bool operator ==(string? left, EvDbPartitionName right) => right.Value.Equals(left);
-    public static bool operator !=(string? left, EvDbPartitionName right) => !(left == right);
-    public static bool operator !=(EvDbPartitionName left, string? right) => !(left == right);
+    public static bool operator ==(EvDbRootAddressName left, EvDbRootAddressName right) => left.Equals(right);
+    public static bool operator !=(EvDbRootAddressName left, EvDbRootAddressName right) => !(left == right);
+    public static bool operator ==(EvDbRootAddressName left, string? right) => left.Value.Equals(right);
+    public static bool operator ==(string? left, EvDbRootAddressName right) => right.Value.Equals(left);
+    public static bool operator !=(string? left, EvDbRootAddressName right) => !(left == right);
+    public static bool operator !=(EvDbRootAddressName left, string? right) => !(left == right);
 
-    public static bool operator <(EvDbPartitionName left, EvDbPartitionName right)
+    public static bool operator <(EvDbRootAddressName left, EvDbRootAddressName right)
     {
         return left.CompareTo(right) < 0;
     }
 
-    public static bool operator <=(EvDbPartitionName left, EvDbPartitionName right)
+    public static bool operator <=(EvDbRootAddressName left, EvDbRootAddressName right)
     {
         return left.CompareTo(right) <= 0;
     }
 
-    public static bool operator >(EvDbPartitionName left, EvDbPartitionName right)
+    public static bool operator >(EvDbRootAddressName left, EvDbRootAddressName right)
     {
         return left.CompareTo(right) > 0;
     }
 
-    public static bool operator >=(EvDbPartitionName left, EvDbPartitionName right)
+    public static bool operator >=(EvDbRootAddressName left, EvDbRootAddressName right)
     {
         return left.CompareTo(right) >= 0;
     }
@@ -303,7 +308,7 @@ public partial struct EvDbPartitionName :
         string? s,
         IFormatProvider? provider,
         [MaybeNullWhen(false)]
-        out EvDbPartitionName result)
+        out EvDbRootAddressName result)
     {
         if (s is null)
         {
@@ -311,14 +316,14 @@ public partial struct EvDbPartitionName :
             return false;
         }
 
-        var validation = EvDbPartitionName.Validate(s);
+        var validation = EvDbRootAddressName.Validate(s);
         if (validation != Validation.Ok)
         {
             result = default;
             return false;
         }
 
-        result = new EvDbPartitionName(s);
+        result = new EvDbRootAddressName(s);
         return true;
     }
 
@@ -327,7 +332,7 @@ public partial struct EvDbPartitionName :
     /// <returns>
     /// The value created via the <see cref = "From(string)"/> method.
     /// </returns>
-    public static EvDbPartitionName Parse(string s, IFormatProvider? provider)
+    public static EvDbRootAddressName Parse(string s, IFormatProvider? provider)
     {
         return From(s!);
     }
@@ -338,30 +343,30 @@ public partial struct EvDbPartitionName :
     public readonly override string ToString() =>
                     IsInitialized() ? Value.ToString() : "[UNINITIALIZED]";
 
-    #region EvDbPartitionNameSystemTextJsonConverter
+    #region EvDbRootAddressNameSystemTextJsonConverter
 
 #nullable disable
     /// <summary>
-    /// Converts a EvDbPartitionName to or from JSON.
+    /// Converts a EvDbRootAddressName to or from JSON.
     /// </summary>
-    public class EvDbPartitionNameSystemTextJsonConverter : JsonConverter<EvDbPartitionName>
+    public class EvDbRootAddressNameSystemTextJsonConverter : JsonConverter<EvDbRootAddressName>
     {
-        public override EvDbPartitionName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override EvDbRootAddressName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return EvDbPartitionName.__Deserialize(reader.GetString());
+            return EvDbRootAddressName.__Deserialize(reader.GetString());
         }
 
-        public override void Write(Utf8JsonWriter writer, EvDbPartitionName value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, EvDbRootAddressName value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.Value);
         }
 
-        public override EvDbPartitionName ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override EvDbRootAddressName ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return EvDbPartitionName.__Deserialize(reader.GetString());
+            return EvDbRootAddressName.__Deserialize(reader.GetString());
         }
 
-        public override void WriteAsPropertyName(Utf8JsonWriter writer, EvDbPartitionName value, JsonSerializerOptions options)
+        public override void WriteAsPropertyName(Utf8JsonWriter writer, EvDbRootAddressName value, JsonSerializerOptions options)
         {
             writer.WritePropertyName(value.Value);
         }
@@ -369,12 +374,12 @@ public partial struct EvDbPartitionName :
 
 #nullable restore
 
-    #endregion //  EvDbPartitionNameSystemTextJsonConverter
+    #endregion //  EvDbRootAddressNameSystemTextJsonConverter
 
 #nullable disable
-    #region EvDbPartitionNameTypeConverter
+    #region EvDbRootAddressNameTypeConverter
 
-    class EvDbPartitionNameTypeConverter : TypeConverter
+    class EvDbRootAddressNameTypeConverter : TypeConverter
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
@@ -386,7 +391,7 @@ public partial struct EvDbPartitionName :
             var stringValue = value as string;
             if (stringValue is not null)
             {
-                return EvDbPartitionName.__Deserialize(stringValue);
+                return EvDbRootAddressName.__Deserialize(stringValue);
             }
 
             return base.ConvertFrom(context, culture, value);
@@ -399,7 +404,7 @@ public partial struct EvDbPartitionName :
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, Object value, Type destinationType)
         {
-            if (value is EvDbPartitionName idValue && destinationType == typeof(string))
+            if (value is EvDbRootAddressName idValue && destinationType == typeof(string))
             {
                 return idValue.Value;
             }
@@ -408,7 +413,7 @@ public partial struct EvDbPartitionName :
         }
     }
 
-    #endregion //  EvDbPartitionNameTypeConverter
+    #endregion //  EvDbRootAddressNameTypeConverter
 #nullable restore
 
     #region Validation
@@ -477,7 +482,7 @@ public partial struct EvDbPartitionName :
 
     #endregion //  ValueObjectValidationException
 
-    #region EvDbPartitionNameDebugView
+    #region EvDbRootAddressNameDebugView
 
 #nullable restore
 #nullable disable
@@ -485,10 +490,10 @@ public partial struct EvDbPartitionName :
 #pragma warning disable S2325 // Methods and properties that don't access instance data should be static
 #pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable S1144 // Unused private types or members should be removed
-    internal sealed class EvDbPartitionNameDebugView
+    internal sealed class EvDbRootAddressNameDebugView
     {
-        private readonly EvDbPartitionName _t;
-        EvDbPartitionNameDebugView(EvDbPartitionName t)
+        private readonly EvDbRootAddressName _t;
+        EvDbRootAddressNameDebugView(EvDbRootAddressName t)
         {
             _t = t;
         }
@@ -506,7 +511,7 @@ public partial struct EvDbPartitionName :
 #pragma warning restore S1144 // Unused private types or members should be removed
 #pragma warning restore S2325 // Methods and properties that don't access instance data should be static
 
-    #endregion //  EvDbPartitionNameDebugView
+    #endregion //  EvDbRootAddressNameDebugView
 
     #region ThrowHelper
 

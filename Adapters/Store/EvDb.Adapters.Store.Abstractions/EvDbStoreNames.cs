@@ -11,8 +11,7 @@ public static class EvDbStoreNames
         public static class Event
         {
             public static readonly string Id = toSnakeCase(Projection.Event.Id);
-            public static readonly string Domain = toSnakeCase(Projection.Event.Domain);
-            public static readonly string Partition = toSnakeCase(Projection.Event.Partition);
+            public static readonly string RootAddress = toSnakeCase(Projection.Event.RootAddress);
             public static readonly string StreamId = toSnakeCase(Projection.Event.StreamId);
             public static readonly string Offset = toSnakeCase(Projection.Event.Offset);
             public static readonly string EventType = toSnakeCase(Projection.Event.EventType);
@@ -29,8 +28,7 @@ public static class EvDbStoreNames
         public static class Message
         {
             public static readonly string Id = toSnakeCase(Projection.Message.Id);
-            public static readonly string Domain = toSnakeCase(Projection.Message.Domain);
-            public static readonly string Partition = toSnakeCase(Projection.Message.Partition);
+            public static readonly string RootAddress = toSnakeCase(Projection.Message.RootAddress);
             public static readonly string StreamId = toSnakeCase(Projection.Message.StreamId);
             public static readonly string Offset = toSnakeCase(Projection.Message.Offset);
             public static readonly string Channel = toSnakeCase(Projection.Message.Channel);
@@ -50,8 +48,7 @@ public static class EvDbStoreNames
 
         public static class Snapshot
         {
-            public static readonly string Domain = toSnakeCase(Projection.Snapshot.Domain);
-            public static readonly string Partition = toSnakeCase(Projection.Snapshot.Partition);
+            public static readonly string RootAddress = toSnakeCase(Projection.Snapshot.RootAddress);
             public static readonly string StreamId = toSnakeCase(Projection.Snapshot.StreamId);
             public static readonly string ViewName = toSnakeCase(Projection.Snapshot.ViewName);
             public static readonly string Offset = toSnakeCase(Projection.Snapshot.Offset);
@@ -72,8 +69,7 @@ public static class EvDbStoreNames
         public static class Event
         {
             public static readonly string Id = toParamName(Projection.Event.Id);
-            public static readonly string Domain = toParamName(Projection.Event.Domain);
-            public static readonly string Partition = toParamName(Projection.Event.Partition);
+            public static readonly string RootAddress = toParamName(Projection.Event.RootAddress);
             public static readonly string StreamId = toParamName(Projection.Event.StreamId);
             public static readonly string Offset = toParamName(Projection.Event.Offset);
             public static readonly string EventType = toParamName(Projection.Event.EventType);
@@ -90,8 +86,7 @@ public static class EvDbStoreNames
         public static class Message
         {
             public static readonly string Id = toParamName(Projection.Message.Id);
-            public static readonly string Domain = toParamName(Projection.Message.Domain);
-            public static readonly string Partition = toParamName(Projection.Message.Partition);
+            public static readonly string RootAddress = toParamName(Projection.Message.RootAddress);
             public static readonly string StreamId = toParamName(Projection.Message.StreamId);
             public static readonly string Offset = toParamName(Projection.Message.Offset);
             public static readonly string Channel = toParamName(Projection.Message.Channel);
@@ -112,8 +107,7 @@ public static class EvDbStoreNames
         public static class Snapshot
         {
             public static readonly string Id = toParamName(Projection.Snapshot.Id);
-            public static readonly string Domain = toParamName(Projection.Snapshot.Domain);
-            public static readonly string Partition = toParamName(Projection.Snapshot.Partition);
+            public static readonly string RootAddress = toParamName(Projection.Snapshot.RootAddress);
             public static readonly string StreamId = toParamName(Projection.Snapshot.StreamId);
             public static readonly string ViewName = toParamName(Projection.Snapshot.ViewName);
             public static readonly string Offset = toParamName(Projection.Snapshot.Offset);
@@ -131,8 +125,7 @@ public static class EvDbStoreNames
         public static class Event
         {
             public static readonly string Id = nameof(EvDbEventRecord.Id);
-            public static readonly string Domain = nameof(EvDbEventRecord.Domain);
-            public static readonly string Partition = nameof(EvDbEventRecord.Partition);
+            public static readonly string RootAddress = nameof(EvDbEventRecord.RootAddress);
             public static readonly string StreamId = nameof(EvDbEventRecord.StreamId);
             public static readonly string Offset = nameof(EvDbEventRecord.Offset);
             public static readonly string EventType = nameof(EvDbEventRecord.EventType);
@@ -149,8 +142,7 @@ public static class EvDbStoreNames
         public static class Message
         {
             public static readonly string Id = nameof(EvDbMessageRecord.Id);
-            public static readonly string Domain = nameof(EvDbMessageRecord.Domain);
-            public static readonly string Partition = nameof(EvDbMessageRecord.Partition);
+            public static readonly string RootAddress = nameof(EvDbMessageRecord.RootAddress);
             public static readonly string StreamId = nameof(EvDbMessageRecord.StreamId);
             public static readonly string Offset = nameof(EvDbMessageRecord.Offset);
             public static readonly string Channel = nameof(EvDbMessageRecord.Channel);
@@ -171,8 +163,7 @@ public static class EvDbStoreNames
         public static class Snapshot
         {
             public static readonly string Id = nameof(EvDbStoredSnapshotData.Id);
-            public static readonly string Domain = nameof(EvDbViewAddress.Domain);
-            public static readonly string Partition = nameof(EvDbViewAddress.Partition);
+            public static readonly string RootAddress = nameof(EvDbViewAddress.RootAddress);
             public static readonly string StreamId = nameof(EvDbViewAddress.StreamId);
             public static readonly string ViewName = nameof(EvDbViewAddress.ViewName);
             public static readonly string Offset = nameof(EvDbStoredSnapshotData.Offset);

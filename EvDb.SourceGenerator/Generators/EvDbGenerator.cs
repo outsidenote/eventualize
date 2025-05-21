@@ -62,21 +62,16 @@ public partial class EvDbGenerator : BaseGenerator
             relatedTopicTypesFullName = relatedTopicTypeSymbol.ToDisplayString();
         }
 
-        #region string domain = ..., string partition = ...
+        #region string rootAddress = ...
 
-        if (!attOfFactory.TryGetValue("domain", out string domain))
+        if (!attOfFactory.TryGetValue("rootAddress", out string rootAddress))
         {
-            var diagnostic = syntax.CreateDiagnostic(14, "domain is missng", typeSymbol.Name);
+            var diagnostic = syntax.CreateDiagnostic(14, "rootAddress is missng", typeSymbol.Name);
             context.ReportDiagnostic(diagnostic);
         }
 
-        if (!attOfFactory.TryGetValue("partition", out string partition))
-        {
-            var diagnostic = syntax.CreateDiagnostic(14, "partition is missng", typeSymbol.Name);
-            context.ReportDiagnostic(diagnostic);
-        }
 
-        #endregion //  string domain = ..., string partition = ...
+        #endregion //  string rootAddress = ...
 
         const string lifetime = "Singleton";
 
@@ -128,7 +123,7 @@ public partial class EvDbGenerator : BaseGenerator
         var viewFactoriesCtorInjection =
             viewsInfo.Select((viewRef, i) =>
             $$"""
-                        [FromKeyedServices("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}")]IEvDbViewFactory factoryOf{{viewRef.ViewTypeName}}{{i}},
+                        [FromKeyedServices("{{rootAddress}}:{{viewRef.ViewPropName}}")]IEvDbViewFactory factoryOf{{viewRef.ViewTypeName}}{{i}},
 
             """);
 
@@ -151,7 +146,7 @@ public partial class EvDbGenerator : BaseGenerator
                         #region Ctor
                         
                         public {{factoryOriginName}}(
-                                [FromKeyedServices("{{domain}}:{{partition}}")]IEvDbStorageStreamAdapter storageAdapter,                    
+                                [FromKeyedServices("{{rootAddress}}")]IEvDbStorageStreamAdapter storageAdapter,                    
                     {{string.Join("", viewFactoriesCtorInjection)}}       
                                 ILogger<{{streamName}}> logger,
                                 TimeProvider? timeProvider = null) : base(logger, storageAdapter, timeProvider ?? TimeProvider.System)
@@ -165,12 +160,11 @@ public partial class EvDbGenerator : BaseGenerator
                                                              
                         protected override IEvDbViewFactory[] ViewFactories { get; }
 
-                        #region Partition
+                        #region RootAddress
                     
-                        public override EvDbPartitionAddress PartitionAddress { get; } = 
-                            new EvDbPartitionAddress("{{domain}}", "{{partition}}");
+                        public override EvDbRootAddressName RootAddress { get; } =  "{{rootAddress}}";
                     
-                        #endregion // PartitionAddress
+                        #endregion // RootAddress
                     
                         #region OnCreate
                     
@@ -370,11 +364,11 @@ public partial class EvDbGenerator : BaseGenerator
                     {
                         private readonly IServiceCollection _services;
                         private readonly EvDbStorageContext? _context;
-                        private readonly EvDbPartitionAddress _address;
+                        private readonly EvDbRootAddressName _address;
 
                         public EvDb{{factoryOriginName}}SnapshotEntry(
                             EvDbStorageContext? context,
-                            EvDbPartitionAddress address,
+                            EvDbRootAddressName address,
                             IServiceCollection services)
                         {
                             _services = services;
@@ -388,7 +382,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
 
                         EvDbStorageContext? IEvDbRegistrationContext.Context => _context;
-                        EvDbPartitionAddress IEvDbRegistrationContext.Address => _address;
+                        EvDbRootAddressName IEvDbRegistrationContext.Address => _address;
                         IServiceCollection IEvDbRegistrationEntry.Services => _services;
                     }
                     """);
@@ -410,11 +404,11 @@ public partial class EvDbGenerator : BaseGenerator
                     {
                         private readonly IServiceCollection _services;
                         private readonly EvDbStorageContext? _context;
-                        private readonly EvDbPartitionAddress _address;
+                        private readonly EvDbRootAddressName _address;
 
                         public EvDb{{factoryOriginName}}SnapshotEntryFor(
                             EvDbStorageContext? context,
-                            EvDbPartitionAddress address,
+                            EvDbRootAddressName address,
                             IServiceCollection services)
                         {
                             _services = services;
@@ -428,7 +422,7 @@ public partial class EvDbGenerator : BaseGenerator
                         }
 
                         EvDbStorageContext? IEvDbRegistrationContext.Context => _context;
-                        EvDbPartitionAddress IEvDbRegistrationContext.Address => _address;
+                        EvDbRootAddressName IEvDbRegistrationContext.Address => _address;
                         IServiceCollection IEvDbRegistrationEntry.Services => _services;
                     }
                     """);
@@ -462,12 +456,12 @@ public partial class EvDbGenerator : BaseGenerator
                                         IServiceProvider serviceProvider,
                                         ILogger<{{viewRef.ViewTypeName}}> logger)
                         {
-                           _typedStorageAdapter = serviceProvider.GetKeyedService<IEvDbTypedStorageSnapshotAdapter>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
+                           _typedStorageAdapter = serviceProvider.GetKeyedService<IEvDbTypedStorageSnapshotAdapter>("{{rootAddress}}:{{viewRef.ViewPropName}}");
                            if(_typedStorageAdapter == null)
                            {
                                 _storageAdapter = 
-                                    serviceProvider.GetKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}") ??
-                                    serviceProvider.GetRequiredKeyedService<IEvDbStorageSnapshotAdapter>("{{domain}}:{{partition}}");
+                                    serviceProvider.GetKeyedService<IEvDbStorageSnapshotAdapter>("{{rootAddress}}:{{viewRef.ViewPropName}}") ??
+                                    serviceProvider.GetRequiredKeyedService<IEvDbStorageSnapshotAdapter>("{{rootAddress}}");
                             }
                             _logger = logger;
                         } 
@@ -547,7 +541,7 @@ public partial class EvDbGenerator : BaseGenerator
 
         var addViewsFactories = viewsInfo.Select(viewRef =>
                         $$"""
-                            services.AddKeyed{{lifetime}}<IEvDbViewFactory, {{viewRef.ViewTypeFullName}}Factory>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
+                            services.AddKeyed{{lifetime}}<IEvDbViewFactory, {{viewRef.ViewTypeFullName}}Factory>("{{rootAddress}}:{{viewRef.ViewPropName}}");
 
                         """);
 
@@ -594,7 +588,7 @@ public partial class EvDbGenerator : BaseGenerator
 
         var addViewFactories = viewsInfo.Select(viewRef =>
                                             $$"""
-                                                    services.AddKeyed{{lifetime}}<IEvDbViewFactory,{{viewRef.ViewTypeFullName}}Factory>("{{domain}}:{{partition}}:{{viewRef.ViewPropName}}");
+                                                    services.AddKeyed{{lifetime}}<IEvDbViewFactory,{{viewRef.ViewTypeFullName}}Factory>("{{rootAddress}}:{{viewRef.ViewPropName}}");
 
                                             """);
 
@@ -621,7 +615,7 @@ public partial class EvDbGenerator : BaseGenerator
                             services.Add{{lifetime}}<I{{factoryName}},{{factoryOriginName}}>();     
                         
                             var storageContext = new EvDbStreamStoreRegistrationContext(context,
-                                new EvDbPartitionAddress("{{domain}}","{{partition}}"),
+                                "{{rootAddress}}",
                                 services);
 
                             registrationAction(storageContext);

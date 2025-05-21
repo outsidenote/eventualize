@@ -17,7 +17,7 @@ namespace EvDb.Core;
 [JsonConverter(typeof(EvDbChannelNameSystemTextJsonConverter))]
 [TypeConverter(typeof(EvDbChannelNameTypeConverter))]
 [DebuggerTypeProxy(typeof(EvDbChannelNameDebugView))]
-[DebuggerDisplay("Underlying type: string, Value = { _value }")]
+[DebuggerDisplay("{ _value }")]
 public partial struct EvDbChannelName :
     IEquatable<EvDbChannelName>,
     IEquatable<string>,

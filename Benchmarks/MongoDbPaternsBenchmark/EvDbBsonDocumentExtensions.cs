@@ -18,8 +18,7 @@ public static class EvDbBsonDocumentExtensions
 
         return new BsonDocument
             {
-                { "domain", rec.StreamCursor.Domain },
-                { "partition", rec.StreamCursor.Partition },
+                { "root_address", rec.StreamCursor.RootAddress },
                 { "stream_id", rec.StreamCursor.StreamId },
                 { "offset", rec.StreamCursor.Offset },
                 { "event_type", rec.EventType },

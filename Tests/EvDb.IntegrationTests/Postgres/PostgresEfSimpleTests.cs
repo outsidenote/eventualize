@@ -35,7 +35,7 @@
 //            Id UUID PRIMARY KEY,
 //            Value VARCHAR(255) NOT NULL,
 //            PersonId INT NOT NULL,
-//            Domain VARCHAR(255) NOT NULL,
+//            RootAddress VARCHAR(255) NOT NULL,
 //            Category VARCHAR(255) NOT NULL,
 //            CONSTRAINT FK_Emails_People FOREIGN KEY (PersonId) REFERENCES People (Id) ON DELETE CASCADE
 //        );
@@ -45,7 +45,7 @@
 //            Id UUID PRIMARY KEY,
 //            Value VARCHAR(255) NOT NULL,
 //            PersonId INT NOT NULL,
-//            Domain VARCHAR(255) NOT NULL,
+//            RootAddress VARCHAR(255) NOT NULL,
 //            Category VARCHAR(255) NOT NULL,
 //            CONSTRAINT FK_Emails_People2 FOREIGN KEY (PersonId) REFERENCES People2 (Id) ON DELETE CASCADE
 //        );

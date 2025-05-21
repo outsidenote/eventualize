@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EvDb.SourceGenerator.Helpers;
 
-internal static class DomainRoslynExtensions
+internal static class RootAddressRoslynExtensions
 {
     #region ClearAndAppendHeader
 
@@ -51,7 +51,7 @@ internal static class DomainRoslynExtensions
         bool isClassOrStruct = true,
         string typeXmlDoc = "")
     {
-        var asm = typeof(DomainRoslynExtensions).Assembly.GetName();
+        var asm = typeof(RootAddressRoslynExtensions).Assembly.GetName();
         builder.AppendLine("// ReSharper disable once UnusedType.Global");
         builder.AppendLine();
         if (!string.IsNullOrWhiteSpace(typeXmlDoc))

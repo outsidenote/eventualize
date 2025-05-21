@@ -35,7 +35,7 @@ public static class EvDbSqlServerStorageAdapterDI
     {
         IEvDbRegistrationContext entry = instance;
         IServiceCollection services = entry.Services;
-        EvDbPartitionAddress key = entry.Address;
+        EvDbRootAddressName key = entry.Address;
         var context = entry.Context;
         services.AddKeyedSingleton(
             key.ToString(),

@@ -196,14 +196,14 @@ internal static class Steps
         bool withEnlisted = initOffset == 1;
         if (withEnlisted)
         {
-            EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset);
+            EvDbStreamCursor cursor = new(factory.RootAddress, streamId, initOffset);
             var e = student.CreateEvent(cursor, options: serializerOptions);
             storedEvents.Add(e);
             initOffset++;
         }
         for (int i = 0; i < 3; i++)
         {
-            EvDbStreamCursor cursor = new(factory.PartitionAddress, streamId, initOffset + i);
+            EvDbStreamCursor cursor = new(factory.RootAddress, streamId, initOffset + i);
             double gradeValue = DefaultGradeStrategy(i + 1);
             var grade = new StudentReceivedGradeEvent(20992, student.Student.Id, gradeValue);
             var gradeEvent = grade.CreateEvent(cursor, options: serializerOptions);

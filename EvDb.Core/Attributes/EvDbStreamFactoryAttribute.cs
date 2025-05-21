@@ -13,7 +13,7 @@ public class EvDbStreamFactoryAttribute<TEventType, TOutboxProducer> : EvDbStrea
     where TEventType : IEvDbEventTypes
     where TOutboxProducer : IEvDbOutboxProducer
 {
-    public EvDbStreamFactoryAttribute(string domain, string partition) : base(domain, partition)
+    public EvDbStreamFactoryAttribute(string rootAddress) : base(rootAddress)
     {
     }
 
@@ -31,31 +31,20 @@ public class EvDbStreamFactoryAttribute<TEventType> : Attribute
     /// <summary>
     /// Generate a EventualizeDB client factory
     /// </summary>
-    /// <param name="domain">
-    /// The `domain` and `partition` are the static part of the stream address (uniqueness).
+    /// <param name="rootAddress">
+    /// The `rootAddress` is the static part of the stream address (uniqueness).
     /// Along with the stream id that is the dynamic part of the address
     /// </param>
-    /// <param name="partition">
-    /// The `domain` and `partition` are the static part of the stream address (uniqueness).
-    /// Along with the stream id that is the dynamic part of the address
-    /// </param>
-    public EvDbStreamFactoryAttribute(string domain, string partition)
+    public EvDbStreamFactoryAttribute(string rootAddress)
     {
-        Domain = domain;
-        Partition = partition;
+        RootAddress = rootAddress;
     }
 
     /// <summary>
-    /// The `domain` and `partition` are the static part of the stream address (uniqueness).
+    /// The `rootAddress` is the static part of the stream address (uniqueness).
     /// Along with the stream id that is the dynamic part of the address
     /// </summary>
-    public string Domain { get; }
-
-    /// <summary>
-    /// The `domain` and `partition` are the static part of the stream address (uniqueness).
-    /// Along with the stream id that is the dynamic part of the address
-    /// </summary>
-    public string Partition { get; }
+    public string RootAddress { get; }
 
     /// <summary>
     /// Set the name of the stream object

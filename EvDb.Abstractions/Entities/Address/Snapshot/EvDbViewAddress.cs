@@ -4,20 +4,25 @@ using static EvDb.Core.OtelConstants;
 
 namespace EvDb.Core;
 
+/// <summary>
+/// The address of a view. 
+/// Built of the root address, stream id and view name.
+/// </summary>
+/// <param name="RootAddress"></param>
+/// <param name="StreamId"></param>
+/// <param name="ViewName"></param>
 [Equatable]
-public readonly partial record struct EvDbViewAddress(string Domain, string Partition, string StreamId, string ViewName)
+public readonly partial record struct EvDbViewAddress(string RootAddress, string StreamId, string ViewName)
 {
     public EvDbViewAddress(EvDbStreamAddress streamAddress, string viewName)
-        : this(streamAddress.Domain, streamAddress.Partition, streamAddress.StreamId, viewName) { }
+        : this(streamAddress.RootAddress, streamAddress.StreamId, viewName) { }
 
     #region IsEquals, ==, !=
 
 
-    private bool IsEquals(EvDbPartitionAddress partitionAddress)
+    private bool IsEquals(EvDbRootAddressName rootAddress)
     {
-        if (this.Domain != partitionAddress.Domain)
-            return false;
-        if (this.Partition != partitionAddress.Partition)
+        if (this.RootAddress != rootAddress)
             return false;
 
         return true;
@@ -25,9 +30,7 @@ public readonly partial record struct EvDbViewAddress(string Domain, string Part
 
     private bool IsEquals(EvDbStreamAddress address)
     {
-        if (this.Domain != address.Domain)
-            return false;
-        if (this.Partition != address.Partition)
+        if (this.RootAddress != address.RootAddress)
             return false;
         if (this.StreamId != address.StreamId)
             return false;
@@ -45,12 +48,12 @@ public readonly partial record struct EvDbViewAddress(string Domain, string Part
         return !viewAddress.IsEquals(streamAddress);
     }
 
-    public static bool operator ==(EvDbViewAddress viewAddress, EvDbPartitionAddress streamAddress)
+    public static bool operator ==(EvDbViewAddress viewAddress, EvDbRootAddressName streamAddress)
     {
         return viewAddress.IsEquals(streamAddress);
     }
 
-    public static bool operator !=(EvDbViewAddress viewAddress, EvDbPartitionAddress streamAddress)
+    public static bool operator !=(EvDbViewAddress viewAddress, EvDbRootAddressName streamAddress)
     {
         return !viewAddress.IsEquals(streamAddress);
     }
@@ -61,17 +64,17 @@ public readonly partial record struct EvDbViewAddress(string Domain, string Part
 
     public static implicit operator EvDbStreamAddress(EvDbViewAddress instance)
     {
-        return new EvDbStreamAddress(instance.Domain, instance.Partition, instance.StreamId);
+        return new EvDbStreamAddress(instance.RootAddress, instance.StreamId);
     }
 
-    public static implicit operator EvDbPartitionAddress(EvDbViewAddress instance)
+    public static implicit operator EvDbRootAddressName(EvDbViewAddress instance)
     {
-        return new EvDbPartitionAddress(instance.Domain, instance.Partition);
+        return instance.RootAddress;
     }
 
     public static implicit operator EvDbViewBasicAddress(EvDbViewAddress instance)
     {
-        return new EvDbViewBasicAddress(instance.Domain, instance.Partition, instance.ViewName);
+        return new EvDbViewBasicAddress(instance.RootAddress, instance.ViewName);
     }
 
     #endregion // Casting Overloads
@@ -85,8 +88,7 @@ public readonly partial record struct EvDbViewAddress(string Domain, string Part
     public OtelTags ToOtelTagsToOtelTags()
     {
         OtelTags tags = OtelTags.Empty
-                            .Add(TAG_DOMAIN, Domain)
-                            .Add(TAG_PARTITION, Partition)
+                            .Add(TAG_ROOT_ADDRESS, RootAddress)
                             .Add(TAG_STREAM_ID, StreamId)
                             .Add(TAG_VIEW_NAME, ViewName);
         return tags;
@@ -98,7 +100,7 @@ public readonly partial record struct EvDbViewAddress(string Domain, string Part
 
     public override string ToString()
     {
-        return $"{Domain}:{Partition}:{StreamId}:{ViewName}";
+        return $"{RootAddress}:{StreamId}:{ViewName}";
     }
 
     #endregion // ToString

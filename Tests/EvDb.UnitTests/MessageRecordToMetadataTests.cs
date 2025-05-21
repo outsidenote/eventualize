@@ -41,8 +41,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         var messageRecord = new EvDbMessageRecord
         {
-            Domain = "TestDomain",
-            Partition = "TestPartition",
+            RootAddress = "TestDomain:TestPartition",
             StreamId = "TestStreamId",
             Offset = 1,
             EventType = "TestEventType",
@@ -59,8 +58,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         _output.WriteLine($"MessageRecord: {messageRecord}");
 
-        Assert.Equal(messageRecord.Domain, meta.StreamCursor.Domain);
-        Assert.Equal(messageRecord.Partition, meta.StreamCursor.Partition);
+        Assert.Equal(messageRecord.RootAddress, meta.StreamCursor.RootAddress);
         Assert.Equal(messageRecord.StreamId, meta.StreamCursor.StreamId);
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);
@@ -76,8 +74,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         var messageRecord = new EvDbMessageRecord
         {
-            Domain = "TestDomain",
-            Partition = "TestPartition",
+            RootAddress = "TestDomain:TestPartition",
             StreamId = "TestStreamId",
             Offset = 1,
             EventType = "TestEventType",
@@ -95,8 +92,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         _output.WriteLine($"MessageRecord: {messageRecord}");
 
-        Assert.Equal(messageRecord.Domain, meta.StreamCursor.Domain);
-        Assert.Equal(messageRecord.Partition, meta.StreamCursor.Partition);
+        Assert.Equal(messageRecord.RootAddress, meta.StreamCursor.RootAddress);
         Assert.Equal(messageRecord.StreamId, meta.StreamCursor.StreamId);
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);
@@ -113,8 +109,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         var messageRecord = new EvDbMessageRecord
         {
-            Domain = "TestDomain",
-            Partition = "TestPartition",
+            RootAddress = "TestDomain:TestPartition",
             StreamId = "TestStreamId",
             Offset = 1,
             EventType = "TestEventType",
@@ -131,8 +126,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
 
         _output.WriteLine($"MessageRecord: {messageRecord}");
 
-        Assert.Equal(messageRecord.Domain, meta.StreamCursor.Domain);
-        Assert.Equal(messageRecord.Partition, meta.StreamCursor.Partition);
+        Assert.Equal(messageRecord.RootAddress, meta.StreamCursor.RootAddress);
         Assert.Equal(messageRecord.StreamId, meta.StreamCursor.StreamId);
         Assert.Equal(messageRecord.Offset, meta.StreamCursor.Offset);
         Assert.Equal(messageRecord.EventType, meta.EventType);

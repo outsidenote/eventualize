@@ -7,8 +7,7 @@ namespace EvDb.Core;
 [DebuggerDisplay("Offset:{Offset}")]
 public abstract partial record EvDbStoredSnapshotDataBase(
             Guid Id,
-            string Domain,
-            string Partition,
+            string RootAddress,
             string StreamId,
             string ViewName,
             long Offset,
@@ -18,17 +17,17 @@ public abstract partial record EvDbStoredSnapshotDataBase(
 
     public static implicit operator EvDbStreamAddress(EvDbStoredSnapshotDataBase instance)
     {
-        return new EvDbStreamAddress(instance.Domain, instance.Partition, instance.StreamId);
+        return new EvDbStreamAddress(instance.RootAddress, instance.StreamId);
     }
 
     public static implicit operator EvDbViewAddress(EvDbStoredSnapshotDataBase instance)
     {
-        return new EvDbViewAddress(instance.Domain, instance.Partition, instance.StreamId, instance.ViewName);
+        return new EvDbViewAddress(instance.RootAddress, instance.StreamId, instance.ViewName);
     }
 
     public static implicit operator EvDbSnapshotCursor(EvDbStoredSnapshotDataBase instance)
     {
-        return new EvDbSnapshotCursor(instance.Domain, instance.Partition, instance.StreamId, instance.ViewName, instance.Offset);
+        return new EvDbSnapshotCursor(instance.RootAddress, instance.StreamId, instance.ViewName, instance.Offset);
     }
 
     #endregion // Casting Overloads
@@ -37,9 +36,7 @@ public abstract partial record EvDbStoredSnapshotDataBase(
 
     protected bool IsEquals(EvDbViewAddress viewAddress)
     {
-        if (this.Domain != viewAddress.Domain)
-            return false;
-        if (this.Partition != viewAddress.Partition)
+        if (this.RootAddress != viewAddress.RootAddress)
             return false;
         if (this.StreamId != viewAddress.StreamId)
             return false;
@@ -51,9 +48,7 @@ public abstract partial record EvDbStoredSnapshotDataBase(
 
     protected bool IsEquals(EvDbSnapshotCursor cursor)
     {
-        if (this.Domain != cursor.Domain)
-            return false;
-        if (this.Partition != cursor.Partition)
+        if (this.RootAddress != cursor.RootAddress)
             return false;
         if (this.StreamId != cursor.StreamId)
             return false;
@@ -67,9 +62,7 @@ public abstract partial record EvDbStoredSnapshotDataBase(
 
     protected bool IsEquals(EvDbStreamAddress address)
     {
-        if (this.Domain != address.Domain)
-            return false;
-        if (this.Partition != address.Partition)
+        if (this.RootAddress != address.RootAddress)
             return false;
         if (this.StreamId != address.StreamId)
             return false;
@@ -84,20 +77,19 @@ public abstract partial record EvDbStoredSnapshotDataBase(
 [DebuggerDisplay("{State}, Offset:{Offset}")]
 public partial record EvDbStoredSnapshotData(
             Guid Id,
-            string Domain,
-            string Partition,
+            string RootAddress,
             string StreamId,
             string ViewName,
             long Offset,
             long StoreOffset,
-            byte[] State) : EvDbStoredSnapshotDataBase(Id, Domain, Partition, StreamId, ViewName, Offset, StoreOffset)
+            byte[] State) : EvDbStoredSnapshotDataBase(Id, RootAddress, StreamId, ViewName, Offset, StoreOffset)
 {
     public EvDbStoredSnapshotData(
             EvDbViewAddress address,
             long offset,
             long storeOffset,
             byte[] state)
-                : this(Guid.NewGuid(), address.Domain, address.Partition, address.StreamId, address.ViewName, offset, storeOffset, state)
+                : this(Guid.NewGuid(), address.RootAddress,  address.StreamId, address.ViewName, offset, storeOffset, state)
     {
     }
 
@@ -169,20 +161,19 @@ public partial record EvDbStoredSnapshotData(
 [DebuggerDisplay("{State}, Offset:{Offset}")]
 public partial record EvDbStoredSnapshotData<TState>(
             Guid Id,
-            string Domain,
-            string Partition,
+            string RootAddress,
             string StreamId,
             string ViewName,
             long Offset,
             long StoreOffset,
-            TState State) : EvDbStoredSnapshotDataBase(Id, Domain, Partition, StreamId, ViewName, Offset, StoreOffset)
+            TState State) : EvDbStoredSnapshotDataBase(Id, RootAddress, StreamId, ViewName, Offset, StoreOffset)
 {
     public EvDbStoredSnapshotData(
             EvDbViewAddress address,
             long offset,
             long storeOffset,
             TState state)
-                : this(Guid.NewGuid(), address.Domain, address.Partition, address.StreamId, address.ViewName, offset, storeOffset, state)
+                : this(Guid.NewGuid(), address.RootAddress, address.StreamId, address.ViewName, offset, storeOffset, state)
     {
     }
 
@@ -244,17 +235,17 @@ public partial record EvDbStoredSnapshotData<TState>(
 
     public static implicit operator EvDbStreamAddress(EvDbStoredSnapshotData<TState> instance)
     {
-        return new EvDbStreamAddress(instance.Domain, instance.Partition, instance.StreamId);
+        return new EvDbStreamAddress(instance.RootAddress, instance.StreamId);
     }
 
     public static implicit operator EvDbViewAddress(EvDbStoredSnapshotData<TState> instance)
     {
-        return new EvDbViewAddress(instance.Domain, instance.Partition, instance.StreamId, instance.ViewName);
+        return new EvDbViewAddress(instance.RootAddress, instance.StreamId, instance.ViewName);
     }
 
     public static implicit operator EvDbSnapshotCursor(EvDbStoredSnapshotData<TState> instance)
     {
-        return new EvDbSnapshotCursor(instance.Domain, instance.Partition, instance.StreamId, instance.ViewName, instance.Offset);
+        return new EvDbSnapshotCursor(instance.RootAddress, instance.StreamId, instance.ViewName, instance.Offset);
     }
 
     #endregion // Casting Overloads

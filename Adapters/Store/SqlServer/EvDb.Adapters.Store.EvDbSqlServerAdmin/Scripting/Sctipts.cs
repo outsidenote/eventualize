@@ -67,8 +67,7 @@ internal static class Sctipts
             : $$"""
         CREATE TYPE {{tblInitial}}EventsTableType AS TABLE (        
                 {{Fields.Event.Id}} UNIQUEIDENTIFIER NOT NULL,
-                {{Fields.Event.Domain}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
-                {{Fields.Event.Partition}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
+                {{Fields.Event.RootAddress}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{Fields.Event.StreamId}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{Fields.Event.Offset}} BIGINT NOT NULL,
                 {{Fields.Event.EventType}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
@@ -93,8 +92,7 @@ internal static class Sctipts
                 BEGIN
                     INSERT INTO {tblInitial}events (                           
                         {Fields.Event.Id},
-                        {Fields.Event.Domain},
-                        {Fields.Event.Partition},
+                        {Fields.Event.RootAddress},
                         {Fields.Event.StreamId},
                         {Fields.Event.Offset},
                         {Fields.Event.EventType},
@@ -104,8 +102,7 @@ internal static class Sctipts
                         {Fields.Event.Payload}
                     )
                     SELECT  {Fields.Event.Id},
-                            {Fields.Event.Domain},
-                            {Fields.Event.Partition},
+                            {Fields.Event.RootAddress},
                             {Fields.Event.StreamId},
                             {Fields.Event.Offset},
                             {Fields.Event.EventType},
@@ -127,8 +124,7 @@ internal static class Sctipts
             : $"""
             CREATE TABLE {tblInitial}events (
                 {Fields.Event.Id} UNIQUEIDENTIFIER NOT NULL,
-                {Fields.Event.Domain} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {Fields.Event.Partition} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Event.RootAddress} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Event.StreamId} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Event.Offset} BIGINT NOT NULL,
                 {Fields.Event.EventType} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -139,23 +135,20 @@ internal static class Sctipts
                 {Fields.Event.Payload} VARBINARY(4000) NOT NULL,
     
                 CONSTRAINT PK_{tblInitialWithoutSchema}event PRIMARY KEY (
-                        {Fields.Event.Domain}, 
-                        {Fields.Event.Partition}, 
+                        {Fields.Event.RootAddress}, 
                         {Fields.Event.StreamId}, 
                         {Fields.Event.Offset}),
-                CONSTRAINT CK_{tblInitialWithoutSchema}event_domain_not_empty CHECK (LEN({Fields.Event.Domain}) > 0),
-                CONSTRAINT CK_{tblInitialWithoutSchema}event_stream_type_not_empty CHECK (LEN({Fields.Event.Partition}) > 0),
+                CONSTRAINT CK_{tblInitialWithoutSchema}event_root_address_not_empty CHECK (LEN({Fields.Event.RootAddress}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}event_stream_id_not_empty CHECK (LEN({Fields.Event.StreamId}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}event_event_type_not_empty CHECK (LEN({Fields.Event.EventType}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}event_captured_by_not_empty CHECK (LEN({Fields.Event.CapturedBy}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}event_json_data_not_empty CHECK (LEN({Fields.Event.Payload}) > 0)
             );
 
-            -- Index for getting distinct values for columns domain, stream_type, and stream_id together
+            -- Index for getting distinct values for columns root_address, stream_type, and stream_id together
             CREATE INDEX IX_event_{tblInitialWithoutSchema}
             ON {tblInitial}events (
-                    {Fields.Event.Domain}, 
-                    {Fields.Event.Partition}, 
+                    {Fields.Event.RootAddress}, 
                     {Fields.Event.Offset})
             WITH (ONLINE = ON);
 
@@ -175,8 +168,7 @@ internal static class Sctipts
             : $$"""
         CREATE TYPE {{tblInitial}}OutboxTableType AS TABLE (   
                 {{Fields.Message.Id}} UNIQUEIDENTIFIER  NOT NULL,     
-                {{Fields.Message.Domain}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
-                {{Fields.Message.Partition}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
+                {{Fields.Message.RootAddress}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{Fields.Message.StreamId}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{Fields.Message.Offset}} BIGINT NOT NULL,
                 {{Fields.Message.EventType}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
@@ -201,8 +193,7 @@ internal static class Sctipts
 
             CREATE TABLE {tblInitial}{t} (
                 {Fields.Message.Id} UNIQUEIDENTIFIER  NOT NULL, 
-                {Fields.Message.Domain} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {Fields.Message.Partition} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Message.RootAddress} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Message.StreamId} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Message.Offset} BIGINT NOT NULL,
                 {Fields.Message.EventType} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
@@ -217,14 +208,12 @@ internal static class Sctipts
             
                 CONSTRAINT PK_{tblInitialWithoutSchema}{t} PRIMARY KEY (
                         {Fields.Message.CapturedAt},
-                        {Fields.Message.Domain}, 
-                        {Fields.Message.Partition}, 
+                        {Fields.Message.RootAddress}, 
                         {Fields.Message.StreamId}, 
                         {Fields.Message.Offset},
                         {Fields.Message.Channel},
                         {Fields.Message.MessageType}),
-                CONSTRAINT CK_{tblInitialWithoutSchema}{t}_domain_not_empty CHECK (LEN({Fields.Message.Domain}) > 0),
-                CONSTRAINT CK_{tblInitialWithoutSchema}{t}_stream_type_not_empty CHECK (LEN({Fields.Message.Partition}) > 0),
+                CONSTRAINT CK_{tblInitialWithoutSchema}{t}_root_address_not_empty CHECK (LEN({Fields.Message.RootAddress}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}{t}_stream_id_not_empty CHECK (LEN({Fields.Message.StreamId}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}{t}_event_type_not_empty CHECK (LEN({Fields.Message.EventType}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}{t}_outbox_type_not_empty CHECK (LEN({Fields.Message.Channel}) > 0),
@@ -260,8 +249,7 @@ internal static class Sctipts
                 BEGIN
                     INSERT INTO {tblInitial}{t} (                           
                         {Fields.Message.Id},
-                        {Fields.Message.Domain},
-                        {Fields.Message.Partition},
+                        {Fields.Message.RootAddress},
                         {Fields.Message.StreamId},
                         {Fields.Message.Offset},
                         {Fields.Message.EventType},
@@ -274,8 +262,7 @@ internal static class Sctipts
                         {Fields.Message.Payload}
                     )
                     SELECT  {Fields.Message.Id},
-                            {Fields.Message.Domain},
-                            {Fields.Message.Partition},
+                            {Fields.Message.RootAddress},
                             {Fields.Message.StreamId},
                             {Fields.Message.Offset},
                             {Fields.Message.EventType},
@@ -300,8 +287,7 @@ internal static class Sctipts
             : $"""
             CREATE TABLE {tblInitial}snapshot (
                 {Fields.Snapshot.Id} UNIQUEIDENTIFIER  NOT NULL,
-                {Fields.Snapshot.Domain} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
-                {Fields.Snapshot.Partition} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
+                {Fields.Snapshot.RootAddress} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Snapshot.StreamId} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Snapshot.ViewName} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Snapshot.Offset} BIGINT NOT NULL,
@@ -309,13 +295,11 @@ internal static class Sctipts
                 stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
     
                 CONSTRAINT PK_{tblInitialWithoutSchema}snapshot PRIMARY KEY (
-                            {Fields.Snapshot.Domain},  
-                            {Fields.Snapshot.Partition},   
+                            {Fields.Snapshot.RootAddress},  
                             {Fields.Snapshot.StreamId}, 
                             {Fields.Snapshot.ViewName},
                             {Fields.Snapshot.Offset}),
-                CONSTRAINT CK_{tblInitialWithoutSchema}snapshot_domain_not_empty CHECK (LEN({Fields.Snapshot.Domain}) > 0),
-                CONSTRAINT CK_{tblInitialWithoutSchema}snapshot_stream_type_not_empty CHECK (LEN({Fields.Snapshot.Partition}) > 0),
+                CONSTRAINT CK_{tblInitialWithoutSchema}snapshot_root_address_not_empty CHECK (LEN({Fields.Snapshot.RootAddress}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}snapshot_stream_id_not_empty CHECK (LEN({Fields.Snapshot.StreamId}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}snapshot_aggregate_type_not_empty CHECK (LEN({Fields.Snapshot.ViewName}) > 0),
                 CONSTRAINT CK_{tblInitialWithoutSchema}snapshot_json_data_not_empty CHECK (LEN({Fields.Snapshot.State}) > 0)
@@ -324,8 +308,7 @@ internal static class Sctipts
             -- Index for finding records with an earlier point in time value in column stored_at than some given value, and that other records in the group exist
             CREATE INDEX IX_snapshot_earlier_stored_at_{tblInitialWithoutSchema}
             ON {tblInitial}snapshot (
-                {Fields.Snapshot.Domain}, 
-                {Fields.Snapshot.Partition}, 
+                {Fields.Snapshot.RootAddress}, 
                 {Fields.Snapshot.StreamId},
                 {Fields.Snapshot.ViewName}, stored_at)
             WITH (ONLINE = ON);

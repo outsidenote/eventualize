@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace EvDb.Core;
 
-[DebuggerDisplay("{PartitionAddress.Domain}:{PartitionAddress.Partition}")]
+[DebuggerDisplay("{RootAddress}")]
 public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     where T : IEvDbStreamStore, IEvDbEventTypes
 {
@@ -28,7 +28,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 
     #endregion // Ctor
 
-    public abstract EvDbPartitionAddress PartitionAddress { get; }
+    public abstract EvDbRootAddressName RootAddress { get; }
 
     public virtual JsonSerializerOptions? Options { get; }
 
@@ -43,7 +43,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     T IEvDbStreamFactory<T>.Create<TId>(in TId streamId)
     {
         string id = streamId.ToString()!;
-        var address = new EvDbStreamAddress(PartitionAddress, id);
+        var address = new EvDbStreamAddress(RootAddress, id);
         var views = CreateEmptyViews(address);
 
         OtelTags tags = address.ToOtelTagsToOtelTags();
@@ -60,7 +60,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     async Task<T> IEvDbStreamFactory<T>.GetAsync<TId>(TId streamId, CancellationToken cancellationToken)
     {
         string id = streamId.ToString()!;
-        var address = new EvDbStreamAddress(PartitionAddress, id);
+        var address = new EvDbStreamAddress(RootAddress, id);
 
         OtelTags tags = address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.GetAsync");

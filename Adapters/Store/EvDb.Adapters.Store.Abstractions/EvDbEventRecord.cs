@@ -13,11 +13,7 @@ public struct EvDbEventRecord
     /// <summary>
     /// The address of the stream  
     /// </summary>
-    public string Domain { get; init; }
-    /// <summary>
-    /// The address of the stream   
-    /// </summary>
-    public string Partition { get; init; }
+    public string RootAddress { get; init; }
     /// <summary>
     /// The identifier of the stream instance
     /// </summary>
@@ -53,8 +49,7 @@ public struct EvDbEventRecord
     public static implicit operator EvDbEvent(EvDbEventRecord entity)
     {
         EvDbStreamCursor StreamCursor = new(
-                                            entity.Domain,
-                                            entity.Partition,
+                                            entity.RootAddress,
                                             entity.StreamId,
                                             entity.Offset);
         return new EvDbEvent(
@@ -73,8 +68,7 @@ public struct EvDbEventRecord
         return new EvDbEventRecord
         {
             Id = Guid.NewGuid(), // TODO: GuidV7
-            Domain = e.StreamCursor.Domain,
-            Partition = e.StreamCursor.Partition,
+            RootAddress = e.StreamCursor.RootAddress,
             StreamId = e.StreamCursor.StreamId,
             Offset = e.StreamCursor.Offset,
             EventType = e.EventType,

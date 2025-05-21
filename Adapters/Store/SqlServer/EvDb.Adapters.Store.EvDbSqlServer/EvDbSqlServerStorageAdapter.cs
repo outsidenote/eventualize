@@ -104,8 +104,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         var metaData = new[]
         {
             new SqlMetaData(Event.Id, SqlDbType.UniqueIdentifier),
-            new SqlMetaData(Event.Domain, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData(Event.Partition, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Event.RootAddress, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Event.StreamId, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Event.Offset, SqlDbType.BigInt),
             new SqlMetaData(Event.EventType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
@@ -123,20 +122,19 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             var record = new SqlDataRecord(metaData);
 
             record.SetGuid(0, message.Id);
-            record.SetString(1, message.Domain);
-            record.SetString(2, message.Partition);
-            record.SetString(3, message.StreamId);
-            record.SetInt64(4, message.Offset);
-            record.SetString(5, message.EventType);
+            record.SetString(1, message.RootAddress);
+            record.SetString(2, message.StreamId);
+            record.SetInt64(3, message.Offset);
+            record.SetString(4, message.EventType);
 
-            record.SetString(6, message.CapturedBy);
-            record.SetDateTimeOffset(7, message.CapturedAt);
+            record.SetString(5, message.CapturedBy);
+            record.SetDateTimeOffset(6, message.CapturedAt);
 
             if (otelContext is null)
-                record.SetDBNull(8);
+                record.SetDBNull(7);
             else
-                record.SetBytes(8, 0, otelContext, 0, otelContext?.Length ?? 0);
-            record.SetBytes(9, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
+                record.SetBytes(7, 0, otelContext, 0, otelContext?.Length ?? 0);
+            record.SetBytes(8, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
 
             yield return record;
         }
@@ -155,8 +153,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         var metaData = new[]
         {
             new SqlMetaData(Message.Id, SqlDbType.UniqueIdentifier),
-            new SqlMetaData(Message.Domain, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
-            new SqlMetaData(Message.Partition, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
+            new SqlMetaData(Message.RootAddress, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Message.StreamId, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Message.Offset, SqlDbType.BigInt),
             new SqlMetaData(Message.EventType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
@@ -177,24 +174,23 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             var record = new SqlDataRecord(metaData);
 
             record.SetGuid(0, message.Id);
-            record.SetString(1, message.Domain);
-            record.SetString(2, message.Partition);
-            record.SetString(3, message.StreamId);
-            record.SetInt64(4, message.Offset);
-            record.SetString(5, message.EventType);
-            record.SetString(6, message.Channel);
-            record.SetString(7, message.MessageType);
-            record.SetString(8, message.SerializeType);
+            record.SetString(1, message.RootAddress);
+            record.SetString(2, message.StreamId);
+            record.SetInt64(3, message.Offset);
+            record.SetString(4, message.EventType);
+            record.SetString(5, message.Channel);
+            record.SetString(6, message.MessageType);
+            record.SetString(7, message.SerializeType);
 
 
-            record.SetString(9, message.CapturedBy);
-            record.SetDateTimeOffset(10, message.CapturedAt);
+            record.SetString(8, message.CapturedBy);
+            record.SetDateTimeOffset(9, message.CapturedAt);
 
             if (otelContext is null)
-                record.SetDBNull(11);
+                record.SetDBNull(10);
             else
-                record.SetBytes(11, 0, otelContext, 0, otelContext.Length);
-            record.SetBytes(12, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
+                record.SetBytes(10, 0, otelContext, 0, otelContext.Length);
+            record.SetBytes(11, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
 
             yield return record;
         }

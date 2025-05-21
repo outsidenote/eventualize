@@ -13,7 +13,7 @@ namespace EvDb.Core;
 [JsonConverter(typeof(EvDbDbNameSystemTextJsonConverter))]
 [TypeConverter(typeof(EvDbDbNameTypeConverter))]
 [DebuggerTypeProxy(typeof(EvDbDbNameDebugView))]
-[DebuggerDisplay("Underlying type: string, Value = { _value }")]
+[DebuggerDisplay("{ _value }")]
 public partial struct EvDbDatabaseName :
     IEquatable<EvDbDatabaseName>,
     IEquatable<string>,

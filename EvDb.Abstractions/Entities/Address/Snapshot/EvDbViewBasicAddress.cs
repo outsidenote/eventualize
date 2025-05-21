@@ -5,16 +5,14 @@ using static EvDb.Core.OtelConstants;
 namespace EvDb.Core;
 
 [Equatable]
-public readonly partial record struct EvDbViewBasicAddress(string Domain, string Partition, string ViewName)
+public readonly partial record struct EvDbViewBasicAddress(string RootAddress, string ViewName)
 {
     public EvDbViewBasicAddress(EvDbStreamAddress streamAddress, string viewName)
-        : this(streamAddress.Domain, streamAddress.Partition, viewName) { }
+        : this(streamAddress.RootAddress, viewName) { }
 
-    public EvDbViewBasicAddress(EvDbPartitionAddress streamAddress, string viewName)
-        : this(streamAddress.Domain, streamAddress.Partition, viewName) { }
 
     public EvDbViewBasicAddress(EvDbViewAddress viewAddress)
-        : this(viewAddress.Domain, viewAddress.Partition, viewAddress.ViewName) { }
+        : this(viewAddress.RootAddress, viewAddress.ViewName) { }
 
     #region ToOtelTagsToOtelTags
 
@@ -25,8 +23,7 @@ public readonly partial record struct EvDbViewBasicAddress(string Domain, string
     public OtelTags ToOtelTagsToOtelTags()
     {
         OtelTags tags = OtelTags.Empty
-                            .Add(TAG_DOMAIN, Domain)
-                            .Add(TAG_PARTITION, Partition)
+                            .Add(TAG_ROOT_ADDRESS, RootAddress)
                             .Add(TAG_VIEW_NAME, ViewName);
         return tags;
     }
@@ -38,8 +35,8 @@ public readonly partial record struct EvDbViewBasicAddress(string Domain, string
     public override string ToString()
     {
         if (string.IsNullOrWhiteSpace(ViewName))
-            return $"{Domain}:{Partition}";
-        return $"{Domain}:{Partition}:{ViewName}";
+            return RootAddress;
+        return $"{RootAddress}:{ViewName}";
     }
 
     #endregion // ToString

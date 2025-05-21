@@ -7,7 +7,7 @@ namespace EvDb.IntegrationTests.EF.Factories;
 [EvDbAttachView<PersonTypedView>("Typed")]
 [EvDbAttachView<PersonTyped2View>("Typed2")]
 [EvDbAttachView<PersonUntypedView>("Untyped")]
-[EvDbStreamFactory<IPersonEvents>("community", "people")]
+[EvDbStreamFactory<IPersonEvents>("community:people")]
 internal partial class PersonFactory
 {
 }
