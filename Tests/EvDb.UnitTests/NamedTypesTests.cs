@@ -1,14 +1,94 @@
 ﻿using EvDb.Core;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace EvDb.UnitTests;
 
 public class NamedTypesTests
 {
+    private const string json = """
+                        {
+                          "parent": "001",
+                          "state": "recording"
+                        }
+                        """;
+
+    #region EvDbTelemetryContextName_TryParse_Test
+
+    [Fact]
+    public void EvDbTelemetryContextName_Equality_Test()
+    {
+        EvDbTelemetryContextName context1 = EvDbTelemetryContextName.Parse(json);
+        EvDbTelemetryContextName context2 = EvDbTelemetryContextName.Parse(json);
+        Assert.Equal(context1, context2);
+        Assert.True(context1.Equals(context1.Value));
+        Assert.True(context1.Equals(context1.Value.ToArray()));
+        Assert.True(context1.Equals(context1.Value.ToImmutableArray()));
+        Assert.True(context1.Equals(context1.Value.AsSpan()));
+    }
+
+    [Fact]
+    public void EvDbTelemetryContextName_Cast_Test()
+    {
+        EvDbTelemetryContextName context1 = EvDbTelemetryContextName.Parse(json);
+        ImmutableArray<byte> value1 = context1;
+        EvDbTelemetryContextName context2 = value1;
+        byte[] value2 = context2;
+        EvDbTelemetryContextName context3 = (EvDbTelemetryContextName)value2;
+        ImmutableList<byte> value3 = context3;
+        EvDbTelemetryContextName context4 = (EvDbTelemetryContextName)value3;
+        ReadOnlySpan<byte> value4 = context4;
+        EvDbTelemetryContextName context5 = value4;
+
+        Assert.Equal(context1, context5);
+    }
+
+    [Fact]
+    public void EvDbTelemetryContextName_TryParse_Test()
+    {
+
+        EvDbTelemetryContextName context = EvDbTelemetryContextName.Parse(json);
+        var json1 = context.ToString("i");
+        Assert.Equal(json, json1);
+    }
+
+    #endregion //  EvDbTelemetryContextName_TryParse_Test
+
+    [Fact]
+    public void EvDbTelemetryContextName_FromJsonDoc_Test()
+    {
+        var doc = JsonDocument.Parse(json);
+        var context = EvDbTelemetryContextName.From(doc);
+        var json1 = context.ToString("i");
+        Assert.Equal(json, json1);
+    }
+
+    [Fact]
+    public void EvDbTelemetryContextName_AsMemory_Test()
+    {
+        EvDbTelemetryContextName context = EvDbTelemetryContextName.Parse(
+                                                    json.AsMemory());
+        var json1 = context.ToString("i");
+        Assert.Equal(json, json1);
+    }
+
+
+    [Fact]
+    public void EvDbTelemetryContextName_AsSpan_Test()
+    {
+        EvDbTelemetryContextName context = EvDbTelemetryContextName.Parse(
+                                                    json.AsSpan());
+        var json1 = context.ToString("i");
+        Assert.Equal(json, json1);
+    }
+
+    #region EvDbStreamTypeName_Validition_Test
+
     [Theory]
     [InlineData("Test", true)]
     [InlineData("Test123", true)]
@@ -28,4 +108,6 @@ public class NamedTypesTests
         bool isValid = EvDbStreamTypeName.TryFrom(name, out EvDbStreamTypeName root);
         Assert.Equal(isValid, shouldSucceed);
     }
+
+    #endregion //  EvDbStreamTypeName_Validition_Test
 }
