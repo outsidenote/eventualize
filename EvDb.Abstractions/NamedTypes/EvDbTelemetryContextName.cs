@@ -15,8 +15,7 @@ namespace EvDb.Core;
 
 [ExcludeFromCodeCoverage]
 [JsonConverter(typeof(EvDbTelemetryContextNameSystemTextJsonConverter))]
-[DebuggerDisplayAttribute("{ _value }")]
-[TypeConverter(typeof(EvDbTelemetryContextNameTypeConverter))]
+[DebuggerDisplay("{ _value }")]
 public readonly partial struct EvDbTelemetryContextName :
     IEquatable<EvDbTelemetryContextName>
 {
@@ -440,84 +439,5 @@ public readonly bool IsInitialized() => true;
     #endregion //  EvDbTelemetryContextNameSystemTextJsonConverter
 
 #nullable restore
-
-    #region EvDbTelemetryContextNameTypeConverter
-
-    /// <summary>
-    /// TypeConverter for EvDbTelemetryContextName that handles conversion to and from byte arrays
-    /// </summary>
-    public sealed class EvDbTelemetryContextNameTypeConverter : TypeConverter
-    {
-        /// <summary>
-        /// Returns whether this converter can convert an object of the given type to the type of this converter
-        /// </summary>
-        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
-        {
-            return sourceType == typeof(byte[]) ||
-                   sourceType == typeof(ImmutableArray<byte>) ||
-                   base.CanConvertFrom(context, sourceType);
-        }
-
-        /// <summary>
-        /// Returns whether this converter can convert the object to the specified type
-        /// </summary>
-        public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
-        {
-            return destinationType == typeof(byte[]) ||
-                   destinationType == typeof(ImmutableArray<byte>) ||
-                   base.CanConvertTo(context, destinationType);
-        }
-
-        /// <summary>
-        /// Converts the given object to the type of this converter
-        /// </summary>
-        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
-        {
-            return value switch
-            {
-                byte[] byteArray => EvDbTelemetryContextName.From(byteArray),
-                ImmutableArray<byte> immutableArray => new EvDbTelemetryContextName(immutableArray),
-                _ => base.ConvertFrom(context, culture, value)
-            };
-        }
-
-        /// <summary>
-        /// Converts the given value object to the specified type
-        /// </summary>
-        public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
-        {
-            if (value is EvDbTelemetryContextName contextName)
-            {
-                if (destinationType == typeof(byte[]))
-                {
-                    return contextName.Value.ToArray();
-                }
-
-                if (destinationType == typeof(ImmutableArray<byte>))
-                {
-                    return contextName.Value;
-                }
-            }
-
-            return base.ConvertTo(context, culture, value, destinationType);
-        }
-
-        /// <summary>
-        /// Returns whether the given value object is valid for this type
-        /// </summary>
-        public override bool IsValid(ITypeDescriptorContext? context, object? value)
-        {
-            return value switch
-            {
-                null => false,
-                byte[] => true,
-                ImmutableArray<byte> => true,
-                EvDbTelemetryContextName => true,
-                _ => base.IsValid(context, value)
-            };
-        }
-    }
-
-    #endregion //  EvDbTelemetryContextNameTypeConverter
 }
 
