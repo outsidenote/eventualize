@@ -38,6 +38,7 @@ public abstract class EvDbRelationalStorageAdapter :
         _logger = logger;
         _factory = factory;
         _transformers = transformers.ToImmutableList();
+        DapperMappers.RegisterDapperTypesMapper();
     }
 
     async Task<DbConnection> InitAsync()

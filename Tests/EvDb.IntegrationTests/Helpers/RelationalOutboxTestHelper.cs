@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using EvDb.Core;
 using EvDb.Core.Adapters;
 using System.Data.Common;
 

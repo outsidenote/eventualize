@@ -1,19 +1,14 @@
 ﻿using EvDb.Core.NamedTypes.Internals;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics;
-using System.Text.Json.Serialization;
-using System.ComponentModel;
-using System.Collections.Immutable;
-using System.Text.Json;
-using System.Text;
-using System.Globalization;
-using Microsoft.Extensions.Options;
 using System.Buffers;
-using static System.Net.Mime.MediaTypeNames;
-using System.Reflection.PortableExecutable;
-using System;
-using System.Xml.Linq;
+using System.Collections.Immutable;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 // ReSharper disable once UnusedType.Global
 
 namespace EvDb.Core;
@@ -21,9 +16,11 @@ namespace EvDb.Core;
 [ExcludeFromCodeCoverage]
 [JsonConverter(typeof(EvDbTelemetryContextNameSystemTextJsonConverter))]
 [DebuggerDisplayAttribute("{ _value }")]
-public readonly partial struct EvDbTelemetryContextName:
+[TypeConverter(typeof(EvDbTelemetryContextNameTypeConverter))]
+public readonly partial struct EvDbTelemetryContextName :
     IEquatable<EvDbTelemetryContextName>
 {
+    private static readonly JsonSerializerOptions JSON_COMPARE_OPTIONS = new JsonSerializerOptions { WriteIndented = true };
     #region _stackTrace
 
 #if DEBUG
@@ -50,6 +47,15 @@ public readonly partial struct EvDbTelemetryContextName:
     }
 
     #endregion //  Value
+
+    #region Length
+
+    /// <summary>
+    /// Gets the length of the underlying Byte[].
+    /// </summary>
+    public int Length => _value.Length;
+
+    #endregion //  Length
 
     #region Ctor
 
@@ -166,7 +172,7 @@ public readonly partial struct EvDbTelemetryContextName:
     /// <returns>An instance of this type.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static EvDbTelemetryContextName From(JsonDocument value, JsonSerializerOptions? options = null)
-    { 
+    {
         return From(value.RootElement, options);
     }
 
@@ -211,7 +217,7 @@ public readonly bool IsInitialized() => true;
     public static implicit operator byte[](EvDbTelemetryContextName vo) => vo._value.ToArray();
     public static implicit operator ImmutableList<byte>(EvDbTelemetryContextName vo) => vo._value.ToImmutableList();
     public static implicit operator ImmutableArray<byte>(EvDbTelemetryContextName vo) => vo._value;
-   
+
     public static implicit operator EvDbTelemetryContextName(ImmutableArray<byte> value)
     {
         return new EvDbTelemetryContextName(value);
@@ -220,19 +226,39 @@ public readonly bool IsInitialized() => true;
     {
         return new EvDbTelemetryContextName(value);
     }
-    public static explicit operator EvDbTelemetryContextName(byte[] value)=>  From(value);
-    public static explicit operator EvDbTelemetryContextName(Span<byte> value)
+    public static implicit operator EvDbTelemetryContextName(byte[] value) => From(value);
+    public static implicit operator EvDbTelemetryContextName(Span<byte> value)
     {
         return new EvDbTelemetryContextName(value);
     }
-    public static implicit operator EvDbTelemetryContextName(ReadOnlySpan<byte> value)
-    {
-        return new EvDbTelemetryContextName(value);
-    }
+    //public static implicit operator EvDbTelemetryContextName(ReadOnlySpan<byte> value)
+    //{
+    //    return new EvDbTelemetryContextName(value);
+    //}
 
     #endregion //  Casting Overload
 
     #region Equals, ==
+
+    /// <summary>
+    /// Slower comparison that compare the JSON representation of the two instances.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public readonly bool JsonEquals(EvDbTelemetryContextName other)
+    {
+        // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
+        // We treat anything uninitialized as not equal to anything, even other uninitialized instances of this type.
+        if (!IsInitialized() || !other.IsInitialized())
+            return false;
+        if(IsEquals(_value, other._value))
+            return true;
+        var selfJson = ToJson();
+        var otherJson = other.ToJson();
+        var selfJsonText = JsonSerializer.Serialize(selfJson, JSON_COMPARE_OPTIONS);
+        var otherJsonText = JsonSerializer.Serialize(otherJson, JSON_COMPARE_OPTIONS);
+        return selfJsonText.Equals(otherJsonText, StringComparison.OrdinalIgnoreCase);
+    }
 
     public readonly bool Equals(EvDbTelemetryContextName other)
     {
@@ -271,7 +297,9 @@ public readonly bool IsInitialized() => true;
     }
 
     private static bool IsEquals(IReadOnlyList<byte> a, IReadOnlyList<byte> b)
-    { 
+    {
+        if (object.ReferenceEquals(a, b))
+            return true;
         if (a.Count != b.Count)
             return false;
         return a.SequenceEqual(b);
@@ -289,7 +317,7 @@ public readonly bool IsInitialized() => true;
     #region Parse
 
     public static EvDbTelemetryContextName Parse(
-        [StringSyntax("Json")] 
+        [StringSyntax("Json")]
         string json)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -298,7 +326,7 @@ public readonly bool IsInitialized() => true;
     }
 
     public static EvDbTelemetryContextName Parse(
-        [StringSyntax("Json")] 
+        [StringSyntax("Json")]
         ReadOnlySequence<char> json)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -306,14 +334,14 @@ public readonly bool IsInitialized() => true;
     }
 
     public static EvDbTelemetryContextName Parse(
-        [StringSyntax("Json")] 
+        [StringSyntax("Json")]
         ReadOnlyMemory<char> json)
     {
         return Parse(json.Span);
     }
 
     public static EvDbTelemetryContextName Parse(
-        [StringSyntax("Json")] 
+        [StringSyntax("Json")]
         ReadOnlySpan<char> json)
     {
         int byteCount = Encoding.UTF8.GetByteCount(json);
@@ -390,7 +418,7 @@ public readonly bool IsInitialized() => true;
     /// <summary>
     /// Converts a EvDbTelemetryContextName to or from JSON.
     /// </summary>
-    public class EvDbTelemetryContextNameSystemTextJsonConverter : 
+    public class EvDbTelemetryContextNameSystemTextJsonConverter :
         JsonConverter<EvDbTelemetryContextName>
     {
         public override EvDbTelemetryContextName Read(ref Utf8JsonReader reader,
@@ -412,5 +440,84 @@ public readonly bool IsInitialized() => true;
     #endregion //  EvDbTelemetryContextNameSystemTextJsonConverter
 
 #nullable restore
+
+    #region EvDbTelemetryContextNameTypeConverter
+
+    /// <summary>
+    /// TypeConverter for EvDbTelemetryContextName that handles conversion to and from byte arrays
+    /// </summary>
+    public sealed class EvDbTelemetryContextNameTypeConverter : TypeConverter
+    {
+        /// <summary>
+        /// Returns whether this converter can convert an object of the given type to the type of this converter
+        /// </summary>
+        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+        {
+            return sourceType == typeof(byte[]) ||
+                   sourceType == typeof(ImmutableArray<byte>) ||
+                   base.CanConvertFrom(context, sourceType);
+        }
+
+        /// <summary>
+        /// Returns whether this converter can convert the object to the specified type
+        /// </summary>
+        public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
+        {
+            return destinationType == typeof(byte[]) ||
+                   destinationType == typeof(ImmutableArray<byte>) ||
+                   base.CanConvertTo(context, destinationType);
+        }
+
+        /// <summary>
+        /// Converts the given object to the type of this converter
+        /// </summary>
+        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+        {
+            return value switch
+            {
+                byte[] byteArray => EvDbTelemetryContextName.From(byteArray),
+                ImmutableArray<byte> immutableArray => new EvDbTelemetryContextName(immutableArray),
+                _ => base.ConvertFrom(context, culture, value)
+            };
+        }
+
+        /// <summary>
+        /// Converts the given value object to the specified type
+        /// </summary>
+        public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+        {
+            if (value is EvDbTelemetryContextName contextName)
+            {
+                if (destinationType == typeof(byte[]))
+                {
+                    return contextName.Value.ToArray();
+                }
+
+                if (destinationType == typeof(ImmutableArray<byte>))
+                {
+                    return contextName.Value;
+                }
+            }
+
+            return base.ConvertTo(context, culture, value, destinationType);
+        }
+
+        /// <summary>
+        /// Returns whether the given value object is valid for this type
+        /// </summary>
+        public override bool IsValid(ITypeDescriptorContext? context, object? value)
+        {
+            return value switch
+            {
+                null => false,
+                byte[] => true,
+                ImmutableArray<byte> => true,
+                EvDbTelemetryContextName => true,
+                _ => base.IsValid(context, value)
+            };
+        }
+    }
+
+    #endregion //  EvDbTelemetryContextNameTypeConverter
 }
 

@@ -3,11 +3,9 @@
 #pragma warning disable CS0105 // Using directive appeared previously in this namespace
 #pragma warning disable CS0108 // hides inherited member.
 
-using System.Collections.Immutable;
-using System.Text.Json;
 // ####################  GENERATED AT: 2025-05-21 11:07:24 ####################
 using EvDb.Core;
-using EvDb.StructuresValidation.Abstractions.Events;
+using System.Collections.Immutable;
 namespace EvDb.StructuresValidation.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

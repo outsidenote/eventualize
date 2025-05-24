@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace EvDb.Core;
+﻿namespace EvDb.Core;
 
 /// <summary>
 /// Messsage metadata

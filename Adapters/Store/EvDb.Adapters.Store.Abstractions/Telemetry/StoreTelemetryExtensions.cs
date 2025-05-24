@@ -1,6 +1,6 @@
 ﻿using EvDb.Core.Adapters;
-using OpenTelemetry.Context.Propagation;
 using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Buffers;
@@ -21,10 +21,10 @@ public static class StoreTelemetryExtensions
     /// <param name="activity"></param>
     /// <param name="propagator"></param>
     /// <returns></returns>
-    public static byte[]? SerializeTelemetryContext(this Activity? activity, TextMapPropagator? propagator = null)
+    public static EvDbTelemetryContextName SerializeTelemetryContext(this Activity activity, TextMapPropagator? propagator = null)
     {
-        if (activity == null || activity.Context == default)
-            return null;
+        if (activity.Context == default)
+            return EvDbTelemetryContextName.Empty;
 
         propagator = propagator ?? Propagator;
 
@@ -53,8 +53,9 @@ public static class StoreTelemetryExtensions
         writer.Flush();
 
         // Return the written data as a byte array
-        return bufferWriter.WrittenSpan.ToArray();
-
+        var span = bufferWriter.WrittenSpan;
+        var result = EvDbTelemetryContextName.From(span);
+        return result;
     }
 
     #endregion //  SerializeTelemetryContext
@@ -62,14 +63,14 @@ public static class StoreTelemetryExtensions
     #region ToTelemetryContext
 
     /// <summary>
-    /// Extract byte[] into OTEL context
+    /// Extract EvDbTelemetryContextName into OTEL context
     /// </summary>
     /// <param name="contextData"></param>
     /// <param name="propagator"></param>
     /// <returns></returns>
-    public static ActivityContext ToTelemetryContext(byte[]? contextData, TextMapPropagator? propagator = null)
+    public static ActivityContext ToTelemetryContext(this EvDbTelemetryContextName contextData, TextMapPropagator? propagator = null)
     {
-        if (contextData == null || contextData.Length == 0)
+        if (contextData == EvDbTelemetryContextName.Empty || contextData.Length == 0)
             return default;
 
         propagator = propagator ?? Propagator;
@@ -77,9 +78,7 @@ public static class StoreTelemetryExtensions
         // Use Utf8JsonReader directly with the span
         var reader = new Utf8JsonReader(contextData);
 
-        // Try to parse and extract in one go
-        if (!JsonDocument.TryParseValue(ref reader, out var doc))
-            return default;
+
 
         // Use a local function for the extraction delegate to improve readability and performance
         static IEnumerable<string>? ExtractValue(JsonElement carrier, string key)
@@ -92,8 +91,10 @@ public static class StoreTelemetryExtensions
             return string.IsNullOrEmpty(value) ? null : new[] { value };
         }
 
+        var json = contextData.ToJson();
+
         // Extract the propagation context with the optimized delegate
-        var propagationContext = propagator.Extract(default, doc.RootElement, ExtractValue);
+        var propagationContext = propagator.Extract(default, json, ExtractValue);
 
         return propagationContext.ActivityContext;
     }

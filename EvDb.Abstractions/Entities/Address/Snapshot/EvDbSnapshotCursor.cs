@@ -12,7 +12,7 @@ namespace EvDb.Core;
 [Equatable]
 public readonly partial record struct EvDbSnapshotCursor(string StreamType, string StreamId, string ViewName, long Offset = 0)
 {
-    public static readonly EvDbSnapshotCursor Empty = new EvDbSnapshotCursor("N/A",  "N/A", "N/A", 0);
+    public static readonly EvDbSnapshotCursor Empty = new EvDbSnapshotCursor("N/A", "N/A", "N/A", 0);
 
     public EvDbSnapshotCursor(EvDbStreamAddress streamAddress, string viewName, long offset = 0)
         : this(streamAddress.StreamType, streamAddress.StreamId, viewName, offset) { }

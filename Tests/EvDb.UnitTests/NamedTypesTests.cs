@@ -1,11 +1,6 @@
 ﻿using EvDb.Core;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace EvDb.UnitTests;
 
@@ -39,11 +34,11 @@ public class NamedTypesTests
         ImmutableArray<byte> value1 = context1;
         EvDbTelemetryContextName context2 = value1;
         byte[] value2 = context2;
-        EvDbTelemetryContextName context3 = (EvDbTelemetryContextName)value2;
+        EvDbTelemetryContextName context3 = value2;
         ImmutableList<byte> value3 = context3;
-        EvDbTelemetryContextName context4 = (EvDbTelemetryContextName)value3;
+        EvDbTelemetryContextName context4 = value3;
         ReadOnlySpan<byte> value4 = context4;
-        EvDbTelemetryContextName context5 = value4;
+        EvDbTelemetryContextName context5 = EvDbTelemetryContextName.From(value4);
 
         Assert.Equal(context1, context5);
     }
