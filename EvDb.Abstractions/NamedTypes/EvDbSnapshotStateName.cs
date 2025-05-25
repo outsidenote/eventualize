@@ -13,10 +13,10 @@ using System.Text.Json.Serialization;
 namespace EvDb.Core;
 
 [ExcludeFromCodeCoverage]
-[JsonConverter(typeof(EvDbEventPayloadNameSystemTextJsonConverter))]
+[JsonConverter(typeof(EvDbSnapshotStateNameSystemTextJsonConverter))]
 [DebuggerDisplay("{ _value }")]
-public readonly partial struct EvDbEventPayloadName :
-    IEquatable<EvDbEventPayloadName>,
+public readonly partial struct EvDbSnapshotStateName :
+    IEquatable<EvDbSnapshotStateName>,
     IEnumerable<byte>,
     IEvDbPayloadRawData
 {
@@ -62,7 +62,7 @@ public readonly partial struct EvDbEventPayloadName :
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public EvDbEventPayloadName()
+    public EvDbSnapshotStateName()
     {
 #if DEBUG
         _stackTrace = new System.Diagnostics.StackTrace();
@@ -74,7 +74,7 @@ public readonly partial struct EvDbEventPayloadName :
     }
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
-    private EvDbEventPayloadName(IEnumerable<byte> value)
+    private EvDbSnapshotStateName(IEnumerable<byte> value)
     {
         if (value is byte[] v)
         {
@@ -90,7 +90,7 @@ public readonly partial struct EvDbEventPayloadName :
     }
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
-    private EvDbEventPayloadName(byte[] value)
+    private EvDbSnapshotStateName(byte[] value)
     {
         _value = value;
 #if !VOGEN_NO_VALIDATION
@@ -99,12 +99,12 @@ public readonly partial struct EvDbEventPayloadName :
     }
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
-    private EvDbEventPayloadName(ReadOnlySpan<byte> value) : this(value.ToImmutableArray())
+    private EvDbSnapshotStateName(ReadOnlySpan<byte> value) : this(value.ToImmutableArray())
     {
     }
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
-    private EvDbEventPayloadName(Span<byte> value) : this(value.ToImmutableArray())
+    private EvDbSnapshotStateName(Span<byte> value) : this(value.ToImmutableArray())
     {
     }
 
@@ -115,7 +115,7 @@ public readonly partial struct EvDbEventPayloadName :
     /// <summary>
     /// Represents an empty instance of this type.
     /// </summary>
-    public static EvDbEventPayloadName Empty { get; } = new EvDbEventPayloadName([]);
+    public static EvDbSnapshotStateName Empty { get; } = new EvDbSnapshotStateName([]);
 
     #endregion //  Empty
 
@@ -127,9 +127,9 @@ public readonly partial struct EvDbEventPayloadName :
     /// <param name="value"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbEventPayloadName FromArray(byte[] value)
+    public static EvDbSnapshotStateName FromArray(byte[] value)
     {
-        return new EvDbEventPayloadName(value);
+        return new EvDbSnapshotStateName(value);
     }
 
     /// <summary>
@@ -138,9 +138,9 @@ public readonly partial struct EvDbEventPayloadName :
     /// <param name="value"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbEventPayloadName FromEnumerable(IEnumerable<byte> value)
+    public static EvDbSnapshotStateName FromEnumerable(IEnumerable<byte> value)
     {
-        return new EvDbEventPayloadName(value);
+        return new EvDbSnapshotStateName(value);
     }
 
     /// <summary>
@@ -149,9 +149,9 @@ public readonly partial struct EvDbEventPayloadName :
     /// <param name="value"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbEventPayloadName FromSpan(ReadOnlySpan<byte> value)
+    public static EvDbSnapshotStateName FromSpan(ReadOnlySpan<byte> value)
     {
-        return new EvDbEventPayloadName(value);
+        return new EvDbSnapshotStateName(value);
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public readonly partial struct EvDbEventPayloadName :
     /// <param name="options"></param>
     /// <returns>An instance of this type.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbEventPayloadName FromJson(JsonDocument value, JsonSerializerOptions? options = null)
+    public static EvDbSnapshotStateName FromJson(JsonDocument value, JsonSerializerOptions? options = null)
     {
         return FromJson(value.RootElement, options);
     }
@@ -173,10 +173,10 @@ public readonly partial struct EvDbEventPayloadName :
     /// <param name="options"></param>
     /// <returns>An instance of this type.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbEventPayloadName FromJson(JsonElement value, JsonSerializerOptions? options = null)
+    public static EvDbSnapshotStateName FromJson(JsonElement value, JsonSerializerOptions? options = null)
     {
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(value, options);
-        return new EvDbEventPayloadName(bytes);
+        return new EvDbSnapshotStateName(bytes);
     }
 
     #endregion //  From
@@ -248,13 +248,13 @@ public readonly bool IsInitialized() => true;
 
     #region Casting Overload
 
-    public static implicit operator ReadOnlySpan<byte>(EvDbEventPayloadName vo) => vo._value.AsSpan();
-    public static implicit operator byte[](EvDbEventPayloadName vo) => vo._value;
+    public static implicit operator ReadOnlySpan<byte>(EvDbSnapshotStateName vo) => vo._value.AsSpan();
+    public static implicit operator byte[](EvDbSnapshotStateName vo) => vo._value;
 
-    public static implicit operator EvDbEventPayloadName(byte[] value) => new EvDbEventPayloadName(value);
-    public static implicit operator EvDbEventPayloadName(Span<byte> value)
+    public static implicit operator EvDbSnapshotStateName(byte[] value) => new EvDbSnapshotStateName(value);
+    public static implicit operator EvDbSnapshotStateName(Span<byte> value)
     {
-        return new EvDbEventPayloadName(value);
+        return new EvDbSnapshotStateName(value);
     }
 
     #endregion //  Casting Overload
@@ -266,7 +266,7 @@ public readonly bool IsInitialized() => true;
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public readonly bool JsonEquals(EvDbEventPayloadName other)
+    public readonly bool JsonEquals(EvDbSnapshotStateName other)
     {
         // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
         // We treat anything uninitialized as not equal to anything, even other uninitialized instances of this type.
@@ -281,7 +281,7 @@ public readonly bool IsInitialized() => true;
         return selfJsonText.Equals(otherJsonText, StringComparison.OrdinalIgnoreCase);
     }
 
-    public readonly bool Equals(EvDbEventPayloadName other)
+    public readonly bool Equals(EvDbSnapshotStateName other)
     {
         // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
         // We treat anything uninitialized as not equal to anything, even other uninitialized instances of this type.
@@ -302,7 +302,7 @@ public readonly bool IsInitialized() => true;
     {
         return obj switch
         {
-            EvDbEventPayloadName item => Equals(item),
+            EvDbSnapshotStateName item => Equals(item),
             IImmutableList<byte> item => Equals(item),
             IReadOnlyList<byte> item => Equals(item),
             IReadOnlyCollection<byte> item => Equals(item),
@@ -317,42 +317,42 @@ public readonly bool IsInitialized() => true;
         return a.SequenceEqual(b);
     }
 
-    public static bool operator ==(EvDbEventPayloadName left, EvDbEventPayloadName right) => left.Equals(right);
-    public static bool operator !=(EvDbEventPayloadName left, EvDbEventPayloadName right) => !(left == right);
-    public static bool operator ==(EvDbEventPayloadName left, Byte[] right) => left.Equals(right);
-    public static bool operator ==(Byte[] left, EvDbEventPayloadName right) => right.Equals(left);
-    public static bool operator !=(Byte[] left, EvDbEventPayloadName right) => !(left == right);
-    public static bool operator !=(EvDbEventPayloadName left, Byte[] right) => !(left == right);
+    public static bool operator ==(EvDbSnapshotStateName left, EvDbSnapshotStateName right) => left.Equals(right);
+    public static bool operator !=(EvDbSnapshotStateName left, EvDbSnapshotStateName right) => !(left == right);
+    public static bool operator ==(EvDbSnapshotStateName left, Byte[] right) => left.Equals(right);
+    public static bool operator ==(Byte[] left, EvDbSnapshotStateName right) => right.Equals(left);
+    public static bool operator !=(Byte[] left, EvDbSnapshotStateName right) => !(left == right);
+    public static bool operator !=(EvDbSnapshotStateName left, Byte[] right) => !(left == right);
 
     #endregion //  Equals, ==
 
     #region Parse
 
-    public static EvDbEventPayloadName Parse(
+    public static EvDbSnapshotStateName Parse(
         [StringSyntax("Json")]
         string json)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
 
-        return new EvDbEventPayloadName(bytes);
+        return new EvDbSnapshotStateName(bytes);
     }
 
-    public static EvDbEventPayloadName Parse(
+    public static EvDbSnapshotStateName Parse(
         [StringSyntax("Json")]
         ReadOnlySequence<char> json)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
-        return new EvDbEventPayloadName(bytes);
+        return new EvDbSnapshotStateName(bytes);
     }
 
-    public static EvDbEventPayloadName Parse(
+    public static EvDbSnapshotStateName Parse(
         [StringSyntax("Json")]
         ReadOnlyMemory<char> json)
     {
         return Parse(json.Span);
     }
 
-    public static EvDbEventPayloadName Parse(
+    public static EvDbSnapshotStateName Parse(
         [StringSyntax("Json")]
         ReadOnlySpan<char> json)
     {
@@ -360,7 +360,7 @@ public readonly bool IsInitialized() => true;
         byte[] result = new byte[byteCount];
 
         Encoding.UTF8.GetBytes(json, result);
-        return new EvDbEventPayloadName(result);
+        return new EvDbSnapshotStateName(result);
     }
 
     #endregion //  TryParse
@@ -443,24 +443,24 @@ public readonly bool IsInitialized() => true;
 
 #nullable disable
 
-    #region EvDbEventPayloadNameSystemTextJsonConverter
+    #region EvDbSnapshotStateNameSystemTextJsonConverter
 
     /// <summary>
-    /// Converts a EvDbEventPayloadName to or from JSON.
+    /// Converts a EvDbSnapshotStateName to or from JSON.
     /// </summary>
-    public class EvDbEventPayloadNameSystemTextJsonConverter :
-        JsonConverter<EvDbEventPayloadName>
+    public class EvDbSnapshotStateNameSystemTextJsonConverter :
+        JsonConverter<EvDbSnapshotStateName>
     {
-        public override EvDbEventPayloadName Read(ref Utf8JsonReader reader,
+        public override EvDbSnapshotStateName Read(ref Utf8JsonReader reader,
                                                       Type typeToConvert,
                                                       JsonSerializerOptions options)
         {
             ImmutableArray<byte> value = JsonSerializer.Deserialize<ImmutableArray<byte>>(ref reader, options);
-            return new EvDbEventPayloadName(value);
+            return new EvDbSnapshotStateName(value);
         }
 
         public override void Write(Utf8JsonWriter writer,
-                                   EvDbEventPayloadName value,
+                                   EvDbSnapshotStateName value,
                                    JsonSerializerOptions options)
         {
             IEvDbPayloadRawData self = value;
@@ -468,7 +468,7 @@ public readonly bool IsInitialized() => true;
         }
     }
 
-    #endregion //  EvDbEventPayloadNameSystemTextJsonConverter
+    #endregion //  EvDbSnapshotStateNameSystemTextJsonConverter
 
 #nullable restore
 }

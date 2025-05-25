@@ -3,7 +3,7 @@
 namespace EvDb.Core;
 
 [DebuggerDisplay("{StreamType}{StreamId}:{ViewName}, Offset = {Offset}")]
-public readonly record struct SnapshotSaveParameter(
+internal readonly record struct SnapshotSaveParameter(
                     Guid Id,
                     string StreamType,
                     string StreamId,

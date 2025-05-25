@@ -2,35 +2,35 @@
 
 namespace EvDb.Core.Adapters;
 
-internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandler<EvDbTelemetryContextName>
+internal class EvDbSnapshotStateNameDapperMapper : Dapper.SqlMapper.TypeHandler<EvDbSnapshotStateName>
 {
 
     #region Ctor
 
-    private EvDbTelemetryContextNameDapperMapper()
+    private EvDbSnapshotStateNameDapperMapper()
     {
     }
 
     #endregion //  Ctor
 
-    internal static EvDbTelemetryContextNameDapperMapper Default { get; } = new EvDbTelemetryContextNameDapperMapper();
+    internal static EvDbSnapshotStateNameDapperMapper Default { get; } = new EvDbSnapshotStateNameDapperMapper();
 
     #region Parse
 
     /// <summary>
-    /// Parse the value from the database into an EvDbTelemetryContextName instance.
+    /// Parse the value from the database into an EvDbSnapshotStateName instance.
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
     /// <exception cref="DataException"></exception>
-    public override EvDbTelemetryContextName Parse(object value)
+    public override EvDbSnapshotStateName Parse(object value)
     {
         switch (value)
         {
             case byte[] byteArray:
-                return EvDbTelemetryContextName.FromArray(byteArray);
+                return EvDbSnapshotStateName.FromArray(byteArray);
             default:
-                throw new DataException($"Cannot convert {value.GetType()} to EvDbTelemetryContextName");
+                throw new DataException($"Cannot convert {value.GetType()} to EvDbSnapshotStateName");
         }
     }
 
@@ -39,11 +39,11 @@ internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandl
     #region SetValue
 
     /// <summary>
-    /// Set the value of the parameter to the EvDbTelemetryContextName instance.
+    /// Set the value of the parameter to the EvDbSnapshotStateName instance.
     /// </summary>
     /// <param name="parameter"></param>
     /// <param name="value"></param>
-    public override void SetValue(IDbDataParameter parameter, EvDbTelemetryContextName value)
+    public override void SetValue(IDbDataParameter parameter, EvDbSnapshotStateName value)
     {
         if (!value.IsInitialized() || value.Length == 0)
         {

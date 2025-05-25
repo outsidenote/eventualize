@@ -29,7 +29,7 @@ public static class StoreTelemetryExtensions
         propagator = propagator ?? Propagator;
 
         // Use ArrayBufferWriter from System.Buffers for better memory efficiency
-        ArrayBufferWriter<byte> bufferWriter = new ();
+        ArrayBufferWriter<byte> bufferWriter = new();
         using var writer = new Utf8JsonWriter(bufferWriter);
 
         Baggage baggage = Baggage.Current;
