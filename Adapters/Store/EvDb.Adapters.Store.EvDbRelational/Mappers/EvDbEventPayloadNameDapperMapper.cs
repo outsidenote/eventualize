@@ -3,35 +3,35 @@ using System.Data;
 
 namespace EvDb.Core.Adapters;
 
-internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandler<EvDbTelemetryContextName>
+internal class EvDbEventPayloadNameDapperMapper : Dapper.SqlMapper.TypeHandler<EvDbEventPayloadName>
 {
 
     #region Ctor
 
-    private EvDbTelemetryContextNameDapperMapper()
+    private EvDbEventPayloadNameDapperMapper()
     {
     }
 
     #endregion //  Ctor
 
-    internal static EvDbTelemetryContextNameDapperMapper Default { get; } = new EvDbTelemetryContextNameDapperMapper();
+    internal static EvDbEventPayloadNameDapperMapper Default { get; } = new EvDbEventPayloadNameDapperMapper();
 
     #region Parse
 
     /// <summary>
-    /// Parse the value from the database into an EvDbTelemetryContextName instance.
+    /// Parse the value from the database into an EvDbEventPayloadName instance.
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
     /// <exception cref="DataException"></exception>
-    public override EvDbTelemetryContextName Parse(object value)
+    public override EvDbEventPayloadName Parse(object value)
     {
         switch (value)
         {
             case byte[] byteArray:
-                return EvDbTelemetryContextName.FromArray(byteArray);
+                return EvDbEventPayloadName.FromArray(byteArray);
             default:
-                throw new DataException($"Cannot convert {value.GetType()} to EvDbTelemetryContextName");
+                throw new DataException($"Cannot convert {value.GetType()} to EvDbEventPayloadName");
         }
     }
 
@@ -40,11 +40,11 @@ internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandl
     #region SetValue
 
     /// <summary>
-    /// Set the value of the parameter to the EvDbTelemetryContextName instance.
+    /// Set the value of the parameter to the EvDbEventPayloadName instance.
     /// </summary>
     /// <param name="parameter"></param>
     /// <param name="value"></param>
-    public override void SetValue(IDbDataParameter parameter, EvDbTelemetryContextName value)
+    public override void SetValue(IDbDataParameter parameter, EvDbEventPayloadName value)
     {
         if (!value.IsInitialized() || value.Length == 0)
         {

@@ -114,7 +114,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             new SqlMetaData(Event.Payload, SqlDbType.VarBinary, 4000)
         };
 
-        var otelContext = Activity.Current?.SerializeTelemetryContext();
+        EvDbTelemetryContextName otelContext = Activity.Current?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty;
 
         // Populate the TVP
         foreach (var message in events)
@@ -130,11 +130,11 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             record.SetString(5, message.CapturedBy);
             record.SetDateTimeOffset(6, message.CapturedAt);
 
-            if (otelContext is null)
+            if (otelContext == EvDbTelemetryContextName.Empty)
                 record.SetDBNull(7);
             else
-                record.SetBytes(7, 0, otelContext, 0, otelContext?.Length ?? 0);
-            record.SetBytes(8, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
+                record.SetBytes(7, 0, otelContext, 0, otelContext.Length);
+            record.SetBytes(8, 0, message.Payload, 0, message.Payload.Length);
 
             yield return record;
         }
@@ -190,7 +190,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
                 record.SetDBNull(10);
             else
                 record.SetBytes(10, 0, otelContext, 0, otelContext.Length);
-            record.SetBytes(11, 0, message.Payload ?? Array.Empty<byte>(), 0, message.Payload?.Length ?? 0);
+            record.SetBytes(11, 0, message.Payload, 0, message.Payload.Length);
 
             yield return record;
         }

@@ -29,7 +29,7 @@ public static class StoreTelemetryExtensions
         propagator = propagator ?? Propagator;
 
         // Use ArrayBufferWriter from System.Buffers for better memory efficiency
-        var bufferWriter = new ArrayBufferWriter<byte>();
+        ArrayBufferWriter<byte> bufferWriter = new ();
         using var writer = new Utf8JsonWriter(bufferWriter);
 
         Baggage baggage = Baggage.Current;
@@ -54,7 +54,7 @@ public static class StoreTelemetryExtensions
 
         // Return the written data as a byte array
         var span = bufferWriter.WrittenSpan;
-        var result = EvDbTelemetryContextName.From(span);
+        var result = EvDbTelemetryContextName.FromSpan(span);
         return result;
     }
 

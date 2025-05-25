@@ -40,7 +40,7 @@ public struct EvDbMessageRecord
     /// <summary>
     /// The payload of the message
     /// </summary>
-    public byte[] Payload { get; init; }
+    public EvDbMessagePayloadName Payload { get; init; }
     /// <summary>
     /// The user that captured the event that produced the message
     /// </summary>

@@ -21,24 +21,22 @@ public class NamedTypesTests
         EvDbTelemetryContextName context1 = EvDbTelemetryContextName.Parse(json);
         EvDbTelemetryContextName context2 = EvDbTelemetryContextName.Parse(json);
         Assert.Equal(context1, context2);
-        Assert.True(context1.Equals(context1.Value));
-        Assert.True(context1.Equals(context1.Value.ToArray()));
-        Assert.True(context1.Equals(context1.Value.ToImmutableArray()));
-        Assert.True(context1.Equals(context1.Value.AsSpan()));
+        Assert.True(context1.Equals(context1.ToArray()));
+        Assert.True(context1.Equals(context1.ToArray()));
+        Assert.True(context1.Equals(context1.ToImmutableArray()));
+        Assert.True(context1.Equals(context1.AsSpan()));
     }
 
     [Fact]
     public void EvDbTelemetryContextName_Cast_Test()
     {
         EvDbTelemetryContextName context1 = EvDbTelemetryContextName.Parse(json);
-        ImmutableArray<byte> value1 = context1;
+        byte[] value1 = context1.ToArray();
         EvDbTelemetryContextName context2 = value1;
         byte[] value2 = context2;
         EvDbTelemetryContextName context3 = value2;
-        ImmutableList<byte> value3 = context3;
-        EvDbTelemetryContextName context4 = value3;
-        ReadOnlySpan<byte> value4 = context4;
-        EvDbTelemetryContextName context5 = EvDbTelemetryContextName.From(value4);
+        ReadOnlySpan<byte> value4 = context3.AsSpan();
+        EvDbTelemetryContextName context5 = EvDbTelemetryContextName.FromSpan(value4);
 
         Assert.Equal(context1, context5);
     }
@@ -58,7 +56,7 @@ public class NamedTypesTests
     public void EvDbTelemetryContextName_FromJsonDoc_Test()
     {
         var doc = JsonDocument.Parse(json);
-        var context = EvDbTelemetryContextName.From(doc);
+        var context = EvDbTelemetryContextName.FromJson(doc);
         var json1 = context.ToString("i");
         Assert.Equal(json, json1);
     }

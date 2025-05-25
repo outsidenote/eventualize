@@ -29,7 +29,7 @@ public struct EvDbEventRecord
     /// <summary>
     /// The payload of the event
     /// </summary>
-    public byte[] Payload { get; init; }
+    public EvDbEventPayloadName Payload { get; init; }
     /// <summary>
     /// The user that captured the event 
     /// </summary>

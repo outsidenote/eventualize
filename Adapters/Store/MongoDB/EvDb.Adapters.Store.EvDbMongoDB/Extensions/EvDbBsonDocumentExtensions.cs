@@ -74,7 +74,7 @@ public static class EvDbBsonDocumentExtensions
 
         EvDbTelemetryContextName telemetryContext = otelContext == null
                                     ? EvDbTelemetryContextName.Empty
-                                    : EvDbTelemetryContextName.From(otelContext);
+                                    : EvDbTelemetryContextName.FromArray(otelContext);
         var result = new EvDbMessageRecord
         {
             StreamType = streamType,

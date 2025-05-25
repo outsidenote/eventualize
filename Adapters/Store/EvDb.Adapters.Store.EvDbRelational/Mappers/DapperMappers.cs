@@ -24,6 +24,8 @@ internal static class DapperMappers
                 return;
             }
             _isRegistered = true;
+            SqlMapper.AddTypeHandler(EvDbMessagePayloadNameDapperMapper.Default);
+            SqlMapper.AddTypeHandler(EvDbEventPayloadNameDapperMapper.Default);
             SqlMapper.AddTypeHandler(EvDbTelemetryContextNameDapperMapper.Default);
         }
     }

@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -16,10 +15,10 @@ using System.Text.Json.Serialization;
 namespace EvDb.Core;
 
 [ExcludeFromCodeCoverage]
-[JsonConverter(typeof(EvDbTelemetryContextNameSystemTextJsonConverter))]
+[JsonConverter(typeof(EvDbMessagePayloadNameSystemTextJsonConverter))]
 [DebuggerDisplay("{ _value }")]
-public readonly partial struct EvDbTelemetryContextName :
-    IEquatable<EvDbTelemetryContextName>,
+public readonly partial struct EvDbMessagePayloadName :
+    IEquatable<EvDbMessagePayloadName>,
     IEnumerable<byte>,
     IEvDbPayloadRawData
 {
@@ -65,7 +64,7 @@ public readonly partial struct EvDbTelemetryContextName :
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public EvDbTelemetryContextName()
+    public EvDbMessagePayloadName()
     {
 #if DEBUG
         _stackTrace = new System.Diagnostics.StackTrace();
@@ -77,7 +76,7 @@ public readonly partial struct EvDbTelemetryContextName :
     }
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
-    private EvDbTelemetryContextName(IEnumerable<byte> value)
+    private EvDbMessagePayloadName(IEnumerable<byte> value)
     {
         if (value is byte[] v)
         {
@@ -93,7 +92,7 @@ public readonly partial struct EvDbTelemetryContextName :
     }
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
-    private EvDbTelemetryContextName(byte[] value)
+    private EvDbMessagePayloadName(byte[] value)
     {
         _value = value;
 #if !VOGEN_NO_VALIDATION
@@ -102,12 +101,12 @@ public readonly partial struct EvDbTelemetryContextName :
     }
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
-    private EvDbTelemetryContextName(ReadOnlySpan<byte> value) : this(value.ToImmutableArray())
+    private EvDbMessagePayloadName(ReadOnlySpan<byte> value) : this(value.ToImmutableArray())
     {
     }
 
     [System.Diagnostics.DebuggerStepThroughAttribute]
-    private EvDbTelemetryContextName(Span<byte> value) : this(value.ToImmutableArray())
+    private EvDbMessagePayloadName(Span<byte> value) : this(value.ToImmutableArray())
     {
     }
 
@@ -118,7 +117,7 @@ public readonly partial struct EvDbTelemetryContextName :
     /// <summary>
     /// Represents an empty instance of this type.
     /// </summary>
-    public static EvDbTelemetryContextName Empty { get; } = new EvDbTelemetryContextName(ImmutableArray<byte>.Empty);
+    public static EvDbMessagePayloadName Empty { get; } = new EvDbMessagePayloadName(ImmutableArray<byte>.Empty);
 
     #endregion //  Empty
 
@@ -130,9 +129,9 @@ public readonly partial struct EvDbTelemetryContextName :
     /// <param name="value"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbTelemetryContextName FromArray(byte[] value)
+    public static EvDbMessagePayloadName FromArray(byte[] value)
     {
-        return new EvDbTelemetryContextName(value);
+        return new EvDbMessagePayloadName(value);
     }
 
     /// <summary>
@@ -141,9 +140,9 @@ public readonly partial struct EvDbTelemetryContextName :
     /// <param name="value"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbTelemetryContextName FromEnumerable(IEnumerable<byte> value)
+    public static EvDbMessagePayloadName FromEnumerable(IEnumerable<byte> value)
     {
-        return new EvDbTelemetryContextName(value);
+        return new EvDbMessagePayloadName(value);
     }
 
     /// <summary>
@@ -152,9 +151,9 @@ public readonly partial struct EvDbTelemetryContextName :
     /// <param name="value"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbTelemetryContextName FromSpan(ReadOnlySpan<byte> value)
+    public static EvDbMessagePayloadName FromSpan(ReadOnlySpan<byte> value)
     {
-        return new EvDbTelemetryContextName(value);
+        return new EvDbMessagePayloadName(value);
     }
 
     /// <summary>
@@ -164,7 +163,7 @@ public readonly partial struct EvDbTelemetryContextName :
     /// <param name="options"></param>
     /// <returns>An instance of this type.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbTelemetryContextName FromJson(JsonDocument value, JsonSerializerOptions? options = null)
+    public static EvDbMessagePayloadName FromJson(JsonDocument value, JsonSerializerOptions? options = null)
     {
         return FromJson(value.RootElement, options);
     }
@@ -176,10 +175,10 @@ public readonly partial struct EvDbTelemetryContextName :
     /// <param name="options"></param>
     /// <returns>An instance of this type.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbTelemetryContextName FromJson(JsonElement value, JsonSerializerOptions? options = null)
+    public static EvDbMessagePayloadName FromJson(JsonElement value, JsonSerializerOptions? options = null)
     {
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(value, options);
-        return new EvDbTelemetryContextName(bytes);
+        return new EvDbMessagePayloadName(bytes);
     }
 
     #endregion //  From
@@ -251,13 +250,13 @@ public readonly bool IsInitialized() => true;
 
     #region Casting Overload
 
-    public static implicit operator ReadOnlySpan<byte>(EvDbTelemetryContextName vo) => vo._value.AsSpan();
-    public static implicit operator byte[](EvDbTelemetryContextName vo) => vo._value;
+    public static implicit operator ReadOnlySpan<byte>(EvDbMessagePayloadName vo) => vo._value.AsSpan();
+    public static implicit operator byte[](EvDbMessagePayloadName vo) => vo._value;
 
-    public static implicit operator EvDbTelemetryContextName(byte[] value) => new EvDbTelemetryContextName(value);
-    public static implicit operator EvDbTelemetryContextName(Span<byte> value)
+    public static implicit operator EvDbMessagePayloadName(byte[] value) => new EvDbMessagePayloadName(value);
+    public static implicit operator EvDbMessagePayloadName(Span<byte> value)
     {
-        return new EvDbTelemetryContextName(value);
+        return new EvDbMessagePayloadName(value);
     }
 
     #endregion //  Casting Overload
@@ -269,22 +268,24 @@ public readonly bool IsInitialized() => true;
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public readonly bool JsonEquals(EvDbTelemetryContextName other)
+    public readonly bool JsonEquals(EvDbMessagePayloadName other)
     {
         // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
         // We treat anything uninitialized as not equal to anything, even other uninitialized instances of this type.
         if (!IsInitialized() || !other.IsInitialized())
             return false;
-        if (IsEquals(_value, other._value))
+        if (IsEquals(_value, other))
             return true;
-        var selfJson = ToJson();
-        var otherJson = other.ToJson();
+        if (!TryToJson(out var selfJson))
+            return false;
+        if (!other.TryToJson(out var otherJson))
+            return false;
         var selfJsonText = JsonSerializer.Serialize(selfJson, JSON_COMPARE_OPTIONS);
         var otherJsonText = JsonSerializer.Serialize(otherJson, JSON_COMPARE_OPTIONS);
         return selfJsonText.Equals(otherJsonText, StringComparison.OrdinalIgnoreCase);
     }
 
-    public readonly bool Equals(EvDbTelemetryContextName other)
+    public readonly bool Equals(EvDbMessagePayloadName other)
     {
         // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
         // We treat anything uninitialized as not equal to anything, even other uninitialized instances of this type.
@@ -305,7 +306,7 @@ public readonly bool IsInitialized() => true;
     {
         return obj switch
         {
-            EvDbTelemetryContextName item => Equals(item),
+            EvDbMessagePayloadName item => Equals(item),
             IImmutableList<byte> item => Equals(item),
             IReadOnlyList<byte> item => Equals(item),
             IReadOnlyCollection<byte> item => Equals(item),
@@ -320,42 +321,42 @@ public readonly bool IsInitialized() => true;
         return a.SequenceEqual(b);
     }
 
-    public static bool operator ==(EvDbTelemetryContextName left, EvDbTelemetryContextName right) => left.Equals(right);
-    public static bool operator !=(EvDbTelemetryContextName left, EvDbTelemetryContextName right) => !(left == right);
-    public static bool operator ==(EvDbTelemetryContextName left, Byte[] right) => left.Equals(right);
-    public static bool operator ==(Byte[] left, EvDbTelemetryContextName right) => right.Equals(left);
-    public static bool operator !=(Byte[] left, EvDbTelemetryContextName right) => !(left == right);
-    public static bool operator !=(EvDbTelemetryContextName left, Byte[] right) => !(left == right);
+    public static bool operator ==(EvDbMessagePayloadName left, EvDbMessagePayloadName right) => left.Equals(right);
+    public static bool operator !=(EvDbMessagePayloadName left, EvDbMessagePayloadName right) => !(left == right);
+    public static bool operator ==(EvDbMessagePayloadName left, Byte[] right) => left.Equals(right);
+    public static bool operator ==(Byte[] left, EvDbMessagePayloadName right) => right.Equals(left);
+    public static bool operator !=(Byte[] left, EvDbMessagePayloadName right) => !(left == right);
+    public static bool operator !=(EvDbMessagePayloadName left, Byte[] right) => !(left == right);
 
     #endregion //  Equals, ==
 
     #region Parse
 
-    public static EvDbTelemetryContextName Parse(
+    public static EvDbMessagePayloadName Parse(
         [StringSyntax("Json")]
         string json)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
 
-        return new EvDbTelemetryContextName(bytes);
+        return new EvDbMessagePayloadName(bytes);
     }
 
-    public static EvDbTelemetryContextName Parse(
+    public static EvDbMessagePayloadName Parse(
         [StringSyntax("Json")]
         ReadOnlySequence<char> json)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
-        return new EvDbTelemetryContextName(bytes);
+        return new EvDbMessagePayloadName(bytes);
     }
 
-    public static EvDbTelemetryContextName Parse(
+    public static EvDbMessagePayloadName Parse(
         [StringSyntax("Json")]
         ReadOnlyMemory<char> json)
     {
         return Parse(json.Span);
     }
 
-    public static EvDbTelemetryContextName Parse(
+    public static EvDbMessagePayloadName Parse(
         [StringSyntax("Json")]
         ReadOnlySpan<char> json)
     {
@@ -363,7 +364,7 @@ public readonly bool IsInitialized() => true;
         byte[] result = new byte[byteCount];
 
         Encoding.UTF8.GetBytes(json, result);
-        return new EvDbTelemetryContextName(result);
+        return new EvDbMessagePayloadName(result);
     }
 
     #endregion //  TryParse
@@ -374,16 +375,22 @@ public readonly bool IsInitialized() => true;
 
     #endregion //  GetHashCode
 
-    #region ToJson
+    #region TryToJson
 
-    public JsonElement ToJson(JsonDocumentOptions options = default)
+    /// <summary>
+    /// Tries to convert the value to a JsonDocument.
+    /// Because of custom serialization, this will not work for all instances.
+    /// </summary>
+    /// <param name="document"></param>
+    /// <returns></returns>
+    public bool TryToJson(
+      [NotNullWhen(true)] out JsonDocument? document)
     {
-        ReadOnlyMemory<byte> mem = _value.AsMemory();
-        var doc = JsonDocument.Parse(mem, options);
-        return doc.RootElement;
+        var reader = new Utf8JsonReader(_value.AsSpan());
+        return JsonDocument.TryParseValue(ref reader, out document);
     }
 
-    #endregion //  ToJson
+    #endregion //  TryToJson
 
     #region ToString
 
@@ -396,7 +403,18 @@ public readonly bool IsInitialized() => true;
         if (!_isInitialized)
             return "[UNINITIALIZED]";
 
-        JsonElement json = ToJson();
+        if (!TryToJson(out var doc))
+        {
+            var bytes20 = _value.Take(20);
+            var str20 = string.Join(",", bytes20);
+            if (_value.Length > 20)
+            {
+                str20 = $"{str20}…";
+            }
+            return str20;
+        }
+
+        JsonElement json = doc.RootElement;
         string result = format switch
         {
             "i" => JsonSerializer.Serialize(json, new JsonSerializerOptions
@@ -421,10 +439,8 @@ public readonly bool IsInitialized() => true;
         }
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable<byte>)this).GetEnumerator();
-    }
+    IEnumerator IEnumerable.GetEnumerator() =>
+        ((IEnumerable<byte>)this).GetEnumerator();
 
     #endregion //  IEnumerable
 
@@ -446,24 +462,24 @@ public readonly bool IsInitialized() => true;
 
 #nullable disable
 
-    #region EvDbTelemetryContextNameSystemTextJsonConverter
+    #region EvDbMessagePayloadNameSystemTextJsonConverter
 
     /// <summary>
-    /// Converts a EvDbTelemetryContextName to or from JSON.
+    /// Converts a EvDbMessagePayloadName to or from JSON.
     /// </summary>
-    public class EvDbTelemetryContextNameSystemTextJsonConverter :
-        JsonConverter<EvDbTelemetryContextName>
+    public class EvDbMessagePayloadNameSystemTextJsonConverter :
+        JsonConverter<EvDbMessagePayloadName>
     {
-        public override EvDbTelemetryContextName Read(ref Utf8JsonReader reader,
+        public override EvDbMessagePayloadName Read(ref Utf8JsonReader reader,
                                                       Type typeToConvert,
                                                       JsonSerializerOptions options)
         {
             ImmutableArray<byte> value = JsonSerializer.Deserialize<ImmutableArray<byte>>(ref reader, options);
-            return new EvDbTelemetryContextName(value);
+            return new EvDbMessagePayloadName(value);
         }
 
         public override void Write(Utf8JsonWriter writer,
-                                   EvDbTelemetryContextName value,
+                                   EvDbMessagePayloadName value,
                                    JsonSerializerOptions options)
         {
             IEvDbPayloadRawData self = value;
@@ -471,7 +487,7 @@ public readonly bool IsInitialized() => true;
         }
     }
 
-    #endregion //  EvDbTelemetryContextNameSystemTextJsonConverter
+    #endregion //  EvDbMessagePayloadNameSystemTextJsonConverter
 
 #nullable restore
 }
