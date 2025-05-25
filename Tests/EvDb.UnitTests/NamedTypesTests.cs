@@ -22,7 +22,6 @@ public class NamedTypesTests
         EvDbTelemetryContextName context2 = EvDbTelemetryContextName.Parse(json);
         Assert.Equal(context1, context2);
         Assert.True(context1.Equals(context1.ToArray()));
-        Assert.True(context1.Equals(context1.ToArray()));
         Assert.True(context1.Equals(context1.ToImmutableArray()));
         Assert.True(context1.Equals(context1.AsSpan()));
     }

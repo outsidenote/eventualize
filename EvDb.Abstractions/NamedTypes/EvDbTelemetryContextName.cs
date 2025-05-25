@@ -290,6 +290,15 @@ public readonly bool IsInitialized() => true;
         return IsEquals(_value, other._value);
     }
 
+    public readonly bool Equals(byte[] other)
+    {
+        // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
+        // We treat anything uninitialized as not equal to anything, even other uninitialized instances of this type.
+        if (!IsInitialized())
+            return false;
+        return IsEquals(_value, other);
+    }
+
 
     public readonly bool Equals(ReadOnlySpan<byte> other)
     {
@@ -303,9 +312,8 @@ public readonly bool IsInitialized() => true;
         return obj switch
         {
             EvDbTelemetryContextName item => Equals(item),
-            IImmutableList<byte> item => Equals(item),
-            IReadOnlyList<byte> item => Equals(item),
-            IReadOnlyCollection<byte> item => Equals(item),
+            byte[] items => Equals(items),
+            ICollection<byte> items => IsEqualsCollection(this, items),
             _ => false
         };
     }
@@ -313,6 +321,15 @@ public readonly bool IsInitialized() => true;
     private static bool IsEquals(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
     {
         if (a.Length != b.Length)
+            return false;
+        return a.SequenceEqual(b);
+    }
+
+    private static bool IsEqualsCollection(EvDbTelemetryContextName a, ICollection<byte> b)
+    {
+        if (!a.IsInitialized())
+            return false;
+        if (a.Length != b.Count)
             return false;
         return a.SequenceEqual(b);
     }
