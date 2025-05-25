@@ -89,7 +89,7 @@ public partial record EvDbStoredSnapshotData(
             long offset,
             long storeOffset,
             byte[] state)
-                : this(Guid.NewGuid(), address.StreamType,  address.StreamId, address.ViewName, offset, storeOffset, state)
+                : this(Guid.NewGuid(), address.StreamType, address.StreamId, address.ViewName, offset, storeOffset, state)
     {
     }
 

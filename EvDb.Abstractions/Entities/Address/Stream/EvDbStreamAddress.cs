@@ -52,7 +52,7 @@ public readonly partial record struct EvDbStreamAddress(EvDbStreamTypeName Strea
     /// Converts to parameters (string representation).
     /// </summary>
     /// <returns></returns>
-    public Parameters ToParameters() => new Parameters(StreamType.Value,  StreamId);
+    public Parameters ToParameters() => new Parameters(StreamType.Value, StreamId);
 
     #endregion //  ToParameters
 

@@ -15,7 +15,7 @@ public partial record struct EvDbMessage(
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,
                                 EvDbStreamCursor StreamCursor,
-                                byte[] Payload) :
+                                EvDbMessagePayloadName Payload) :
                                             IEvDbEventConverter//,
                                                                //IEvDbMessageMeta
 {
@@ -25,7 +25,7 @@ public partial record struct EvDbMessage(
     /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
     /// The value will be null if the Trace is null when persisting the record or before persistent.
     /// </summary>
-    public byte[]? TelemetryContext { get; init; }
+    public EvDbTelemetryContextName TelemetryContext { get; init; }
 
     T IEvDbEventConverter.GetData<T>(JsonSerializerOptions? options)
     {

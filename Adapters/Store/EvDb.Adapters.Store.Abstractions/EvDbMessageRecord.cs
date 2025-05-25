@@ -40,7 +40,7 @@ public struct EvDbMessageRecord
     /// <summary>
     /// The payload of the message
     /// </summary>
-    public byte[] Payload { get; init; }
+    public EvDbMessagePayloadName Payload { get; init; }
     /// <summary>
     /// The user that captured the event that produced the message
     /// </summary>
@@ -53,7 +53,7 @@ public struct EvDbMessageRecord
     /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
     /// The value will be null if the Trace is null when persisting the record or before persistent.
     /// </summary>
-    public byte[]? TelemetryContext { get; init; }
+    public EvDbTelemetryContextName TelemetryContext { get; init; }
 
     #region static implicit operator EvDbMessageRecord(EvDbMessage e) ...
 
@@ -113,7 +113,7 @@ public struct EvDbMessageRecord
         /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
         /// The value will be null if the Trace is null when persisting the record or before persistent.
         /// </summary>
-        public byte[]? TelemetryContext { get; init; }
+        public EvDbTelemetryContextName TelemetryContext { get; init; }
     }
 
     #endregion //  readonly record EvDbMessageMeta struct(...): IEvDbMessageMeta

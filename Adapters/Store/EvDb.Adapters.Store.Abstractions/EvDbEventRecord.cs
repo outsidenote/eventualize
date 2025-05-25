@@ -29,7 +29,7 @@ public struct EvDbEventRecord
     /// <summary>
     /// The payload of the event
     /// </summary>
-    public byte[] Payload { get; init; }
+    public EvDbEventPayloadName Payload { get; init; }
     /// <summary>
     /// The user that captured the event 
     /// </summary>
@@ -42,7 +42,7 @@ public struct EvDbEventRecord
     /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
     /// The value will be null if the Trace is null when persisting the record or before persistent.
     /// </summary>
-    public byte[]? TelemetryContext { get; init; }
+    public EvDbTelemetryContextName TelemetryContext { get; init; }
 
     #region Casting Overloads
 

@@ -10,6 +10,7 @@
 			- 3.0.0: Type Names refactoring of attributes and fundamentals types
 			- 4.0.0: Message got TelemetryContext instead of TraceId and SpanId
 			- 4.0.1: Domain and Partition become Address
+			- 4.0.2: Type of the event, message, TelemetryContext payload changed from byte[] 
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
