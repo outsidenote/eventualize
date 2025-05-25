@@ -117,24 +117,28 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         EvDbTelemetryContextName otelContext = Activity.Current?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty;
 
         // Populate the TVP
-        foreach (var message in events)
+        foreach (var ev in events)
         {
             var record = new SqlDataRecord(metaData);
 
-            record.SetGuid(0, message.Id);
-            record.SetString(1, message.StreamType);
-            record.SetString(2, message.StreamId);
-            record.SetInt64(3, message.Offset);
-            record.SetString(4, message.EventType);
+            record.SetGuid(0, ev.Id);
+            record.SetString(1, ev.StreamType);
+            record.SetString(2, ev.StreamId);
+            record.SetInt64(3, ev.Offset);
+            record.SetString(4, ev.EventType);
 
-            record.SetString(5, message.CapturedBy);
-            record.SetDateTimeOffset(6, message.CapturedAt);
+            record.SetString(5, ev.CapturedBy);
+            record.SetDateTimeOffset(6, ev.CapturedAt);
 
-            if (otelContext == EvDbTelemetryContextName.Empty)
+            if (otelContext.Length == 0)
                 record.SetDBNull(7);
             else
-                record.SetBytes(7, 0, otelContext, 0, otelContext.Length);
-            record.SetBytes(8, 0, message.Payload, 0, message.Payload.Length);
+            {
+                IEvDbPayloadRawData otelRaw = otelContext;
+                record.SetBytes(7, 0, otelRaw.RawValue, 0, otelContext.Length);
+            }
+            IEvDbPayloadRawData payloadRaw = ev.Payload;
+            record.SetBytes(8, 0, payloadRaw.RawValue, 0, ev.Payload.Length);
 
             yield return record;
         }
@@ -189,8 +193,12 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             if (otelContext == EvDbTelemetryContextName.Empty)
                 record.SetDBNull(10);
             else
-                record.SetBytes(10, 0, otelContext, 0, otelContext.Length);
-            record.SetBytes(11, 0, message.Payload, 0, message.Payload.Length);
+            {
+                IEvDbPayloadRawData otelRaw = otelContext;
+                record.SetBytes(10, 0, otelRaw.RawValue, 0, otelContext.Length);
+            }
+            IEvDbPayloadRawData payloadRaw = message.Payload;
+            record.SetBytes(11, 0, payloadRaw.RawValue, 0, message.Payload.Length);
 
             yield return record;
         }
