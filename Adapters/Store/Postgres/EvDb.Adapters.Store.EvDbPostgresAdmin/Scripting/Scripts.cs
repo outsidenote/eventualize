@@ -132,14 +132,17 @@ internal static class Scripts
             
             CREATE INDEX ix_{t}_{unique:N}
             ON {tblInitial}{t} (
-                {Fields.Message.Channel},
-                {Fields.Message.CapturedAt},
-                "{Fields.Message.Offset}"
-            );
-                        
+                        {Fields.Message.StreamType}, 
+                        {Fields.Message.StreamId}, 
+                        {Fields.Message.Offset},
+                        {Fields.Message.Channel},
+                        {Fields.Message.MessageType}),
+                                    
             CREATE INDEX ix_StoredAt_{t}_{Fields.Message.CapturedAt}_{unique:N}
             ON {tblInitial}{t} (
-                    stored_at,
+                    {Fields.Message.StreamType}, 
+                    {Fields.Message.StoredAt},
+                    {Fields.Message.Channel},
                     "{Fields.Message.Offset}");
 
             """);

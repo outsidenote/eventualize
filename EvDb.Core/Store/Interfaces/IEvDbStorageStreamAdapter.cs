@@ -14,8 +14,28 @@ public interface IEvDbStorageStreamAdapter
                                 EvDbStreamCursor streamCursor,
                                 CancellationToken cancellation = default);
 
+    // TODO: batch size = options, use builder, channels collection, message type = EvDbTextFilter
+
+    /// <summary>
+    /// Gets stored events.
+    /// </summary>
+    /// <param name="address">The stream address</param>
+    /// <param name="shardName">The shard name</param>
+    /// <param name="filter">filtering options use `EvDbMessageFilter.Builder` for the filter creation.</param>
+    /// <param name="options">Options for the continuous fetch.</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    IAsyncEnumerable<EvDbMessage> GetMessagesAsync(
+                                EvDbStreamAddress address,
+                                EvDbShardName shardName,
+                                EvDbMessageFilter filter,
+                                EvDbContinuousFetchOptions? options = null,
+                                CancellationToken cancellation = default);
+
     /// <summary>
     /// Gets last stored event's offset.
+    /// Used when getting a stream that has no views.
+    /// In this case the last offset fetched from the events rather than views.
     /// </summary>
     /// <param name="address">The stream address</param>
     /// <param name="cancellation">The cancellation.</param>

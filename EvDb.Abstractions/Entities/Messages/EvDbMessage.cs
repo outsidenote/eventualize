@@ -27,6 +27,11 @@ public partial record struct EvDbMessage(
     /// </summary>
     public EvDbTelemetryContextName TelemetryContext { get; init; }
 
+    /// <summary>
+    /// The time when it persist into the storage
+    /// </summary>
+    public DateTimeOffset? StoredAt { get; init; }
+
     T IEvDbEventConverter.GetData<T>(JsonSerializerOptions? options)
     {
         var json = JsonSerializer.Deserialize<T>(Payload, options) ?? throw new InvalidCastException(typeof(T).Name);

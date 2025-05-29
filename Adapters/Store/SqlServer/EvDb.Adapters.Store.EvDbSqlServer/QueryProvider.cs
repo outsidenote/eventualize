@@ -38,6 +38,27 @@ internal static class QueryProvider
                     AND {Fields.Event.StreamId} = {Parameters.Event.StreamId}
                     AND {Fields.Event.Offset} >= {Parameters.Event.Offset};
                 """,
+            GetMessages = $$"""
+                SELECT
+                    {{Fields.Message.StreamType}} as {{Projection.Message.StreamType}},
+                    {{Fields.Message.StreamId}} as {{Projection.Message.StreamId}},
+                    {{Fields.Message.Offset}} as {{Projection.Message.Offset}},
+                    {{Fields.Message.EventType}} as {{Projection.Message.EventType}},
+                    {{Fields.Message.MessageType}} as {{Projection.Message.MessageType}},
+                    {{Fields.Message.CapturedAt}} as {{Projection.Message.CapturedAt}},
+                    {{Fields.Message.StoredAt}} as {{Projection.Message.StoredAt}},
+                    {{Fields.Message.CapturedBy}} as {{Projection.Message.CapturedBy}},
+                    {{Fields.Message.Channel}} as {{Projection.Message.Channel}},
+                    {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
+                    {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
+                FROM {{tblInitial}}{0} WITH (READCOMMITTEDLOCK)
+                WHERE {{Fields.Message.StreamType}} = {{Parameters.Message.StreamType}}
+                    AND {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}}
+                    AND ({{Parameters.Message.Channel}} IS NULL 
+                         OR JSON_LENGTH({{Parameters.Message.Channel}}) = 0 
+                         OR {{Fields.Message.Channel}} IN (SELECT value FROM OPENJSON({{Parameters.Message.Channel}})))
+                ORDER BY {{Fields.Message.StreamType}} ASC, {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}}, {{Fields.Event.Offset}} ASC, {{Fields.Message.MessageType}} ASC;
+                """,
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"{tblInitial}InsertEventsBatch_Events",
             SaveToOutbox = $$"""{{tblInitial}}InsertOutboxBatch_{0}"""

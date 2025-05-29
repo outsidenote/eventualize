@@ -1,9 +1,11 @@
 ﻿// Ignore Spelling: Mongo
 
+using EvDb.Adapters.Internals;
 using EvDb.Adapters.Store.Internals;
 using EvDb.Adapters.Store.MongoDB.Internals;
 using EvDb.Core;
 using EvDb.Core.Adapters;
+using EvDb.Core.Adapters.Internals;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -14,6 +16,7 @@ using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 using static EvDb.Core.Adapters.StoreTelemetry;
 
 namespace EvDb.Adapters.Store.MongoDB;
+
 
 /// <summary>
 /// MongoDB storage adapter that handles event streams, snapshots, and outbox messages.
@@ -61,6 +64,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     async IAsyncEnumerable<EvDbEvent> IEvDbStorageStreamAdapter.GetEventsAsync(
         EvDbStreamCursor streamCursor,
+        EvDbContinuousFetchOptions? options,
         [EnumeratorCancellation] CancellationToken cancellation)
     {
         var eventsCollection = await _collectionsSetup.EventsCollectionTask;
@@ -73,23 +77,73 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
         using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
 
-        while (await cursor.MoveNextAsync(cancellation))
+        var opts = options ?? EvDbContinuousFetchOptions.CompleteIfEmpty;
+        var parameters = new EvDbGetEventsParameters(streamCursor, opts);
+        int attemptsWhenEmpty = 0;
+        TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
+        while (!cancellation.IsCancellationRequested)
         {
-            foreach (var doc in cursor.Current)
+            bool hasRows = await cursor.MoveNextAsync(cancellation);
+            EvDbEvent? last = null;
+            while (hasRows && !cancellation.IsCancellationRequested)
             {
-                // Convert from BsonDocument back to EvDbEvent.
-                yield return doc.ToEvent();
+                foreach (var doc in cursor.Current)
+                {
+                    // Convert from BsonDocument back to EvDbEvent.
+                    yield return doc.ToEvent();
+                }
+                (delay, attemptsWhenEmpty, bool shouldExit) = await opts.DelayWhenEmptyAsync(
+                                                                      hasRows,
+                                                                      delay,
+                                                                      attemptsWhenEmpty,
+                                                                      cancellation);
+                if (shouldExit)
+                    break;
+
+                parameters = parameters.ContinueFrom(last);
             }
         }
     }
 
     #endregion //  GetEventsAsync
 
+    async IAsyncEnumerable<EvDbMessage> IEvDbStorageStreamAdapter.GetMessagesAsync(
+                            EvDbStreamAddress address,
+                            EvDbShardName shardName,
+                            EvDbMessageFilter filter,
+                            EvDbContinuousFetchOptions? options,
+                            [EnumeratorCancellation] CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+
+        var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
+
+        //if (_logger.IsEnabled(LogLevel.Trace))
+        //    _logger.LogQuery(query.ToJson());
+
+        IMongoCollection<BsonDocument> collection = 
+                        await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shardName);
+
+        //using var changes = await collection.WatchAsync(
+        //    new ChangeStreamOptions
+        //    {
+        //        FullDocument = ChangeStreamFullDocumentOption.WhenAvailable,
+        //        MaxAwaitTime = opts.,
+        //        Filter = address.ToFilter().And(filter.ToFilter()),
+        //        BatchSize = options?.BatchSize ?? 1000
+        //    },
+        //    cancellation);
+
+        throw new NotImplementedException();
+
+
+    }
+
     #region GetLastEventAsync
 
     async Task<long> IEvDbStorageStreamAdapter.GetLastOffsetAsync(
-        EvDbStreamAddress address,
-        CancellationToken cancellation)
+    EvDbStreamAddress address,
+    CancellationToken cancellation)
     {
         var eventsCollection = await _collectionsSetup.EventsCollectionTask;
 

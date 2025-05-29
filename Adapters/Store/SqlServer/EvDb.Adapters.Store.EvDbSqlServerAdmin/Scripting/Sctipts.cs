@@ -207,7 +207,6 @@ internal static class Sctipts
                 {Fields.Message.Payload} VARBINARY(4000) NOT NULL,
             
                 CONSTRAINT PK_{tblInitialWithoutSchema}{t} PRIMARY KEY (
-                        {Fields.Message.CapturedAt},
                         {Fields.Message.StreamType}, 
                         {Fields.Message.StreamId}, 
                         {Fields.Message.Offset},
@@ -224,16 +223,11 @@ internal static class Sctipts
             
             CREATE INDEX IX_{t}_{Fields.Message.Channel}_{tblInitialWithoutSchema}
                ON {tblInitial}{t} (
-                     {Fields.Message.Channel},
-                     {Fields.Message.CapturedAt},  
+                     {Fields.Message.StreamType},
+                     {Fields.Message.StoredAt},
+                     {Fields.Message.Channel},  
                      {Fields.Message.Offset})
-            WITH (ONLINE = ON);
-            
-            CREATE INDEX IX_{t}_stored_at_{tblInitialWithoutSchema}
-            ON {tblInitial}{t} (
-                    stored_at)
-            WITH (ONLINE = ON);
-
+            WITH (ONLINE = ON);            
             """);
 
         #endregion //  string createOutbox = ...

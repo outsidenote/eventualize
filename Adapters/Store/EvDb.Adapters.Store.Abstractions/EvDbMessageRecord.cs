@@ -21,39 +21,52 @@ public struct EvDbMessageRecord
     /// The offset of the event that produced the message
     /// </summary>
     public long Offset { get; init; }
+
     /// <summary>
     /// The type of the event that produced the message 
     /// </summary>
     public string EventType { get; init; }
+
     /// <summary>
     /// Represents a outbox's message tagging into semantic channel name
     /// </summary>
     public string Channel { get; init; }
+
     /// <summary>
     /// The type of the message
     /// </summary>
     public string MessageType { get; init; }
+
     /// <summary>
     /// The type of the serialization used to serialize the message's payload
     /// </summary>
     public string SerializeType { get; init; }
+
     /// <summary>
     /// The payload of the message
     /// </summary>
     public EvDbMessagePayloadName Payload { get; init; }
+
     /// <summary>
     /// The user that captured the event that produced the message
     /// </summary>
     public string CapturedBy { get; init; }
+
     /// <summary>
     /// The date and time that the event that produced the message was captured
     /// </summary>
     public DateTimeOffset CapturedAt { get; init; }
+
     /// <summary>
     /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
     /// The value will be null if the Trace is null when persisting the record or before persistent.
     /// </summary>
     public EvDbTelemetryContextName TelemetryContext { get; init; }
+
+    /// <summary>
+    /// The time when it persist into the storage
+    /// </summary>
+    public DateTimeOffset? StoredAt { get; init; }
 
     #region static implicit operator EvDbMessageRecord(EvDbMessage e) ...
 
@@ -77,7 +90,26 @@ public struct EvDbMessageRecord
         return result;
     }
 
-    #endregion //  static implicit operator EvDbMessageRecord(EvDbMessage e) ...
+    public static implicit operator EvDbMessage(EvDbMessageRecord m)
+    {
+        var cursor = new EvDbStreamCursor(m.StreamType, m.StreamId, m.Offset);
+        var result = new EvDbMessage
+        {
+            StreamCursor = cursor,
+            EventType = m.EventType,
+            Channel = m.Channel,
+            MessageType = m.MessageType,
+            SerializeType = m.SerializeType,
+            Payload = m.Payload,
+            CapturedBy = m.CapturedBy,
+            CapturedAt = m.CapturedAt,
+            TelemetryContext = m.TelemetryContext,
+            StoredAt = m.StoredAt
+        };
+        return result;
+    }
+
+    #endregion //  static implicit operator EvDbMessageRecord(EvDbMessage m) ...
 
     #region GetMetadata
 

@@ -51,18 +51,18 @@ public static class QueryProvider
     public static readonly IImmutableList<CreateIndexModel<BsonDocument>> EventsIndexes = [
         Builders<BsonDocument>.IndexKeys
                 .Ascending(Fields.Event.StreamType)
-        .Ascending(Fields.Event.StreamId)
-        .Ascending(Fields.Event.Offset)
-        .ToCreateIndexModel("evb_events_idx", true),
-        Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Event.EventType)
-                .Ascending(Fields.Event.StreamType)
                 .Ascending(Fields.Event.StreamId)
                 .Ascending(Fields.Event.Offset)
-            .ToCreateIndexModel("evb_events_type_idx"),
-        Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Event.CapturedAt)
-            .ToCreateIndexModel("evb_events_create_at_idx"),
+            .ToCreateIndexModel("evb_events_idx", true),
+        //Builders<BsonDocument>.IndexKeys
+        //        .Ascending(Fields.Event.EventType)
+        //        .Ascending(Fields.Event.StreamType)
+        //        .Ascending(Fields.Event.StreamId)
+        //        .Ascending(Fields.Event.Offset)
+        //    .ToCreateIndexModel("evb_events_type_idx"),
+        //Builders<BsonDocument>.IndexKeys
+        //        .Ascending(Fields.Event.StoredAt)
+        //    .ToCreateIndexModel("evb_events_create_at_idx"),
         ];
 
     #endregion //  EventsIndexes
@@ -73,28 +73,28 @@ public static class QueryProvider
 
     private static IImmutableList<CreateIndexModel<BsonDocument>> CreateOutboxIndexes()
     {
-        return [
+        IndexKeysDefinition<BsonDocument> baseIndex =
             Builders<BsonDocument>.IndexKeys
                 .Ascending(Fields.Message.StreamType)
-                .Ascending(Fields.Message.StreamId)
-                .Ascending(Fields.Message.Channel)
-                .Ascending(Fields.Message.MessageType)
+                .Ascending(Fields.Message.StreamId);
+        return [
+            baseIndex
                 .Ascending(Fields.Message.Offset)
                 .ToCreateIndexModel( "evb_outbox_idx", true),
-            Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Message.CapturedAt)
+            baseIndex
+                .Ascending(Fields.Message.StoredAt)
                 .Ascending(Fields.Message.Offset)
-                .ToCreateIndexModel( "evb_read_capture_at_idx"),
-            Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Message.Channel)
-                .Ascending(Fields.Message.CapturedAt)
-                .Ascending(Fields.Message.Offset)
-                .ToCreateIndexModel( "evb_read_channel_capture_at_idx"),
-            Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Message.MessageType)
-                .Ascending(Fields.Message.CapturedAt)
-                .Ascending(Fields.Message.Offset)
-                .ToCreateIndexModel( "evb_read_message_type_capture_at_idx"),
+                .ToCreateIndexModel( "evb_read_stored_at_idx"),
+            //baseIndex
+            //    .Ascending(Fields.Message.StoredAt)
+            //    .Ascending(Fields.Message.Channel)
+            //    .Ascending(Fields.Message.Offset)
+            //    .ToCreateIndexModel( "evb_read_channel_capture_at_idx"),
+            //baseIndex
+            //    .Ascending(Fields.Message.MessageType)
+            //    .Ascending(Fields.Message.StoredAt)
+            //    .Ascending(Fields.Message.Offset)
+            //    .ToCreateIndexModel( "evb_read_message_type_capture_at_idx"),
            ];
     }
 

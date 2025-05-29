@@ -23,6 +23,7 @@ public static class EvDbBsonDocumentExtensions
         var eventType = doc.GetValue(Event.EventType).AsString;
         var capturedBy = doc.GetValue(Event.CapturedBy).AsString;
         var capturedAt = doc.GetValue(Event.CapturedAt).AsBsonDateTime.ToUniversalTime();
+        var storedAt = doc.GetValue(Event.StoredAt).AsBsonDateTime.ToUniversalTime();
         var cursor = new EvDbStreamCursor(streamType, streamId, offset);
 
         string payloadJson = doc.GetValue(Event.Payload)
@@ -30,7 +31,10 @@ public static class EvDbBsonDocumentExtensions
                                 .ToJson();
         byte[] payload = Encoding.UTF8.GetBytes(payloadJson);
 
-        return new EvDbEvent(eventType, capturedAt, capturedBy, cursor, payload);
+        return new EvDbEvent(eventType, capturedAt, capturedBy, cursor, payload)
+        {
+            StoredAt = storedAt,
+        };
     }
 
     #endregion //  ToEvent
@@ -56,6 +60,7 @@ public static class EvDbBsonDocumentExtensions
         var eventType = doc.GetValue(Message.EventType).AsString;
         var capturedBy = doc.GetValue(Message.CapturedBy).AsString;
         var capturedAt = doc.GetValue(Message.CapturedAt).AsBsonDateTime.ToUniversalTime();
+        var storedAt = doc.GetValue(Message.StoredAt).AsBsonDateTime.ToUniversalTime();
         var channel = doc.GetValue(Message.Channel).AsString;
         var serializeType = doc.GetValue(Message.SerializeType).AsString;
         var meaageType = doc.GetValue(Message.MessageType).AsString;
@@ -88,6 +93,7 @@ public static class EvDbBsonDocumentExtensions
             CapturedBy = capturedBy,
             TelemetryContext = telemetryContext,
             Payload = payload,
+            StoredAt = storedAt
         };
 
         return result;

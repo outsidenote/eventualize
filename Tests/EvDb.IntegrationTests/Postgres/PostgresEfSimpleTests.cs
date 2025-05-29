@@ -10,7 +10,7 @@
 //{
 //    private const string CREATE_SCRIPT =
 //        """
-//        -- Create People table
+//        -- CreateParser People table
 //        CREATE TABLE People (
 //            Id SERIAL PRIMARY KEY,
 //            Name TEXT NOT NULL,
@@ -20,7 +20,7 @@
 //            Street VARCHAR(255) NULL
 //        );
 
-//        -- Create People2 table
+//        -- CreateParser People2 table
 //        CREATE TABLE People2 (
 //            Id SERIAL PRIMARY KEY,
 //            Name TEXT NOT NULL,
@@ -30,7 +30,7 @@
 //            Street VARCHAR(255) NULL
 //        );
 
-//        -- Create Emails table
+//        -- CreateParser Emails table
 //        CREATE TABLE Emails (
 //            Id UUID PRIMARY KEY,
 //            Value VARCHAR(255) NOT NULL,
@@ -40,7 +40,7 @@
 //            CONSTRAINT FK_Emails_People FOREIGN KEY (PersonId) REFERENCES People (Id) ON DELETE CASCADE
 //        );
 
-//        -- Create Emails2 table
+//        -- CreateParser Emails2 table
 //        CREATE TABLE Emails2 (
 //            Id UUID PRIMARY KEY,
 //            Value VARCHAR(255) NOT NULL,
@@ -50,7 +50,7 @@
 //            CONSTRAINT FK_Emails_People2 FOREIGN KEY (PersonId) REFERENCES People2 (Id) ON DELETE CASCADE
 //        );
 
-//        -- Create Indices
+//        -- CreateParser Indices
 //        CREATE UNIQUE INDEX IX_People_Id ON People (Id);
 //        CREATE UNIQUE INDEX IX_Email_Id ON Emails (Id);
 //        CREATE INDEX IX_Emails_PersonId ON Emails (PersonId);

@@ -222,7 +222,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
     /// </summary>
     /// <param name="reader">The reader.</param>
     /// <returns></returns>
-    IEvDbRecordParser IEvDbRecordParserFactory.Create(DbDataReader reader) => new RecordParser(reader);
+    IEvDbRecordParser IEvDbRecordParserFactory.CreateParser(DbDataReader reader) => new RecordParser(reader);
 
     #endregion //  IEvDbRecordParserFactory members
 
@@ -248,6 +248,27 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
                 EventType = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.EventType))), // Non-nullable
                 CapturedBy = _reader.GetString(_reader.GetOrdinal(nameof(EvDbEventRecord.CapturedBy))), // Non-nullable
                 CapturedAt = _reader.GetDateTime(_reader.GetOrdinal(nameof(EvDbEventRecord.CapturedAt))), // Non-nullable
+                StoredAt = _reader.GetDateTime(_reader.GetOrdinal(nameof(EvDbEventRecord.StoredAt))), // Non-nullable
+                Payload = Encoding.UTF8.GetBytes(_reader.GetString(payloadIndex))
+            };
+            return record;
+        }
+
+        EvDbMessageRecord IEvDbRecordParser.ParseMessage()
+        {
+            var payloadIndex = _reader.GetOrdinal(nameof(EvDbMessageRecord.Payload));
+            var record = new EvDbMessageRecord
+            {
+                StreamType = _reader.GetString(_reader.GetOrdinal(nameof(EvDbMessageRecord.StreamType))), // Non-nullable
+                StreamId = _reader.GetString(_reader.GetOrdinal(nameof(EvDbMessageRecord.StreamId))), // Non-nullable
+                Offset = _reader.GetInt64(_reader.GetOrdinal(nameof(EvDbMessageRecord.Offset))), // Non-nullable
+                EventType = _reader.GetString(_reader.GetOrdinal(nameof(EvDbMessageRecord.EventType))), // Non-nullable
+                MessageType = _reader.GetString(_reader.GetOrdinal(nameof(EvDbMessageRecord.MessageType))), // Non-nullable
+                Channel = _reader.GetString(_reader.GetOrdinal(nameof(EvDbMessageRecord.Channel))), // Non-nullable
+                SerializeType = _reader.GetString(_reader.GetOrdinal(nameof(EvDbMessageRecord.SerializeType))), // Non-nullable
+                CapturedBy = _reader.GetString(_reader.GetOrdinal(nameof(EvDbMessageRecord.CapturedBy))), // Non-nullable
+                CapturedAt = _reader.GetDateTime(_reader.GetOrdinal(nameof(EvDbMessageRecord.CapturedAt))), // Non-nullable
+                StoredAt = _reader.GetDateTime(_reader.GetOrdinal(nameof(EvDbMessageRecord.StoredAt))), // Non-nullable
                 Payload = Encoding.UTF8.GetBytes(_reader.GetString(payloadIndex))
             };
             return record;
@@ -256,7 +277,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
     #endregion //  class RecordParser
 
-    protected override string DatabaseType { get; } = "sql-server";
+    protected override string DatabaseType { get; } = "PostgreSQL";
 
     protected override EvDbStreamAdapterQueryTemplates StreamQueries { get; }
 

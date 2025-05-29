@@ -35,7 +35,7 @@ public struct EvDbEventRecord
     /// </summary>
     public string CapturedBy { get; init; }
     /// <summary>
-    /// The date and time that the event 
+    /// The date and time that the event was captured 
     /// </summary>
     public DateTimeOffset CapturedAt { get; init; }
     /// <summary>
@@ -43,6 +43,11 @@ public struct EvDbEventRecord
     /// The value will be null if the Trace is null when persisting the record or before persistent.
     /// </summary>
     public EvDbTelemetryContextName TelemetryContext { get; init; }
+
+    /// <summary>
+    /// The time when it persist into the storage
+    /// </summary>
+    public DateTimeOffset? StoredAt { get; init; }
 
     #region Casting Overloads
 
@@ -59,7 +64,8 @@ public struct EvDbEventRecord
                     StreamCursor,
                     entity.Payload)
         {
-            TelemetryContext = entity.TelemetryContext
+            TelemetryContext = entity.TelemetryContext,
+            StoredAt = entity.StoredAt,
         };
     }
 
