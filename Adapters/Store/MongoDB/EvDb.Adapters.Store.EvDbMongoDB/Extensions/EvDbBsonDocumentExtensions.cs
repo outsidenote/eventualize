@@ -5,6 +5,7 @@ using EvDb.Core;
 using EvDb.Core.Adapters;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using System;
 using System.Diagnostics;
 using System.Text;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames.Fields;
@@ -13,6 +14,8 @@ namespace EvDb.Adapters.Store.Internals;
 
 public static class EvDbBsonDocumentExtensions
 {
+    private const string MONGO_DB_ID = "_id";
+
     #region ToEvent
 
     public static EvDbEvent ToEvent(this BsonDocument doc)
@@ -39,7 +42,7 @@ public static class EvDbBsonDocumentExtensions
 
     #endregion //  ToEvent
 
-    #region ToMessageRecord
+    #region ToMessageMeta
 
     public static IEvDbMessageMeta ToMessageMeta(this BsonDocument doc)
     {
@@ -48,12 +51,13 @@ public static class EvDbBsonDocumentExtensions
         return meta;
     }
 
-    #endregion //  ToMessageRecord
+    #endregion //  ToMessageMeta
 
     #region ToMessageRecord
 
     public static EvDbMessageRecord ToMessageRecord(this BsonDocument doc)
     {
+        var id = doc.GetValue(MONGO_DB_ID).AsGuid;
         var streamType = doc.GetValue(Message.StreamType).AsString;
         var streamId = doc.GetValue(Message.StreamId).AsString;
         var offset = doc.GetValue(Message.Offset).ToInt64();
@@ -82,6 +86,7 @@ public static class EvDbBsonDocumentExtensions
                                     : EvDbTelemetryContextName.FromArray(otelContext);
         var result = new EvDbMessageRecord
         {
+            Id = id,
             StreamType = streamType,
             StreamId = streamId,
             Offset = offset,
@@ -100,6 +105,58 @@ public static class EvDbBsonDocumentExtensions
     }
 
     #endregion //  ToMessageRecord
+
+    #region ToMessag
+
+    public static EvDbMessage ToMessage(this BsonDocument doc)
+    {
+        var id = doc.GetValue(MONGO_DB_ID).AsGuid;
+        var streamType = doc.GetValue(Message.StreamType).AsString;
+        var streamId = doc.GetValue(Message.StreamId).AsString;
+        var offset = doc.GetValue(Message.Offset).ToInt64();
+        var eventType = doc.GetValue(Message.EventType).AsString;
+        var capturedBy = doc.GetValue(Message.CapturedBy).AsString;
+        var capturedAt = doc.GetValue(Message.CapturedAt).AsBsonDateTime.ToUniversalTime();
+        var storedAt = doc.GetValue(Message.StoredAt).AsBsonDateTime.ToUniversalTime();
+        var channel = doc.GetValue(Message.Channel).AsString;
+        var serializeType = doc.GetValue(Message.SerializeType).AsString;
+        var meaageType = doc.GetValue(Message.MessageType).AsString;
+
+        var otelBson = doc.GetValue(Message.TelemetryContext);
+        byte[]? otelContext = null;
+        if (otelBson.IsBsonDocument)
+        {
+            var otlDoc = otelBson.AsBsonDocument;
+            string jsonString = otlDoc.ToJson();
+            otelContext = Encoding.UTF8.GetBytes(jsonString);
+        }
+
+        var payloadDoc = doc.GetValue(Message.Payload).AsBsonDocument;
+        var payload = payloadDoc.NormalizePayload(serializeType);
+
+        EvDbTelemetryContextName telemetryContext = otelContext == null
+                                    ? EvDbTelemetryContextName.Empty
+                                    : EvDbTelemetryContextName.FromArray(otelContext);
+        var cursor = new EvDbStreamCursor(streamType, streamId, offset);
+        var result = new EvDbMessage
+        {
+            Id = id,
+            StreamCursor = cursor,
+            EventType = eventType,
+            Channel = channel,
+            MessageType = meaageType,
+            SerializeType = serializeType,
+            CapturedAt = capturedAt,
+            CapturedBy = capturedBy,
+            TelemetryContext = telemetryContext,
+            Payload = payload,
+            StoredAt = storedAt
+        };
+
+        return result;
+    }
+
+    #endregion //  ToMessage
 
     #region ToSnapshotData
 
@@ -173,7 +230,7 @@ public static class EvDbBsonDocumentExtensions
             [Event.StreamType] = rec.StreamCursor.StreamType,
             [Event.StreamId] = rec.StreamCursor.StreamId,
             [Event.Offset] = rec.StreamCursor.Offset,
-            [Event.EventType] = rec.EventType,
+            [Event.EventType] = rec.EventType.Value,
             [Event.TelemetryContext] = bsonTelemetryContext,
             [Event.Payload] = payload,
             [Event.CapturedBy] = rec.CapturedBy,
@@ -196,6 +253,7 @@ public static class EvDbBsonDocumentExtensions
 
         var doc = new BsonDocument
         {
+            [MONGO_DB_ID] = new BsonBinaryData(rec.Id, GuidRepresentation.Standard),
             [Message.StreamType] = rec.StreamType,
             [Message.StreamId] = rec.StreamId,
             [Message.Offset] = rec.Offset,

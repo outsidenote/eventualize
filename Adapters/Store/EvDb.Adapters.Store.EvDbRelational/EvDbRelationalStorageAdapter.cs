@@ -402,7 +402,6 @@ public abstract class EvDbRelationalStorageAdapter :
     #region IEvDbStorageStreamAdapter.GetMessagesAsync
 
     async IAsyncEnumerable<EvDbMessage> IEvDbStorageStreamAdapter.GetMessagesAsync(
-                                EvDbStreamAddress address,
                                 EvDbShardName shardName,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options,
@@ -412,7 +411,7 @@ public abstract class EvDbRelationalStorageAdapter :
         string query = string.Format(StreamQueries.GetMessages, shardName);
         _logger.LogQuery(query);
 
-        var parameters = new EvDbGetMessagesParameters(address, filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
+        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
         using DbConnection conn = await InitAsync();
         var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
         int attemptsWhenEmpty = 0;

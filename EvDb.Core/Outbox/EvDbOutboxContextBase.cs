@@ -84,6 +84,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
         #endregion //  byte[] buffer =  serializer?.Serialize(...) ?? JsonSerializer.SerializeToUtf8Bytes(...)
 
         EvDbMessage e = new EvDbMessage(
+                                    Guid.NewGuid(),
                                     _relatedEventMeta.EventType,
                                     channel,
                                     shardName,

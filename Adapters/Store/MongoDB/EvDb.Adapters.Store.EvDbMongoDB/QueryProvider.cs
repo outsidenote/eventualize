@@ -1,11 +1,13 @@
-﻿// Ignore Spelling: Sharding
+﻿// Ignore Spelling: Sharding Bson
 // TBD: [bnaya 2025-04-17] Consider to using Atlas search instead of multiple indexes https://www.mongodb.com/docs/atlas/atlas-search/tutorial/#create-the--index.
 
 using EvDb.Core;
+using EvDb.Core.Adapters.Internals;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Immutable;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
+using static EvDb.Core.EvDbStreamAddress;
 
 namespace EvDb.Adapters.Store.MongoDB.Internals;
 
@@ -157,6 +159,17 @@ public static class QueryProvider
 
     #endregion //  SortEventsDesc
 
+    #region SortMessages
+
+    public static SortDefinition<BsonDocument> SortMessages { get; } =
+                                    Builders<BsonDocument>.Sort
+                                            .Ascending(Fields.Message.StoredAt)
+                                            .Ascending(Fields.Message.Channel)
+                                            .Ascending(Fields.Message.MessageType)
+                                            .Ascending(Fields.Message.Offset);
+
+    #endregion //  SortMessages
+
     #region SortSnapshots
 
     public static SortDefinition<BsonDocument> SortSnapshots { get; } =
@@ -188,7 +201,7 @@ public static class QueryProvider
 
     #region ToFilter
 
-    public static FilterDefinition<BsonDocument> ToFilter(this EvDbStreamAddress address)
+    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbStreamAddress address)
     {
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
@@ -200,7 +213,7 @@ public static class QueryProvider
         return filter;
     }
 
-    public static FilterDefinition<BsonDocument> ToFilter(this EvDbStreamCursor address)
+    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbStreamCursor address)
     {
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
@@ -214,7 +227,21 @@ public static class QueryProvider
         return filter;
     }
 
-    public static FilterDefinition<BsonDocument> ToFilter(this EvDbViewAddress address)
+    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbGetEventsParameters parameters)
+    {
+        FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
+                                    .And(
+                                        Builders<BsonDocument>.Filter
+                                            .Eq(Fields.Event.StreamType, parameters.StreamType),
+                                        Builders<BsonDocument>.Filter
+                                            .Eq(Fields.Event.StreamId, parameters.StreamId),
+                                        Builders<BsonDocument>.Filter
+                                            .Gte(Fields.Event.Offset, parameters.SinceOffset));
+
+        return filter;
+    }
+
+    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbViewAddress address)
     {
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
@@ -228,5 +255,60 @@ public static class QueryProvider
         return filter;
     }
 
-    #endregion //  ToFilter
+    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbGetMessagesParameters parameters)
+    {
+        var filters = new List<FilterDefinition<BsonDocument>>
+        {
+            Builders<BsonDocument>.Filter.Gte(Fields.Message.StoredAt, parameters.SinceDate)
+        };
+
+        // Add Channel filter if Channels array is provided and not empty
+        if (parameters.Channels is { Length: > 0 })
+        {
+            filters.Add(Builders<BsonDocument>.Filter
+                                              .In(Fields.Message.Channel, parameters.Channels));
+        }
+
+        // Add MessageType filter if MessageTypes array is provided and not empty
+        if (parameters.MessageTypes is { Length: > 0 })
+        {
+            filters.Add(Builders<BsonDocument>.Filter
+                                              .In(Fields.Message.MessageType, parameters.MessageTypes));
+        }
+
+        return Builders<BsonDocument>.Filter.And(filters);
+    }
+
+    #endregion //  ToBsonFilter
+
+    #region ToBsonPipeline
+
+    public static PipelineDefinition<ChangeStreamDocument<BsonDocument>, ChangeStreamDocument<BsonDocument>> ToBsonPipeline(
+        this EvDbGetMessagesParameters parameters)
+    {
+        var filters = new List<FilterDefinition<ChangeStreamDocument<BsonDocument>>>
+        {
+            Builders<ChangeStreamDocument<BsonDocument>>.Filter
+                .Eq(cs => cs.OperationType, ChangeStreamOperationType.Insert)
+        };
+
+        if (parameters.Channels is { Length: > 0 })
+        {
+            filters.Add(Builders<ChangeStreamDocument<BsonDocument>>.Filter
+                .In("fullDocument.channel", parameters.Channels));
+        }
+
+        if (parameters.MessageTypes is { Length: > 0 })
+        {
+            filters.Add(Builders<ChangeStreamDocument<BsonDocument>>.Filter
+                .In("fullDocument.messageType", parameters.MessageTypes));
+        }
+
+        var matchStage = Builders<ChangeStreamDocument<BsonDocument>>.Filter.And(filters);
+
+        return PipelineDefinition<ChangeStreamDocument<BsonDocument>, ChangeStreamDocument<BsonDocument>>
+            .Create(new[] { PipelineStageDefinitionBuilder.Match(matchStage) });
+    }
+
+    #endregion //  ToBsonPipeline
 }

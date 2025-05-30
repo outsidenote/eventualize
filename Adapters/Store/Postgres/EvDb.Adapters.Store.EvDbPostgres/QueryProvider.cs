@@ -59,10 +59,11 @@ internal static class QueryProvider
                     {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
                     {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
                 FROM {{tblInitial}}{0}
-                WHERE {{Fields.Message.StreamType}} = {{Parameters.Message.StreamType}}
-                    AND {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}} 
-                    AND ({{Fields.Message.Channel}} = ANY({{Parameters.Message.Channel}}) OR {{Parameters.Message.Channel}} IS NULL OR array_length({{Parameters.Message.Channel}}, 1) = 0);
-                ORDER BY {{Fields.Message.StreamType}} ASC, {{Fields.Message.StoredAt}} ASC ASC, {{Fields.Message.Channel}}, "{{Fields.Event.Offset}}", {{Fields.Message.MessageType}} ASC
+                WHERE 
+                    {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}} 
+                    AND ({{Fields.Message.Channel}} = ANY({{Parameters.Message.Channels}}) OR {{Parameters.Message.Channels}} IS NULL OR array_length({{Parameters.Message.Channels}}, 1) = 0);
+                    AND ({{Fields.Message.MessageType}} = ANY({{Parameters.Message.MessageTypes}}) OR {{Parameters.Message.MessageTypes}} IS NULL OR array_length({{Parameters.Message.MessageTypes}}, 1) = 0);
+                ORDER BY {{Fields.Message.StoredAt}} ASC ASC, {{Fields.Message.Channel}}, {{Fields.Message.MessageType}} ASC, "{{Fields.Event.Offset}}"
                 LIMIT {{Parameters.Message.BatchSize}};
                 """,
             SaveEvents = $$"""

@@ -6,7 +6,7 @@ namespace EvDb.Core;
 
 [Equatable]
 [DebuggerDisplay("{EventType}: {Payload}")]
-public partial record struct EvDbEvent(string EventType,
+public partial record struct EvDbEvent(EvDbEventTypeName EventType,
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,
                                 EvDbStreamCursor StreamCursor,

@@ -10,7 +10,7 @@ public interface IEvDbEventMeta
     /// <summary>
     /// The type of the event
     /// </summary>
-    string EventType { get; }
+    EvDbEventTypeName EventType { get; }
 
     /// <summary>
     /// The time of capturing the event (client side time)

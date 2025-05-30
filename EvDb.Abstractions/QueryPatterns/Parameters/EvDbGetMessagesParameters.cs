@@ -7,23 +7,22 @@ namespace EvDb.Core.Adapters.Internals;
 public readonly record struct EvDbGetMessagesParameters
 {
     public EvDbGetMessagesParameters(
-                                EvDbStreamAddress address,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions options)
     {
-        StreamType = address.StreamType;
-        StreamId = address.StreamId;
         BatchSize = options.BatchSize;
         Channels = filter.Channels?.Any() == true
                         ? filter.Channels.Select(m => (string)m).ToArray()
                         : null;
+        MessageTypes = filter.MessageTypes?.Any() == true
+                        ? filter.MessageTypes.Select(m => (string)m).ToArray()
+                        : null;
         SinceDate = filter.Since;
     }
 
-    public EvDbStreamTypeName StreamType { get; }
-    public string StreamId { get; }
     public int BatchSize { get; }
     public string[]? Channels { get; }
+    public string[]? MessageTypes { get; }
     public DateTimeOffset SinceDate { get; init; }
 
     public EvDbGetMessagesParameters ContinueFrom(EvDbMessage? last)

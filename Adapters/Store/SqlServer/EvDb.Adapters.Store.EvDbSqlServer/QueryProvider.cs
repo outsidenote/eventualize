@@ -52,12 +52,15 @@ internal static class QueryProvider
                     {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
                     {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
                 FROM {{tblInitial}}{0} WITH (READCOMMITTEDLOCK)
-                WHERE {{Fields.Message.StreamType}} = {{Parameters.Message.StreamType}}
-                    AND {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}}
-                    AND ({{Parameters.Message.Channel}} IS NULL 
-                         OR JSON_LENGTH({{Parameters.Message.Channel}}) = 0 
-                         OR {{Fields.Message.Channel}} IN (SELECT value FROM OPENJSON({{Parameters.Message.Channel}})))
-                ORDER BY {{Fields.Message.StreamType}} ASC, {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}}, {{Fields.Event.Offset}} ASC, {{Fields.Message.MessageType}} ASC;
+                WHERE 
+                    {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}}
+                    AND ({{Parameters.Message.Channels}} IS NULL 
+                         OR JSON_LENGTH({{Parameters.Message.Channels}}) = 0 
+                         OR {{Fields.Message.Channel}} IN (SELECT value FROM OPENJSON({{Parameters.Message.Channels}})))
+                    AND ({{Parameters.Message.MessageTypes}} IS NULL 
+                         OR JSON_LENGTH({{Parameters.Message.MessageTypes}}) = 0 
+                         OR {{Fields.Message.MessageType}} IN (SELECT value FROM OPENJSON({{Parameters.Message.MessageTypes}})))
+                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}}, {{Fields.Message.MessageType}} ASC, {{Fields.Event.Offset}} ASC;
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"{tblInitial}InsertEventsBatch_Events",

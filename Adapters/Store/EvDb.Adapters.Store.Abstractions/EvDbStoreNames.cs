@@ -94,7 +94,9 @@ public static class EvDbStoreNames
             public static readonly string StreamId = toParamName(Projection.Message.StreamId);
             public static readonly string Offset = toParamName(Projection.Message.Offset);
             public static readonly string Channel = toParamName(Projection.Message.Channel);
+            public static readonly string Channels = toParamName(nameof(EvDbGetMessagesParameters.Channels));
             public static readonly string MessageType = toParamName(Projection.Message.MessageType);
+            public static readonly string MessageTypes = toParamName(nameof(EvDbGetMessagesParameters.MessageTypes));
             public static readonly string EventType = toParamName(Projection.Message.EventType);
             public static readonly string ShardName = toParamName(nameof(EvDbMessage.ShardName));
             public static readonly string Payload = toParamName(Projection.Message.Payload);

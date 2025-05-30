@@ -120,7 +120,8 @@ public struct EvDbMessageRecord
     public IEvDbMessageMeta GetMetadata()
     {
         EvDbStreamCursor cursor = new EvDbStreamCursor(StreamType, StreamId, Offset);
-        var result = new EvDbMessageMeta(cursor,
+        var result = new EvDbMessageMeta(Id,
+                                         cursor,
                                          EventType,
                                          MessageType,
                                          Channel,
@@ -134,9 +135,11 @@ public struct EvDbMessageRecord
 
     #region readonly record EvDbMessageMeta struct(...): IEvDbMessageMeta
 
-    private readonly record struct EvDbMessageMeta(EvDbStreamCursor StreamCursor,
-                                                  string EventType,
-                                                  string MessageType,
+    private readonly record struct EvDbMessageMeta(
+                                                  Guid Id,
+                                                  EvDbStreamCursor StreamCursor,
+                                                  EvDbEventTypeName EventType,
+                                                  EvDbMessageTypeName MessageType,
                                                   EvDbChannelName Channel,
                                                   DateTimeOffset CapturedAt,
                                                   string CapturedBy) : IEvDbMessageMeta

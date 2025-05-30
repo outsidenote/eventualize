@@ -223,9 +223,9 @@ internal static class Sctipts
             
             CREATE INDEX IX_{t}_{Fields.Message.Channel}_{tblInitialWithoutSchema}
                ON {tblInitial}{t} (
-                     {Fields.Message.StreamType},
                      {Fields.Message.StoredAt},
                      {Fields.Message.Channel},  
+                     {Fields.Message.MessageType},  
                      {Fields.Message.Offset})
             WITH (ONLINE = ON);            
             """);

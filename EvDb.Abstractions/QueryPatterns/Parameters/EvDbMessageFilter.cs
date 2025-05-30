@@ -21,10 +21,16 @@ public readonly record struct EvDbMessageFilter
     public DateTimeOffset Since { get; init; }
 
     /// <summary>
-    /// Restrict the messages to those that match the specified text filter.
+    /// Restrict the messages to those that match the specified channels.
     /// Ignore this property if you want to get all messages.
     /// </summary>
     public IImmutableList<EvDbChannelName> Channels { get; init; }
+
+    /// <summary>
+    /// Restrict the messages to those that match the specified message-types.
+    /// Ignore this property if you want to get all messages.
+    /// </summary>
+    public IImmutableList<EvDbMessageTypeName> MessageTypes { get; init; }
 
 }
 

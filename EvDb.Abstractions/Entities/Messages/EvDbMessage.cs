@@ -7,10 +7,11 @@ namespace EvDb.Core;
 [Equatable]
 [DebuggerDisplay("[{ShardName}, {Channel} [{StreamCursor.Offset}]:{MessageType}] driven from [{EventType}]")]
 public partial record struct EvDbMessage(
-                                string EventType,
+                                Guid Id, 
+                                EvDbEventTypeName EventType,
                                 EvDbChannelName Channel,
                                 EvDbShardName ShardName,
-                                string MessageType,
+                                EvDbMessageTypeName MessageType,
                                 string SerializeType,
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,
@@ -19,7 +20,7 @@ public partial record struct EvDbMessage(
                                             IEvDbEventConverter//,
                                                                //IEvDbMessageMeta
 {
-    public static readonly EvDbEvent Empty = new EvDbEvent();
+    public static readonly EvDbMessage Empty = new EvDbMessage() { Id = Guid.Empty };
 
     /// <summary>
     /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
