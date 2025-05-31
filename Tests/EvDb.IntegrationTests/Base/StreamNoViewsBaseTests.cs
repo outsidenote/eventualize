@@ -58,6 +58,34 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
     }
 
     [Fact]
+    public virtual async Task Stream_NoView_BeyondBatchSize_Succeed()
+    {
+        var defaultEventsOptions = EvDbContinuousFetchOptions.CompleteIfEmpty;
+        int count = defaultEventsOptions.BatchSize * 2;
+
+        await ProcuceEventsAsync(count);
+
+        #region Asserts
+
+        Assert.Equal(count + 1, _stream.StoredOffset);
+
+
+        ICollection<EvDbMessageRecord> messagingCollection = await GetOutboxAsync(EvDbNoViewsOutbox.DEFAULT_SHARD_NAME).ToEnumerableAsync();
+        EvDbMessageRecord[] messaging = messagingCollection!.ToArray();
+        Assert.Equal(count, messaging.Length);
+
+        #endregion //  Asserts
+
+        IEvDbNoViews stream = await _factory.GetAsync(_streamId);
+
+        #region Asserts
+
+        Assert.Equal(count + 1, stream.StoredOffset);
+
+        #endregion //  Asserts
+    }
+
+    [Fact]
     public virtual async Task Stream_NoViewEmpty_Succeed()
     {
         Assert.Equal(0, _stream.StoredOffset);

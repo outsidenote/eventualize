@@ -51,6 +51,8 @@ public class NamedTypesTests
 
     #endregion //  EvDbTelemetryContextName_TryParse_Test
 
+    #region EvDbTelemetryContextName_FromJsonDoc_Test
+
     [Fact]
     public void EvDbTelemetryContextName_FromJsonDoc_Test()
     {
@@ -59,6 +61,10 @@ public class NamedTypesTests
         var json1 = context.ToString("i");
         Assert.Equal(json, json1);
     }
+
+    #endregion //  EvDbTelemetryContextName_FromJsonDoc_Test
+
+    #region EvDbTelemetryContextName_AsMemory_Test
 
     [Fact]
     public void EvDbTelemetryContextName_AsMemory_Test()
@@ -69,6 +75,9 @@ public class NamedTypesTests
         Assert.Equal(json, json1);
     }
 
+    #endregion //  EvDbTelemetryContextName_AsMemory_Test
+
+    #region EvDbTelemetryContextName_AsSpan_Test
 
     [Fact]
     public void EvDbTelemetryContextName_AsSpan_Test()
@@ -78,6 +87,8 @@ public class NamedTypesTests
         var json1 = context.ToString("i");
         Assert.Equal(json, json1);
     }
+
+    #endregion //  EvDbTelemetryContextName_AsSpan_Test
 
     #region EvDbStreamTypeName_Validition_Test
 
@@ -102,4 +113,21 @@ public class NamedTypesTests
     }
 
     #endregion //  EvDbStreamTypeName_Validition_Test
+
+    #region EvDbMessageId_Test
+
+    [Fact]
+    public void EvDbMessageId_Test()
+    {
+        var guid = Guid.NewGuid();
+        EvDbMessageId id1 = guid;
+        EvDbMessageId id2 = EvDbMessageId.From(guid);
+        Assert.True(id1.Equals(guid));
+        Assert.Equal(id1, id2);
+        var jsonGuid = JsonSerializer.Serialize(guid);
+        var jsonId = JsonSerializer.Serialize(id1);
+        Assert.Equal(jsonGuid, jsonId);
+    }
+
+    #endregion //  EvDbMessageId_Test
 }

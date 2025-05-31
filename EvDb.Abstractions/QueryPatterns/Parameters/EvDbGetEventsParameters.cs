@@ -14,7 +14,7 @@ public readonly record struct EvDbGetEventsParameters
         SinceOffset = cursor.Offset;
     }
 
-    public EvDbStreamTypeName StreamType { get; }
+    public string StreamType { get; }
     public string StreamId { get; }
     public int BatchSize { get; }
     public long SinceOffset { get; init; }

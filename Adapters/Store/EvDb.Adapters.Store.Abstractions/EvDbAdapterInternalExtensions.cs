@@ -14,13 +14,13 @@ public static class EvDbAdapterInternalExtensions
 
     public static async Task<(TimeSpan Delay, int attemptsWhenEmpty, bool ShouldExit)> DelayWhenEmptyAsync(
                                                         this EvDbContinuousFetchOptions options,
-                                                        bool hasRows,
+                                                        bool reachTheEnd,
                                                         TimeSpan delay,
                                                         int attemptsWhenEmpty,
                                                         CancellationToken cancellation)
     {
         DelayStrategy whenEmpty = options.DelayWhenEmpty;
-        if (hasRows)
+        if (!reachTheEnd)
         {
             return (whenEmpty.StartDuration, 0, false);
         }

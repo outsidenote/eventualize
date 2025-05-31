@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace EvDb.Core;
 
 [Equatable]
-[DebuggerDisplay("{EventType}: {Payload}")]
+[DebuggerDisplay("{EventType}: {StreamCursor}")]
 public partial record struct EvDbEvent(EvDbEventTypeName EventType,
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,

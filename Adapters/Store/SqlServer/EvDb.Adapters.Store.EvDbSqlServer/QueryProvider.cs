@@ -36,7 +36,7 @@ internal static class QueryProvider
                 FROM {tblInitial}events WITH (READCOMMITTEDLOCK)
                 WHERE {Fields.Event.StreamType} = {Parameters.Event.StreamType}
                     AND {Fields.Event.StreamId} = {Parameters.Event.StreamId}
-                    AND {Fields.Event.Offset} >= {Parameters.Event.Offset};
+                    AND {Fields.Event.Offset} >= {Parameters.Event.SinceOffset};
                 """,
             GetMessages = $$"""
                 SELECT

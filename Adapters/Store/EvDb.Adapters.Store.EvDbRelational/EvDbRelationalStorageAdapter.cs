@@ -377,16 +377,19 @@ public abstract class EvDbRelationalStorageAdapter :
         {
             DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
             var parser = RecordParserFactory.CreateParser(reader);
-            bool hasRows = await reader.ReadAsync(cancellation);
             EvDbEvent? last = null;
-            while (hasRows && !cancellation.IsCancellationRequested)
+            int count = 0;
+            while (!cancellation.IsCancellationRequested &&
+                   await reader.ReadAsync(cancellation))
             {
                 EvDbEvent e = parser.ParseEvent();
                 last = e;
+                count++;
                 yield return e;
             }
+            bool reachTheEnd = count < options.BatchSize;
             (delay, attemptsWhenEmpty, bool shouldExit) = await options.DelayWhenEmptyAsync(
-                                                                  hasRows,
+                                                                  reachTheEnd,
                                                                   delay,
                                                                   attemptsWhenEmpty,
                                                                   cancellation);
