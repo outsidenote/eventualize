@@ -126,6 +126,7 @@ public struct EvDbMessageRecord
                                          MessageType,
                                          Channel,
                                          CapturedAt,
+                                         StoredAt,
                                          CapturedBy)
         {
             TelemetryContext = TelemetryContext
@@ -142,6 +143,7 @@ public struct EvDbMessageRecord
                                                   EvDbMessageTypeName MessageType,
                                                   EvDbChannelName Channel,
                                                   DateTimeOffset CapturedAt,
+                                                  DateTimeOffset? StoredAt,
                                                   string CapturedBy) : IEvDbMessageMeta
     {
         /// <summary>

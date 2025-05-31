@@ -1,11 +1,13 @@
 ﻿using EvDb.Adapters.Store.Internals;
 using EvDb.Core;
 using EvDb.Core.Adapters;
+using EvDb.Core.Adapters.Internals;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using System.Diagnostics;
 using System.Text;
 using Xunit.Abstractions;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 
 namespace EvDb.UnitTests;
 
@@ -88,6 +90,8 @@ public sealed class MessageRecordToMetadataTests : IDisposable
         };
 
         var doc = messageRecord.EvDbToBsonDocument("shard");
+        var capturedAt = doc.GetValue(Fields.Message.CapturedAt);
+        doc.Add(Fields.Message.StoredAt, capturedAt); // happened at the DB level
         var meta = doc.ToMessageMeta();
 
         _output.WriteLine($"MessageRecord: {messageRecord}");
@@ -98,6 +102,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
         Assert.Equal(messageRecord.EventType, meta.EventType);
         Assert.Equal(messageRecord.Channel, meta.Channel);
         Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
+        Assert.NotNull(meta.StoredAt);
         messageRecord.AssertTelemetryContextEquals(meta);
     }
 
@@ -119,9 +124,12 @@ public sealed class MessageRecordToMetadataTests : IDisposable
             Payload = Encoding.UTF8.GetBytes("TestPayload"),
             CapturedBy = "TestCapturedBy",
             CapturedAt = DateTimeOffset.UtcNow,
+            StoredAt = DateTimeOffset.UtcNow,   
         };
 
         var doc = messageRecord.EvDbToBsonDocument("shard");
+        var capturedAt = doc.GetValue(Fields.Message.CapturedAt);
+        doc.Add(Fields.Message.StoredAt, capturedAt); // happened at the DB level
         var meta = doc.ToMessageMeta();
 
         _output.WriteLine($"MessageRecord: {messageRecord}");
@@ -132,6 +140,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
         Assert.Equal(messageRecord.EventType, meta.EventType);
         Assert.Equal(messageRecord.Channel, meta.Channel);
         Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
+        Assert.NotNull(messageRecord.StoredAt);
 
         EvDbTelemetryContextName currentOtelBuffer = Activity.Current?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty;
         meta.AssertTelemetryContextEquals(currentOtelBuffer);

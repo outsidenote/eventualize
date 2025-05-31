@@ -17,6 +17,8 @@ public interface IEvDbEventMeta
     /// </summary>
     DateTimeOffset CapturedAt { get; }
 
+    DateTimeOffset? StoredAt { get; }
+
     /// <summary>
     /// The user that captured the event
     /// </summary>
