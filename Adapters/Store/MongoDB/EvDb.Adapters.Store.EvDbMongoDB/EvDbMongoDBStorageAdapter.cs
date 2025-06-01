@@ -14,6 +14,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
+using static EvDb.Core.Adapters.Internals.EvDbStoreNames.Fields;
 using static EvDb.Core.Adapters.StoreTelemetry;
 
 namespace EvDb.Adapters.Store.MongoDB;
@@ -92,31 +93,36 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
             using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
 
-            bool hasRows = await cursor.MoveNextAsync(cancellation);
             EvDbEvent? last = null;
-            while (hasRows && !cancellation.IsCancellationRequested)
+            int count = 0;
+            while (!cancellation.IsCancellationRequested && 
+                   await cursor.MoveNextAsync(cancellation))
             {
                 foreach (var doc in cursor.Current)
                 {
                     // Convert from BsonDocument back to EvDbEvent.
                     var @event = doc.ToEvent();
                     last = @event;
+                    count++;
                     yield return @event;
                 }
-                (delay, attemptsWhenEmpty, bool shouldExit) = await options.DelayWhenEmptyAsync(
-                                                                      hasRows,
-                                                                      delay,
-                                                                      attemptsWhenEmpty,
-                                                                      cancellation);
-                if (shouldExit)
-                    break;
-
-                parameters = parameters.ContinueFrom(last);
             }
+
+            bool reachTheEnd = count < options.BatchSize;
+            (delay, attemptsWhenEmpty, bool shouldExit) = await options.DelayWhenEmptyAsync(
+                                                                  reachTheEnd,
+                                                                  delay,
+                                                                  attemptsWhenEmpty,
+                                                                  cancellation);
+            if (shouldExit)
+                break;
+            parameters = parameters.ContinueFrom(last);
         }
     }
 
     #endregion //  GetEventsAsync
+
+    #region GetMessagesAsync
 
     async IAsyncEnumerable<EvDbMessage> IEvDbStorageStreamAdapter.GetMessagesAsync(
                             EvDbShardName shardName,
@@ -241,7 +247,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
         (EvDbMessage? firstMessage, BsonDocument? resumeToken) = await firstChangedMessageTask;
 
-        if(firstMessage != null)
+        if (firstMessage != null)
             yield return firstMessage.Value;
 
         await foreach (var m in WatchWithDuplicationCheckAsync())
@@ -344,6 +350,8 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
         #endregion //  WaitForFirstMessageAsync
     }
+
+    #endregion //  GetMessagesAsync
 
     #region GetLastEventAsync
 
@@ -460,7 +468,8 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                         EvDbShardName shardName = g.Key;
                         OtelTags tags = OtelTags.Empty.Add("shard", shardName);
                         using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
-                        var outboxDocs = g.Select(m => m.EvDbToBsonDocument(shardName)).ToArray();
+                        var outboxDocs = g.Select(m => m.EvDbToBsonDocument(shardName))
+                                          .ToArray();
 
                         var outboxCollection = await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shardName);
                         await outboxCollection.InsertManyAsync(session, outboxDocs, options, cancellation);

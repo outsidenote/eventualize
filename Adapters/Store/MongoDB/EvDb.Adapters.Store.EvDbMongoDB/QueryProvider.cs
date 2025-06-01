@@ -75,28 +75,19 @@ public static class QueryProvider
 
     private static IImmutableList<CreateIndexModel<BsonDocument>> CreateOutboxIndexes()
     {
-        IndexKeysDefinition<BsonDocument> baseIndex =
+        return [
             Builders<BsonDocument>.IndexKeys
                 .Ascending(Fields.Message.StreamType)
-                .Ascending(Fields.Message.StreamId);
-        return [
-            baseIndex
+                .Ascending(Fields.Message.StreamId)
                 .Ascending(Fields.Message.Offset)
-                .ToCreateIndexModel( "evb_outbox_idx", true),
-            baseIndex
+                .Ascending(Fields.Message.Channel)
+                .Ascending(Fields.Message.MessageType)
+                .ToCreateIndexModel( "evb_outbox_unique_idx", true),
+            Builders<BsonDocument>.IndexKeys
                 .Ascending(Fields.Message.StoredAt)
-                .Ascending(Fields.Message.Offset)
+                .Ascending(Fields.Message.Channel)
+                .Ascending(Fields.Message.MessageType)
                 .ToCreateIndexModel( "evb_read_stored_at_idx"),
-            //baseIndex
-            //    .Ascending(Fields.Message.StoredAt)
-            //    .Ascending(Fields.Message.Channel)
-            //    .Ascending(Fields.Message.Offset)
-            //    .ToCreateIndexModel( "evb_read_channel_capture_at_idx"),
-            //baseIndex
-            //    .Ascending(Fields.Message.MessageType)
-            //    .Ascending(Fields.Message.StoredAt)
-            //    .Ascending(Fields.Message.Offset)
-            //    .ToCreateIndexModel( "evb_read_message_type_capture_at_idx"),
            ];
     }
 

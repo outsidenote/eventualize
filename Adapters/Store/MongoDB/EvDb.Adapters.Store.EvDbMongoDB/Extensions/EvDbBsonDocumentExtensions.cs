@@ -16,6 +16,26 @@ public static class EvDbBsonDocumentExtensions
 {
     private const string MONGO_DB_ID = "_id";
 
+    #region ExtractStoredAt
+
+    /// <summary>
+    /// Extracts the stored at time-stamp from the BsonDocument ObjectId.
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    public static DateTimeOffset? ExtractStoredAt(this BsonDocument doc)
+    {
+        if (doc.TryGetValue(MONGO_DB_ID, out var idValue) && idValue.IsObjectId)
+        {
+            var objectId = idValue.AsObjectId;
+            return new DateTimeOffset(objectId.CreationTime, TimeSpan.Zero); // UTC
+        }
+
+        return null; // Not an ObjectId or _id missing
+    }
+
+    #endregion //  ExtractStoredAt
+
     #region ToEvent
 
     public static EvDbEvent ToEvent(this BsonDocument doc)
@@ -26,7 +46,7 @@ public static class EvDbBsonDocumentExtensions
         var eventType = doc.GetValue(Event.EventType).AsString;
         var capturedBy = doc.GetValue(Event.CapturedBy).AsString;
         var capturedAt = doc.GetValue(Event.CapturedAt).AsBsonDateTime.ToUniversalTime();
-        var storedAt = doc.GetValue(Event.StoredAt).AsBsonDateTime.ToUniversalTime();
+        var storedAt = doc.ExtractStoredAt();
         var cursor = new EvDbStreamCursor(streamType, streamId, offset);
 
         string payloadJson = doc.GetValue(Event.Payload)
@@ -57,14 +77,14 @@ public static class EvDbBsonDocumentExtensions
 
     public static EvDbMessageRecord ToMessageRecord(this BsonDocument doc)
     {
-        var id = doc.GetValue(MONGO_DB_ID).AsGuid;
+        var id = doc.GetValue(Message.Id).AsGuid;
         var streamType = doc.GetValue(Message.StreamType).AsString;
         var streamId = doc.GetValue(Message.StreamId).AsString;
         var offset = doc.GetValue(Message.Offset).ToInt64();
         var eventType = doc.GetValue(Message.EventType).AsString;
         var capturedBy = doc.GetValue(Message.CapturedBy).AsString;
         var capturedAt = doc.GetValue(Message.CapturedAt).AsBsonDateTime.ToUniversalTime();
-        var storedAt = doc.GetValue(Message.StoredAt).AsBsonDateTime.ToUniversalTime();
+        var storedAt = doc.ExtractStoredAt();
         var channel = doc.GetValue(Message.Channel).AsString;
         var serializeType = doc.GetValue(Message.SerializeType).AsString;
         var meaageType = doc.GetValue(Message.MessageType).AsString;
@@ -110,14 +130,14 @@ public static class EvDbBsonDocumentExtensions
 
     public static EvDbMessage ToMessage(this BsonDocument doc)
     {
-        var id = doc.GetValue(MONGO_DB_ID).AsGuid;
+        var id = doc.GetValue(Message.Id).AsGuid;
         var streamType = doc.GetValue(Message.StreamType).AsString;
         var streamId = doc.GetValue(Message.StreamId).AsString;
         var offset = doc.GetValue(Message.Offset).ToInt64();
         var eventType = doc.GetValue(Message.EventType).AsString;
         var capturedBy = doc.GetValue(Message.CapturedBy).AsString;
         var capturedAt = doc.GetValue(Message.CapturedAt).AsBsonDateTime.ToUniversalTime();
-        var storedAt = doc.GetValue(Message.StoredAt).AsBsonDateTime.ToUniversalTime();
+        var storedAt = doc.ExtractStoredAt();
         var channel = doc.GetValue(Message.Channel).AsString;
         var serializeType = doc.GetValue(Message.SerializeType).AsString;
         var meaageType = doc.GetValue(Message.MessageType).AsString;
@@ -253,7 +273,8 @@ public static class EvDbBsonDocumentExtensions
 
         var doc = new BsonDocument
         {
-            [MONGO_DB_ID] = new BsonBinaryData(rec.Id, GuidRepresentation.Standard),
+            //[MONGO_DB_ID] = new BsonBinaryData(rec.Id, GuidRepresentation.Standard),
+            [Message.Id] = new BsonBinaryData(rec.Id, GuidRepresentation.Standard),
             [Message.StreamType] = rec.StreamType,
             [Message.StreamId] = rec.StreamId,
             [Message.Offset] = rec.Offset,
