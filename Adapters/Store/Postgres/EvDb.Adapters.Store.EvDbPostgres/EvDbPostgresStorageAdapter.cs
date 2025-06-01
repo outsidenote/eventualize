@@ -88,6 +88,17 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
     #endregion //  OnStoreStreamEventsAsync
 
+    #region ShouldRetryOnConnectionError
+
+    protected override bool ShouldRetryOnConnectionError(Exception exception) =>
+        exception switch
+        {
+            PostgresException ex when ex.SqlState == "53300" => true,
+            _ => false
+        };
+
+    #endregion //  ShouldRetryOnConnectionError
+
     #region OnStoreOutboxMessagesAsync
 
     protected override async Task<int> OnStoreOutboxMessagesAsync(

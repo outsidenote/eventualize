@@ -45,12 +45,53 @@ public abstract class EvDbRelationalStorageAdapter :
 
     async Task<DbConnection> InitAsync()
     {
-        DbConnection connection = _factory.CreateConnection();
-        await connection.OpenAsync();
-        return connection;
+        int i = 0;
+        do
+        {
+            try
+            {
+                DbConnection connection = _factory.CreateConnection();
+                await connection.OpenAsync();
+                return connection;
+            }
+            catch (Exception ex)
+            {
+                var shouldRetry = ShouldRetryOnConnectionError(ex);
+                if (!shouldRetry)
+                    throw;
+
+                #region Task.Delay(...)
+
+                var delay = i switch
+                {
+                    < 3 => TimeSpan.Zero,
+                    < 10 => TimeSpan.FromMicroseconds(i * 10),
+                    _ => TimeSpan.FromSeconds(3)
+                };
+                if(delay == TimeSpan.Zero)
+                    await Task.Yield(); // Yield to allow other tasks to run
+                else
+                    await Task.Delay(delay);
+
+                #endregion //  Task.Delay(...)
+
+                // todo; [bnaya 1/06/2025] Add Metric
+            }
+        } while (i < 20);
     }
 
     #endregion // Ctor
+
+    #region ShouldRetryOnConnectionError
+
+    /// <summary>
+    /// Lookup whether to retry on a specific error
+    /// </summary>
+    /// <param name="exception"></param>
+    /// <returns>true will retry to fetch and open connection</returns>
+    protected virtual bool ShouldRetryOnConnectionError(Exception exception) => false;
+
+    #endregion //  ShouldRetryOnConnectionError
 
     #region ExecuteSafe
 
@@ -432,7 +473,7 @@ public abstract class EvDbRelationalStorageAdapter :
                 yield return m;
             }
             (delay, attemptsWhenEmpty, bool shouldExit) = await opts.DelayWhenEmptyAsync(
-                                                                  hasRows,                                                                  
+                                                                  hasRows,
                                                                   delay,
                                                                   attemptsWhenEmpty,
                                                                   cancellation);
