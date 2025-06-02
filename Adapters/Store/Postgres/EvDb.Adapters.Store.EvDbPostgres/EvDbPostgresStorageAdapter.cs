@@ -90,7 +90,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
     #region ShouldRetryOnConnectionError
 
-    protected override bool ShouldRetryOnConnectionError(Exception exception) =>
+    protected override bool ShouldRetryOnConnectionError(Exception exception, int retryCount) =>
         exception switch
         {
             PostgresException ex when ex.SqlState == "53300" => true,

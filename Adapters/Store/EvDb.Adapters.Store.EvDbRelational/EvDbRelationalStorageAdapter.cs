@@ -56,7 +56,7 @@ public abstract class EvDbRelationalStorageAdapter :
             }
             catch (Exception ex)
             {
-                var shouldRetry = ShouldRetryOnConnectionError(ex);
+                var shouldRetry = ShouldRetryOnConnectionError(ex, i);
                 if (!shouldRetry)
                     throw;
 
@@ -77,7 +77,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
                 // todo; [bnaya 1/06/2025] Add Metric
             }
-        } while (i < 20);
+        } while (true);
     }
 
     #endregion // Ctor
@@ -89,7 +89,7 @@ public abstract class EvDbRelationalStorageAdapter :
     /// </summary>
     /// <param name="exception"></param>
     /// <returns>true will retry to fetch and open connection</returns>
-    protected virtual bool ShouldRetryOnConnectionError(Exception exception) => false;
+    protected virtual bool ShouldRetryOnConnectionError(Exception exception, int retryCount) => retryCount < 20;
 
     #endregion //  ShouldRetryOnConnectionError
 
