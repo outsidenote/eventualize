@@ -1,4 +1,5 @@
 ﻿namespace EvDb.Core.Tests;
+#pragma warning disable S3881 // "IDisposable" should be implemented correctly
 
 using EvDb.Core;
 using EvDb.Core.Adapters;
@@ -109,5 +110,10 @@ public abstract class BaseIntegrationTests : IAsyncLifetime, IDisposable, IAsync
                                                             EvDbShardName.Default);
             await storageMigrationSnapshot.DestroyEnvironmentAsync();
         }
+    }
+
+    ~BaseIntegrationTests()
+    {
+        DisposeAsync().Wait();
     }
 }

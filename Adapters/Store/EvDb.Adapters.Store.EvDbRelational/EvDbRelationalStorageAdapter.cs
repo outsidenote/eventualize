@@ -88,6 +88,7 @@ public abstract class EvDbRelationalStorageAdapter :
     /// Lookup whether to retry on a specific error
     /// </summary>
     /// <param name="exception"></param>
+    /// <param name="retryCount">Number of retries</param>
     /// <returns>true will retry to fetch and open connection</returns>
     protected virtual bool ShouldRetryOnConnectionError(Exception exception, int retryCount) => retryCount < 20;
 
@@ -445,7 +446,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #region IEvDbStorageStreamAdapter.GetMessagesAsync
 
-    async IAsyncEnumerable<EvDbMessage> IEvDbStorageStreamAdapter.GetMessagesAsync(
+    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
                                 EvDbShardName shardName,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options,

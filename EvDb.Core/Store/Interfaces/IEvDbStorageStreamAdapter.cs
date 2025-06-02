@@ -2,20 +2,8 @@
 
 namespace EvDb.Core;
 
-public interface IEvDbStorageStreamAdapter
+public interface IEvDbChangeStream
 {
-    /// <summary>
-    /// Gets stored events.
-    /// </summary>
-    /// <param name="streamCursor">The streamCursor.</param>
-    /// <param name="cancellation">The cancellation.</param>
-    /// <returns></returns>
-    IAsyncEnumerable<EvDbEvent> GetEventsAsync(
-                                EvDbStreamCursor streamCursor,
-                                CancellationToken cancellation = default);
-
-    // TODO: batch size = options, use builder, channels collection, message type = EvDbTextFilter
-
     /// <summary>
     /// Gets stored events.
     /// </summary>
@@ -28,6 +16,18 @@ public interface IEvDbStorageStreamAdapter
                                 EvDbShardName shardName,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
+                                CancellationToken cancellation = default);
+}
+public interface IEvDbStorageStreamAdapter: IEvDbChangeStream
+{
+    /// <summary>
+    /// Gets stored events.
+    /// </summary>
+    /// <param name="streamCursor">The streamCursor.</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    IAsyncEnumerable<EvDbEvent> GetEventsAsync(
+                                EvDbStreamCursor streamCursor,
                                 CancellationToken cancellation = default);
 
     /// <summary>

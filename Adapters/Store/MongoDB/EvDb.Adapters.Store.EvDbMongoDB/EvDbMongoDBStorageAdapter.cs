@@ -124,7 +124,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #region GetMessagesAsync
 
-    async IAsyncEnumerable<EvDbMessage> IEvDbStorageStreamAdapter.GetMessagesAsync(
+    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
                             EvDbShardName shardName,
                             EvDbMessageFilter filter,
                             EvDbContinuousFetchOptions? options,

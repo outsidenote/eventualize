@@ -72,7 +72,7 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #region GetMessagesAsync
 
-    IAsyncEnumerable<EvDbMessage> IEvDbStorageStreamAdapter.GetMessagesAsync(EvDbShardName shardName, EvDbMessageFilter filter, EvDbContinuousFetchOptions? options, CancellationToken cancellation)
+    IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(EvDbShardName shardName, EvDbMessageFilter filter, EvDbContinuousFetchOptions? options, CancellationToken cancellation)
     {
         throw new NotImplementedException();
     }
