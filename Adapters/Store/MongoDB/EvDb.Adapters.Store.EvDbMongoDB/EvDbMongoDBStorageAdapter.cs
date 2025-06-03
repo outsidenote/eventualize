@@ -95,7 +95,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
             EvDbEvent? last = null;
             int count = 0;
-            while (!cancellation.IsCancellationRequested && 
+            while (!cancellation.IsCancellationRequested &&
                    await cursor.MoveNextAsync(cancellation))
             {
                 foreach (var doc in cursor.Current)
@@ -129,7 +129,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                             EvDbMessageFilter filter,
                             EvDbContinuousFetchOptions? options,
                             [EnumeratorCancellation] CancellationToken cancellation)
-    { 
+    {
         cancellation.ThrowIfCancellationRequested();
 
         var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
@@ -144,44 +144,10 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
         EvDbMessage? last = null;
 
-        #region Iterate over the history
+        var duplicateDetection = new HashSet<Guid>(opts.BatchSize);
 
-        while (!cancellation.IsCancellationRequested)
-        {
-            FilterDefinition<BsonDocument> bsonFilter = parameters.ToBsonFilter();
-
-            IFindFluent<BsonDocument, BsonDocument> query = collection.Find(bsonFilter)
-                                 .Sort(QueryProvider.SortMessages)
-                                 .Limit(parameters.BatchSize);
-
-            if (_logger.IsEnabled(LogLevel.Trace))
-                _logger.LogQuery(query.ToJson());
-
-            using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
-
-            bool hasRows = await cursor.MoveNextAsync(cancellation);
-            while (hasRows && !cancellation.IsCancellationRequested)
-            {
-                foreach (var doc in cursor.Current)
-                {
-                    // Convert from BsonDocument back to EvDbEvent.
-                    EvDbMessage message = doc.ToMessage();
-                    last = message;
-                    yield return message;
-                }
-                (delay, attemptsWhenEmpty, bool shouldExit) = await batchOptions.DelayWhenEmptyAsync(
-                                                                      hasRows,
-                                                                      delay,
-                                                                      attemptsWhenEmpty,
-                                                                      cancellation);
-                if (shouldExit)
-                    break;
-
-                parameters = parameters.ContinueFrom(last);
-            }
-        }
-
-        #endregion //  Iterate over the history
+        await foreach (var m in FetchPastMessagesAsync())
+            yield return m;
 
         if (opts.CompleteWhenEmpty)
             yield break;
@@ -203,111 +169,141 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
         #endregion // ChangeStreamOptions watchOptions = ...
 
-        var duplicationLookup = new ConcurrentDictionary<EvDbMessageId, object?>();
-        Task<(EvDbMessage? FirstMessage, BsonDocument? ResumeToken)> firstChangedMessageTask =
-                            WaitForFirstMessageAsync(collection, pipeline, watchOptions, cancellation);
+        Task hasChangesInStream = AwaitStreamChangesAsync();
 
-        #region Catch up racing with the change stream
-
-        using var timeout = new CancellationTokenSource(CATCHUP_TIMEOUT, _timeProvider);
-        using (var catchupCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation, timeout.Token))
-        {
-            CancellationToken catchupCancellation = catchupCancellationSource.Token;
-            do
-            {
-                FilterDefinition<BsonDocument> bsonCatchUpFilter = parameters.ToBsonFilter();
-                IFindFluent<BsonDocument, BsonDocument> queryCatchUp = collection.Find(bsonCatchUpFilter)
-                             .Sort(QueryProvider.SortMessages)
-                             .Limit(DEFAUL_BATCH_SITE_ON_HISTORY_TRANSITION);
-
-                if (_logger.IsEnabled(LogLevel.Trace))
-                    _logger.LogQuery(queryCatchUp.ToJson());
-
-                using IAsyncCursor<BsonDocument> cursorCatchUp = await queryCatchUp.ToCursorAsync(catchupCancellation);
-
-                bool hasRowsCatchUp = await cursorCatchUp.MoveNextAsync(cancellation);
-                while (hasRowsCatchUp && !catchupCancellation.IsCancellationRequested)
-                {
-                    foreach (var doc in cursorCatchUp.Current)
-                    {
-                        // Convert from BsonDocument back to EvDbEvent.
-                        EvDbMessage message = doc.ToMessage();
-                        duplicationLookup.TryAdd(message.Id, null);
-
-                        yield return message;
-                    }
-                }
-            } while (!catchupCancellation.IsCancellationRequested && !firstChangedMessageTask.IsCompleted);
-        }
-
-        #endregion //  Catch up racing with the change stream
+        await foreach (var m in FetchLatestMessages())
+            yield return m;
 
         if (cancellation.IsCancellationRequested)
             yield break;
 
-        (EvDbMessage? firstMessage, BsonDocument? resumeToken) = await firstChangedMessageTask;
-
-        if (firstMessage != null)
-            yield return firstMessage.Value;
-
-        await foreach (var m in WatchWithDuplicationCheckAsync())
-            yield return m;
-
-        await foreach (var m in WatchWithoutDuplicationCheckAsync())
-            yield return m;
-
-        #region WatchWithDuplicationCheckAsync
-
-        async IAsyncEnumerable<EvDbMessage> WatchWithDuplicationCheckAsync()
+        IAsyncEnumerator<EvDbMessage> changes = WatchChangesAsync().GetAsyncEnumerator();
+        while (await changes.MoveNextAsync())
         {
-            #region watchOptions = ...
+            EvDbMessage m = changes.Current;
+            if (m.StoredAt < (last?.StoredAt ?? DateTimeOffset.MinValue))
+                continue;
+            if (duplicateDetection.Contains(m.Id))
+                continue; // Skip duplicate messages
+            yield return m;
+            if (m.StoredAt > (last?.StoredAt ?? DateTimeOffset.MinValue))
+                break; // no needs for duplicate check anymore
+        }
+        while (await changes.MoveNextAsync())
+        {
+            EvDbMessage m = changes.Current;
+            yield return m;
+        }
 
-            if (resumeToken != null)
+        #region FetchHistoricalMessagesAsync
+
+
+        async IAsyncEnumerable<EvDbMessage> FetchPastMessagesAsync()
+        {
+            while (!cancellation.IsCancellationRequested)
             {
-                watchOptions.ResumeAfter = resumeToken; // Use the resume token from the first message
-                watchOptions.StartAtOperationTime = null; // Clear StartAtOperationTime to use the resume token
-            }
-            watchOptions.MaxAwaitTime = null; // Use the server default (infinite wait)
+                FilterDefinition<BsonDocument> bsonFilter = parameters.ToBsonFilter();
 
-            #endregion //  MyRegion
+                IFindFluent<BsonDocument, BsonDocument> query = collection.Find(bsonFilter)
+                                     .Sort(QueryProvider.SortMessages)
+                                     .Limit(parameters.BatchSize);
 
-            while (!cancellation.IsCancellationRequested && duplicationLookup.Count != 0)
-            {
-                using var changes = await collection.WatchAsync(pipeline, watchOptions, cancellation);
-                if (await changes.MoveNextAsync(cancellation))
+                if (_logger.IsEnabled(LogLevel.Trace))
+                    _logger.LogQuery(query.ToJson());
+
+                using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
+
+                bool hasRows = await cursor.MoveNextAsync(cancellation);
+                while (hasRows && !cancellation.IsCancellationRequested)
                 {
-                    foreach (var change in changes.Current)
+                    foreach (var doc in cursor.Current)
                     {
-                        resumeToken = change.ResumeToken;
-                        var message = change.FullDocument.ToMessage();
-                        if (duplicationLookup.TryRemove(message.Id, out _))
+                        // Convert from BsonDocument back to EvDbEvent.
+                        EvDbMessage message = doc.ToMessage();
+                        if (duplicateDetection.Contains(message.Id))
+                            continue; // Skip duplicate messages
+
+                        ManageDuplicationList(last, duplicateDetection, message);
+
+                        last = message;
+                        yield return message;
+                    }
+                    (delay, attemptsWhenEmpty, bool shouldExit) = await batchOptions.DelayWhenEmptyAsync(
+                                                                          hasRows,
+                                                                          delay,
+                                                                          attemptsWhenEmpty,
+                                                                          cancellation);
+                    if (shouldExit)
+                        break;
+
+                    parameters = parameters.ContinueFrom(last);
+                }
+            }
+        }
+
+        #endregion //  FetchPastMessagesAsync
+
+        #region FetchLatestMessages
+
+        // managing possible race condition with the change stream
+        async IAsyncEnumerable<EvDbMessage> FetchLatestMessages()
+        {
+            using var timeout = new CancellationTokenSource(CATCHUP_TIMEOUT, _timeProvider);
+            using (var catchupCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation, timeout.Token))
+            {
+                CancellationToken catchupCancellation = catchupCancellationSource.Token;
+                do
+                {
+                    FilterDefinition<BsonDocument> bsonCatchUpFilter = parameters.ToBsonFilter();
+                    IFindFluent<BsonDocument, BsonDocument> queryCatchUp = collection.Find(bsonCatchUpFilter)
+                                 .Sort(QueryProvider.SortMessages)
+                                 .Limit(DEFAUL_BATCH_SITE_ON_HISTORY_TRANSITION);
+
+                    if (_logger.IsEnabled(LogLevel.Trace))
+                        _logger.LogQuery(queryCatchUp.ToJson());
+
+                    using IAsyncCursor<BsonDocument> cursorCatchUp = await queryCatchUp.ToCursorAsync(catchupCancellation);
+
+                    bool hasRowsCatchUp = await cursorCatchUp.MoveNextAsync(cancellation);
+                    while (hasRowsCatchUp && !catchupCancellation.IsCancellationRequested)
+                    {
+                        foreach (var doc in cursorCatchUp.Current)
                         {
-                            // If the message was handled.
-                            continue;
+                            // Convert from BsonDocument back to EvDbEvent.
+                            EvDbMessage message = doc.ToMessage();
+
+                            if (duplicateDetection.Contains(message.Id))
+                                continue; // Skip duplicate messages
+
+                            ManageDuplicationList(last, duplicateDetection, message);
+                            last = message;
+                            yield return message;
                         }
-                        yield return message;
                     }
-                }
+                } while (!catchupCancellation.IsCancellationRequested && !hasChangesInStream.IsCompleted);
             }
         }
 
-        #endregion //  WatchWithDuplicationCheckAsync
+        #endregion //  FetchLatestMessages
 
-        #region WatchWithoutDuplicationCheckAsync
+        #region AwaitStreamChangesAsync()
 
-        async IAsyncEnumerable<EvDbMessage> WatchWithoutDuplicationCheckAsync()
+        async Task AwaitStreamChangesAsync()
         {
-            #region watchOptions = ...
-
-            if (resumeToken != null)
+            while (!cancellation.IsCancellationRequested)
             {
-                watchOptions.ResumeAfter = resumeToken; // Use the resume token from the first message
-                watchOptions.StartAtOperationTime = null; // Clear StartAtOperationTime to use the resume token
+                using var changes = await collection.WatchAsync(pipeline, watchOptions, cancellation);
+                if (await changes.MoveNextAsync(cancellation) && changes.Current.Any())
+                    break;
             }
-            watchOptions.MaxAwaitTime = null; // Use the server default (infinite wait)
+        }
 
-            #endregion //  MyRegion
+        #endregion //  AwaitStreamChangesAsync()
 
+        #region WatchChangesAsync
+
+        async IAsyncEnumerable<EvDbMessage> WatchChangesAsync()
+        {
             while (!cancellation.IsCancellationRequested)
             {
                 using var changes = await collection.WatchAsync(pipeline, watchOptions, cancellation);
@@ -322,33 +318,18 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
             }
         }
 
-        #endregion //  WatchWithoutDuplicationCheckAsync
+        #endregion //  WatchChangesAsync
 
-        #region WaitForFirstMessageAsync
+        #region ManageDuplicationList
 
-        static async Task<(EvDbMessage? FirstMessage, BsonDocument? ResumeToken)> WaitForFirstMessageAsync(
-                                                                 IMongoCollection<BsonDocument> collection,
-                                                                 PipelineDefinition<ChangeStreamDocument<BsonDocument>, ChangeStreamDocument<BsonDocument>> pipeline,
-                                                                 ChangeStreamOptions watchOptions,
-                                                                 CancellationToken cancellation)
+        static void ManageDuplicationList(EvDbMessage? last, HashSet<Guid> duplicateDetection, EvDbMessage message)
         {
-            BsonDocument? resumeToken = null;
-            while (!cancellation.IsCancellationRequested)
-            {
-                using var changes = await collection.WatchAsync(pipeline, watchOptions, cancellation);
-                if (await changes.MoveNextAsync(cancellation))
-                {
-                    var change = changes.Current.FirstOrDefault();
-                    var firstChangedMessage = change?.FullDocument.ToMessage();
-                    resumeToken = change?.ResumeToken;
-                    return (firstChangedMessage, resumeToken);
-                }
-            }
-
-            return (null, null);
+            if (last != null && last.Value.StoredAt != message.StoredAt)
+                duplicateDetection.Clear();
+            duplicateDetection.Add(message.Id);
         }
 
-        #endregion //  WaitForFirstMessageAsync
+        #endregion //  ManageDuplicationList
     }
 
     #endregion //  GetMessagesAsync

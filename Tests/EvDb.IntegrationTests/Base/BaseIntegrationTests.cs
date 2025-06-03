@@ -56,7 +56,7 @@ public abstract class BaseIntegrationTests : IAsyncLifetime, IDisposable, IAsync
         }
     }
 
-    public abstract IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard);
+    public virtual IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => throw new NotImplementedException();
 
 
     public EvDbStorageContext StorageContext { get; }

@@ -399,6 +399,7 @@ public abstract class EvDbRelationalStorageAdapter :
         var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
         int attemptsWhenEmpty = 0;
         TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
+        var duplicateDetection = new HashSet<Guid>(opts.BatchSize);
         while (!cancellation.IsCancellationRequested)
         {
             using DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
@@ -408,9 +409,23 @@ public abstract class EvDbRelationalStorageAdapter :
             while (!cancellation.IsCancellationRequested && await reader.ReadAsync(cancellation))
             {
                 EvDbMessage m = parser.ParseMessage();
+                if (duplicateDetection.Contains(m.Id))
+                    continue; // Skip duplicate messages
+                ManageDuplicationList();
                 last = m;
                 count++;
-                yield return m;
+                    yield return m;
+
+                #region ManageDuplicationList
+
+                void ManageDuplicationList()
+                {
+                    if (last != null && last.Value.StoredAt != m.StoredAt)
+                        duplicateDetection.Clear();
+                    duplicateDetection.Add(m.Id);
+                }
+
+                #endregion //  ManageDuplicationList
             }
             bool reachTheEnd = count < opts.BatchSize;
             (delay, attemptsWhenEmpty, bool shouldExit) = await opts.DelayWhenEmptyAsync(
