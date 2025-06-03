@@ -8,6 +8,7 @@ using EvDb.Scenes;
 using EvDb.UnitTests;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 using Xunit.Abstractions;
@@ -25,6 +26,12 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
     {
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
+
+        // Configure logging to use xUnit output
+        builder.Logging.ClearProviders();
+        builder.Logging.AddProvider(new XUnitLoggerProvider(_output));
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
         services.AddEvDb()
                 .AddNoViewsFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
                 .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));

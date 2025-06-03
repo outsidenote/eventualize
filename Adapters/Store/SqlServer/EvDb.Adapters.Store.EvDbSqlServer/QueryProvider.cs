@@ -53,15 +53,22 @@ internal static class QueryProvider
                     {{Fields.Message.SerializeType}} as {{Projection.Message.SerializeType}},
                     {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
                     {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
-                FROM {{tblInitial}}{0} WITH (READCOMMITTEDLOCK)
+                FROM {{tblInitial}}{0} WITH (READCOMMITTEDLOCK)                
                 WHERE 
-                    {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}} && {{Fields.Message.StoredAt}} < DATEADD(MICROSECOND, -1000, SYSDATETIME()) 
-                    AND ({{Parameters.Message.Channels}} IS NULL 
-                         OR JSON_LENGTH({{Parameters.Message.Channels}}) = 0 
-                         OR {{Fields.Message.Channel}} IN (SELECT value FROM OPENJSON({{Parameters.Message.Channels}})))
-                    AND ({{Parameters.Message.MessageTypes}} IS NULL 
-                         OR JSON_LENGTH({{Parameters.Message.MessageTypes}}) = 0 
-                         OR {{Fields.Message.MessageType}} IN (SELECT value FROM OPENJSON({{Parameters.Message.MessageTypes}})))
+                    {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}}
+                    AND {{Fields.Message.StoredAt}} < DATEADD(MICROSECOND, -1000, SYSDATETIME())
+                    AND (
+                        {{Parameters.Message.Channels}} IS NULL 
+                        OR ISJSON({{Parameters.Message.Channels}}) = 0 
+                        OR {{Parameters.Message.Channels}} = '[]'
+                        OR EXISTS (SELECT 1 FROM OPENJSON({{Parameters.Message.Channels}}) WHERE value = {{Fields.Message.Channel}})
+                    )
+                    AND (
+                        {{Parameters.Message.MessageTypes}} IS NULL 
+                        OR ISJSON({{Parameters.Message.MessageTypes}}) = 0 
+                        OR {{Parameters.Message.MessageTypes}} = '[]'
+                        OR EXISTS (SELECT 1 FROM OPENJSON({{Parameters.Message.MessageTypes}}) WHERE value = {{Fields.Message.MessageType}})
+                    )                         
                 ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}} ASC, {{Fields.Message.MessageType}} ASC, {{Fields.Event.Offset}} ASC;
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
@@ -72,7 +79,6 @@ internal static class QueryProvider
 
     public static EvDbSnapshotAdapterQueryTemplates CreateSnapshotQueries(EvDbStorageContext storageContext)
     {
-        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
         string tabInitial = storageContext.Id;
 
         return new EvDbSnapshotAdapterQueryTemplates
