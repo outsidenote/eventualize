@@ -119,6 +119,8 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
     [Fact]
     public virtual async Task Stream_NoView_GetMessages_Succeed()
     {
+        const int FUTURE_COUNT = 30;
+        const int CHUNCK_SIZE = 40;
         var cancellationDucraion = Debugger.IsAttached 
                                         ? TimeSpan.FromMinutes(10)
                                         : TimeSpan.FromSeconds(5);
@@ -129,14 +131,17 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
         int count = defaultEventsOptions.BatchSize * 2;
 
         // produce messages before start listening to the change stream
-        await ProcuceEventsAsync(count);
+        for (int i = 0; i < count; i+= CHUNCK_SIZE)
+        {
+            await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
+        }
 
         var startAt = DateTimeOffset.UtcNow.AddSeconds(-1);
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
         IAsyncEnumerable<EvDbMessage> messages = 
                         _changeStream.GetMessagesAsync(shard, startAt, defaultEventsOptions, cancellationToken);
 
-        long lastOffset = 1;
+        long lastOffset = 0;
         await foreach (var message in messages)
         {
             long messageOffset = message.StreamCursor.Offset;
@@ -144,17 +149,17 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
             lastOffset = messageOffset;
 
             AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload);
-            Assert.Equal(messageOffset % 2 == 0 ? 90 : 80, data.Avg);
+            Assert.Equal(messageOffset, data!.Avg);
 
-            if (messageOffset == defaultEventsOptions.BatchSize)
+            if (messageOffset == 50)
             {
-                var _ = ProcuceEventsAsync(count); // produce more messages after start listening to the change stream
+                var _ = ProcuceStudentReceivedGradeAsync(FUTURE_COUNT, count); // produce more messages after start listening to the change stream
             }
-            if (messageOffset == count * 2 + 1)
+            if (messageOffset == count + 1 + FUTURE_COUNT)
                 await cts.CancelAsync();
         }
 
-        Assert.Equal(count * 2 + 1, _stream.StoredOffset);
+        Assert.Equal(count + 1 + FUTURE_COUNT, _stream.StoredOffset);
     }
 
     #endregion //  Stream_NoView_GetMessages_Succeed
@@ -167,6 +172,16 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
         for (int i = 1; i <= numOfGrades; i++)
         {
             var grade = new StudentReceivedGradeEvent(i, student.Id, i % 2 == 0 ? 80 : 90);
+            await _stream.AppendAsync(grade);
+        }
+        await _stream.StoreAsync();
+    }
+
+    private async Task ProcuceStudentReceivedGradeAsync(int numOfGrades = 3, int seed = 0)
+    {
+        for (int i = 1; i <= numOfGrades; i++)
+        {
+            var grade = new StudentReceivedGradeEvent(i, 88, i + seed );
             await _stream.AppendAsync(grade);
         }
         await _stream.StoreAsync();

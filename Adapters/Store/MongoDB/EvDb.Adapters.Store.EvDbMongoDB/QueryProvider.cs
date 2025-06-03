@@ -13,6 +13,8 @@ namespace EvDb.Adapters.Store.MongoDB.Internals;
 
 public static class QueryProvider
 {
+    private static readonly BsonDocument SUBSTRACT_LAST_MS = new BsonDocument("$subtract", new BsonArray { "$$NOW", 1 });
+
     #region EventsCollectionSetting
 
     public static readonly MongoCollectionSettings EventsCollectionSetting = new MongoCollectionSettings
@@ -190,6 +192,7 @@ public static class QueryProvider
 
     #endregion //  ProjectionSnapshots
 
+
     #region ToFilter
 
     public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbStreamAddress address)
@@ -250,7 +253,9 @@ public static class QueryProvider
     {
         var filters = new List<FilterDefinition<BsonDocument>>
         {
-            Builders<BsonDocument>.Filter.Gte(Fields.Message.StoredAt, parameters.SinceDate)
+            Builders<BsonDocument>.Filter.Gte(Fields.Message.StoredAt, parameters.SinceDate),
+            // Add filter to exclude messages stored after (database_time - 1ms)
+            Builders<BsonDocument>.Filter.Lt(Fields.Message.StoredAt, SUBSTRACT_LAST_MS)
         };
 
         // Add Channel filter if Channels array is provided and not empty

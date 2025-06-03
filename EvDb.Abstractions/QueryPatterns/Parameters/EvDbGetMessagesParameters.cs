@@ -33,7 +33,7 @@ public readonly record struct EvDbGetMessagesParameters
         if(!last.Value.StoredAt.HasValue)
             throw new InvalidOperationException("The last message must have a StoredAt value to continue from it.");
 
-        var parameters = this with { SinceDate = last.Value.StoredAt!.Value };
+        var parameters = this with { SinceDate = last.Value.StoredAt!.Value};
         return parameters;
     }
 }

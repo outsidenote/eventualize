@@ -22,6 +22,27 @@ public partial record struct EvDbMessage(
 {
     public static readonly EvDbMessage Empty = new EvDbMessage() { Id = Guid.Empty };
 
+    public EvDbMessage(EvDbEventTypeName EventType,
+                       EvDbChannelName Channel,
+                       EvDbShardName ShardName,
+                       EvDbMessageTypeName MessageType,
+                       string SerializeType,
+                       [property: IgnoreEquality] DateTimeOffset CapturedAt,
+                       string CapturedBy,
+                       EvDbStreamCursor StreamCursor,
+                       EvDbMessagePayloadName Payload): this(Guid.NewGuid(),
+                                                                EventType,
+                                                                Channel,
+                                                                ShardName,
+                                                                MessageType,
+                                                                SerializeType,
+                                                                CapturedAt,
+                                                                CapturedBy,
+                                                                StreamCursor,
+                                                                Payload)
+    {
+    }
+
     /// <summary>
     /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
     /// The value will be null if the Trace is null when persisting the record or before persistent.

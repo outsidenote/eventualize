@@ -70,22 +70,22 @@ public struct EvDbMessageRecord
 
     #region static implicit operator EvDbMessageRecord(EvDbMessage e) ...
 
-    public static implicit operator EvDbMessageRecord(EvDbMessage e)
+    public static implicit operator EvDbMessageRecord(EvDbMessage m)
     {
         var result = new EvDbMessageRecord
         {
-            Id = Guid.NewGuid(), // TODO: GuidV7
-            StreamType = e.StreamCursor.StreamType,
-            StreamId = e.StreamCursor.StreamId,
-            Offset = e.StreamCursor.Offset,
-            EventType = e.EventType,
-            Channel = e.Channel,
-            MessageType = e.MessageType,
-            SerializeType = e.SerializeType,
-            Payload = e.Payload,
-            CapturedBy = e.CapturedBy,
-            CapturedAt = e.CapturedAt,
-            TelemetryContext = e.TelemetryContext
+            Id = m.Id, // TODO: GuidV7
+            StreamType = m.StreamCursor.StreamType,
+            StreamId = m.StreamCursor.StreamId,
+            Offset = m.StreamCursor.Offset,
+            EventType = m.EventType,
+            Channel = m.Channel,
+            MessageType = m.MessageType,
+            SerializeType = m.SerializeType,
+            Payload = m.Payload,
+            CapturedBy = m.CapturedBy,
+            CapturedAt = m.CapturedAt,
+            TelemetryContext = m.TelemetryContext
         };
         return result;
     }
@@ -95,6 +95,7 @@ public struct EvDbMessageRecord
         var cursor = new EvDbStreamCursor(m.StreamType, m.StreamId, m.Offset);
         var result = new EvDbMessage
         {
+            Id = m.Id,
             StreamCursor = cursor,
             EventType = m.EventType,
             Channel = m.Channel,

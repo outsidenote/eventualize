@@ -40,6 +40,7 @@ internal static class QueryProvider
                 """,
             GetMessages = $$"""
                 SELECT
+                    {{Fields.Message.Id}} as {{Projection.Message.Id}},
                     {{Fields.Message.StreamType}} as {{Projection.Message.StreamType}},
                     {{Fields.Message.StreamId}} as {{Projection.Message.StreamId}},
                     {{Fields.Message.Offset}} as {{Projection.Message.Offset}},
@@ -54,7 +55,7 @@ internal static class QueryProvider
                     {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
                 FROM {{tblInitial}}{0} WITH (READCOMMITTEDLOCK)
                 WHERE 
-                    {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}}
+                    {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}} && {{Fields.Message.StoredAt}} < DATEADD(MICROSECOND, -1000, SYSDATETIME()) 
                     AND ({{Parameters.Message.Channels}} IS NULL 
                          OR JSON_LENGTH({{Parameters.Message.Channels}}) = 0 
                          OR {{Fields.Message.Channel}} IN (SELECT value FROM OPENJSON({{Parameters.Message.Channels}})))
