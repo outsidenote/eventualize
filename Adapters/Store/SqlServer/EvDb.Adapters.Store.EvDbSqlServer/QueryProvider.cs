@@ -49,6 +49,7 @@ internal static class QueryProvider
                     {{Fields.Message.StoredAt}} as {{Projection.Message.StoredAt}},
                     {{Fields.Message.CapturedBy}} as {{Projection.Message.CapturedBy}},
                     {{Fields.Message.Channel}} as {{Projection.Message.Channel}},
+                    {{Fields.Message.SerializeType}} as {{Projection.Message.SerializeType}},
                     {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
                     {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
                 FROM {{tblInitial}}{0} WITH (READCOMMITTEDLOCK)
@@ -60,7 +61,7 @@ internal static class QueryProvider
                     AND ({{Parameters.Message.MessageTypes}} IS NULL 
                          OR JSON_LENGTH({{Parameters.Message.MessageTypes}}) = 0 
                          OR {{Fields.Message.MessageType}} IN (SELECT value FROM OPENJSON({{Parameters.Message.MessageTypes}})))
-                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}}, {{Fields.Message.MessageType}} ASC, {{Fields.Event.Offset}} ASC;
+                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}} ASC, {{Fields.Message.MessageType}} ASC, {{Fields.Event.Offset}} ASC;
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"{tblInitial}InsertEventsBatch_Events",

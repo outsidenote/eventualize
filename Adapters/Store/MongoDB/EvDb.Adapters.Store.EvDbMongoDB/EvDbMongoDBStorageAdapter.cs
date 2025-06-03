@@ -125,17 +125,17 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     #region GetMessagesAsync
 
     async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
-                            EvDbShardName shardName,
+                            EvDbShardName shard,
                             EvDbMessageFilter filter,
                             EvDbContinuousFetchOptions? options,
                             [EnumeratorCancellation] CancellationToken cancellation)
-    {
+    { 
         cancellation.ThrowIfCancellationRequested();
 
         var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
         var batchOptions = EvDbContinuousFetchOptions.CompleteIfEmpty;
         IMongoCollection<BsonDocument> collection =
-                        await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shardName);
+                        await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shard);
 
 
         var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);

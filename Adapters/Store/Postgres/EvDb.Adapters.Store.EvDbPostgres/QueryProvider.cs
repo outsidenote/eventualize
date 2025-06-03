@@ -56,14 +56,15 @@ internal static class QueryProvider
                     {{Fields.Message.StoredAt}} as {{Projection.Message.StoredAt}},
                     {{Fields.Message.CapturedBy}} as {{Projection.Message.CapturedBy}},
                     {{Fields.Message.Channel}} as {{Projection.Message.Channel}},
+                    {{Fields.Message.SerializeType}} as {{Projection.Message.SerializeType}},
                     {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
                     {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
                 FROM {{tblInitial}}{0}
                 WHERE 
                     {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}} 
-                    AND ({{Fields.Message.Channel}} = ANY({{Parameters.Message.Channels}}) OR {{Parameters.Message.Channels}} IS NULL OR array_length({{Parameters.Message.Channels}}, 1) = 0);
-                    AND ({{Fields.Message.MessageType}} = ANY({{Parameters.Message.MessageTypes}}) OR {{Parameters.Message.MessageTypes}} IS NULL OR array_length({{Parameters.Message.MessageTypes}}, 1) = 0);
-                ORDER BY {{Fields.Message.StoredAt}} ASC ASC, {{Fields.Message.Channel}}, {{Fields.Message.MessageType}} ASC, "{{Fields.Event.Offset}}"
+                    AND ({{Fields.Message.Channel}} = ANY({{Parameters.Message.Channels}}) OR {{Parameters.Message.Channels}} IS NULL OR array_length({{Parameters.Message.Channels}}, 1) = 0)
+                    AND ({{Fields.Message.MessageType}} = ANY({{Parameters.Message.MessageTypes}}) OR {{Parameters.Message.MessageTypes}} IS NULL OR array_length({{Parameters.Message.MessageTypes}}, 1) = 0)
+                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}} ASC, {{Fields.Message.MessageType}} ASC, "{{Fields.Event.Offset}}" ASC
                 LIMIT {{Parameters.Message.BatchSize}};
                 """,
             SaveEvents = $$"""
@@ -100,9 +101,9 @@ internal static class QueryProvider
                     {{Fields.Message.MessageType}}, 
                     {{Fields.Message.SerializeType}}, 
                     {{Fields.Message.EventType}}, 
+                    {{Fields.Message.CapturedBy}}, 
                     {{Fields.Message.CapturedAt}}, 
                     {{Fields.Message.StoredAt}}, 
-                    {{Fields.Message.CapturedBy}}, 
                     {{Fields.Message.TelemetryContext}}, 
                     {{Fields.Message.Payload}})
                 SELECT 
@@ -114,7 +115,7 @@ internal static class QueryProvider
                     UNNEST({{Parameters.Message.MessageType}}), 
                     UNNEST({{Parameters.Message.SerializeType}}), 
                     UNNEST({{Parameters.Message.EventType}}), 
-                    UNNEST({{Parameters.Message.CapturedAt}}), 
+                    UNNEST({{Parameters.Message.CapturedBy}}), 
                     UNNEST({{Parameters.Message.CapturedAt}}), 
                     NOW() AT TIME ZONE 'UTC', 
                     UNNEST({{Parameters.Message.TelemetryContext}}), 

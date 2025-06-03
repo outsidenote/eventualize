@@ -8,6 +8,8 @@ using EvDb.Scenes;
 using EvDb.UnitTests;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
+using System.Text.Json;
 using Xunit.Abstractions;
 
 public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
@@ -15,6 +17,7 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
     private readonly IEvDbNoViews _stream;
     protected readonly IConfiguration _configuration;
     private readonly IEvDbNoViewsFactory _factory;
+    private readonly IEvDbChangeStream _changeStream;
     private readonly Guid _streamId;
 
     protected StreamNoViewsBaseTests(ITestOutputHelper output, StoreType storeType) :
@@ -25,11 +28,15 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
         services.AddEvDb()
                 .AddNoViewsFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
                 .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
+        services.AddEvDb()
+                .AddChangeStream(storeType, StorageContext);
+
         var sp = services.BuildServiceProvider();
         _configuration = sp.GetRequiredService<IConfiguration>();
         _factory = sp.GetRequiredService<IEvDbNoViewsFactory>();
         _streamId = Guid.NewGuid();
         _stream = _factory.Create(_streamId);
+        _changeStream = sp.GetRequiredService<IEvDbChangeStream>();
     }
 
     #region Stream_NoView_Succeed
@@ -109,34 +116,45 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
 
     #region Stream_NoView_GetMessages_Succeed
 
-    [Fact(Timeout = 5_000)]
+    [Fact]
     public virtual async Task Stream_NoView_GetMessages_Succeed()
     {
+        var cancellationDucraion = Debugger.IsAttached 
+                                        ? TimeSpan.FromMinutes(10)
+                                        : TimeSpan.FromSeconds(5);
+
+        using var cts = new CancellationTokenSource(cancellationDucraion);
+        var cancellationToken = cts.Token;
         var defaultEventsOptions = EvDbContinuousFetchOptions.CompleteIfEmpty;
         int count = defaultEventsOptions.BatchSize * 2;
 
-        throw new NotImplementedException(); // TODO: read messages
-        //Task<int> readOffset = Stor
+        // produce messages before start listening to the change stream
         await ProcuceEventsAsync(count);
 
-        #region Asserts
+        var startAt = DateTimeOffset.UtcNow.AddSeconds(-1);
+        EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
+        IAsyncEnumerable<EvDbMessage> messages = 
+                        _changeStream.GetMessagesAsync(shard, startAt, defaultEventsOptions, cancellationToken);
 
-        Assert.Equal(count + 1, _stream.StoredOffset);
+        long lastOffset = 1;
+        await foreach (var message in messages)
+        {
+            long messageOffset = message.StreamCursor.Offset;
+            Assert.Equal(lastOffset, messageOffset - 1);
+            lastOffset = messageOffset;
 
+            AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload);
+            Assert.Equal(messageOffset % 2 == 0 ? 90 : 80, data.Avg);
 
-        ICollection<EvDbMessageRecord> messagingCollection = await GetOutboxAsync(EvDbNoViewsOutbox.DEFAULT_SHARD_NAME).ToEnumerableAsync();
-        EvDbMessageRecord[] messaging = messagingCollection!.ToArray();
-        Assert.Equal(count, messaging.Length);
+            if (messageOffset == defaultEventsOptions.BatchSize)
+            {
+                var _ = ProcuceEventsAsync(count); // produce more messages after start listening to the change stream
+            }
+            if (messageOffset == count * 2 + 1)
+                await cts.CancelAsync();
+        }
 
-        #endregion //  Asserts
-
-        IEvDbNoViews stream = await _factory.GetAsync(_streamId);
-
-        #region Asserts
-
-        Assert.Equal(count + 1, stream.StoredOffset);
-
-        #endregion //  Asserts
+        Assert.Equal(count * 2 + 1, _stream.StoredOffset);
     }
 
     #endregion //  Stream_NoView_GetMessages_Succeed

@@ -280,7 +280,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
                 CapturedBy = _reader.GetString(_reader.GetOrdinal(nameof(EvDbMessageRecord.CapturedBy))), // Non-nullable
                 CapturedAt = _reader.GetDateTime(_reader.GetOrdinal(nameof(EvDbMessageRecord.CapturedAt))), // Non-nullable
                 StoredAt = _reader.GetDateTime(_reader.GetOrdinal(nameof(EvDbMessageRecord.StoredAt))), // Non-nullable
-                Payload = Encoding.UTF8.GetBytes(_reader.GetString(payloadIndex))
+                Payload = _reader.GetFieldValue<byte[]>(payloadIndex)
             };
             return record;
         }

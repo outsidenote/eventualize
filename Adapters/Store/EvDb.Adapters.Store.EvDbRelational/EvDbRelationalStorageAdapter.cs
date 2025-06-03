@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
 using System.Transactions;
 using static EvDb.Core.Adapters.StoreTelemetry;
@@ -381,6 +382,51 @@ public abstract class EvDbRelationalStorageAdapter :
 
     // TODO: next query IAE should be from Id/offset !!!!!
 
+    #region IEvDbChangeStream.GetMessagesAsync
+
+    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
+                                EvDbShardName shard,
+                                EvDbMessageFilter filter,
+                                EvDbContinuousFetchOptions? options,
+                                [EnumeratorCancellation] CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        string query = string.Format(StreamQueries.GetMessages, shard);
+        _logger.LogQuery(query);
+
+        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
+        using DbConnection conn = await InitAsync();
+        var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
+        int attemptsWhenEmpty = 0;
+        TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
+        while (!cancellation.IsCancellationRequested)
+        {
+            using DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
+            var parser = RecordParserFactory.CreateParser(reader);
+            EvDbMessage? last = null;
+            int count = 0;
+            while (!cancellation.IsCancellationRequested && await reader.ReadAsync(cancellation))
+            {
+                EvDbMessage m = parser.ParseMessage();
+                last = m;
+                count++;
+                yield return m;
+            }
+            bool reachTheEnd = count < opts.BatchSize;
+            (delay, attemptsWhenEmpty, bool shouldExit) = await opts.DelayWhenEmptyAsync(
+                                                                  reachTheEnd,
+                                                                  delay,
+                                                                  attemptsWhenEmpty,
+                                                                  cancellation);
+            if (shouldExit)
+                break;
+
+            parameters = parameters.ContinueFrom(last);
+        }
+    }
+
+    #endregion //  IEvDbChangeStream.GetMessagesAsync
+
     #region IEvDbStorageStreamAdapter Members
 
     #region IEvDbStorageStreamAdapter.GetLastOffsetAsync
@@ -443,49 +489,6 @@ public abstract class EvDbRelationalStorageAdapter :
     }
 
     #endregion //  IEvDbStorageStreamAdapter.GetEventsAsync
-
-    #region IEvDbStorageStreamAdapter.GetMessagesAsync
-
-    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
-                                EvDbShardName shardName,
-                                EvDbMessageFilter filter,
-                                EvDbContinuousFetchOptions? options,
-                                [EnumeratorCancellation] CancellationToken cancellation)
-    {
-        cancellation.ThrowIfCancellationRequested();
-        string query = string.Format(StreamQueries.GetMessages, shardName);
-        _logger.LogQuery(query);
-
-        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
-        using DbConnection conn = await InitAsync();
-        var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
-        int attemptsWhenEmpty = 0;
-        TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
-        while (!cancellation.IsCancellationRequested)
-        {
-            DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
-            var parser = RecordParserFactory.CreateParser(reader);
-            bool hasRows = await reader.ReadAsync(cancellation);
-            EvDbMessage? last = null;
-            while (hasRows && !cancellation.IsCancellationRequested)
-            {
-                EvDbMessage m = parser.ParseMessage();
-                last = m;
-                yield return m;
-            }
-            (delay, attemptsWhenEmpty, bool shouldExit) = await opts.DelayWhenEmptyAsync(
-                                                                  hasRows,
-                                                                  delay,
-                                                                  attemptsWhenEmpty,
-                                                                  cancellation);
-            if (shouldExit)
-                break;
-
-            parameters = parameters.ContinueFrom(last);
-        }
-    }
-
-    #endregion //  IEvDbStorageStreamAdapter.GetMessagesAsync
 
     #region IEvDbStorageStreamAdapter.StoreStreamAsync
 

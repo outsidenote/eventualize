@@ -32,4 +32,13 @@ public readonly record struct EvDbContinuousFetchOptions
     ///// Preferences for notification vs. batch polling in continuous fetch operations.
     ///// </summary>
     //public EvDbNotificationPreferences NotificationPreferences  { get; init; }
+
+    #region WithBatchSize
+
+    public EvDbContinuousFetchOptions WithBatchSize(int batchSize)
+    {
+        return this with { BatchSize = batchSize };
+    }
+
+    #endregion //  WithBatchSize
 }

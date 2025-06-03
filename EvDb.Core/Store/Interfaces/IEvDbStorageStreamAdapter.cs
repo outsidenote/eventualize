@@ -1,23 +1,6 @@
 ﻿using System.Collections.Immutable;
 
 namespace EvDb.Core;
-
-public interface IEvDbChangeStream
-{
-    /// <summary>
-    /// Gets stored events.
-    /// </summary>
-    /// <param name="shardName">The shard name</param>
-    /// <param name="filter">filtering options use `EvDbMessageFilter.Builder` for the filter creation.</param>
-    /// <param name="options">Options for the continuous fetch.</param>
-    /// <param name="cancellation">The cancellation.</param>
-    /// <returns></returns>
-    IAsyncEnumerable<EvDbMessage> GetMessagesAsync(
-                                EvDbShardName shardName,
-                                EvDbMessageFilter filter,
-                                EvDbContinuousFetchOptions? options = null,
-                                CancellationToken cancellation = default);
-}
 public interface IEvDbStorageStreamAdapter: IEvDbChangeStream
 {
     /// <summary>
