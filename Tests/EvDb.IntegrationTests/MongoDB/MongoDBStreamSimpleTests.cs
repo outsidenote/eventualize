@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
+[Trait("Kind", "Integration")]
 [Trait("DB", "MongoDB")]
 public class MongoDBStreamSimpleTests : StreamSimpleBaseTests
 {

@@ -126,6 +126,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{C8A9
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Adapters.Store.EvDbTesting", "Adapters\Store\Testing\EvDb.Adapters.Store.EvDbTesting\EvDb.Adapters.Store.EvDbTesting.csproj", "{8D92BC21-8FC6-2997-95C5-86CC54D90CE9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{33857C97-409B-4B7B-B3A6-F3404AD39410}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet-deploy.yml = .github\workflows\dotnet-deploy.yml
+		.github\workflows\dotnet-verify.yml = .github\workflows\dotnet-verify.yml
+		.github\workflows\pages.yml = .github\workflows\pages.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 
 namespace EvDb.Core;
-public interface IEvDbStorageStreamAdapter: IEvDbChangeStream
+public interface IEvDbStorageStreamAdapter : IEvDbChangeStream
 {
     /// <summary>
     /// Gets stored events.

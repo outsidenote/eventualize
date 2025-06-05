@@ -8,8 +8,6 @@ using EvDb.Scenes;
 using EvDb.UnitTests;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
-using System.Text.Json;
 using Xunit.Abstractions;
 
 public abstract class StreamNoViewsBaseTests : BaseIntegrationTests

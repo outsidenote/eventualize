@@ -7,6 +7,7 @@ using EvDb.Core.Adapters;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
+[Trait("Kind", "Integration")]
 [Trait("DB", "SqlServer")]
 public class SqlServerEfSimpleTests : StreamEfBaseTests
 {

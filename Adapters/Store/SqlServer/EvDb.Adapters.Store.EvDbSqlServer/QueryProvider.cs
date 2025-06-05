@@ -69,7 +69,7 @@ internal static class QueryProvider
                         OR {{Parameters.Message.MessageTypes}} = '[]'
                         OR EXISTS (SELECT 1 FROM OPENJSON({{Parameters.Message.MessageTypes}}) WHERE value = {{Fields.Message.MessageType}})
                     )                         
-                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}} ASC, {{Fields.Message.MessageType}} ASC, {{Fields.Event.Offset}} ASC;
+                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}} ASC, {{Fields.Message.MessageType}} ASC, {{Fields.Event.Offset}} ASC, {{Fields.Event.Id}} ASC;
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"{tblInitial}InsertEventsBatch_Events",

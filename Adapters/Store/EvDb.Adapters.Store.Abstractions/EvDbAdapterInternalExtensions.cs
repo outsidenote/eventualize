@@ -1,9 +1,5 @@
 ﻿using EvDb.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using EvDb.Core.Adapters;
 
 namespace EvDb.Adapters.Internals;
 
@@ -12,7 +8,7 @@ public static class EvDbAdapterInternalExtensions
 
     #region DelayWhenEmptyAsync
 
-    public static async Task<(TimeSpan Delay, int attemptsWhenEmpty, bool ShouldExit)> DelayWhenEmptyAsync(
+    public static async Task<(TimeSpan Delay, int AttemptsWhenEmpty, bool ShouldExit)> DelayWhenEmptyAsync(
                                                         this EvDbContinuousFetchOptions options,
                                                         bool reachTheEnd,
                                                         TimeSpan delay,
@@ -33,7 +29,7 @@ public static class EvDbAdapterInternalExtensions
             delay = whenEmpty.IncrementalLogic(delay, attemptsWhenEmpty);
         if (delay > whenEmpty.MaxDuration)
             delay = whenEmpty.MaxDuration;
-        await Task.Delay(delay, cancellation);
+        await Task.Delay(delay, cancellation).SwallowCancellationAsync();
 
         attemptsWhenEmpty++;
         return (delay, attemptsWhenEmpty, false);

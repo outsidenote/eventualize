@@ -1,7 +1,6 @@
 ﻿// Ignore Spelling: Occ
 
 using System.Data;
-using System.Threading.Channels;
 
 namespace EvDb.Core.Adapters.Internals;
 
@@ -28,7 +27,7 @@ public readonly record struct EvDbGetMessagesParameters
 
     private readonly HashSet<string> _channels;
     public bool IncludeChannel(EvDbChannelName channel) => _channels.Count == 0 || _channels.Contains(channel.Value, StringComparer.OrdinalIgnoreCase);
-                            
+
 
     public string[]? Channels { get; }
 
@@ -43,10 +42,10 @@ public readonly record struct EvDbGetMessagesParameters
         if (last == null)
             return this;
 
-        if(!last.Value.StoredAt.HasValue)
+        if (!last.Value.StoredAt.HasValue)
             throw new InvalidOperationException("The last message must have a StoredAt value to continue from it.");
 
-        var parameters = this with { SinceDate = last.Value.StoredAt!.Value};
+        var parameters = this with { SinceDate = last.Value.StoredAt!.Value };
         return parameters;
     }
 }

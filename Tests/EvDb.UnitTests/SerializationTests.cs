@@ -4,6 +4,7 @@ using Scenes;
 using System.Text.Json;
 
 
+[Trait("Kind", "UnitTest")]
 public class SerializationTests
 {
     [Fact(Skip = "Polymorphism (IEvDbPayload)")]

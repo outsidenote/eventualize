@@ -4,6 +4,7 @@ using System.Text.Json;
 
 namespace EvDb.UnitTests;
 
+[Trait("Kind", "UnitTest")]
 public class NamedTypesTests
 {
     private const string json = """

@@ -11,6 +11,7 @@ public readonly record struct EvDbContinuousFetchOptions
 
     public EvDbContinuousFetchOptions()
     {
+        DelayWhenEmpty = new DelayStrategy();
     }
 
     /// <summary>

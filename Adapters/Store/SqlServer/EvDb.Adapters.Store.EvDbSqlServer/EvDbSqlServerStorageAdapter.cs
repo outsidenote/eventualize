@@ -63,7 +63,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
     {
         var dataRecords = ToOutboxTvp(records);
         query = string.Format(query, shardName);
-        SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection); 
+        SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection);
         insertCommand.CommandType = CommandType.StoredProcedure;
         SqlParameter tvpParam = insertCommand.Parameters.AddWithValue(
                                                             $"@{shardName}Records",

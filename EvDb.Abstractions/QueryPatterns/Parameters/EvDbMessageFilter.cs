@@ -72,7 +72,7 @@ public readonly record struct EvDbMessageFilter
     public EvDbMessageFilter AddMessageType(EvDbMessageTypeName messageType)
     {
         return this with { MessageTypes = MessageTypes.Add(messageType) };
-    }   
+    }
 
     #endregion //  Add
 }

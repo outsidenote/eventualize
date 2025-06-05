@@ -5,6 +5,7 @@ using Xunit.Abstractions;
 namespace EvDb.Core.Tests;
 
 
+[Trait("Kind", "UnitTest")]
 public sealed class StreamFactoryTests
 {
     private readonly IEvDbStorageAdapter _storageAdapter = A.Fake<IEvDbStorageAdapter>();

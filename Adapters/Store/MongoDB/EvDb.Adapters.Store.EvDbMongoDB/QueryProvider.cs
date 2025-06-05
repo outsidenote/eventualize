@@ -5,10 +5,8 @@ using EvDb.Core;
 using EvDb.Core.Adapters.Internals;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
-using static EvDb.Core.EvDbStreamAddress;
 
 namespace EvDb.Adapters.Store.MongoDB.Internals;
 

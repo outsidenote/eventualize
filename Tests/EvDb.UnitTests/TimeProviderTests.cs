@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using Xunit.Abstractions;
 
+[Trait("Kind", "UnitTest")]
 public class TimeProviderTests
 {
     private readonly IEvDbDemoStreamFactory _factory;

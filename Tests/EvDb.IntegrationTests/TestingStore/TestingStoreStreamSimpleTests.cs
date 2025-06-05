@@ -8,6 +8,7 @@ using Microsoft.Extensions;
 using System.Collections.Generic;
 using Xunit.Abstractions;
 
+[Trait("Kind", "Integration")]
 [Trait("DB", "TestingStreamStore")]
 public class TestingStoreNoViewsTests : StreamNoViewsBaseTests
 {

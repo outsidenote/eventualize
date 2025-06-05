@@ -9,13 +9,10 @@ using EvDb.Core.Adapters.Internals;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
-using static EvDb.Core.Adapters.Internals.EvDbStoreNames.Fields;
 using static EvDb.Core.Adapters.StoreTelemetry;
 
 namespace EvDb.Adapters.Store.MongoDB;
@@ -125,43 +122,61 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                             EvDbContinuousFetchOptions? options,
                             [EnumeratorCancellation] CancellationToken cancellation)
     {
-        cancellation.ThrowIfCancellationRequested();
+        if (cancellation.IsCancellationRequested)
+            yield break;
 
         var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
         IMongoCollection<BsonDocument> collection =
                         await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shard);
 
-
         var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
 
+        int attemptsWhenEmpty = 0;
+        TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
         ObjectId? lastId = null;
-
         var duplicateDetection = new HashSet<Guid>();
-
-        await foreach (var m in FetchPastMessagesAsync())
-            yield return m;
-
-        if (opts.CompleteWhenEmpty)
-            yield break;
-
-        ChangeStreamOptions watchOptions = CreateWatchOptions();
-
-        Task hasChangesInStream = AwaitStreamChangesAsync();
-
-        await foreach (var m in FetchLatestMessages())
-            yield return m;
-
-        if (cancellation.IsCancellationRequested)
-            yield break;
-
-        IAsyncEnumerable<EvDbMessage> changes = WatchChangesAsync();
-        await foreach (var m in changes)
+        EvDbMessage? last = null;
+        while (!cancellation.IsCancellationRequested)
         {
-            if (parameters.IncludeChannel(m.Channel))
-                continue; // Skip messages not matching the channel filter  
-            if (parameters.IncludeMessageType(m.MessageType))
-                continue; // Skip messages not matching the channel filter  
-            yield return m;
+            IAsyncCursor<BsonDocument> cursor = await GetCursorAsync();
+
+            while (await cursor.MoveNextAsync(cancellation).FalseWhenCancelAsync())
+            {
+                foreach (var doc in cursor.Current)
+                {
+                    if (cancellation.IsCancellationRequested)
+                        yield break; // Exit if cancellation is requested
+
+                    lastId = doc.GetObjectId();
+                    // Convert from BsonDocument back to EvDbEvent.
+                    EvDbMessage message = doc.ToMessage();
+                    if (duplicateDetection.Contains(message.Id))
+                        continue; // Skip duplicate messages
+                    ManageDuplicationList();
+                    last = message;
+
+                    yield return message;
+
+                    #region ManageDuplicationList
+
+                    void ManageDuplicationList()
+                    {
+                        if (last != null && last.Value.StoredAt != message.StoredAt)
+                            duplicateDetection.Clear();
+                        duplicateDetection.Add(message.Id);
+                    }
+
+                    #endregion //  ManageDuplicationList
+                }
+            }
+
+            (delay, attemptsWhenEmpty, bool shouldExit) = await opts.DelayWhenEmptyAsync(
+                                                                  true,
+                                                                  delay,
+                                                                  attemptsWhenEmpty,
+                                                                  cancellation);
+            if (shouldExit)
+                yield break;
         }
 
         #region GetCursorAsync
@@ -183,113 +198,6 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         }
 
         #endregion //  GetCursorAsync
-
-        #region FetchHistoricalMessagesAsync
-
-        async IAsyncEnumerable<EvDbMessage> FetchPastMessagesAsync()
-        {
-            IAsyncCursor<BsonDocument> cursor = await GetCursorAsync();
-
-            while (await cursor.MoveNextAsync(cancellation))
-            {
-                foreach (var doc in cursor.Current)
-                {
-                    if (cancellation.IsCancellationRequested)
-                        yield break; // Exit if cancellation is requested
-
-                    // Convert from BsonDocument back to EvDbEvent.
-                    EvDbMessage message = doc.ToMessage();
-                    if (duplicateDetection.Contains(message.Id))
-                        continue; // Skip duplicate messages
-
-                    yield return message;
-                }
-            }
-        }
-
-        #endregion //  FetchPastMessagesAsync
-
-        #region FetchLatestMessages
-
-        // managing possible race condition with the change stream
-        async IAsyncEnumerable<EvDbMessage> FetchLatestMessages()
-        {
-            await Task.Delay(1); // The query trim the last millisecond to avoid late arrivals issue.
-
-            IAsyncCursor<BsonDocument> cursor = await GetCursorAsync();
-
-            while (await cursor.MoveNextAsync(cancellation))
-            {
-                foreach (var doc in cursor.Current)
-                {
-                    // Convert from BsonDocument back to EvDbEvent.
-                    EvDbMessage message = doc.ToMessage();
-
-                    if (duplicateDetection.Contains(message.Id))
-                        continue; // Skip duplicate messages
-
-                    if (hasChangesInStream.IsCompleted)
-                        yield break;
-
-                    yield return message;
-                }
-            }
-        }
-
-        #endregion //  FetchLatestMessages
-
-        #region AwaitStreamChangesAsync()
-
-        async Task AwaitStreamChangesAsync()
-        {
-
-            while (!cancellation.IsCancellationRequested)
-            {
-                using var changes = await collection.WatchAsync(watchOptions, cancellation);
-                if (await changes.MoveNextAsync(cancellation) && changes.Current.Any())
-                    break;
-            }
-        }
-
-        #endregion //  AwaitStreamChangesAsync()
-
-        #region WatchChangesAsync
-
-        async IAsyncEnumerable<EvDbMessage> WatchChangesAsync()
-        {
-            while (!cancellation.IsCancellationRequested)
-            {
-                using var changes = await collection.WatchAsync(watchPipeline, watchOptions, cancellation);
-                if (await changes.MoveNextAsync(cancellation))
-                {
-                    foreach (var change in changes.Current)
-                    {
-                        var message = change.FullDocument.ToMessage();
-                        yield return message;
-                    }
-                }
-            }
-        }
-
-        #endregion //  WatchChangesAsync
-
-        #region CreateWatchOptions
-
-        ChangeStreamOptions CreateWatchOptions()
-        {
-            var statTime = (DateTimeOffset?)(lastId?.CreationTime) ?? parameters.SinceDate;
-            var startAt = new BsonTimestamp((int)statTime.ToUnixTimeSeconds(), 0);
-            ChangeStreamOptions watchOptions = new ChangeStreamOptions
-            {
-                FullDocument = ChangeStreamFullDocumentOption.WhenAvailable,
-                MaxAwaitTime = TimeSpan.FromSeconds(1), // means use server default (infinite wait)
-                StartAtOperationTime = startAt, // Start at the latest operation time
-                BatchSize = null // The server will choose a batch size dynamically based on internal optimizations
-            };
-            return watchOptions;
-        }
-
-        #endregion //  CreateWatchOptions
     }
 
     #endregion //  GetMessagesAsync

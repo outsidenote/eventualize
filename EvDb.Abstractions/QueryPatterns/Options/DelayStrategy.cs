@@ -6,7 +6,8 @@ public readonly record struct DelayStrategy
                         attempt switch
                         {
                             <= 5 => StartDuration,
-                            _ => TimeSpan.FromMicroseconds(lastDelay.Microseconds * 2)
+                            _ when lastDelay.TotalMicroseconds == 0 => TimeSpan.FromMilliseconds(50),
+                            _ => TimeSpan.FromMicroseconds(lastDelay.TotalMicroseconds * 2)
                         };
 
     public DelayStrategy()

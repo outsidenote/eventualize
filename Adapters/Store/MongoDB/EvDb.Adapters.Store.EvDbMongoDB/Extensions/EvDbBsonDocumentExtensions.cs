@@ -5,7 +5,6 @@ using EvDb.Core;
 using EvDb.Core.Adapters;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
-using System;
 using System.Diagnostics;
 using System.Text;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames.Fields;
@@ -15,6 +14,23 @@ namespace EvDb.Adapters.Store.Internals;
 public static class EvDbBsonDocumentExtensions
 {
     private const string MONGO_DB_ID = "_id";
+
+    #region GetObjectId
+
+    public static ObjectId? GetObjectId(this BsonDocument document)
+    {
+        if (!document.TryGetValue("_id", out BsonValue value))
+            return null;
+
+        return value.BsonType switch
+        {
+            BsonType.ObjectId => value.AsObjectId,
+            BsonType.String when ObjectId.TryParse(value.AsString, out ObjectId parsed) => parsed,
+            _ => null
+        };
+    }
+
+    #endregion //  GetObjectId
 
     #region ExtractStoredAt
 
@@ -266,7 +282,7 @@ public static class EvDbBsonDocumentExtensions
     {
         BsonDocument payload = GetOutboxPayload(rec.SerializeType, rec.Payload);
 
-        byte[]? otelContext = Activity.Current?.SerializeTelemetryContext(); 
+        byte[]? otelContext = Activity.Current?.SerializeTelemetryContext();
         BsonValue bsonTelemetryContext = otelContext != null
             ? BsonDocument.Parse(Encoding.UTF8.GetString(otelContext))
             : BsonNull.Value;

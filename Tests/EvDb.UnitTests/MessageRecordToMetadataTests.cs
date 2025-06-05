@@ -1,7 +1,6 @@
 ﻿using EvDb.Adapters.Store.Internals;
 using EvDb.Core;
 using EvDb.Core.Adapters;
-using EvDb.Core.Adapters.Internals;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using System.Diagnostics;
@@ -11,6 +10,7 @@ using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 
 namespace EvDb.UnitTests;
 
+[Trait("Kind", "UnitTest")]
 public sealed class MessageRecordToMetadataTests : IDisposable
 {
     private readonly ITestOutputHelper _output;
@@ -124,7 +124,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
             Payload = Encoding.UTF8.GetBytes("TestPayload"),
             CapturedBy = "TestCapturedBy",
             CapturedAt = DateTimeOffset.UtcNow,
-            StoredAt = DateTimeOffset.UtcNow,   
+            StoredAt = DateTimeOffset.UtcNow,
         };
 
         var doc = messageRecord.EvDbToBsonDocument("shard");

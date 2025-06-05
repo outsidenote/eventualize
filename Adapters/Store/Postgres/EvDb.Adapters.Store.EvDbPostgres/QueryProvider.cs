@@ -65,7 +65,7 @@ internal static class QueryProvider
                     {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}} AND {{Fields.Message.StoredAt}} < (CURRENT_TIMESTAMP - INTERVAL '1 millisecond')
                     AND ({{Fields.Message.Channel}} = ANY({{Parameters.Message.Channels}}) OR {{Parameters.Message.Channels}} IS NULL OR array_length({{Parameters.Message.Channels}}, 1) = 0)
                     AND ({{Fields.Message.MessageType}} = ANY({{Parameters.Message.MessageTypes}}) OR {{Parameters.Message.MessageTypes}} IS NULL OR array_length({{Parameters.Message.MessageTypes}}, 1) = 0)
-                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}} ASC, {{Fields.Message.MessageType}} ASC, "{{Fields.Event.Offset}}" ASC
+                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}} ASC, {{Fields.Message.MessageType}} ASC, "{{Fields.Event.Offset}}" ASC, {{Fields.Event.Id}} ASC
                 LIMIT {{Parameters.Message.BatchSize}};
                 """,
             SaveEvents = $$"""

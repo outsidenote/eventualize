@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
 using System.Transactions;
 using static EvDb.Core.Adapters.StoreTelemetry;
@@ -380,8 +379,6 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #endregion //  class EventRecordParser
 
-    // TODO: next query IAE should be from Id/offset !!!!!
-
     #region IEvDbChangeStream.GetMessagesAsync
 
     async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
@@ -390,7 +387,9 @@ public abstract class EvDbRelationalStorageAdapter :
                                 EvDbContinuousFetchOptions? options,
                                 [EnumeratorCancellation] CancellationToken cancellation)
     {
-        cancellation.ThrowIfCancellationRequested();
+        if (cancellation.IsCancellationRequested)
+            yield break;
+
         string query = string.Format(StreamQueries.GetMessages, shard);
         _logger.LogQuery(query);
 
@@ -406,7 +405,7 @@ public abstract class EvDbRelationalStorageAdapter :
             var parser = RecordParserFactory.CreateParser(reader);
             EvDbMessage? last = null;
             int count = 0;
-            while (!cancellation.IsCancellationRequested && await reader.ReadAsync(cancellation))
+            while (!cancellation.IsCancellationRequested && await reader.ReadAsync(cancellation).FalseWhenCancelAsync())
             {
                 EvDbMessage m = parser.ParseMessage();
                 if (duplicateDetection.Contains(m.Id))
@@ -414,6 +413,7 @@ public abstract class EvDbRelationalStorageAdapter :
                 ManageDuplicationList();
                 last = m;
                 count++;
+
                 yield return m;
 
                 #region ManageDuplicationList

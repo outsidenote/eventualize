@@ -7,7 +7,7 @@ namespace EvDb.Core;
 [Equatable]
 [DebuggerDisplay("[{ShardName}, {Channel} [{StreamCursor.Offset}]:{MessageType}] driven from [{EventType}]")]
 public partial record struct EvDbMessage(
-                                Guid Id, 
+                                Guid Id,
                                 EvDbEventTypeName EventType,
                                 EvDbChannelName Channel,
                                 EvDbShardName ShardName,
@@ -30,7 +30,7 @@ public partial record struct EvDbMessage(
                        [property: IgnoreEquality] DateTimeOffset CapturedAt,
                        string CapturedBy,
                        EvDbStreamCursor StreamCursor,
-                       EvDbMessagePayloadName Payload): this(Guid.NewGuid(),
+                       EvDbMessagePayloadName Payload) : this(Guid.NewGuid(),
                                                                 EventType,
                                                                 Channel,
                                                                 ShardName,

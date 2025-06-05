@@ -3,7 +3,6 @@
 namespace EvDb.Core.Tests;
 
 using Cocona;
-using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
 using Microsoft.Extensions.Configuration;
@@ -60,7 +59,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
 
         using var cts = new CancellationTokenSource(cancellationDucraion);
         var cancellationToken = cts.Token;
-        var defaultEventsOptions = EvDbContinuousFetchOptions.CompleteIfEmpty;
+        var defaultEventsOptions = EvDbContinuousFetchOptions.ContinueIfEmpty;
         int count = BATCH_SIZE * 2;
         var startAt = DateTimeOffset.UtcNow.AddMinutes(-1);
 
@@ -89,7 +88,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
             {
                 var _ = ProcuceStudentReceivedGradeAsync(FUTURE_COUNT, count); // produce more messages after start listening to the change stream
             }
-            if (messageOffset == count + 1 + FUTURE_COUNT)
+            if (messageOffset == count + FUTURE_COUNT)
                 await cts.CancelAsync();
         }
 
