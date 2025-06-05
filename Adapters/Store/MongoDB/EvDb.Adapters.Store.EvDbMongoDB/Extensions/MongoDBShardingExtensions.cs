@@ -67,8 +67,7 @@ internal static class MongoDBShardingExtensions
 
         BsonDocument shardResult = await adminDb.RunCommandAsync<BsonDocument>(shardCollectionCommand);
 
-        // TODO: [bnaya, 2025-03-12] high perf logging
-        logger.LogInformation("Sharding [{DatabaseName}:{CollectionName}]: {Sharding}", databaseName, collectionName, shardResult.ToJson());
+        logger.LogSharding(databaseName, collectionName, shardResult.ToJson());
         return true;
     }
 

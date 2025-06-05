@@ -20,7 +20,6 @@ internal static class Sctipts
         string tblInitial = $"{schema}{storageContext.ShortId}";
         string tblInitialWithoutSchema = $"{storageContext.Schema}_{storageContext.ShortId}";
         string db = storageContext.DatabaseName;
-        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
         if (!outboxShardNames.Any())
             outboxShardNames = [EvDbShardName.Default];
@@ -58,7 +57,7 @@ internal static class Sctipts
 
         // TODO: [bnaya 2025-06-03] Consider having SP for the GetMessages: https://claude.ai/public/artifacts/a06e8294-d482-421b-bf3e-ace5a01b05b3
 
-        string destroyEnvironment = destroyEnvironmentBuilder.ToString();
+        string destroyEnvironment = destroyEnvironmentBuilder.ToString();   
 
         #endregion //  string destroyEnvironment = ...
 

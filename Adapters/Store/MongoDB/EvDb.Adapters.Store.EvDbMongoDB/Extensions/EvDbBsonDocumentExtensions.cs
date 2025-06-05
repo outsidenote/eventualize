@@ -266,7 +266,7 @@ public static class EvDbBsonDocumentExtensions
     {
         BsonDocument payload = GetOutboxPayload(rec.SerializeType, rec.Payload);
 
-        byte[]? otelContext = Activity.Current?.SerializeTelemetryContext(); ;
+        byte[]? otelContext = Activity.Current?.SerializeTelemetryContext(); 
         BsonValue bsonTelemetryContext = otelContext != null
             ? BsonDocument.Parse(Encoding.UTF8.GetString(otelContext))
             : BsonNull.Value;
@@ -319,29 +319,6 @@ public static class EvDbBsonDocumentExtensions
     }
 
     #endregion //  EvDbToBsonDocument(EvDbStoredSnapshotData rec)
-
-    #region NormilizeTelemetryContext
-
-    /// <summary>
-    /// Normalizes the OTEL context.
-    /// The payload is a Bson byte[] representation of BsonDocument
-    /// </summary>
-    /// <param name="bson">The BSON representation.</param>
-    /// <returns>Byte[] that can be deserialize using System.Text.Json</returns>
-    private static byte[]? NormalizeTelemetryContext(this BsonValue bson)
-    {
-        if (bson.IsBsonNull)
-            return null;
-        // Deserialize the BsonValue to a BsonDocument
-        var doc = bson.AsBsonDocument;
-        // Convert the BsonDocument to a JSON string and then to a byte[]
-        // This is assuming that the it is a valid JSON 
-        string jsonString = doc.ToJson();
-        byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
-        return jsonBytes;
-    }
-
-    #endregion //  NormalizeTelemetryContext
 
     #region NormilizePayload
 

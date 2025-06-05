@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -26,16 +27,10 @@ namespace EvDb.Adapters.Store.MongoDB;
 internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEvDbStorageSnapshotAdapter, IDisposable, IAsyncDisposable
 {
     private readonly ILogger _logger;
-    private readonly TimeProvider _timeProvider;
     private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
     private readonly static ActivitySource _trace = StoreTelemetry.Trace;
     private const string DATABASE_TYPE = "MongoDB";
-    private const int DEFAUL_EMTRY_CHANGES_COMPANSATION_SECONDS = 3;
-    private const int DEFAUL_BATCH_SITE_ON_HISTORY_TRANSITION = 100;
     private readonly CollectionsSetup _collectionsSetup;
-    private static readonly TimeSpan CATCHUP_TIMEOUT = Debugger.IsAttached
-                                        ? TimeSpan.FromSeconds(10)
-                                        : TimeSpan.FromMinutes(10);
 
     #region Ctor
 
@@ -58,13 +53,11 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                         ILogger logger,
                         EvDbStorageContext storageContext,
                         IEnumerable<IEvDbOutboxTransformer> transformers,
-                        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None,
-                        TimeProvider? timeProvider = null)
+                        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
     {
         _collectionsSetup = CollectionsSetup.Create(logger, client, storageContext, creationMode);
 
         _logger = logger;
-        _timeProvider = timeProvider ?? TimeProvider.System;
         _transformers = transformers.ToImmutableArray();
     }
 
@@ -82,8 +75,10 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         var parameters = new EvDbGetEventsParameters(streamCursor);
         int attemptsWhenEmpty = 0;
         TimeSpan delay = options.DelayWhenEmpty.StartDuration;
+
         while (!cancellation.IsCancellationRequested)
         {
+            // Learn More on MongoDB query: https://claude.ai/public/artifacts/daa32caa-7884-44c3-bf6e-c99724c484af
             FilterDefinition<BsonDocument> filter = parameters.ToBsonFilter();
             IFindFluent<BsonDocument, BsonDocument> query = eventsCollection.Find(filter)
                                          .Sort(QueryProvider.SortEvents)
@@ -108,7 +103,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                 }
             }
 
-            bool reachTheEnd = count < options.BatchSize;
+            bool reachTheEnd = count < parameters.BatchSize;
             (delay, attemptsWhenEmpty, bool shouldExit) = await options.DelayWhenEmptyAsync(
                                                                   reachTheEnd,
                                                                   delay,
@@ -133,18 +128,15 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         cancellation.ThrowIfCancellationRequested();
 
         var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
-        var batchOptions = EvDbContinuousFetchOptions.CompleteIfEmpty;
         IMongoCollection<BsonDocument> collection =
                         await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shard);
 
 
         var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
 
-        int attemptsWhenEmpty = 0;
-        TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
-        EvDbMessage? last = null;
+        ObjectId? lastId = null;
 
-        var duplicateDetection = new HashSet<Guid>(opts.BatchSize);
+        var duplicateDetection = new HashSet<Guid>();
 
         await foreach (var m in FetchPastMessagesAsync())
             yield return m;
@@ -152,22 +144,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (opts.CompleteWhenEmpty)
             yield break;
 
-        var pipeline = parameters.ToBsonPipeline();
-
-        #region ChangeStreamOptions watchOptions = ...
-
-        var statTime = last?.StoredAt ?? DateTimeOffset.UtcNow.AddSeconds(-DEFAUL_EMTRY_CHANGES_COMPANSATION_SECONDS);
-        var startAt = new BsonTimestamp((int)statTime.ToUnixTimeSeconds(), 0);
-        ChangeStreamOptions watchOptions = new ChangeStreamOptions
-        {
-            FullDocument = ChangeStreamFullDocumentOption.WhenAvailable,
-            MaxAwaitTime = TimeSpan.FromSeconds(1), // means use server default (infinite wait)
-            StartAtOperationTime = startAt, // Start at the latest operation time
-                                            //StartAfter = ,
-            BatchSize = null // The server will choose a batch size dynamically based on internal optimizations
-        };
-
-        #endregion // ChangeStreamOptions watchOptions = ...
+        ChangeStreamOptions watchOptions = CreateWatchOptions();
 
         Task hasChangesInStream = AwaitStreamChangesAsync();
 
@@ -177,66 +154,55 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (cancellation.IsCancellationRequested)
             yield break;
 
-        IAsyncEnumerator<EvDbMessage> changes = WatchChangesAsync().GetAsyncEnumerator();
-        while (await changes.MoveNextAsync())
+        IAsyncEnumerable<EvDbMessage> changes = WatchChangesAsync();
+        await foreach (var m in changes)
         {
-            EvDbMessage m = changes.Current;
-            if (m.StoredAt < (last?.StoredAt ?? DateTimeOffset.MinValue))
-                continue;
-            if (duplicateDetection.Contains(m.Id))
-                continue; // Skip duplicate messages
-            yield return m;
-            if (m.StoredAt > (last?.StoredAt ?? DateTimeOffset.MinValue))
-                break; // no needs for duplicate check anymore
-        }
-        while (await changes.MoveNextAsync())
-        {
-            EvDbMessage m = changes.Current;
+            if (parameters.IncludeChannel(m.Channel))
+                continue; // Skip messages not matching the channel filter  
+            if (parameters.IncludeMessageType(m.MessageType))
+                continue; // Skip messages not matching the channel filter  
             yield return m;
         }
+
+        #region GetCursorAsync
+
+        async Task<IAsyncCursor<BsonDocument>> GetCursorAsync()
+        {
+            var filter = parameters.ToBsonFilter(lastId);
+
+            var query = collection
+                .Find(filter)
+                .Sort(QueryProvider.SortMessages);
+
+            IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
+
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.LogQuery(query.ToJson());
+
+            return cursor;
+        }
+
+        #endregion //  GetCursorAsync
 
         #region FetchHistoricalMessagesAsync
 
-
         async IAsyncEnumerable<EvDbMessage> FetchPastMessagesAsync()
         {
-            while (!cancellation.IsCancellationRequested)
+            IAsyncCursor<BsonDocument> cursor = await GetCursorAsync();
+
+            while (await cursor.MoveNextAsync(cancellation))
             {
-                FilterDefinition<BsonDocument> bsonFilter = parameters.ToBsonFilter();
-
-                IFindFluent<BsonDocument, BsonDocument> query = collection.Find(bsonFilter)
-                                     .Sort(QueryProvider.SortMessages)
-                                     .Limit(parameters.BatchSize);
-
-                if (_logger.IsEnabled(LogLevel.Trace))
-                    _logger.LogQuery(query.ToJson());
-
-                using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
-
-                bool hasRows = await cursor.MoveNextAsync(cancellation);
-                while (hasRows && !cancellation.IsCancellationRequested)
+                foreach (var doc in cursor.Current)
                 {
-                    foreach (var doc in cursor.Current)
-                    {
-                        // Convert from BsonDocument back to EvDbEvent.
-                        EvDbMessage message = doc.ToMessage();
-                        if (duplicateDetection.Contains(message.Id))
-                            continue; // Skip duplicate messages
+                    if (cancellation.IsCancellationRequested)
+                        yield break; // Exit if cancellation is requested
 
-                        ManageDuplicationList(last, duplicateDetection, message);
+                    // Convert from BsonDocument back to EvDbEvent.
+                    EvDbMessage message = doc.ToMessage();
+                    if (duplicateDetection.Contains(message.Id))
+                        continue; // Skip duplicate messages
 
-                        last = message;
-                        yield return message;
-                    }
-                    (delay, attemptsWhenEmpty, bool shouldExit) = await batchOptions.DelayWhenEmptyAsync(
-                                                                          hasRows,
-                                                                          delay,
-                                                                          attemptsWhenEmpty,
-                                                                          cancellation);
-                    if (shouldExit)
-                        break;
-
-                    parameters = parameters.ContinueFrom(last);
+                    yield return message;
                 }
             }
         }
@@ -248,39 +214,25 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         // managing possible race condition with the change stream
         async IAsyncEnumerable<EvDbMessage> FetchLatestMessages()
         {
-            using var timeout = new CancellationTokenSource(CATCHUP_TIMEOUT, _timeProvider);
-            using (var catchupCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation, timeout.Token))
+            await Task.Delay(1); // The query trim the last millisecond to avoid late arrivals issue.
+
+            IAsyncCursor<BsonDocument> cursor = await GetCursorAsync();
+
+            while (await cursor.MoveNextAsync(cancellation))
             {
-                CancellationToken catchupCancellation = catchupCancellationSource.Token;
-                do
+                foreach (var doc in cursor.Current)
                 {
-                    FilterDefinition<BsonDocument> bsonCatchUpFilter = parameters.ToBsonFilter();
-                    IFindFluent<BsonDocument, BsonDocument> queryCatchUp = collection.Find(bsonCatchUpFilter)
-                                 .Sort(QueryProvider.SortMessages)
-                                 .Limit(DEFAUL_BATCH_SITE_ON_HISTORY_TRANSITION);
+                    // Convert from BsonDocument back to EvDbEvent.
+                    EvDbMessage message = doc.ToMessage();
 
-                    if (_logger.IsEnabled(LogLevel.Trace))
-                        _logger.LogQuery(queryCatchUp.ToJson());
+                    if (duplicateDetection.Contains(message.Id))
+                        continue; // Skip duplicate messages
 
-                    using IAsyncCursor<BsonDocument> cursorCatchUp = await queryCatchUp.ToCursorAsync(catchupCancellation);
+                    if (hasChangesInStream.IsCompleted)
+                        yield break;
 
-                    bool hasRowsCatchUp = await cursorCatchUp.MoveNextAsync(cancellation);
-                    while (hasRowsCatchUp && !catchupCancellation.IsCancellationRequested)
-                    {
-                        foreach (var doc in cursorCatchUp.Current)
-                        {
-                            // Convert from BsonDocument back to EvDbEvent.
-                            EvDbMessage message = doc.ToMessage();
-
-                            if (duplicateDetection.Contains(message.Id))
-                                continue; // Skip duplicate messages
-
-                            ManageDuplicationList(last, duplicateDetection, message);
-                            last = message;
-                            yield return message;
-                        }
-                    }
-                } while (!catchupCancellation.IsCancellationRequested && !hasChangesInStream.IsCompleted);
+                    yield return message;
+                }
             }
         }
 
@@ -290,9 +242,10 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
         async Task AwaitStreamChangesAsync()
         {
+
             while (!cancellation.IsCancellationRequested)
             {
-                using var changes = await collection.WatchAsync(pipeline, watchOptions, cancellation);
+                using var changes = await collection.WatchAsync(watchOptions, cancellation);
                 if (await changes.MoveNextAsync(cancellation) && changes.Current.Any())
                     break;
             }
@@ -306,7 +259,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         {
             while (!cancellation.IsCancellationRequested)
             {
-                using var changes = await collection.WatchAsync(pipeline, watchOptions, cancellation);
+                using var changes = await collection.WatchAsync(watchPipeline, watchOptions, cancellation);
                 if (await changes.MoveNextAsync(cancellation))
                 {
                     foreach (var change in changes.Current)
@@ -320,16 +273,23 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
         #endregion //  WatchChangesAsync
 
-        #region ManageDuplicationList
+        #region CreateWatchOptions
 
-        static void ManageDuplicationList(EvDbMessage? last, HashSet<Guid> duplicateDetection, EvDbMessage message)
+        ChangeStreamOptions CreateWatchOptions()
         {
-            if (last != null && last.Value.StoredAt != message.StoredAt)
-                duplicateDetection.Clear();
-            duplicateDetection.Add(message.Id);
+            var statTime = (DateTimeOffset?)(lastId?.CreationTime) ?? parameters.SinceDate;
+            var startAt = new BsonTimestamp((int)statTime.ToUnixTimeSeconds(), 0);
+            ChangeStreamOptions watchOptions = new ChangeStreamOptions
+            {
+                FullDocument = ChangeStreamFullDocumentOption.WhenAvailable,
+                MaxAwaitTime = TimeSpan.FromSeconds(1), // means use server default (infinite wait)
+                StartAtOperationTime = startAt, // Start at the latest operation time
+                BatchSize = null // The server will choose a batch size dynamically based on internal optimizations
+            };
+            return watchOptions;
         }
 
-        #endregion //  ManageDuplicationList
+        #endregion //  CreateWatchOptions
     }
 
     #endregion //  GetMessagesAsync

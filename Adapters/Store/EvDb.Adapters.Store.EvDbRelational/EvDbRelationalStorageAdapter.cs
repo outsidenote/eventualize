@@ -69,7 +69,7 @@ public abstract class EvDbRelationalStorageAdapter :
                     < 10 => TimeSpan.FromMicroseconds(i * 10),
                     _ => TimeSpan.FromSeconds(3)
                 };
-                if(delay == TimeSpan.Zero)
+                if (delay == TimeSpan.Zero)
                     await Task.Yield(); // Yield to allow other tasks to run
                 else
                     await Task.Delay(delay);
@@ -399,7 +399,7 @@ public abstract class EvDbRelationalStorageAdapter :
         var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
         int attemptsWhenEmpty = 0;
         TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
-        var duplicateDetection = new HashSet<Guid>(opts.BatchSize);
+        var duplicateDetection = new HashSet<Guid>(parameters.BatchSize);
         while (!cancellation.IsCancellationRequested)
         {
             using DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
@@ -414,7 +414,7 @@ public abstract class EvDbRelationalStorageAdapter :
                 ManageDuplicationList();
                 last = m;
                 count++;
-                    yield return m;
+                yield return m;
 
                 #region ManageDuplicationList
 
@@ -427,14 +427,14 @@ public abstract class EvDbRelationalStorageAdapter :
 
                 #endregion //  ManageDuplicationList
             }
-            bool reachTheEnd = count < opts.BatchSize;
+            bool reachTheEnd = count < parameters.BatchSize;
             (delay, attemptsWhenEmpty, bool shouldExit) = await opts.DelayWhenEmptyAsync(
                                                                   reachTheEnd,
                                                                   delay,
                                                                   attemptsWhenEmpty,
                                                                   cancellation);
             if (shouldExit)
-                break;
+                yield break;
 
             parameters = parameters.ContinueFrom(last);
         }
@@ -475,7 +475,7 @@ public abstract class EvDbRelationalStorageAdapter :
         var options = EvDbContinuousFetchOptions.CompleteIfEmpty;
         int attemptsWhenEmpty = 0;
         TimeSpan delay = options.DelayWhenEmpty.StartDuration;
-        var parameters = new EvDbGetEventsParameters(streamCursor, options.BatchSize);
+        var parameters = new EvDbGetEventsParameters(streamCursor);
         while (!cancellation.IsCancellationRequested)
         {
             DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
@@ -490,7 +490,7 @@ public abstract class EvDbRelationalStorageAdapter :
                 count++;
                 yield return e;
             }
-            bool reachTheEnd = count < options.BatchSize;
+            bool reachTheEnd = count < parameters.BatchSize;
             (delay, attemptsWhenEmpty, bool shouldExit) = await options.DelayWhenEmptyAsync(
                                                                   reachTheEnd,
                                                                   delay,

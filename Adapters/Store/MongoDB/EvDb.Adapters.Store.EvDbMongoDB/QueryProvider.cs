@@ -5,6 +5,7 @@ using EvDb.Core;
 using EvDb.Core.Adapters.Internals;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 using static EvDb.Core.EvDbStreamAddress;
@@ -13,8 +14,6 @@ namespace EvDb.Adapters.Store.MongoDB.Internals;
 
 public static class QueryProvider
 {
-    private static readonly BsonDocument SUBSTRACT_LAST_MS = new BsonDocument("$subtract", new BsonArray { "$$NOW", 1 });
-
     #region EventsCollectionSetting
 
     public static readonly MongoCollectionSettings EventsCollectionSetting = new MongoCollectionSettings
@@ -86,9 +85,10 @@ public static class QueryProvider
                 .Ascending(Fields.Message.MessageType)
                 .ToCreateIndexModel( "evb_outbox_unique_idx", true),
             Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Message.StoredAt)
+                .Ascending("_id")
                 .Ascending(Fields.Message.Channel)
                 .Ascending(Fields.Message.MessageType)
+                .Ascending(Fields.Message.Offset)
                 .ToCreateIndexModel( "evb_read_stored_at_idx"),
            ];
     }
@@ -156,7 +156,7 @@ public static class QueryProvider
 
     public static SortDefinition<BsonDocument> SortMessages { get; } =
                                     Builders<BsonDocument>.Sort
-                                            .Ascending(Fields.Message.StoredAt)
+                                            .Ascending("_id")
                                             .Ascending(Fields.Message.Channel)
                                             .Ascending(Fields.Message.MessageType)
                                             .Ascending(Fields.Message.Offset);
@@ -191,7 +191,6 @@ public static class QueryProvider
                                             .Include(Fields.Snapshot.State);
 
     #endregion //  ProjectionSnapshots
-
 
     #region ToFilter
 
@@ -249,62 +248,56 @@ public static class QueryProvider
         return filter;
     }
 
-    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbGetMessagesParameters parameters)
+    public static BsonDocument ToBsonFilter(this EvDbGetMessagesParameters parameters,
+                                          ObjectId? continueAfter = null)
     {
-        var filters = new List<FilterDefinition<BsonDocument>>
-        {
-            Builders<BsonDocument>.Filter.Gte(Fields.Message.StoredAt, parameters.SinceDate),
-            // Add filter to exclude messages stored after (database_time - 1ms)
-            Builders<BsonDocument>.Filter.Lt(Fields.Message.StoredAt, SUBSTRACT_LAST_MS)
-        };
+        var matchFilters = new List<BsonDocument>();
 
-        // Add Channel filter if Channels array is provided and not empty
+        // ID-based filtering
+        var idFilter = new BsonDocument();
+        if (continueAfter.HasValue)
+        {
+            idFilter["$gt"] = continueAfter.Value;
+        }
+        else
+        {
+            idFilter["$gte"] = ObjectId.GenerateNewId(parameters.SinceDate.UtcDateTime);
+        }
+        matchFilters.Add(new BsonDocument("_id", idFilter));
+
+        // Trim the last millisecond to avoid late arrival issues
+        matchFilters.Add(new BsonDocument("$expr",
+            new BsonDocument("$lt", new BsonArray
+            {
+                new BsonDocument("$toDate", "$_id"),
+                new BsonDocument("$dateSubtract", new BsonDocument
+                {
+                    { "startDate", "$$NOW" },
+                    { "unit", "millisecond" },
+                    { "amount", 1 }
+                })
+            })
+        ));
+
+        // Channel filtering
         if (parameters.Channels is { Length: > 0 })
         {
-            filters.Add(Builders<BsonDocument>.Filter
-                                              .In(Fields.Message.Channel, parameters.Channels));
+            matchFilters.Add(new BsonDocument(Fields.Message.Channel,
+                new BsonDocument("$in", new BsonArray(parameters.Channels))));
         }
 
-        // Add MessageType filter if MessageTypes array is provided and not empty
+        // Message type filtering  
         if (parameters.MessageTypes is { Length: > 0 })
         {
-            filters.Add(Builders<BsonDocument>.Filter
-                                              .In(Fields.Message.MessageType, parameters.MessageTypes));
+            matchFilters.Add(new BsonDocument(Fields.Message.MessageType,
+                new BsonDocument("$in", new BsonArray(parameters.MessageTypes))));
         }
 
-        return Builders<BsonDocument>.Filter.And(filters);
+        // Combine filters with $and
+        return matchFilters.Count == 1
+            ? matchFilters[0]
+            : new BsonDocument("$and", new BsonArray(matchFilters));
     }
 
     #endregion //  ToBsonFilter
-
-    #region ToBsonPipeline
-
-    public static PipelineDefinition<ChangeStreamDocument<BsonDocument>, ChangeStreamDocument<BsonDocument>> ToBsonPipeline(
-        this EvDbGetMessagesParameters parameters)
-    {
-        var filters = new List<FilterDefinition<ChangeStreamDocument<BsonDocument>>>
-        {
-            Builders<ChangeStreamDocument<BsonDocument>>.Filter
-                .Eq(cs => cs.OperationType, ChangeStreamOperationType.Insert)
-        };
-
-        if (parameters.Channels is { Length: > 0 })
-        {
-            filters.Add(Builders<ChangeStreamDocument<BsonDocument>>.Filter
-                .In("fullDocument.channel", parameters.Channels));
-        }
-
-        if (parameters.MessageTypes is { Length: > 0 })
-        {
-            filters.Add(Builders<ChangeStreamDocument<BsonDocument>>.Filter
-                .In("fullDocument.messageType", parameters.MessageTypes));
-        }
-
-        var matchStage = Builders<ChangeStreamDocument<BsonDocument>>.Filter.And(filters);
-
-        return PipelineDefinition<ChangeStreamDocument<BsonDocument>, ChangeStreamDocument<BsonDocument>>
-            .Create(new[] { PipelineStageDefinitionBuilder.Match(matchStage) });
-    }
-
-    #endregion //  ToBsonPipeline
 }

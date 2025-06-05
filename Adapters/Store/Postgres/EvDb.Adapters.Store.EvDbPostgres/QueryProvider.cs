@@ -127,7 +127,6 @@ internal static class QueryProvider
 
     public static EvDbSnapshotAdapterQueryTemplates CreateSnapshotQueries(EvDbStorageContext storageContext)
     {
-        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
         string tabInitial = $"{storageContext.Schema}.{storageContext.ShortId}";
 
         return new EvDbSnapshotAdapterQueryTemplates

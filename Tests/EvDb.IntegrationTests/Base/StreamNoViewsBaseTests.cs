@@ -71,8 +71,8 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
     [Fact]
     public virtual async Task Stream_NoView_BeyondBatchSize_Succeed()
     {
-        var defaultEventsOptions = EvDbContinuousFetchOptions.CompleteIfEmpty;
-        int count = defaultEventsOptions.BatchSize * 2;
+        const int BATCH_SIZE = 300;
+        int count = BATCH_SIZE * 2;
 
         await ProcuceEventsAsync(count);
 

@@ -4,13 +4,14 @@ namespace EvDb.Core.Adapters.Internals;
 
 public readonly record struct EvDbGetEventsParameters
 {
+    private const int BATCH_SIZE = 300;
+
     public EvDbGetEventsParameters(
-                                EvDbStreamCursor cursor,
-                                int batchSize = 300)
+                                EvDbStreamCursor cursor)
     {
         StreamType = cursor.StreamType;
         StreamId = cursor.StreamId;
-        BatchSize = batchSize;
+        BatchSize = BATCH_SIZE;
         SinceOffset = cursor.Offset;
     }
 

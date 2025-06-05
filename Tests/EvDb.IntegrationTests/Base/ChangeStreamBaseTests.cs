@@ -51,26 +51,28 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
     [Fact]
     public virtual async Task ChangeStream_GetMessages_Succeed()
     {
+        const int BATCH_SIZE = 300;
         const int FUTURE_COUNT = 30;
         const int CHUNCK_SIZE = 40;
-        var cancellationDucraion = Debugger.IsAttached 
+        var cancellationDucraion = Debugger.IsAttached
                                         ? TimeSpan.FromMinutes(10)
                                         : TimeSpan.FromSeconds(5);
 
         using var cts = new CancellationTokenSource(cancellationDucraion);
         var cancellationToken = cts.Token;
         var defaultEventsOptions = EvDbContinuousFetchOptions.CompleteIfEmpty;
-        int count = defaultEventsOptions.BatchSize * 2;
+        int count = BATCH_SIZE * 2;
+        var startAt = DateTimeOffset.UtcNow.AddMinutes(-1);
 
         // produce messages before start listening to the change stream
-        for (int i = 0; i < count; i+= CHUNCK_SIZE)
+        for (int i = 0; i < count; i += CHUNCK_SIZE)
         {
             await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
         }
+        await Task.Delay(50); // Change stream ignore last ms
 
-        var startAt = DateTimeOffset.UtcNow.AddSeconds(-1);
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
-        IAsyncEnumerable<EvDbMessage> messages = 
+        IAsyncEnumerable<EvDbMessage> messages =
                         _changeStream.GetMessagesAsync(shard, startAt, defaultEventsOptions, cancellationToken);
 
         long lastOffset = 0;
@@ -80,7 +82,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
             Assert.Equal(lastOffset, messageOffset - 1);
             lastOffset = messageOffset;
 
-            AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload);
+            AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
             Assert.Equal(messageOffset, data!.Avg);
 
             if (messageOffset == 50)
@@ -91,18 +93,22 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
                 await cts.CancelAsync();
         }
 
-        Assert.Equal(count + FUTURE_COUNT, _stream.StoredOffset);
+        Assert.Equal(count + FUTURE_COUNT, lastOffset);
     }
 
     #endregion //  ChangeStream_GetMessages_Succeed
+
+    #region ProcuceStudentReceivedGradeAsync
 
     private async Task ProcuceStudentReceivedGradeAsync(int numOfGrades = 3, int seed = 0)
     {
         for (int i = 1; i <= numOfGrades; i++)
         {
-            var grade = new StudentReceivedGradeEvent(i, 88, i + seed );
+            var grade = new StudentReceivedGradeEvent(i, 88, i + seed);
             await _stream.AppendAsync(grade);
         }
         await _stream.StoreAsync();
     }
+
+    #endregion //  ProcuceStudentReceivedGradeAsync
 }
