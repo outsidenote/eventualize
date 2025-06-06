@@ -1,6 +1,8 @@
 ﻿// Ignore Spelling: Occ
 
 using Dapper;
+using EvDb.Adapters.Internals;
+using EvDb.Core.Adapters.Internals;
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Data;
@@ -43,12 +45,54 @@ public abstract class EvDbRelationalStorageAdapter :
 
     async Task<DbConnection> InitAsync()
     {
-        DbConnection connection = _factory.CreateConnection();
-        await connection.OpenAsync();
-        return connection;
+        int i = 0;
+        do
+        {
+            try
+            {
+                DbConnection connection = _factory.CreateConnection();
+                await connection.OpenAsync();
+                return connection;
+            }
+            catch (Exception ex)
+            {
+                var shouldRetry = ShouldRetryOnConnectionError(ex, i);
+                if (!shouldRetry)
+                    throw;
+
+                #region Task.Delay(...)
+
+                var delay = i switch
+                {
+                    < 3 => TimeSpan.Zero,
+                    < 10 => TimeSpan.FromMicroseconds(i * 10),
+                    _ => TimeSpan.FromSeconds(3)
+                };
+                if (delay == TimeSpan.Zero)
+                    await Task.Yield(); // Yield to allow other tasks to run
+                else
+                    await Task.Delay(delay);
+
+                #endregion //  Task.Delay(...)
+
+                // todo; [bnaya 1/06/2025] Add Metric
+            }
+        } while (true);
     }
 
     #endregion // Ctor
+
+    #region ShouldRetryOnConnectionError
+
+    /// <summary>
+    /// Lookup whether to retry on a specific error
+    /// </summary>
+    /// <param name="exception"></param>
+    /// <param name="retryCount">Number of retries</param>
+    /// <returns>true will retry to fetch and open connection</returns>
+    protected virtual bool ShouldRetryOnConnectionError(Exception exception, int retryCount) => retryCount < 20;
+
+    #endregion //  ShouldRetryOnConnectionError
 
     #region ExecuteSafe
 
@@ -310,29 +354,97 @@ public abstract class EvDbRelationalStorageAdapter :
     /// </summary>
     /// <param name="reader">The reader.</param>
     /// <returns></returns>
-    IEvDbRecordParser IEvDbRecordParserFactory.Create(DbDataReader reader) => new RecordParser(reader);
+    IEvDbRecordParser IEvDbRecordParserFactory.CreateParser(DbDataReader reader) => new EventRecordParser(reader);
 
     #endregion //  IEvDbRecordParserFactory members
 
-    #region class RecordParser
+    #region class EventRecordParser
 
-    private sealed class RecordParser : IEvDbRecordParser
+    private sealed class EventRecordParser : IEvDbRecordParser
     {
-        private readonly Func<DbDataReader, EvDbEventRecord> _parser;
+        private readonly Func<DbDataReader, EvDbEventRecord> _eventParser;
+        private readonly Func<DbDataReader, EvDbMessageRecord> _messageParser;
         private readonly DbDataReader _reader;
 
-        public RecordParser(DbDataReader reader)
+        public EventRecordParser(DbDataReader reader)
         {
-            _parser = reader.GetRowParser<EvDbEventRecord>();
+            _eventParser = reader.GetRowParser<EvDbEventRecord>();
+            _messageParser = reader.GetRowParser<EvDbMessageRecord>();
             _reader = reader;
         }
 
-        EvDbEventRecord IEvDbRecordParser.ParseEvent() => _parser(_reader);
+        EvDbEventRecord IEvDbRecordParser.ParseEvent() => _eventParser(_reader);
+        EvDbMessageRecord IEvDbRecordParser.ParseMessage() => _messageParser(_reader);
     }
 
-    #endregion //  class RecordParser
+    #endregion //  class EventRecordParser
+
+    #region IEvDbChangeStream.GetMessagesAsync
+
+    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
+                                EvDbShardName shard,
+                                EvDbMessageFilter filter,
+                                EvDbContinuousFetchOptions? options,
+                                [EnumeratorCancellation] CancellationToken cancellation)
+    {
+        if (cancellation.IsCancellationRequested)
+            yield break;
+
+        string query = string.Format(StreamQueries.GetMessages, shard);
+        _logger.LogQuery(query);
+
+        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
+        using DbConnection conn = await InitAsync();
+        var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
+        int attemptsWhenEmpty = 0;
+        TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
+        var duplicateDetection = new HashSet<Guid>(parameters.BatchSize);
+        while (!cancellation.IsCancellationRequested)
+        {
+            using DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
+            var parser = RecordParserFactory.CreateParser(reader);
+            EvDbMessage? last = null;
+            int count = 0;
+            while (!cancellation.IsCancellationRequested && await reader.ReadAsync(cancellation).FalseWhenCancelAsync())
+            {
+                EvDbMessage m = parser.ParseMessage();
+                if (duplicateDetection.Contains(m.Id))
+                    continue; // Skip duplicate messages
+                ManageDuplicationList();
+                last = m;
+                count++;
+
+                yield return m;
+
+                #region ManageDuplicationList
+
+                void ManageDuplicationList()
+                {
+                    if (last != null && last.Value.StoredAt != m.StoredAt)
+                        duplicateDetection.Clear();
+                    duplicateDetection.Add(m.Id);
+                }
+
+                #endregion //  ManageDuplicationList
+            }
+            bool reachTheEnd = count < parameters.BatchSize;
+            (delay, attemptsWhenEmpty, bool shouldExit) = await opts.DelayWhenEmptyAsync(
+                                                                  reachTheEnd,
+                                                                  delay,
+                                                                  attemptsWhenEmpty,
+                                                                  cancellation);
+            if (shouldExit)
+                yield break;
+
+            parameters = parameters.ContinueFrom(last);
+        }
+    }
+
+    #endregion //  IEvDbChangeStream.GetMessagesAsync
 
     #region IEvDbStorageStreamAdapter Members
+
+    #region IEvDbStorageStreamAdapter.GetLastOffsetAsync
 
     async Task<long> IEvDbStorageStreamAdapter.GetLastOffsetAsync(
         EvDbStreamAddress address,
@@ -347,6 +459,10 @@ public abstract class EvDbRelationalStorageAdapter :
         return offset;
     }
 
+    #endregion //  IEvDbStorageStreamAdapter.GetLastOffsetAsync
+
+    #region IEvDbStorageStreamAdapter.GetEventsAsync
+
     async IAsyncEnumerable<EvDbEvent> IEvDbStorageStreamAdapter.GetEventsAsync(
         EvDbStreamCursor streamCursor,
         [EnumeratorCancellation] CancellationToken cancellation)
@@ -356,14 +472,40 @@ public abstract class EvDbRelationalStorageAdapter :
         _logger.LogQuery(query);
 
         using DbConnection conn = await InitAsync();
-        DbDataReader reader = await conn.ExecuteReaderAsync(query, streamCursor);
-        var parser = RecordParserFactory.Create(reader);
-        while (await reader.ReadAsync())
+        var options = EvDbContinuousFetchOptions.CompleteIfEmpty;
+        int attemptsWhenEmpty = 0;
+        TimeSpan delay = options.DelayWhenEmpty.StartDuration;
+        var parameters = new EvDbGetEventsParameters(streamCursor);
+        while (!cancellation.IsCancellationRequested)
         {
-            EvDbEvent e = parser.ParseEvent();
-            yield return e;
+            DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
+            var parser = RecordParserFactory.CreateParser(reader);
+            EvDbEvent? last = null;
+            int count = 0;
+            while (!cancellation.IsCancellationRequested &&
+                   await reader.ReadAsync(cancellation))
+            {
+                EvDbEvent e = parser.ParseEvent();
+                last = e;
+                count++;
+                yield return e;
+            }
+            bool reachTheEnd = count < parameters.BatchSize;
+            (delay, attemptsWhenEmpty, bool shouldExit) = await options.DelayWhenEmptyAsync(
+                                                                  reachTheEnd,
+                                                                  delay,
+                                                                  attemptsWhenEmpty,
+                                                                  cancellation);
+            if (shouldExit)
+                break;
+
+            parameters = parameters.ContinueFrom(last);
         }
     }
+
+    #endregion //  IEvDbStorageStreamAdapter.GetEventsAsync
+
+    #region IEvDbStorageStreamAdapter.StoreStreamAsync
 
     async Task<StreamStoreAffected> IEvDbStorageStreamAdapter.StoreStreamAsync(
         IImmutableList<EvDbEvent> events,
@@ -449,6 +591,8 @@ public abstract class EvDbRelationalStorageAdapter :
 
         #endregion //  StoreOutboxAsync
     }
+
+    #endregion //  IEvDbStorageStreamAdapter.StoreStreamAsync
 
     #endregion // IEvDbStorageStreamAdapter Members
 

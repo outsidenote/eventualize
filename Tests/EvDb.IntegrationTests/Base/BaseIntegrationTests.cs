@@ -1,4 +1,5 @@
 ﻿namespace EvDb.Core.Tests;
+#pragma warning disable S3881 // "IDisposable" should be implemented correctly
 
 using EvDb.Core;
 using EvDb.Core.Adapters;
@@ -11,7 +12,7 @@ using Xunit.Abstractions;
 #pragma warning disable S125 // Sections of code should not be commented out
 
 [DebuggerDisplay("{_storeType}")]
-public abstract class BaseIntegrationTests : IAsyncLifetime
+public abstract class BaseIntegrationTests : IAsyncLifetime, IDisposable, IAsyncDisposable
 {
     protected readonly ITestOutputHelper _output;
     protected readonly StoreType _storeType;
@@ -55,7 +56,7 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
         }
     }
 
-    public abstract IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard);
+    public virtual IAsyncEnumerable<EvDbMessageRecord> GetOutboxAsync(EvDbShardName shard) => throw new NotImplementedException();
 
 
     public EvDbStorageContext StorageContext { get; }
@@ -82,10 +83,37 @@ public abstract class BaseIntegrationTests : IAsyncLifetime
         await (storageMigrationSnapshot?.CreateEnvironmentAsync() ?? Task.CompletedTask);
     }
 
-    public virtual Task DisposeAsync()
+    void IDisposable.Dispose()
     {
+        DisposeAsync().Wait();
+    }
 
-        //await _containers.StopAllAsync();
-        return Task.CompletedTask;
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        await DisposeAsync();
+    }
+
+    public async virtual Task DisposeAsync()
+    {
+        var storageMigration = StoreAdapterHelper.CreateStoreMigration(_logger, _storeType, StorageContext,
+                                            OutboxShards.MessagingVip,
+                                            OutboxShards.Messaging,
+                                            OutboxShards.Commands,
+                                            EvDbNoViewsOutbox.DEFAULT_SHARD_NAME,
+                                            EvDbShardName.Default);
+        IEvDbStorageAdmin? storageMigrationSnapshot = null;
+        await storageMigration.DestroyEnvironmentAsync();
+        if (_seSeparateSnapshotContext)
+        {
+            storageMigrationSnapshot = StoreAdapterHelper.CreateStoreMigration(_logger, _storeType,
+                                                            AlternativeContext,
+                                                            EvDbShardName.Default);
+            await storageMigrationSnapshot.DestroyEnvironmentAsync();
+        }
+    }
+
+    ~BaseIntegrationTests()
+    {
+        DisposeAsync().Wait();
     }
 }

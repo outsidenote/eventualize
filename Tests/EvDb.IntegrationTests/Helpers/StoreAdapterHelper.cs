@@ -1,6 +1,7 @@
 ﻿using EvDb.Adapters.Store.MongoDB;
 using EvDb.Adapters.Store.Postgres;
 using EvDb.Adapters.Store.SqlServer;
+using EvDb.Core.Internals;
 using EvDb.Core.Store.Internals;
 using FakeItEasy;
 using Microsoft.Data.SqlClient;
@@ -14,6 +15,7 @@ namespace EvDb.Core.Tests;
 
 public static class StoreAdapterHelper
 {
+    #region ChooseStoreAdapter
 
     public static EvDbStreamStoreRegistrationContext ChooseStoreAdapter(
                                         this EvDbStreamStoreRegistrationContext context,
@@ -41,6 +43,39 @@ public static class StoreAdapterHelper
         return context;
     }
 
+    #endregion //  ChooseStoreAdapter
+
+    #region AddChangeStream
+
+    public static IServiceCollection AddChangeStream(
+                                        this IEvDbRegistrationEntry registration,
+                                        StoreType storeType,
+                                        EvDbStorageContext context)
+    {
+        switch (storeType)
+        {
+            case StoreType.SqlServer:
+                registration.Services.UseSqlServerChangeStream(context);
+                break;
+            case StoreType.Postgres:
+                registration.Services.UsePostgresChangeStream(context);
+                break;
+            case StoreType.MongoDB:
+                registration.Services.UseMongoDBChangeStream(context);
+                break;
+            case StoreType.Testing:
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+
+        return registration.Services;
+    }
+
+    #endregion //  AddChangeStream
+
+    #region ChooseSnapshotAdapter
+
     public static EvDbSnapshotStoreRegistrationContext ChooseSnapshotAdapter(
         this EvDbSnapshotStoreRegistrationContext context,
         StoreType storeType,
@@ -67,6 +102,10 @@ public static class StoreAdapterHelper
         return context;
     }
 
+    #endregion //  ChooseSnapshotAdapter
+
+    #region GetConnection
+
     public static DbConnection GetConnection(StoreType storeType,
         EvDbStorageContext storageContext)
     {
@@ -82,6 +121,10 @@ public static class StoreAdapterHelper
 
         return conn;
     }
+
+    #endregion //  GetConnection
+
+    #region CreateStoreMigration
 
     public static IEvDbStorageAdmin CreateStoreMigration(
         ILogger logger,
@@ -123,6 +166,10 @@ public static class StoreAdapterHelper
         return result;
     }
 
+    #endregion //  CreateStoreMigration
+
+    #region GetConnectionString
+
     public static string GetConnectionString(this StoreType storeType)
     {
         if (storeType == StoreType.Testing)
@@ -145,4 +192,6 @@ public static class StoreAdapterHelper
         string connectionString = configuration.GetConnectionString(connectionKey) ?? throw new ArgumentNullException(connectionKey);
         return connectionString;
     }
+
+    #endregion //  GetConnectionString
 }

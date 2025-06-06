@@ -6,5 +6,5 @@ namespace EvDb.Core.Adapters;
 
 public interface IEvDbRecordParserFactory
 {
-    IEvDbRecordParser Create(DbDataReader reader);
+    IEvDbRecordParser CreateParser(DbDataReader reader);
 }

@@ -3,6 +3,7 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
+[Trait("Kind", "Integration")]
 [Trait("DB", "Postgres")]
 public sealed class PostgresStreamFactoryTests : StreamFactoryBaseTests
 {

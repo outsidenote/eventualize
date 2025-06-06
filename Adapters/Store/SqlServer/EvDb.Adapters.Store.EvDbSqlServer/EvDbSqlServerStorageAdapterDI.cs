@@ -62,6 +62,47 @@ public static class EvDbSqlServerStorageAdapterDI
 
     #endregion //  UseSqlServerStoreForEvDbStream
 
+    #region GetSqlServerChangeStream
+
+    public static IEvDbChangeStream GetSqlServerChangeStream(
+            this EvDbStorageContext context,
+            ILogger logger,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
+            IConfiguration? configuration = null)
+    {
+        string connectionString = configuration?.GetConnectionString(connectionStringOrConfigurationKey) ?? connectionStringOrConfigurationKey;
+
+        IEvDbChangeStream storageAdapter = EvDbSqlServerStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []);
+        return storageAdapter;
+    }
+
+    #endregion //  GetSqlServerChangeStream
+
+    #region UseSqlServerChangeStream
+
+    public static void UseSqlServerChangeStream(
+            this IServiceCollection services,
+            EvDbStorageContext? context,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddSingleton(
+            (sp) =>
+            {
+                var ctx = context
+                    ?? sp.GetService<EvDbStorageContext>()
+                    ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
+                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();
+                IConfiguration? configuration = sp.GetService<IConfiguration>();
+
+                IEvDbChangeStream storageAdapter = ctx.GetSqlServerChangeStream(logger, connectionStringOrConfigurationKey, configuration);
+                return storageAdapter;
+            });
+    }
+
+    #endregion //  UseSqlServerChangeStream
+
     #region UseSqlServerForEvDbSnapshot
 
     public static void UseSqlServerForEvDbSnapshot(

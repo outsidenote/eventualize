@@ -1,9 +1,11 @@
 ﻿// Ignore Spelling: Mongo
 
+using EvDb.Adapters.Internals;
 using EvDb.Adapters.Store.Internals;
 using EvDb.Adapters.Store.MongoDB.Internals;
 using EvDb.Core;
 using EvDb.Core.Adapters;
+using EvDb.Core.Adapters.Internals;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -15,6 +17,7 @@ using static EvDb.Core.Adapters.StoreTelemetry;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
+
 /// <summary>
 /// MongoDB storage adapter that handles event streams, snapshots, and outbox messages.
 /// </summary>
@@ -25,6 +28,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     private readonly static ActivitySource _trace = StoreTelemetry.Trace;
     private const string DATABASE_TYPE = "MongoDB";
     private readonly CollectionsSetup _collectionsSetup;
+    private bool _disposed;
 
     #region Ctor
 
@@ -65,35 +69,149 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     {
         var eventsCollection = await _collectionsSetup.EventsCollectionTask;
 
-        var filter = streamCursor.ToFilter();
-        IFindFluent<BsonDocument, BsonDocument> query = eventsCollection.Find(filter)
-                                     .Sort(QueryProvider.SortEvents);
-        if (_logger.IsEnabled(LogLevel.Trace))
-            _logger.LogQuery(query.ToJson());
+        var options = EvDbContinuousFetchOptions.CompleteIfEmpty;
+        var parameters = new EvDbGetEventsParameters(streamCursor);
+        int attemptsWhenEmpty = 0;
+        TimeSpan delay = options.DelayWhenEmpty.StartDuration;
 
-        using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
-
-        while (await cursor.MoveNextAsync(cancellation))
+        while (!cancellation.IsCancellationRequested)
         {
-            foreach (var doc in cursor.Current)
+            // Learn More on MongoDB query: https://claude.ai/public/artifacts/daa32caa-7884-44c3-bf6e-c99724c484af
+            FilterDefinition<BsonDocument> filter = parameters.ToBsonFilter();
+            IFindFluent<BsonDocument, BsonDocument> query = eventsCollection.Find(filter)
+                                         .Sort(QueryProvider.SortEvents)
+                                         .Limit(parameters.BatchSize);
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.LogQuery(query.ToJson());
+
+            using IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
+
+            EvDbEvent? last = null;
+            int count = 0;
+            while (!cancellation.IsCancellationRequested &&
+                   await cursor.MoveNextAsync(cancellation))
             {
-                // Convert from BsonDocument back to EvDbEvent.
-                yield return doc.ToEvent();
+                foreach (var doc in cursor.Current)
+                {
+                    // Convert from BsonDocument back to EvDbEvent.
+                    var @event = doc.ToEvent();
+                    last = @event;
+                    count++;
+                    yield return @event;
+                }
             }
+
+            bool reachTheEnd = count < parameters.BatchSize;
+            (delay, attemptsWhenEmpty, bool shouldExit) = await options.DelayWhenEmptyAsync(
+                                                                  reachTheEnd,
+                                                                  delay,
+                                                                  attemptsWhenEmpty,
+                                                                  cancellation);
+            if (shouldExit)
+                break;
+            parameters = parameters.ContinueFrom(last);
         }
     }
 
     #endregion //  GetEventsAsync
 
+    #region GetMessagesAsync
+
+    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
+                            EvDbShardName shard,
+                            EvDbMessageFilter filter,
+                            EvDbContinuousFetchOptions? options,
+                            [EnumeratorCancellation] CancellationToken cancellation)
+    {
+        if (cancellation.IsCancellationRequested)
+            yield break;
+
+        var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
+        IMongoCollection<BsonDocument> collection =
+                        await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shard);
+
+        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
+
+        int attemptsWhenEmpty = 0;
+        TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
+        ObjectId? lastId = null;
+        var duplicateDetection = new HashSet<Guid>();
+        EvDbMessage? last = null;
+        while (!cancellation.IsCancellationRequested)
+        {
+            IAsyncCursor<BsonDocument> cursor = await GetCursorAsync();
+
+            while (await cursor.MoveNextAsync(cancellation).FalseWhenCancelAsync())
+            {
+                foreach (var doc in cursor.Current)
+                {
+                    if (cancellation.IsCancellationRequested)
+                        yield break; // Exit if cancellation is requested
+
+                    lastId = doc.GetObjectId();
+                    // Convert from BsonDocument back to EvDbEvent.
+                    EvDbMessage message = doc.ToMessage();
+                    if (duplicateDetection.Contains(message.Id))
+                        continue; // Skip duplicate messages
+                    ManageDuplicationList();
+                    last = message;
+
+                    yield return message;
+
+                    #region ManageDuplicationList
+
+                    void ManageDuplicationList()
+                    {
+                        if (last != null && last.Value.StoredAt != message.StoredAt)
+                            duplicateDetection.Clear();
+                        duplicateDetection.Add(message.Id);
+                    }
+
+                    #endregion //  ManageDuplicationList
+                }
+            }
+
+            (delay, attemptsWhenEmpty, bool shouldExit) = await opts.DelayWhenEmptyAsync(
+                                                                  true,
+                                                                  delay,
+                                                                  attemptsWhenEmpty,
+                                                                  cancellation);
+            if (shouldExit)
+                yield break;
+        }
+
+        #region GetCursorAsync
+
+        async Task<IAsyncCursor<BsonDocument>> GetCursorAsync()
+        {
+            var filter = parameters.ToBsonFilter(lastId);
+
+            var query = collection
+                .Find(filter)
+                .Sort(QueryProvider.SortMessages);
+
+            IAsyncCursor<BsonDocument> cursor = await query.ToCursorAsync(cancellation);
+
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.LogQuery(query.ToJson());
+
+            return cursor;
+        }
+
+        #endregion //  GetCursorAsync
+    }
+
+    #endregion //  GetMessagesAsync
+
     #region GetLastEventAsync
 
     async Task<long> IEvDbStorageStreamAdapter.GetLastOffsetAsync(
-        EvDbStreamAddress address,
-        CancellationToken cancellation)
+    EvDbStreamAddress address,
+    CancellationToken cancellation)
     {
         var eventsCollection = await _collectionsSetup.EventsCollectionTask;
 
-        var filter = address.ToFilter();
+        var filter = address.ToBsonFilter();
         IFindFluent<BsonDocument, BsonDocument> query = eventsCollection.Find(filter)
                                      .Sort(QueryProvider.SortEventsDesc)
                                      .Project(QueryProvider.ProjectionOffset)
@@ -200,7 +318,8 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                         EvDbShardName shardName = g.Key;
                         OtelTags tags = OtelTags.Empty.Add("shard", shardName);
                         using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
-                        var outboxDocs = g.Select(m => m.EvDbToBsonDocument(shardName)).ToArray();
+                        var outboxDocs = g.Select(m => m.EvDbToBsonDocument(shardName))
+                                          .ToArray();
 
                         var outboxCollection = await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shardName);
                         await outboxCollection.InsertManyAsync(session, outboxDocs, options, cancellation);
@@ -273,7 +392,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                                                 EvDbViewAddress viewAddress,
                                                 CancellationToken cancellation)
     {
-        FilterDefinition<BsonDocument> filter = viewAddress.ToFilter();
+        FilterDefinition<BsonDocument> filter = viewAddress.ToBsonFilter();
         if (_logger.IsEnabled(LogLevel.Trace))
             _logger.LogQuery(filter.ToJson());
 
@@ -337,6 +456,10 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     private void DisposeAction()
     {
+        if(_disposed)
+            return;
+        _disposed = true;
+
         IDisposable setup = _collectionsSetup;
         setup.Dispose();
     }

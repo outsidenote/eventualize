@@ -36,7 +36,40 @@ internal static class QueryProvider
                 FROM {tblInitial}events WITH (READCOMMITTEDLOCK)
                 WHERE {Fields.Event.StreamType} = {Parameters.Event.StreamType}
                     AND {Fields.Event.StreamId} = {Parameters.Event.StreamId}
-                    AND {Fields.Event.Offset} >= {Parameters.Event.Offset};
+                    AND {Fields.Event.Offset} >= {Parameters.Event.SinceOffset};
+                """,
+            GetMessages = $$"""
+                SELECT
+                    {{Fields.Message.Id}} as {{Projection.Message.Id}},
+                    {{Fields.Message.StreamType}} as {{Projection.Message.StreamType}},
+                    {{Fields.Message.StreamId}} as {{Projection.Message.StreamId}},
+                    {{Fields.Message.Offset}} as {{Projection.Message.Offset}},
+                    {{Fields.Message.EventType}} as {{Projection.Message.EventType}},
+                    {{Fields.Message.MessageType}} as {{Projection.Message.MessageType}},
+                    {{Fields.Message.CapturedAt}} as {{Projection.Message.CapturedAt}},
+                    {{Fields.Message.StoredAt}} as {{Projection.Message.StoredAt}},
+                    {{Fields.Message.CapturedBy}} as {{Projection.Message.CapturedBy}},
+                    {{Fields.Message.Channel}} as {{Projection.Message.Channel}},
+                    {{Fields.Message.SerializeType}} as {{Projection.Message.SerializeType}},
+                    {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
+                    {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
+                FROM {{tblInitial}}{0} WITH (READCOMMITTEDLOCK)                
+                WHERE 
+                    {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}}
+                    AND {{Fields.Message.StoredAt}} < DATEADD(MICROSECOND, -1000, SYSDATETIME())
+                    AND (
+                        {{Parameters.Message.Channels}} IS NULL 
+                        OR ISJSON({{Parameters.Message.Channels}}) = 0 
+                        OR {{Parameters.Message.Channels}} = '[]'
+                        OR EXISTS (SELECT 1 FROM OPENJSON({{Parameters.Message.Channels}}) WHERE value = {{Fields.Message.Channel}})
+                    )
+                    AND (
+                        {{Parameters.Message.MessageTypes}} IS NULL 
+                        OR ISJSON({{Parameters.Message.MessageTypes}}) = 0 
+                        OR {{Parameters.Message.MessageTypes}} = '[]'
+                        OR EXISTS (SELECT 1 FROM OPENJSON({{Parameters.Message.MessageTypes}}) WHERE value = {{Fields.Message.MessageType}})
+                    )                         
+                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}} ASC, {{Fields.Message.MessageType}} ASC, {{Fields.Event.Offset}} ASC, {{Fields.Event.Id}} ASC;
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"{tblInitial}InsertEventsBatch_Events",
@@ -46,7 +79,6 @@ internal static class QueryProvider
 
     public static EvDbSnapshotAdapterQueryTemplates CreateSnapshotQueries(EvDbStorageContext storageContext)
     {
-        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
         string tabInitial = storageContext.Id;
 
         return new EvDbSnapshotAdapterQueryTemplates

@@ -22,7 +22,7 @@ await app.RunAsync(async (
         ILogger<Program> logger,
         [Option("action", ['a'],
                 ValueName = "Enum",
-                Description = "Action (`Create`, `Drop`)")]
+                Description = "Action (`CreateParser`, `Drop`)")]
         Operation operation,
         [Option("database", ['d'],
                 Description = "Database type (`sql-server` | `postgres`, etc.)")]

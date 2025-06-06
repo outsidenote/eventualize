@@ -10,7 +10,7 @@ namespace EvDb.Adapters.Store.MongoDB.Internals;
 public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 {
     /// <summary>
-    /// The outbox suffx
+    /// The outbox suffix
     /// </summary>
     private const string OUTBOX_SUFFX = "outbox";
     private readonly ILogger _logger;
@@ -347,25 +347,38 @@ public sealed class CollectionsSetup : IDisposable, IAsyncDisposable
 
     void IDisposable.Dispose()
     {
-        DisposeAction();
+        try
+        {
+            _collectionCreationSync.Wait();
+
+            DisposeAction();
+        }
+        finally
+        {
+            _collectionCreationSync.Release();
+        }
         GC.SuppressFinalize(this);
     }
 
-    ValueTask IAsyncDisposable.DisposeAsync()
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        DisposeAction();
         GC.SuppressFinalize(this);
-        return ValueTask.CompletedTask;
+
+        try
+        {
+            await _collectionCreationSync.WaitAsync();
+
+            DisposeAction();
+        }
+        finally
+        {
+            _collectionCreationSync.Release();
+        }
     }
 
     private void DisposeAction()
     {
         _client.Dispose();
-    }
-
-    ~CollectionsSetup()
-    {
-        DisposeAction();
     }
 
     #endregion //  DisposeAction Pattern

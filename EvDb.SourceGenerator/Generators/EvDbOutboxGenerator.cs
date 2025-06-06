@@ -252,7 +252,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public sealed class {{outboxName}}Context : EvDbOutboxContextBase
                     {
-                        private const string DEFAULT_SHARD_NAME = "{{defaultShardName}}";
+                        private static readonly EvDbShardName DEFAULT_SHARD_NAME = "{{defaultShardName}}";
                         protected override IImmutableList<IEvDbOutboxSerializer> OutboxSerializers { get; } = 
                                                     ImmutableArray<IEvDbOutboxSerializer>.Empty.AddRange(
                                                                         (IEnumerable<IEvDbOutboxSerializer>)
@@ -501,7 +501,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         builder.AppendLine($$"""
                     public abstract class {{outboxName}}Base : IEvDbOutboxProducer {{iChannelToShards}}
                     {
-                        public const string DEFAULT_SHARD_NAME = "{{defaultShardName}}";
+                        public static readonly EvDbShardName DEFAULT_SHARD_NAME = "{{defaultShardName}}";
                         private readonly {{streamName}} _evDbStream;
                         private readonly ILogger _logger;
                         private readonly JsonSerializerOptions? _serializationOptions;

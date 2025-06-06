@@ -1,5 +1,4 @@
 ﻿using EvDb.Core;
-using EvDb.Core.Adapters;
 using System.Text;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 
@@ -20,7 +19,6 @@ internal static class Sctipts
         string tblInitial = $"{schema}{storageContext.ShortId}";
         string tblInitialWithoutSchema = $"{storageContext.Schema}_{storageContext.ShortId}";
         string db = storageContext.DatabaseName;
-        Func<string, string> toSnakeCase = EvDbStoreNamingPolicy.Default.ConvertName;
 
         if (!outboxShardNames.Any())
             outboxShardNames = [EvDbShardName.Default];
@@ -55,6 +53,8 @@ internal static class Sctipts
                 DROP TYPE IF EXISTS {tblInitial}OutboxTableType;
                 """);
         }
+
+        // TODO: [bnaya 2025-06-03] Consider having SP for the GetMessages: https://claude.ai/public/artifacts/a06e8294-d482-421b-bf3e-ace5a01b05b3
 
         string destroyEnvironment = destroyEnvironmentBuilder.ToString();
 
@@ -207,7 +207,6 @@ internal static class Sctipts
                 {Fields.Message.Payload} VARBINARY(4000) NOT NULL,
             
                 CONSTRAINT PK_{tblInitialWithoutSchema}{t} PRIMARY KEY (
-                        {Fields.Message.CapturedAt},
                         {Fields.Message.StreamType}, 
                         {Fields.Message.StreamId}, 
                         {Fields.Message.Offset},
@@ -224,16 +223,11 @@ internal static class Sctipts
             
             CREATE INDEX IX_{t}_{Fields.Message.Channel}_{tblInitialWithoutSchema}
                ON {tblInitial}{t} (
-                     {Fields.Message.Channel},
-                     {Fields.Message.CapturedAt},  
+                     {Fields.Message.StoredAt},
+                     {Fields.Message.Channel},  
+                     {Fields.Message.MessageType},  
                      {Fields.Message.Offset})
-            WITH (ONLINE = ON);
-            
-            CREATE INDEX IX_{t}_stored_at_{tblInitialWithoutSchema}
-            ON {tblInitial}{t} (
-                    stored_at)
-            WITH (ONLINE = ON);
-
+            WITH (ONLINE = ON);            
             """);
 
         #endregion //  string createOutbox = ...

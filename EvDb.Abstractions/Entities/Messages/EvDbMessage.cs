@@ -7,10 +7,11 @@ namespace EvDb.Core;
 [Equatable]
 [DebuggerDisplay("[{ShardName}, {Channel} [{StreamCursor.Offset}]:{MessageType}] driven from [{EventType}]")]
 public partial record struct EvDbMessage(
-                                string EventType,
+                                Guid Id,
+                                EvDbEventTypeName EventType,
                                 EvDbChannelName Channel,
                                 EvDbShardName ShardName,
-                                string MessageType,
+                                EvDbMessageTypeName MessageType,
                                 string SerializeType,
                                 [property: IgnoreEquality] DateTimeOffset CapturedAt,
                                 string CapturedBy,
@@ -19,13 +20,39 @@ public partial record struct EvDbMessage(
                                             IEvDbEventConverter//,
                                                                //IEvDbMessageMeta
 {
-    public static readonly EvDbEvent Empty = new EvDbEvent();
+    public static readonly EvDbMessage Empty = new EvDbMessage() { Id = Guid.Empty };
+
+    public EvDbMessage(EvDbEventTypeName EventType,
+                       EvDbChannelName Channel,
+                       EvDbShardName ShardName,
+                       EvDbMessageTypeName MessageType,
+                       string SerializeType,
+                       [property: IgnoreEquality] DateTimeOffset CapturedAt,
+                       string CapturedBy,
+                       EvDbStreamCursor StreamCursor,
+                       EvDbMessagePayloadName Payload) : this(Guid.NewGuid(),
+                                                                EventType,
+                                                                Channel,
+                                                                ShardName,
+                                                                MessageType,
+                                                                SerializeType,
+                                                                CapturedAt,
+                                                                CapturedBy,
+                                                                StreamCursor,
+                                                                Payload)
+    {
+    }
 
     /// <summary>
     /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
     /// The value will be null if the Trace is null when persisting the record or before persistent.
     /// </summary>
     public EvDbTelemetryContextName TelemetryContext { get; init; }
+
+    /// <summary>
+    /// The time when it persist into the storage
+    /// </summary>
+    public DateTimeOffset? StoredAt { get; init; }
 
     T IEvDbEventConverter.GetData<T>(JsonSerializerOptions? options)
     {
