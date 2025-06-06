@@ -28,6 +28,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     private readonly static ActivitySource _trace = StoreTelemetry.Trace;
     private const string DATABASE_TYPE = "MongoDB";
     private readonly CollectionsSetup _collectionsSetup;
+    private bool _disposed;
 
     #region Ctor
 
@@ -455,6 +456,10 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     private void DisposeAction()
     {
+        if(_disposed)
+            return;
+        _disposed = true;
+
         IDisposable setup = _collectionsSetup;
         setup.Dispose();
     }

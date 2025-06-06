@@ -91,6 +91,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
 
     #endregion // Otel
 
+    [Trait("Stress", "Stream")]
     [Theory(Timeout = 30_000)]
     // [Theory]
     [Trait("Category", "Stress")]
@@ -175,6 +176,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
         }
     }
 
+    [Trait("Stress", "BadPractice")]
     [Theory(Timeout = 1_000)]
     [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]

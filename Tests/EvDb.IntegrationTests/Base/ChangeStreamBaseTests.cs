@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks.Dataflow;
 using Xunit.Abstractions;
 
 public abstract class ChangeStreamBaseTests : BaseIntegrationTests
@@ -19,6 +21,8 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
     private readonly IEvDbNoViewsFactory _factory;
     private readonly IEvDbChangeStream _changeStream;
     private readonly Guid _streamId;
+
+    #region Ctor
 
     protected ChangeStreamBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType, true)
@@ -44,6 +48,59 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
         _stream = _factory.Create(_streamId);
         _changeStream = sp.GetRequiredService<IEvDbChangeStream>();
     }
+
+    #endregion //  Ctor
+
+    #region ChangeStream_Stress
+
+    [Trait("Category", "Stress")]
+    [Trait("Stress", "ChangeStream")]
+    [Theory(Timeout = 5_000)]
+    //[Theory]
+    [InlineData(1000, 10, 1)]
+    [InlineData(1000, 10, 10)]
+    //[InlineData(10_000, 10, 1)]
+    //[InlineData(10_000, 10, 20)]
+    public virtual async Task ChangeStream_Stress(int totalEvents, int eventChunk, int maxDegreeOfParallelism)
+    {
+        EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
+
+        using var cts = new CancellationTokenSource();
+        var cancellationToken = cts.Token;
+        var defaultEventsOptions = EvDbContinuousFetchOptions.ContinueIfEmpty;
+        var startAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+
+
+        IAsyncEnumerable<EvDbMessage> messages =
+                _changeStream.GetMessagesAsync(shard, startAt, defaultEventsOptions, cancellationToken);
+
+        var block = new ActionBlock<int>(async i =>
+        {
+            await ProcuceStudentReceivedGradeAsync(eventChunk, i * eventChunk);
+        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism });
+
+        int iterations = totalEvents / eventChunk;
+        for (int j = 0; j < iterations; j++)
+        {
+            block.Post(j);
+        }
+        block.Complete();
+
+        int count = 0;
+        await foreach (var message in messages)
+        {
+            count++;
+            Assert.Equal(count, message.StreamCursor.Offset);
+            if(count % 100 == 0)
+            {
+                _output.WriteLine($"Processed {count} messages");
+            }
+            if (count == totalEvents)
+                await cts.CancelAsync();
+        }
+    }
+
+    #endregion //  ChangeStream_Stress
 
     #region ChangeStream_GetMessages_Succeed
 

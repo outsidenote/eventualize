@@ -45,30 +45,37 @@ internal static class MongoDBShardingExtensions
                                                     BsonDocument shardKeys,
                                                     ILogger logger)
     {
-        (string databaseName, string collectionName) = collectionIdentity;
-        // 1. Enable sharding for the database
-        var adminDb = adminClient.GetDatabase("admin");
+        try
+        {
+            (string databaseName, string collectionName) = collectionIdentity;
+            // 1. Enable sharding for the database
+            var adminDb = adminClient.GetDatabase("admin");
 
-        // 2. check if sharding supported
-        bool shrdingSupported = await adminDb.DoesSupportSharding();
-        if (!shrdingSupported)
+            // 2. check if sharding supported
+            bool shrdingSupported = await adminDb.DoesSupportSharding();
+            if (!shrdingSupported)
+                return true;
+
+            var enableShardingCommand = QueryProvider.CreateEnableShardingCommand(databaseName);
+
+            await adminDb.RunCommandAsync<BsonDocument>(enableShardingCommand);
+
+            // 3. Shard the collection
+            var shardCollectionCommand = new BsonDocument
+                {
+                    { "shardCollection", $"{databaseName}.{collectionName}" },
+                    { "key", shardKeys }
+                };
+
+            BsonDocument shardResult = await adminDb.RunCommandAsync<BsonDocument>(shardCollectionCommand);
+
+            logger.LogSharding(databaseName, collectionName, shardResult.ToJson());
             return true;
-
-        var enableShardingCommand = QueryProvider.CreateEnableShardingCommand(databaseName);
-
-        await adminDb.RunCommandAsync<BsonDocument>(enableShardingCommand);
-
-        // 3. Shard the collection
-        var shardCollectionCommand = new BsonDocument
-            {
-                { "shardCollection", $"{databaseName}.{collectionName}" },
-                { "key", shardKeys }
-            };
-
-        BsonDocument shardResult = await adminDb.RunCommandAsync<BsonDocument>(shardCollectionCommand);
-
-        logger.LogSharding(databaseName, collectionName, shardResult.ToJson());
-        return true;
+        }
+        catch (ObjectDisposedException)
+        {
+            return false;
+        }
     }
 
     #endregion //  ConfigureShardingAsync
