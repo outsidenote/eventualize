@@ -13,6 +13,45 @@ namespace EvDb.Adapters.Store.Internals;
 
 public static class EvDbBsonDocumentExtensions
 {
+    private const string MONGO_DB_ID = "_id";
+
+    #region GetObjectId
+
+    public static ObjectId? GetObjectId(this BsonDocument document)
+    {
+        if (!document.TryGetValue("_id", out BsonValue value))
+            return null;
+
+        return value.BsonType switch
+        {
+            BsonType.ObjectId => value.AsObjectId,
+            BsonType.String when ObjectId.TryParse(value.AsString, out ObjectId parsed) => parsed,
+            _ => null
+        };
+    }
+
+    #endregion //  GetObjectId
+
+    #region ExtractStoredAt
+
+    /// <summary>
+    /// Extracts the stored at time-stamp from the BsonDocument ObjectId.
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    public static DateTimeOffset? ExtractStoredAt(this BsonDocument doc)
+    {
+        if (doc.TryGetValue(MONGO_DB_ID, out var idValue) && idValue.IsObjectId)
+        {
+            var objectId = idValue.AsObjectId;
+            return new DateTimeOffset(objectId.CreationTime, TimeSpan.Zero); // UTC
+        }
+
+        return null; // Not an ObjectId or _id missing
+    }
+
+    #endregion //  ExtractStoredAt
+
     #region ToEvent
 
     public static EvDbEvent ToEvent(this BsonDocument doc)
@@ -23,6 +62,7 @@ public static class EvDbBsonDocumentExtensions
         var eventType = doc.GetValue(Event.EventType).AsString;
         var capturedBy = doc.GetValue(Event.CapturedBy).AsString;
         var capturedAt = doc.GetValue(Event.CapturedAt).AsBsonDateTime.ToUniversalTime();
+        var storedAt = doc.ExtractStoredAt();
         var cursor = new EvDbStreamCursor(streamType, streamId, offset);
 
         string payloadJson = doc.GetValue(Event.Payload)
@@ -30,12 +70,15 @@ public static class EvDbBsonDocumentExtensions
                                 .ToJson();
         byte[] payload = Encoding.UTF8.GetBytes(payloadJson);
 
-        return new EvDbEvent(eventType, capturedAt, capturedBy, cursor, payload);
+        return new EvDbEvent(eventType, capturedAt, capturedBy, cursor, payload)
+        {
+            StoredAt = storedAt,
+        };
     }
 
     #endregion //  ToEvent
 
-    #region ToMessageRecord
+    #region ToMessageMeta
 
     public static IEvDbMessageMeta ToMessageMeta(this BsonDocument doc)
     {
@@ -44,18 +87,20 @@ public static class EvDbBsonDocumentExtensions
         return meta;
     }
 
-    #endregion //  ToMessageRecord
+    #endregion //  ToMessageMeta
 
     #region ToMessageRecord
 
     public static EvDbMessageRecord ToMessageRecord(this BsonDocument doc)
     {
+        var id = doc.GetValue(Message.Id).AsGuid;
         var streamType = doc.GetValue(Message.StreamType).AsString;
         var streamId = doc.GetValue(Message.StreamId).AsString;
         var offset = doc.GetValue(Message.Offset).ToInt64();
         var eventType = doc.GetValue(Message.EventType).AsString;
         var capturedBy = doc.GetValue(Message.CapturedBy).AsString;
         var capturedAt = doc.GetValue(Message.CapturedAt).AsBsonDateTime.ToUniversalTime();
+        var storedAt = doc.ExtractStoredAt();
         var channel = doc.GetValue(Message.Channel).AsString;
         var serializeType = doc.GetValue(Message.SerializeType).AsString;
         var meaageType = doc.GetValue(Message.MessageType).AsString;
@@ -77,6 +122,7 @@ public static class EvDbBsonDocumentExtensions
                                     : EvDbTelemetryContextName.FromArray(otelContext);
         var result = new EvDbMessageRecord
         {
+            Id = id,
             StreamType = streamType,
             StreamId = streamId,
             Offset = offset,
@@ -88,12 +134,65 @@ public static class EvDbBsonDocumentExtensions
             CapturedBy = capturedBy,
             TelemetryContext = telemetryContext,
             Payload = payload,
+            StoredAt = storedAt
         };
 
         return result;
     }
 
     #endregion //  ToMessageRecord
+
+    #region ToMessag
+
+    public static EvDbMessage ToMessage(this BsonDocument doc)
+    {
+        var id = doc.GetValue(Message.Id).AsGuid;
+        var streamType = doc.GetValue(Message.StreamType).AsString;
+        var streamId = doc.GetValue(Message.StreamId).AsString;
+        var offset = doc.GetValue(Message.Offset).ToInt64();
+        var eventType = doc.GetValue(Message.EventType).AsString;
+        var capturedBy = doc.GetValue(Message.CapturedBy).AsString;
+        var capturedAt = doc.GetValue(Message.CapturedAt).AsBsonDateTime.ToUniversalTime();
+        var storedAt = doc.ExtractStoredAt();
+        var channel = doc.GetValue(Message.Channel).AsString;
+        var serializeType = doc.GetValue(Message.SerializeType).AsString;
+        var meaageType = doc.GetValue(Message.MessageType).AsString;
+
+        var otelBson = doc.GetValue(Message.TelemetryContext);
+        byte[]? otelContext = null;
+        if (otelBson.IsBsonDocument)
+        {
+            var otlDoc = otelBson.AsBsonDocument;
+            string jsonString = otlDoc.ToJson();
+            otelContext = Encoding.UTF8.GetBytes(jsonString);
+        }
+
+        var payloadDoc = doc.GetValue(Message.Payload).AsBsonDocument;
+        var payload = payloadDoc.NormalizePayload(serializeType);
+
+        EvDbTelemetryContextName telemetryContext = otelContext == null
+                                    ? EvDbTelemetryContextName.Empty
+                                    : EvDbTelemetryContextName.FromArray(otelContext);
+        var cursor = new EvDbStreamCursor(streamType, streamId, offset);
+        var result = new EvDbMessage
+        {
+            Id = id,
+            StreamCursor = cursor,
+            EventType = eventType,
+            Channel = channel,
+            MessageType = meaageType,
+            SerializeType = serializeType,
+            CapturedAt = capturedAt,
+            CapturedBy = capturedBy,
+            TelemetryContext = telemetryContext,
+            Payload = payload,
+            StoredAt = storedAt
+        };
+
+        return result;
+    }
+
+    #endregion //  ToMessage
 
     #region ToSnapshotData
 
@@ -167,7 +266,7 @@ public static class EvDbBsonDocumentExtensions
             [Event.StreamType] = rec.StreamCursor.StreamType,
             [Event.StreamId] = rec.StreamCursor.StreamId,
             [Event.Offset] = rec.StreamCursor.Offset,
-            [Event.EventType] = rec.EventType,
+            [Event.EventType] = rec.EventType.Value,
             [Event.TelemetryContext] = bsonTelemetryContext,
             [Event.Payload] = payload,
             [Event.CapturedBy] = rec.CapturedBy,
@@ -183,13 +282,15 @@ public static class EvDbBsonDocumentExtensions
     {
         BsonDocument payload = GetOutboxPayload(rec.SerializeType, rec.Payload);
 
-        byte[]? otelContext = Activity.Current?.SerializeTelemetryContext(); ;
+        byte[]? otelContext = Activity.Current?.SerializeTelemetryContext();
         BsonValue bsonTelemetryContext = otelContext != null
             ? BsonDocument.Parse(Encoding.UTF8.GetString(otelContext))
             : BsonNull.Value;
 
         var doc = new BsonDocument
         {
+            //[MONGO_DB_ID] = new BsonBinaryData(rec.Id, GuidRepresentation.Standard),
+            [Message.Id] = new BsonBinaryData(rec.Id, GuidRepresentation.Standard),
             [Message.StreamType] = rec.StreamType,
             [Message.StreamId] = rec.StreamId,
             [Message.Offset] = rec.Offset,
@@ -234,29 +335,6 @@ public static class EvDbBsonDocumentExtensions
     }
 
     #endregion //  EvDbToBsonDocument(EvDbStoredSnapshotData rec)
-
-    #region NormilizeTelemetryContext
-
-    /// <summary>
-    /// Normalizes the OTEL context.
-    /// The payload is a Bson byte[] representation of BsonDocument
-    /// </summary>
-    /// <param name="bson">The BSON representation.</param>
-    /// <returns>Byte[] that can be deserialize using System.Text.Json</returns>
-    private static byte[]? NormalizeTelemetryContext(this BsonValue bson)
-    {
-        if (bson.IsBsonNull)
-            return null;
-        // Deserialize the BsonValue to a BsonDocument
-        var doc = bson.AsBsonDocument;
-        // Convert the BsonDocument to a JSON string and then to a byte[]
-        // This is assuming that the it is a valid JSON 
-        string jsonString = doc.ToJson();
-        byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
-        return jsonBytes;
-    }
-
-    #endregion //  NormalizeTelemetryContext
 
     #region NormilizePayload
 

@@ -1,7 +1,8 @@
-﻿// Ignore Spelling: Sharding
+﻿// Ignore Spelling: Sharding Bson
 // TBD: [bnaya 2025-04-17] Consider to using Atlas search instead of multiple indexes https://www.mongodb.com/docs/atlas/atlas-search/tutorial/#create-the--index.
 
 using EvDb.Core;
+using EvDb.Core.Adapters.Internals;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Immutable;
@@ -51,18 +52,18 @@ public static class QueryProvider
     public static readonly IImmutableList<CreateIndexModel<BsonDocument>> EventsIndexes = [
         Builders<BsonDocument>.IndexKeys
                 .Ascending(Fields.Event.StreamType)
-        .Ascending(Fields.Event.StreamId)
-        .Ascending(Fields.Event.Offset)
-        .ToCreateIndexModel("evb_events_idx", true),
-        Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Event.EventType)
-                .Ascending(Fields.Event.StreamType)
                 .Ascending(Fields.Event.StreamId)
                 .Ascending(Fields.Event.Offset)
-            .ToCreateIndexModel("evb_events_type_idx"),
-        Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Event.CapturedAt)
-            .ToCreateIndexModel("evb_events_create_at_idx"),
+            .ToCreateIndexModel("evb_events_idx", true),
+        //Builders<BsonDocument>.IndexKeys
+        //        .Ascending(Fields.Event.EventType)
+        //        .Ascending(Fields.Event.StreamType)
+        //        .Ascending(Fields.Event.StreamId)
+        //        .Ascending(Fields.Event.Offset)
+        //    .ToCreateIndexModel("evb_events_type_idx"),
+        //Builders<BsonDocument>.IndexKeys
+        //        .Ascending(Fields.Event.StoredAt)
+        //    .ToCreateIndexModel("evb_events_create_at_idx"),
         ];
 
     #endregion //  EventsIndexes
@@ -77,24 +78,16 @@ public static class QueryProvider
             Builders<BsonDocument>.IndexKeys
                 .Ascending(Fields.Message.StreamType)
                 .Ascending(Fields.Message.StreamId)
+                .Ascending(Fields.Message.Offset)
+                .Ascending(Fields.Message.Channel)
+                .Ascending(Fields.Message.MessageType)
+                .ToCreateIndexModel( "evb_outbox_unique_idx", true),
+            Builders<BsonDocument>.IndexKeys
+                .Ascending("_id")
                 .Ascending(Fields.Message.Channel)
                 .Ascending(Fields.Message.MessageType)
                 .Ascending(Fields.Message.Offset)
-                .ToCreateIndexModel( "evb_outbox_idx", true),
-            Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Message.CapturedAt)
-                .Ascending(Fields.Message.Offset)
-                .ToCreateIndexModel( "evb_read_capture_at_idx"),
-            Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Message.Channel)
-                .Ascending(Fields.Message.CapturedAt)
-                .Ascending(Fields.Message.Offset)
-                .ToCreateIndexModel( "evb_read_channel_capture_at_idx"),
-            Builders<BsonDocument>.IndexKeys
-                .Ascending(Fields.Message.MessageType)
-                .Ascending(Fields.Message.CapturedAt)
-                .Ascending(Fields.Message.Offset)
-                .ToCreateIndexModel( "evb_read_message_type_capture_at_idx"),
+                .ToCreateIndexModel( "evb_read_stored_at_idx"),
            ];
     }
 
@@ -157,6 +150,17 @@ public static class QueryProvider
 
     #endregion //  SortEventsDesc
 
+    #region SortMessages
+
+    public static SortDefinition<BsonDocument> SortMessages { get; } =
+                                    Builders<BsonDocument>.Sort
+                                            .Ascending("_id")
+                                            .Ascending(Fields.Message.Channel)
+                                            .Ascending(Fields.Message.MessageType)
+                                            .Ascending(Fields.Message.Offset);
+
+    #endregion //  SortMessages
+
     #region SortSnapshots
 
     public static SortDefinition<BsonDocument> SortSnapshots { get; } =
@@ -188,7 +192,7 @@ public static class QueryProvider
 
     #region ToFilter
 
-    public static FilterDefinition<BsonDocument> ToFilter(this EvDbStreamAddress address)
+    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbStreamAddress address)
     {
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
@@ -200,7 +204,7 @@ public static class QueryProvider
         return filter;
     }
 
-    public static FilterDefinition<BsonDocument> ToFilter(this EvDbStreamCursor address)
+    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbStreamCursor address)
     {
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
@@ -214,7 +218,21 @@ public static class QueryProvider
         return filter;
     }
 
-    public static FilterDefinition<BsonDocument> ToFilter(this EvDbViewAddress address)
+    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbGetEventsParameters parameters)
+    {
+        FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
+                                    .And(
+                                        Builders<BsonDocument>.Filter
+                                            .Eq(Fields.Event.StreamType, parameters.StreamType),
+                                        Builders<BsonDocument>.Filter
+                                            .Eq(Fields.Event.StreamId, parameters.StreamId),
+                                        Builders<BsonDocument>.Filter
+                                            .Gte(Fields.Event.Offset, parameters.SinceOffset));
+
+        return filter;
+    }
+
+    public static FilterDefinition<BsonDocument> ToBsonFilter(this EvDbViewAddress address)
     {
         FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter
                                     .And(
@@ -228,5 +246,56 @@ public static class QueryProvider
         return filter;
     }
 
-    #endregion //  ToFilter
+    public static BsonDocument ToBsonFilter(this EvDbGetMessagesParameters parameters,
+                                          ObjectId? continueAfter = null)
+    {
+        var matchFilters = new List<BsonDocument>();
+
+        // ID-based filtering
+        var idFilter = new BsonDocument();
+        if (continueAfter.HasValue)
+        {
+            idFilter["$gt"] = continueAfter.Value;
+        }
+        else
+        {
+            idFilter["$gte"] = ObjectId.GenerateNewId(parameters.SinceDate.UtcDateTime);
+        }
+        matchFilters.Add(new BsonDocument("_id", idFilter));
+
+        // Trim the last millisecond to avoid late arrival issues
+        matchFilters.Add(new BsonDocument("$expr",
+            new BsonDocument("$lt", new BsonArray
+            {
+                new BsonDocument("$toDate", "$_id"),
+                new BsonDocument("$dateSubtract", new BsonDocument
+                {
+                    { "startDate", "$$NOW" },
+                    { "unit", "millisecond" },
+                    { "amount", 1 }
+                })
+            })
+        ));
+
+        // Channel filtering
+        if (parameters.Channels is { Length: > 0 })
+        {
+            matchFilters.Add(new BsonDocument(Fields.Message.Channel,
+                new BsonDocument("$in", new BsonArray(parameters.Channels))));
+        }
+
+        // Message type filtering  
+        if (parameters.MessageTypes is { Length: > 0 })
+        {
+            matchFilters.Add(new BsonDocument(Fields.Message.MessageType,
+                new BsonDocument("$in", new BsonArray(parameters.MessageTypes))));
+        }
+
+        // Combine filters with $and
+        return matchFilters.Count == 1
+            ? matchFilters[0]
+            : new BsonDocument("$and", new BsonArray(matchFilters));
+    }
+
+    #endregion //  ToBsonFilter
 }

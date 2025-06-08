@@ -8,7 +8,7 @@ public interface IEvDbMessageMeta : IEvDbEventMeta
     /// <summary>
     /// The message type
     /// </summary>
-    string MessageType { get; }
+    EvDbMessageTypeName MessageType { get; }
 
     /// <summary>
     /// A channel attached to the message

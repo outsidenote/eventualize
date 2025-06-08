@@ -1,8 +1,7 @@
 ﻿using System.Collections.Immutable;
 
 namespace EvDb.Core;
-
-public interface IEvDbStorageStreamAdapter
+public interface IEvDbStorageStreamAdapter : IEvDbChangeStream
 {
     /// <summary>
     /// Gets stored events.
@@ -16,6 +15,8 @@ public interface IEvDbStorageStreamAdapter
 
     /// <summary>
     /// Gets last stored event's offset.
+    /// Used when getting a stream that has no views.
+    /// In this case the last offset fetched from the events rather than views.
     /// </summary>
     /// <param name="address">The stream address</param>
     /// <param name="cancellation">The cancellation.</param>

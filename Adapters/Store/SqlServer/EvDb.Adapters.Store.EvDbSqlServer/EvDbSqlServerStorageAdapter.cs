@@ -37,7 +37,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
         CancellationToken cancellationToken)
     {
         IEnumerable<SqlDataRecord> dataRecords = ToEventsTvp(records);
-        using SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection);//, (SqlTransaction)transaction);
+        using SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection);
         insertCommand.CommandType = CommandType.StoredProcedure;
         SqlParameter tvpParam = insertCommand.Parameters.AddWithValue(
                                                             "@Records",
@@ -63,7 +63,7 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
     {
         var dataRecords = ToOutboxTvp(records);
         query = string.Format(query, shardName);
-        SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection); //, (SqlTransaction)transaction);
+        SqlCommand insertCommand = new SqlCommand(query, (SqlConnection)connection);
         insertCommand.CommandType = CommandType.StoredProcedure;
         SqlParameter tvpParam = insertCommand.Parameters.AddWithValue(
                                                             $"@{shardName}Records",

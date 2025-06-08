@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks.Dataflow;
 using Xunit.Abstractions;
 
+[Trait("Kind", "UnitTest")]
 public class StreamTests
 {
     private readonly IEvDbStorageAdapter _storageAdapter = A.Fake<IEvDbStorageAdapter>();

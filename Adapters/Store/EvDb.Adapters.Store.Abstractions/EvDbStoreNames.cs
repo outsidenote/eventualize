@@ -19,6 +19,7 @@ public static class EvDbStoreNames
             public static readonly string CapturedAt = toSnakeCase(Projection.Event.CapturedAt);
             public static readonly string CapturedBy = toSnakeCase(Projection.Event.CapturedBy);
             public static readonly string TelemetryContext = toSnakeCase(Projection.Event.TelemetryContext);
+            public static readonly string StoredAt = toSnakeCase(Projection.Event.StoredAt);
         }
 
         #endregion //  Event
@@ -40,6 +41,7 @@ public static class EvDbStoreNames
             public static readonly string CapturedBy = toSnakeCase(Projection.Message.CapturedBy);
             public static readonly string SerializeType = toSnakeCase(Projection.Message.SerializeType);
             public static readonly string TelemetryContext = toSnakeCase(Projection.Message.TelemetryContext);
+            public static readonly string StoredAt = toSnakeCase(Projection.Message.StoredAt);
         }
 
         #endregion //  Message
@@ -77,6 +79,8 @@ public static class EvDbStoreNames
             public static readonly string CapturedAt = toParamName(Projection.Event.CapturedAt);
             public static readonly string CapturedBy = toParamName(Projection.Event.CapturedBy);
             public static readonly string TelemetryContext = toParamName(Projection.Event.TelemetryContext);
+            public static readonly string BatchSize = toParamName(nameof(EvDbGetEventsParameters.BatchSize));
+            public static readonly string SinceOffset = toParamName(nameof(EvDbGetEventsParameters.SinceOffset));
         }
 
         #endregion //  Event
@@ -90,7 +94,9 @@ public static class EvDbStoreNames
             public static readonly string StreamId = toParamName(Projection.Message.StreamId);
             public static readonly string Offset = toParamName(Projection.Message.Offset);
             public static readonly string Channel = toParamName(Projection.Message.Channel);
+            public static readonly string Channels = toParamName(nameof(EvDbGetMessagesParameters.Channels));
             public static readonly string MessageType = toParamName(Projection.Message.MessageType);
+            public static readonly string MessageTypes = toParamName(nameof(EvDbGetMessagesParameters.MessageTypes));
             public static readonly string EventType = toParamName(Projection.Message.EventType);
             public static readonly string ShardName = toParamName(nameof(EvDbMessage.ShardName));
             public static readonly string Payload = toParamName(Projection.Message.Payload);
@@ -98,6 +104,8 @@ public static class EvDbStoreNames
             public static readonly string CapturedBy = toParamName(Projection.Message.CapturedBy);
             public static readonly string SerializeType = toParamName(Projection.Message.SerializeType);
             public static readonly string TelemetryContext = toParamName(Projection.Message.TelemetryContext);
+            public static readonly string BatchSize = toParamName(nameof(EvDbGetMessagesParameters.BatchSize));
+            public static readonly string SinceDate = toParamName(nameof(EvDbGetMessagesParameters.SinceDate));
         }
 
         #endregion //  Message
@@ -133,6 +141,7 @@ public static class EvDbStoreNames
             public static readonly string CapturedAt = nameof(EvDbEventRecord.CapturedAt);
             public static readonly string CapturedBy = nameof(EvDbEventRecord.CapturedBy);
             public static readonly string TelemetryContext = nameof(EvDbEventRecord.TelemetryContext);
+            public static readonly string StoredAt = nameof(EvDbEventRecord.StoredAt);
         }
 
         #endregion //  Event
@@ -154,6 +163,7 @@ public static class EvDbStoreNames
             public static readonly string CapturedBy = nameof(EvDbMessageRecord.CapturedBy);
             public static readonly string SerializeType = nameof(EvDbMessageRecord.SerializeType);
             public static readonly string TelemetryContext = nameof(EvDbEventRecord.TelemetryContext);
+            public static readonly string StoredAt = nameof(EvDbEventRecord.StoredAt);
         }
 
         #endregion //  Message

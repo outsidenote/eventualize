@@ -3,7 +3,6 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="[9.0.0,)" />
 		<PackageReference Include="Microsoft.Extensions.Resilience" Version="[9.0.0,)" />
 		<PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" Version="[9.0.0,)" />
-		<PackageReference Include="OpenTelemetry.Api" Version="[1.11.2,)" />
 	</ItemGroup>
 
 	<ItemGroup>

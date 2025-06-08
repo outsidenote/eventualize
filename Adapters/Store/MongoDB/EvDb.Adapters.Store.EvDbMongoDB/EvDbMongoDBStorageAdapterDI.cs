@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Sql Mongo
+﻿// Ignore Spelling: Mongo
 
 using EvDb.Adapters.Store.MongoDB;
 using EvDb.Core;
@@ -75,6 +75,47 @@ public static class EvDbMongoDBStorageAdapterDI
     }
 
     #endregion //  UseMongoDBStoreForEvDbStream
+
+    #region GetMongoDBChangeStream
+
+    public static IEvDbChangeStream GetMongoDBChangeStream(
+            this EvDbStorageContext context,
+            ILogger logger,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
+            IConfiguration? configuration = null)
+    {
+        string connectionString = configuration?.GetConnectionString(connectionStringOrConfigurationKey) ?? connectionStringOrConfigurationKey;
+
+        IEvDbChangeStream storageAdapter = EvDbMongoDBStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []);
+        return storageAdapter;
+    }
+
+    #endregion //  GetMongoDBChangeStream
+
+    #region UseMongoDBChangeStream
+
+    public static void UseMongoDBChangeStream(
+            this IServiceCollection services,
+            EvDbStorageContext? context,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddSingleton(
+            (sp) =>
+            {
+                var ctx = context
+                    ?? sp.GetService<EvDbStorageContext>()
+                    ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
+                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger<EvDbMongoDBStorageAdapter>();
+                IConfiguration? configuration = sp.GetService<IConfiguration>();
+
+                IEvDbChangeStream storageAdapter = ctx.GetMongoDBChangeStream(logger, connectionStringOrConfigurationKey, configuration);
+                return storageAdapter;
+            });
+    }
+
+    #endregion //  UseMongoDBChangeStream
 
     #region UseMongoDBForEvDbSnapshot
 

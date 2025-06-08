@@ -122,13 +122,32 @@ jobs:
         # Wait for the replica set to initialize
         sleep 5
 
-    # Execute all unit tests in the solution
     - name: Execute unit tests
       working-directory: ./Tests/EvDb.UnitTests
       run: dotnet test --filter Category!=Stress
 
-    # Execute all Integration tests in the solution
-    - name: Execute Integration tests
+    - name: Execute Postgres Integration tests
       working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter Category!=Stress
+      run: dotnet test --filter "Db=Postgres&Category!=Stress"
+
+    - name: Execute SqlServer Integration tests
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=SqlServer&Category!=Stress"
+
+    - name: Execute MongoDB Integration tests
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=MongoDB&Category!=Stress"
+
+    - name: Execute Stress Postgres Integration tests
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=Postgres&Category=Stress"
+
+    - name: Execute Stress SqlServer Integration tests
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=SqlServer&Category=Stress"
+
+    - name: Execute Stress MongoDB Integration tests
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=MongoDB&Category=Stress"
+
 

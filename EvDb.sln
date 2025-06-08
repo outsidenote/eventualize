@@ -126,6 +126,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{C8A9
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Adapters.Store.EvDbTesting", "Adapters\Store\Testing\EvDb.Adapters.Store.EvDbTesting\EvDb.Adapters.Store.EvDbTesting.csproj", "{8D92BC21-8FC6-2997-95C5-86CC54D90CE9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{33857C97-409B-4B7B-B3A6-F3404AD39410}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet-deploy.yml = .github\workflows\dotnet-deploy.yml
+		.github\workflows\dotnet-verify.yml = .github\workflows\dotnet-verify.yml
+		.github\workflows\pages.yml = .github\workflows\pages.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -703,7 +710,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CB1F59CB-F586-48BF-9A51-F57F0C843331} = {45D90BEF-AE56-430E-9351-DFB7FFCBE717}
-		{776E4A5C-9280-4139-BDC8-B6EF9F2E2FE7} = {4D9BC5CF-DAE6-4001-8A1C-4D517718CEC4}
+		{776E4A5C-9280-4139-BDC8-B6EF9F2E2FE7} = {BF7A8F35-38ED-48E8-8368-200E13753216}
 		{E263A5DB-A3E6-46E0-AD1D-0B1D0FFB8F1B} = {BF7A8F35-38ED-48E8-8368-200E13753216}
 		{03D1616D-3173-4BE9-9553-E0F193C92EBA} = {BF7A8F35-38ED-48E8-8368-200E13753216}
 		{E28A0B42-B07C-4BA4-B37B-6D90F0A315C1} = {CB1F59CB-F586-48BF-9A51-F57F0C843331}

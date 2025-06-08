@@ -25,12 +25,17 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
         services.AddEvDb()
                 .AddNoViewsFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
                 .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
+        services.AddEvDb()
+                .AddChangeStream(storeType, StorageContext);
+
         var sp = services.BuildServiceProvider();
         _configuration = sp.GetRequiredService<IConfiguration>();
         _factory = sp.GetRequiredService<IEvDbNoViewsFactory>();
         _streamId = Guid.NewGuid();
         _stream = _factory.Create(_streamId);
     }
+
+    #region Stream_NoView_Succeed
 
     [Fact]
     public virtual async Task Stream_NoView_Succeed()
@@ -57,6 +62,42 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
         #endregion //  Asserts
     }
 
+    #endregion //  Stream_NoView_Succeed
+
+    #region Stream_NoView_BeyondBatchSize_Succeed
+
+    [Fact]
+    public virtual async Task Stream_NoView_BeyondBatchSize_Succeed()
+    {
+        const int BATCH_SIZE = 300;
+        int count = BATCH_SIZE * 2;
+
+        await ProcuceEventsAsync(count);
+
+        #region Asserts
+
+        Assert.Equal(count + 1, _stream.StoredOffset);
+
+
+        ICollection<EvDbMessageRecord> messagingCollection = await GetOutboxAsync(EvDbNoViewsOutbox.DEFAULT_SHARD_NAME).ToEnumerableAsync();
+        EvDbMessageRecord[] messaging = messagingCollection!.ToArray();
+        Assert.Equal(count, messaging.Length);
+
+        #endregion //  Asserts
+
+        IEvDbNoViews stream = await _factory.GetAsync(_streamId);
+
+        #region Asserts
+
+        Assert.Equal(count + 1, stream.StoredOffset);
+
+        #endregion //  Asserts
+    }
+
+    #endregion //  Stream_NoView_BeyondBatchSize_Succeed
+
+    #region Stream_NoViewEmpty_Succeed
+
     [Fact]
     public virtual async Task Stream_NoViewEmpty_Succeed()
     {
@@ -66,6 +107,8 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
 
         Assert.Equal(0, stream.StoredOffset);
     }
+
+    #endregion //  Stream_NoViewEmpty_Succeed
 
     private async Task ProcuceEventsAsync(int numOfGrades = 3)
     {

@@ -62,6 +62,47 @@ public static class EvDbPostgresStorageAdapterDI
 
     #endregion //  UsePostgresStoreForEvDbStream
 
+    #region GetPostgresChangeStream
+
+    public static IEvDbChangeStream GetPostgresChangeStream(
+            this EvDbStorageContext context,
+            ILogger logger,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
+            IConfiguration? configuration = null)
+    {
+        string connectionString = configuration?.GetConnectionString(connectionStringOrConfigurationKey) ?? connectionStringOrConfigurationKey;
+
+        IEvDbChangeStream storageAdapter = EvDbPostgresStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, context, []);
+        return storageAdapter;
+    }
+
+    #endregion //  GetPostgresChangeStream
+
+    #region UsePostgresChangeStream
+
+    public static void UsePostgresChangeStream(
+            this IServiceCollection services,
+            EvDbStorageContext? context,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddSingleton(
+            (sp) =>
+            {
+                var ctx = context
+                    ?? sp.GetService<EvDbStorageContext>()
+                    ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
+                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger<EvDbPostgresStorageAdapter>();
+                IConfiguration? configuration = sp.GetService<IConfiguration>();
+
+                IEvDbChangeStream storageAdapter = ctx.GetPostgresChangeStream(logger, connectionStringOrConfigurationKey, configuration);
+                return storageAdapter;
+            });
+    }
+
+    #endregion //  UsePostgresChangeStream
+
     #region UsePostgresForEvDbSnapshot
 
     public static void UsePostgresForEvDbSnapshot(
@@ -106,9 +147,9 @@ public static class EvDbPostgresStorageAdapterDI
     #region UseTypedPostgresForEvDbSnapshot
 
     /// <summary>
-    /// Uses the typed SQL server adapter for EvDb snapshot.
+    /// Uses the typed SQL server storageAdapter for EvDb snapshot.
     /// </summary>
-    /// <typeparam name="T">The Typed snapshot adapter factory</typeparam>
+    /// <typeparam name="T">The Typed snapshot storageAdapter factory</typeparam>
     /// <param name="instance">The instance.</param>
     /// <param name="filter">Filter strategy of what payload it can handle.</param>
     public static void UseTypedPostgresForEvDbSnapshot<T>(
@@ -121,9 +162,9 @@ public static class EvDbPostgresStorageAdapterDI
 
 
     /// <summary>
-    /// Uses the typed SQL server adapter for EvDb snapshot.
+    /// Uses the typed SQL server storageAdapter for EvDb snapshot.
     /// </summary>
-    /// <typeparam name="T">The Typed snapshot adapter factory</typeparam>
+    /// <typeparam name="T">The Typed snapshot storageAdapter factory</typeparam>
     /// <param name="instance">The instance.</param>
     /// <param name="connectionStringOrConfigurationKey">
     /// Connection string or configuration key of it.

@@ -13,6 +13,7 @@ public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin
     private readonly CollectionsSetup _collectionsSetup;
     private readonly StorageFeatures _features;
     private readonly EvDbShardName[] _shardNames;
+    private bool _disposed;
 
     public MongoDBStorageAdmin(
         ILogger logger,
@@ -71,13 +72,16 @@ public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
+        GC.SuppressFinalize(this);
         IAsyncDisposable collectionsSetup = _collectionsSetup;
         await collectionsSetup.DisposeAsync();
-        GC.SuppressFinalize(this);
     }
 
     private void DisposeAction()
     {
+        if (_disposed)
+            return;
+        _disposed = true;
         IDisposable collectionsSetup = _collectionsSetup;
         collectionsSetup.Dispose();
     }

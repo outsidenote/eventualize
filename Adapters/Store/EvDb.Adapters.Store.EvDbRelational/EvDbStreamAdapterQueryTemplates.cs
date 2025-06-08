@@ -17,6 +17,10 @@ public readonly partial record struct EvDbStreamAdapterQueryTemplates
     /// </summary>
     public string GetEvents { get; init; }
     /// <summary>
+    /// Get messages.
+    /// </summary>
+    public string GetMessages { get; init; }
+    /// <summary>
     /// Save Events.
     /// </summary>
     public string SaveEvents { get; init; }
