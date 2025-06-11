@@ -6,7 +6,7 @@ namespace EvDb.Core;
 /// Queries permutation with a specific context
 /// </summary>
 [Equatable]
-public readonly partial record struct EvDbMigrationQueryTemplates
+public readonly partial record struct EvDbAdminQueryTemplates
 {
     /// <summary>
     /// Create environment query.

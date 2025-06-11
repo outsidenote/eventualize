@@ -4,7 +4,7 @@ namespace EvDb.Adapters.Store.MongoDB;
 
 internal static class Scripts
 {
-    public static EvDbMigrationQueryTemplates Create(
+    public static EvDbAdminQueryTemplates Create(
                             EvDbStorageContext storageContext,
                             StorageFeatures features,
                             IEnumerable<EvDbShardName> outboxShardNames)

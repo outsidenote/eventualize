@@ -31,7 +31,7 @@ public sealed class MongoDBStorageAdmin : IEvDbStorageAdmin
         _shardNames = shardNames;
     }
 
-    EvDbMigrationQueryTemplates IEvDbStorageAdmin.Scripts => throw new NotImplementedException();
+    EvDbAdminQueryTemplates IEvDbStorageAdmin.Scripts => throw new NotImplementedException();
 
     #region CreateEnvironmentAsync
 

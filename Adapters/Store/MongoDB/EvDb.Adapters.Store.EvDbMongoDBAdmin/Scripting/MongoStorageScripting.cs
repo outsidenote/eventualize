@@ -6,11 +6,11 @@ using EvDb.Core;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
-public class MongoStorageScripting : IEvDbStorageScripting
+public class MongoStorageScripting : IEvDbStorageAdminScripting
 {
-    public static readonly IEvDbStorageScripting Default = new MongoStorageScripting();
+    public static readonly IEvDbStorageAdminScripting Default = new MongoStorageScripting();
 
-    EvDbMigrationQueryTemplates IEvDbStorageScripting.CreateScripts(
+    EvDbAdminQueryTemplates IEvDbStorageAdminScripting.CreateScripts(
                                                         EvDbStorageContext context,
                                                         StorageFeatures features,
                                                         IEnumerable<EvDbShardName> shardNames)

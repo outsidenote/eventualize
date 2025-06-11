@@ -5,7 +5,7 @@ namespace EvDb.Core;
 
 public interface IEvDbStorageAdmin : IDisposable, IAsyncDisposable
 {
-    EvDbMigrationQueryTemplates Scripts { get; }
+    EvDbAdminQueryTemplates Scripts { get; }
     Task CreateEnvironmentAsync(CancellationToken cancellation = default);
     Task DestroyEnvironmentAsync(CancellationToken cancellation = default);
 }

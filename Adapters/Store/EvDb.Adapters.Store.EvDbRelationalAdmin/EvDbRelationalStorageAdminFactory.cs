@@ -8,12 +8,12 @@ public class EvDbRelationalStorageAdminFactory
 {
     private readonly ILogger _logger;
     private readonly IEvDbConnectionFactory _factory;
-    private readonly IEvDbStorageScripting _scripting;
+    private readonly IEvDbStorageAdminScripting _scripting;
 
     public EvDbRelationalStorageAdminFactory(
         ILogger logger,
         IEvDbConnectionFactory factory,
-        IEvDbStorageScripting scripting)
+        IEvDbStorageAdminScripting scripting)
     {
         _logger = logger;
         _factory = factory;
@@ -25,7 +25,7 @@ public class EvDbRelationalStorageAdminFactory
         StorageFeatures features,
         params EvDbShardName[] shardNames)
     {
-        EvDbMigrationQueryTemplates queries =
+        EvDbAdminQueryTemplates queries =
                         _scripting.CreateScripts(context, features, shardNames);
 
         IEvDbStorageAdmin result =

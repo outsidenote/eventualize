@@ -8,7 +8,7 @@ internal static class Scripts
 {
     private const int DEFAULT_TEXT_LIMIT = 150;
 
-    public static EvDbMigrationQueryTemplates Create(
+    public static EvDbAdminQueryTemplates Create(
                             EvDbStorageContext storageContext,
                             StorageFeatures features,
                             IEnumerable<EvDbShardName> outboxShardNames)
@@ -205,7 +205,7 @@ internal static class Scripts
             }
         }
 
-        var result = new EvDbMigrationQueryTemplates
+        var result = new EvDbAdminQueryTemplates
         {
             DestroyEnvironment = destroyEnvironment,
             CreateEnvironment = GetCreateQueries().ToArray(),

@@ -93,7 +93,7 @@ await app.RunAsync(async (
     }
     else
     {
-        EvDbMigrationQueryTemplates scripts = admin.Scripts;
+        EvDbAdminQueryTemplates scripts = admin.Scripts;
 
         if (operation == Operation.Create)
         {

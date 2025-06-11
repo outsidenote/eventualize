@@ -6,16 +6,16 @@ using EvDb.Core;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-public class SqlServerStorageScripting : IEvDbStorageScripting
+public class SqlServerStorageScripting : IEvDbStorageAdminScripting
 {
-    public static readonly IEvDbStorageScripting Default = new SqlServerStorageScripting();
+    public static readonly IEvDbStorageAdminScripting Default = new SqlServerStorageScripting();
 
-    EvDbMigrationQueryTemplates IEvDbStorageScripting.CreateScripts(
+    EvDbAdminQueryTemplates IEvDbStorageAdminScripting.CreateScripts(
             EvDbStorageContext context,
             StorageFeatures features,
             IEnumerable<EvDbShardName> shardNames)
     {
-        EvDbMigrationQueryTemplates scripts = Sctipts.Create(context, features, shardNames);
+        EvDbAdminQueryTemplates scripts = Sctipts.Create(context, features, shardNames);
         return scripts;
     }
 }

@@ -41,7 +41,7 @@ public static class EvDbPostgresStorageAdminDI
             string connectionStringOrKey = "EvDbPostgresConnection",
             params EvDbShardName[] shardNames)
     {
-        services.AddSingleton<IEvDbStorageScripting, PostgresStorageScripting>();
+        services.AddSingleton<IEvDbStorageAdminScripting, PostgresStorageScripting>();
         services.AddSingleton(sp =>
         {
             var ctx = context

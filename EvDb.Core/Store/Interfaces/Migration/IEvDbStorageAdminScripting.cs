@@ -1,8 +1,8 @@
 ﻿namespace EvDb.Core;
 
-public interface IEvDbStorageScripting
+public interface IEvDbStorageAdminScripting
 {
-    EvDbMigrationQueryTemplates CreateScripts(
+    EvDbAdminQueryTemplates CreateScripts(
                                     EvDbStorageContext context,
                                     StorageFeatures features,
                                     IEnumerable<EvDbShardName> shardNames);

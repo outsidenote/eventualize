@@ -40,7 +40,7 @@ public static class EvDbMongoDBStorageMigrationDI
             string connectionStringOrKey = "EvDbPostgresConnection",
             params EvDbShardName[] shardNames)
     {
-        services.AddSingleton<IEvDbStorageScripting, MongoStorageScripting>();
+        services.AddSingleton<IEvDbStorageAdminScripting, MongoStorageScripting>();
         services.AddSingleton(sp =>
         {
             var ctx = context
