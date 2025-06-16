@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 
 namespace EvDb.Core;
@@ -6,9 +6,11 @@ namespace EvDb.Core;
 /// <summary>
 /// Via the context you can differentiate the naming of the table prefix
 /// </summary>
-[DebuggerDisplay("{DatabaseName}: {Id}")]
+[DebuggerDisplay("📦{DatabaseName} 🧱{Schema} 🌀{Environment} > {Prefix}")]
 public record EvDbStorageContext
 {
+    private readonly EvDbStorageContextData _data;
+
     #region Ctor
 
     /// <summary>
@@ -21,26 +23,37 @@ public record EvDbStorageContext
     public EvDbStorageContext(EvDbDatabaseName databaseName,
                               Env? environment = null,
                               EvDbShardName? prefix = null,
-                              EvDbSchemaName? schema = null)
+                              EvDbSchemaName? schema = null) : this(new EvDbStorageContextData
+                              {
+                                  DatabaseName = databaseName,
+                                  Environment = environment,
+                                  Prefix = prefix,
+                                  Schema = schema
+                              })
     {
+    }
+    /// <summary>
+    /// Create instance
+    /// </summary>
+    public EvDbStorageContext(EvDbStorageContextData data)
+    {
+        _data = data;
         var builder = new StringBuilder(200);
+        var environment = data.Environment;
         if (!string.IsNullOrEmpty(environment))
             builder.Append($"{environment}_");
 
+        var prefix = data.Prefix;
         if (!string.IsNullOrEmpty(prefix?.Value))
             builder.Append($"{prefix}_");
 
         ShortId = builder.ToString();
 
+        var schema = data.Schema;
         if (!string.IsNullOrEmpty(schema?.Value))
             builder.Insert(0, $"{schema}.");
 
         Id = builder.ToString();
-
-        DatabaseName = databaseName;
-        Environment = environment;
-        Prefix = prefix;
-        Schema = schema;
     }
 
     #endregion //  Ctor
@@ -98,7 +111,7 @@ public record EvDbStorageContext
     /// <summary>
     /// Gets the name of the database.
     /// </summary>
-    public EvDbDatabaseName DatabaseName { get; }
+    public EvDbDatabaseName DatabaseName => _data.DatabaseName;
 
     #endregion //  DatabaseName
 
@@ -107,7 +120,7 @@ public record EvDbStorageContext
     /// <summary>
     /// Gets the environment (prod, qa, dev).
     /// </summary>
-    public Env? Environment { get; }
+    public Env? Environment => _data.Environment;
 
     #endregion //  Environment
 
@@ -116,7 +129,7 @@ public record EvDbStorageContext
     /// <summary>
     /// Gets a prefix for the tables names.
     /// </summary>
-    public EvDbShardName? Prefix { get; }
+    public EvDbShardName? Prefix => _data.Prefix;
 
     #endregion //  Prefix
 
@@ -125,7 +138,7 @@ public record EvDbStorageContext
     /// <summary>
     /// Gets the table's schema.
     /// </summary>
-    public EvDbSchemaName? Schema { get; }
+    public EvDbSchemaName? Schema => _data.Schema;
 
     #endregion //  Schema
 
@@ -143,7 +156,24 @@ public record EvDbStorageContext
 
     public static implicit operator string(EvDbStorageContext context) => context.ToString();
 
-    public static implicit operator EvDbStorageContext(string prefix) => EvDbStorageContext.CreateWithEnvironment(prefix);
+    // public static implicit operator EvDbStorageContext(string prefix) => EvDbStorageContext.CreateWithEnvironment(prefix);
+
+    public static implicit operator EvDbStorageContextData(EvDbStorageContext context)
+    {
+        return new EvDbStorageContextData
+        {
+            DatabaseName = context.DatabaseName,
+            Environment = context.Environment,
+            Prefix = context.Prefix,
+            Schema = context.Schema
+        };
+    }
+
+    public static implicit operator EvDbStorageContext(EvDbStorageContextData context)
+    {
+        return new EvDbStorageContext(context);
+    }
 
     #endregion // Cast overloads 
+
 }

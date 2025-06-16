@@ -456,7 +456,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     private void DisposeAction()
     {
-        if(_disposed)
+        if (_disposed)
             return;
         _disposed = true;
 

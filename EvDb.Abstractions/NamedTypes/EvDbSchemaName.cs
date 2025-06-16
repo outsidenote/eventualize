@@ -249,7 +249,7 @@ public partial struct EvDbSchemaName :
             return 1;
         if (obj is EvDbSchemaName x)
             return CompareTo(x);
-        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbDbName", nameof(obj));
+        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbSchemaName", nameof(obj));
         return 0;
     }
 

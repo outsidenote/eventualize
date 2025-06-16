@@ -91,7 +91,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
         {
             count++;
             Assert.Equal(count, message.StreamCursor.Offset);
-            if(count % 100 == 0)
+            if (count % 100 == 0)
             {
                 _output.WriteLine($"Processed {count} messages");
             }

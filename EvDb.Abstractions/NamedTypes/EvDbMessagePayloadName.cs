@@ -215,7 +215,7 @@ public readonly partial struct EvDbMessagePayloadName :
     #region AsSpan
 
     /// <summary>
-    /// Gets the underlying Byte[] as a ReadOnlySpan<byte>.
+    /// <![CDATA[Gets the underlying Byte[] as a ReadOnlySpan<byte>.]]>
     /// </summary>
     /// <returns></returns>
     public ReadOnlySpan<byte> AsSpan()

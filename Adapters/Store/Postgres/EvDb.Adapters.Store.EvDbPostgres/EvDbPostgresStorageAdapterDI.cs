@@ -86,22 +86,43 @@ public static class EvDbPostgresStorageAdapterDI
             string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         services.AddSingleton(
-            (sp) =>
-            {
-                var ctx = context
-                    ?? sp.GetService<EvDbStorageContext>()
-                    ?? EvDbStorageContext.CreateWithEnvironment("evdb");
-
-                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<EvDbPostgresStorageAdapter>();
-                IConfiguration? configuration = sp.GetService<IConfiguration>();
-
-                IEvDbChangeStream storageAdapter = ctx.GetPostgresChangeStream(logger, connectionStringOrConfigurationKey, configuration);
-                return storageAdapter;
-            });
+            (sp) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
     }
 
     #endregion //  UsePostgresChangeStream
+
+    #region UseKeyedPostgresChangeStream
+
+    public static void UseKeyedPostgresChangeStream<TKey>(
+            this IServiceCollection services,
+            EvDbStorageContext? context,
+            TKey key,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddKeyedSingleton(key, (sp, _) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
+    }
+
+    #endregion //  UseKeyedPostgresChangeStream
+
+    #region ChangeStreamFactory
+
+    private static IEvDbChangeStream ChangeStreamFactory(IServiceProvider sp,
+                                                         EvDbStorageContext? context,
+                                                         string connectionStringOrConfigurationKey)
+    {
+        var ctx = context
+            ?? sp.GetService<EvDbStorageContext>()
+            ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
+        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger<EvDbPostgresStorageAdapter>();
+        IConfiguration? configuration = sp.GetService<IConfiguration>();
+
+        IEvDbChangeStream storageAdapter = ctx.GetPostgresChangeStream(logger, connectionStringOrConfigurationKey, configuration);
+        return storageAdapter;
+    }
+
+    #endregion //  ChangeStreamFactory
 
     #region UsePostgresForEvDbSnapshot
 

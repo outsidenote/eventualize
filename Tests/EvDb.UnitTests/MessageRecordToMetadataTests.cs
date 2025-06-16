@@ -1,4 +1,6 @@
-﻿using EvDb.Adapters.Store.Internals;
+﻿// Ignore Spelling: Bson
+
+using EvDb.Adapters.Store.Internals;
 using EvDb.Core;
 using EvDb.Core.Adapters;
 using OpenTelemetry;
@@ -53,7 +55,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
             Payload = Encoding.UTF8.GetBytes("TestPayload"),
             CapturedBy = "TestCapturedBy",
             CapturedAt = DateTimeOffset.UtcNow,
-            TelemetryContext = activity.SerializeTelemetryContext()
+            TelemetryContext = activity?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty
         };
 
         IEvDbEventMeta meta = messageRecord.GetMetadata();
@@ -86,7 +88,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
             Payload = Encoding.UTF8.GetBytes("TestPayload"),
             CapturedBy = "TestCapturedBy",
             CapturedAt = DateTimeOffset.UtcNow,
-            TelemetryContext = activity.SerializeTelemetryContext()
+            TelemetryContext = activity?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty
         };
 
         var doc = messageRecord.EvDbToBsonDocument("shard");
@@ -102,7 +104,6 @@ public sealed class MessageRecordToMetadataTests : IDisposable
         Assert.Equal(messageRecord.EventType, meta.EventType);
         Assert.Equal(messageRecord.Channel, meta.Channel);
         Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
-        //Assert.NotNull(meta.StoredAt);
         messageRecord.AssertTelemetryContextEquals(meta);
     }
 

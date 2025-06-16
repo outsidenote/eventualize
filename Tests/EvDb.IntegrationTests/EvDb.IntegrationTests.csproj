@@ -49,6 +49,9 @@
 		<ProjectReference Include="..\..\Adapters\Store\Testing\EvDb.Adapters.Store.EvDbTesting\EvDb.Adapters.Store.EvDbTesting.csproj" />
 		<ProjectReference Include="..\..\Samples\EvDb.MinimalStructure\EvDb.MinimalStructure.csproj" />
 		<ProjectReference Include="..\..\Samples\EvDb.Scenes\EvDb.Scenes.csproj" />
+		<ProjectReference Include="..\..\Sinks\AWS\EvDb.Sinks.AwsAdmin\EvDb.Sinks.AwsAdmin.csproj" />
+		<ProjectReference Include="..\..\Sinks\AWS\EvDb.Sinks.EvDbSinkSNS\EvDb.Sinks.EvDbSinkSNS.csproj" />
+		<ProjectReference Include="..\..\Sinks\AWS\EvDb.Sinks.EvDbSinkSQS\EvDb.Sinks.EvDbSinkSQS.csproj" />
 		<ProjectReference Include="..\EvDb.TestsHelper\EvDb.TestsHelper.csproj" />
 	</ItemGroup>
 

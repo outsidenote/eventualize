@@ -8,23 +8,22 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace EvDb.Core;
+namespace EvDb.Sinks;
 
 /// <summary>
-/// Represents a outbox's message tagging into semantic channel name.
-/// Part of the message metadata
+/// Represents a sink target (queue or topic name depending on the provider).
 /// </summary>
 [ExcludeFromCodeCoverage]
-[JsonConverter(typeof(EvDbMessageTypeNameSystemTextJsonConverter))]
-[TypeConverter(typeof(EvDbMessageTypeNameTypeConverter))]
-[DebuggerTypeProxy(typeof(EvDbMessageTypeNameDebugView))]
+[JsonConverter(typeof(EvDbSinkTargetSystemTextJsonConverter))]
+[TypeConverter(typeof(EvDbSinkTargetTypeConverter))]
+[DebuggerTypeProxy(typeof(EvDbSinkTargetDebugView))]
 [DebuggerDisplay("{ _value }")]
-public partial struct EvDbMessageTypeName :
-    IEquatable<EvDbMessageTypeName>,
+public partial struct EvDbSinkTarget :
+    IEquatable<EvDbSinkTarget>,
     IEquatable<string>,
-    IComparable<EvDbMessageTypeName>,
+    IComparable<EvDbSinkTarget>,
     IComparable,
-    IParsable<EvDbMessageTypeName>
+    IParsable<EvDbSinkTarget>
 {
     #region Validation
 
@@ -35,7 +34,7 @@ public partial struct EvDbMessageTypeName :
     {
 
         true => Validation.Ok,
-        _ => Validation.Invalid("The message type name must start with letters (A-Z) or (a-z), follow by alphabets, numbers, or the characters `-`, `.`, `_`, `@`, or `#`     .")
+        _ => Validation.Invalid("The sink id name must start with letters (A-Z) or (a-z), follow by alphabets, numbers, or the characters `-`, `.`, `_`, `@`, or `#`     .")
     };
 
     #endregion //  Validation
@@ -71,7 +70,7 @@ public partial struct EvDbMessageTypeName :
 
     [DebuggerStepThroughAttribute]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public EvDbMessageTypeName()
+    public EvDbSinkTarget()
     {
 #if DEBUG
         _stackTrace = new StackTrace();
@@ -81,7 +80,7 @@ public partial struct EvDbMessageTypeName :
     }
 
     [DebuggerStepThroughAttribute]
-    private EvDbMessageTypeName(string value)
+    private EvDbSinkTarget(string value)
     {
         _value = value;
         _isInitialized = true;
@@ -100,16 +99,16 @@ public partial struct EvDbMessageTypeName :
     /// <param name = "value">The underlying type.</param>
     /// <returns>An instance of this type.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EvDbMessageTypeName From(string value)
+    public static EvDbSinkTarget From(string value)
     {
         value = Format(value);
-        var validation = EvDbMessageTypeName.Validate(value);
+        var validation = EvDbSinkTarget.Validate(value);
         if (validation != Validation.Ok)
         {
             ThrowHelper.ThrowWhenValidationFails(validation);
         }
 
-        return new EvDbMessageTypeName(value);
+        return new EvDbSinkTarget(value);
     }
 
     /// <summary>
@@ -124,7 +123,7 @@ public partial struct EvDbMessageTypeName :
                             [NotNullWhen(true)]
                             string? value,
                             [MaybeNullWhen(false)]
-                            out EvDbMessageTypeName vo)
+                            out EvDbSinkTarget vo)
     {
         if (value is null)
         {
@@ -132,14 +131,14 @@ public partial struct EvDbMessageTypeName :
             return false;
         }
 
-        var validation = EvDbMessageTypeName.Validate(value);
+        var validation = EvDbSinkTarget.Validate(value);
         if (validation != Validation.Ok)
         {
             vo = default!;
             return false;
         }
 
-        vo = new EvDbMessageTypeName(value);
+        vo = new EvDbSinkTarget(value);
         return true;
     }
 
@@ -150,21 +149,21 @@ public partial struct EvDbMessageTypeName :
     /// </summary>
     /// <param name = "value">The primitive value.</param>
     /// <returns>A <see cref = "ValueObjectOrError{T}"/> containing either the value object, or an error.</returns>
-    public static ValueObjectOrError<EvDbMessageTypeName> TryFrom(string value)
+    public static ValueObjectOrError<EvDbSinkTarget> TryFrom(string value)
     {
         if (value is null)
         {
-            return new ValueObjectOrError<EvDbMessageTypeName>(Validation.Invalid("The value provided was null"));
+            return new ValueObjectOrError<EvDbSinkTarget>(Validation.Invalid("The value provided was null"));
         }
 
         value = Format(value);
-        var validation = EvDbMessageTypeName.Validate(value);
+        var validation = EvDbSinkTarget.Validate(value);
         if (validation != Validation.Ok)
         {
-            return new ValueObjectOrError<EvDbMessageTypeName>(validation);
+            return new ValueObjectOrError<EvDbSinkTarget>(validation);
         }
 
-        return new ValueObjectOrError<EvDbMessageTypeName>(new EvDbMessageTypeName(value));
+        return new ValueObjectOrError<EvDbSinkTarget>(new EvDbSinkTarget(value));
     }
 
     #endregion //  TryFrom / From
@@ -195,23 +194,23 @@ public partial struct EvDbMessageTypeName :
 
     // only called internally when something has been deserialized into
     // its primitive type.
-    private static EvDbMessageTypeName __Deserialize(string value)
+    private static EvDbSinkTarget __Deserialize(string value)
     {
         value = Format(value);
-        var validation = EvDbMessageTypeName.Validate(value);
+        var validation = EvDbSinkTarget.Validate(value);
         if (validation != Validation.Ok)
         {
             ThrowHelper.ThrowWhenValidationFails(validation);
         }
 
-        return new EvDbMessageTypeName(value);
+        return new EvDbSinkTarget(value);
     }
 
     #endregion //  __Deserialize
 
     #region Equals / CompaareTo / GetHashCode
 
-    public readonly bool Equals(EvDbMessageTypeName other)
+    public readonly bool Equals(EvDbSinkTarget other)
     {
         // It's possible to create uninitialized instances via converters such as EfCore (HasDefaultValue), which call Equals.
         // We treat anything uninitialized as not equal to anything, even obj uninitialized instances of this type.
@@ -220,7 +219,7 @@ public partial struct EvDbMessageTypeName :
         return EqualityComparer<string>.Default.Equals(Value, other.Value);
     }
 
-    public bool Equals(EvDbMessageTypeName other, IEqualityComparer<EvDbMessageTypeName> comparer)
+    public bool Equals(EvDbSinkTarget other, IEqualityComparer<EvDbSinkTarget> comparer)
     {
         return comparer.Equals(this, other);
     }
@@ -237,17 +236,17 @@ public partial struct EvDbMessageTypeName :
 
     public readonly override bool Equals(Object? obj)
     {
-        return obj is EvDbMessageTypeName && Equals((EvDbMessageTypeName)obj);
+        return obj is EvDbSinkTarget && Equals((EvDbSinkTarget)obj);
     }
 
-    public int CompareTo(EvDbMessageTypeName other) => Value.CompareTo(other.Value);
+    public int CompareTo(EvDbSinkTarget other) => Value.CompareTo(other.Value);
     public int CompareTo(object? obj)
     {
         if (obj is null)
             return 1;
-        if (obj is EvDbMessageTypeName x)
+        if (obj is EvDbSinkTarget x)
             return CompareTo(x);
-        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbMessageTypeName", nameof(obj));
+        ThrowHelper.ThrowArgumentException("Cannot compare to object as it is not of type EvDbSinkTarget", nameof(obj));
         return 0;
     }
 
@@ -260,35 +259,35 @@ public partial struct EvDbMessageTypeName :
 
     #region Operator Overloads
 
-    public static implicit operator string(EvDbMessageTypeName vo) => vo._value!;
-    public static implicit operator EvDbMessageTypeName(string value)
+    public static implicit operator string(EvDbSinkTarget vo) => vo._value!;
+    public static implicit operator EvDbSinkTarget(string value)
     {
-        return EvDbMessageTypeName.From(value);
+        return EvDbSinkTarget.From(value);
     }
 
-    public static bool operator ==(EvDbMessageTypeName left, EvDbMessageTypeName right) => left.Equals(right);
-    public static bool operator !=(EvDbMessageTypeName left, EvDbMessageTypeName right) => !(left == right);
-    public static bool operator ==(EvDbMessageTypeName left, string? right) => left.Value.Equals(right);
-    public static bool operator ==(string? left, EvDbMessageTypeName right) => right.Value.Equals(left);
-    public static bool operator !=(string? left, EvDbMessageTypeName right) => !(left == right);
-    public static bool operator !=(EvDbMessageTypeName left, string? right) => !(left == right);
+    public static bool operator ==(EvDbSinkTarget left, EvDbSinkTarget right) => left.Equals(right);
+    public static bool operator !=(EvDbSinkTarget left, EvDbSinkTarget right) => !(left == right);
+    public static bool operator ==(EvDbSinkTarget left, string? right) => left.Value.Equals(right);
+    public static bool operator ==(string? left, EvDbSinkTarget right) => right.Value.Equals(left);
+    public static bool operator !=(string? left, EvDbSinkTarget right) => !(left == right);
+    public static bool operator !=(EvDbSinkTarget left, string? right) => !(left == right);
 
-    public static bool operator <(EvDbMessageTypeName left, EvDbMessageTypeName right)
+    public static bool operator <(EvDbSinkTarget left, EvDbSinkTarget right)
     {
         return left.CompareTo(right) < 0;
     }
 
-    public static bool operator <=(EvDbMessageTypeName left, EvDbMessageTypeName right)
+    public static bool operator <=(EvDbSinkTarget left, EvDbSinkTarget right)
     {
         return left.CompareTo(right) <= 0;
     }
 
-    public static bool operator >(EvDbMessageTypeName left, EvDbMessageTypeName right)
+    public static bool operator >(EvDbSinkTarget left, EvDbSinkTarget right)
     {
         return left.CompareTo(right) > 0;
     }
 
-    public static bool operator >=(EvDbMessageTypeName left, EvDbMessageTypeName right)
+    public static bool operator >=(EvDbSinkTarget left, EvDbSinkTarget right)
     {
         return left.CompareTo(right) >= 0;
     }
@@ -307,7 +306,7 @@ public partial struct EvDbMessageTypeName :
         string? s,
         IFormatProvider? provider,
         [MaybeNullWhen(false)]
-        out EvDbMessageTypeName result)
+        out EvDbSinkTarget result)
     {
         if (s is null)
         {
@@ -315,14 +314,14 @@ public partial struct EvDbMessageTypeName :
             return false;
         }
 
-        var validation = EvDbMessageTypeName.Validate(s);
+        var validation = EvDbSinkTarget.Validate(s);
         if (validation != Validation.Ok)
         {
             result = default;
             return false;
         }
 
-        result = new EvDbMessageTypeName(s);
+        result = new EvDbSinkTarget(s);
         return true;
     }
 
@@ -331,7 +330,7 @@ public partial struct EvDbMessageTypeName :
     /// <returns>
     /// The value created via the <see cref = "From(string)"/> method.
     /// </returns>
-    public static EvDbMessageTypeName Parse(string s, IFormatProvider? provider)
+    public static EvDbSinkTarget Parse(string s, IFormatProvider? provider)
     {
         return From(s!);
     }
@@ -342,30 +341,30 @@ public partial struct EvDbMessageTypeName :
     public readonly override string ToString() =>
                     IsInitialized() ? Value.ToString() : "[UNINITIALIZED]";
 
-    #region EvDbMessageTypeNameSystemTextJsonConverter
+    #region EvDbSinkTargetSystemTextJsonConverter
 
 #nullable disable
     /// <summary>
-    /// Converts a EvDbMessageTypeName to or from JSON.
+    /// Converts a EvDbSinkTarget to or from JSON.
     /// </summary>
-    public class EvDbMessageTypeNameSystemTextJsonConverter : JsonConverter<EvDbMessageTypeName>
+    public class EvDbSinkTargetSystemTextJsonConverter : JsonConverter<EvDbSinkTarget>
     {
-        public override EvDbMessageTypeName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override EvDbSinkTarget Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return EvDbMessageTypeName.__Deserialize(reader.GetString());
+            return EvDbSinkTarget.__Deserialize(reader.GetString());
         }
 
-        public override void Write(Utf8JsonWriter writer, EvDbMessageTypeName value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, EvDbSinkTarget value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.Value);
         }
 
-        public override EvDbMessageTypeName ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override EvDbSinkTarget ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return EvDbMessageTypeName.__Deserialize(reader.GetString());
+            return EvDbSinkTarget.__Deserialize(reader.GetString());
         }
 
-        public override void WriteAsPropertyName(Utf8JsonWriter writer, EvDbMessageTypeName value, JsonSerializerOptions options)
+        public override void WriteAsPropertyName(Utf8JsonWriter writer, EvDbSinkTarget value, JsonSerializerOptions options)
         {
             writer.WritePropertyName(value.Value);
         }
@@ -373,12 +372,12 @@ public partial struct EvDbMessageTypeName :
 
 #nullable restore
 
-    #endregion //  EvDbMessageTypeNameSystemTextJsonConverter
+    #endregion //  EvDbSinkTargetSystemTextJsonConverter
 
 #nullable disable
-    #region EvDbMessageTypeNameTypeConverter
+    #region EvDbSinkTargetTypeConverter
 
-    class EvDbMessageTypeNameTypeConverter : TypeConverter
+    class EvDbSinkTargetTypeConverter : TypeConverter
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
@@ -390,7 +389,7 @@ public partial struct EvDbMessageTypeName :
             var stringValue = value as string;
             if (stringValue is not null)
             {
-                return EvDbMessageTypeName.__Deserialize(stringValue);
+                return EvDbSinkTarget.__Deserialize(stringValue);
             }
 
             return base.ConvertFrom(context, culture, value);
@@ -403,7 +402,7 @@ public partial struct EvDbMessageTypeName :
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, Object value, Type destinationType)
         {
-            if (value is EvDbMessageTypeName idValue && destinationType == typeof(string))
+            if (value is EvDbSinkTarget idValue && destinationType == typeof(string))
             {
                 return idValue.Value;
             }
@@ -412,9 +411,9 @@ public partial struct EvDbMessageTypeName :
         }
     }
 
-    #endregion //  EvDbMessageTypeNameTypeConverter
+    #endregion //  EvDbSinkTargetTypeConverter
 
-    #region EvDbMessageTypeNameDebugView
+    #region EvDbSinkTargetDebugView
 
 #nullable restore
 #nullable disable
@@ -422,10 +421,10 @@ public partial struct EvDbMessageTypeName :
 #pragma warning disable S2325 // Methods and properties that don't access instance data should be static
 #pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable S1144 // Unused private types or members should be removed
-    internal sealed class EvDbMessageTypeNameDebugView
+    internal sealed class EvDbSinkTargetDebugView
     {
-        private readonly EvDbMessageTypeName _t;
-        EvDbMessageTypeNameDebugView(EvDbMessageTypeName t)
+        private readonly EvDbSinkTarget _t;
+        EvDbSinkTargetDebugView(EvDbSinkTarget t)
         {
             _t = t;
         }
@@ -443,6 +442,6 @@ public partial struct EvDbMessageTypeName :
 #pragma warning restore S1144 // Unused private types or members should be removed
 #pragma warning restore S2325 // Methods and properties that don't access instance data should be static
 
-    #endregion //  EvDbMessageTypeNameDebugView
+    #endregion //  EvDbSinkTargetDebugView
 #nullable restore
 }

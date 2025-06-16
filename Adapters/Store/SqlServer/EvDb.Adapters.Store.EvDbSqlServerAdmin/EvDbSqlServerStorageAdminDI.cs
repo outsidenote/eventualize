@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class EvDbSqlServerStorageMigrationDI
+public static class EvDbSqlServerStorageAdminDI
 {
     #region Overloads
 

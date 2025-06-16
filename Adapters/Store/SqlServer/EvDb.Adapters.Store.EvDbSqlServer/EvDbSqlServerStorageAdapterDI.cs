@@ -85,23 +85,43 @@ public static class EvDbSqlServerStorageAdapterDI
             EvDbStorageContext? context,
             string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
-        services.AddSingleton(
-            (sp) =>
-            {
-                var ctx = context
-                    ?? sp.GetService<EvDbStorageContext>()
-                    ?? EvDbStorageContext.CreateWithEnvironment("evdb");
-
-                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();
-                IConfiguration? configuration = sp.GetService<IConfiguration>();
-
-                IEvDbChangeStream storageAdapter = ctx.GetSqlServerChangeStream(logger, connectionStringOrConfigurationKey, configuration);
-                return storageAdapter;
-            });
+        services.AddSingleton((sp) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
     }
 
     #endregion //  UseSqlServerChangeStream
+
+    #region UseKeyedSqlServerChangeStream
+
+    public static void UseKeyedSqlServerChangeStream<TKey>(
+            this IServiceCollection services,
+            EvDbStorageContext? context,
+            TKey key,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddKeyedSingleton(key, (sp, _) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
+    }
+
+    #endregion //  UseKeyedSqlServerChangeStream
+
+    #region ChangeStreamFactory
+
+    private static IEvDbChangeStream ChangeStreamFactory(IServiceProvider sp,
+                                                         EvDbStorageContext? context,
+                                                         string connectionStringOrConfigurationKey)
+    {
+        var ctx = context
+            ?? sp.GetService<EvDbStorageContext>()
+            ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
+        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();
+        IConfiguration? configuration = sp.GetService<IConfiguration>();
+
+        IEvDbChangeStream storageAdapter = ctx.GetSqlServerChangeStream(logger, connectionStringOrConfigurationKey, configuration);
+        return storageAdapter;
+    }
+
+    #endregion //  ChangeStreamFactory
 
     #region UseSqlServerForEvDbSnapshot
 

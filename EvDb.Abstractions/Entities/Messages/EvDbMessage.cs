@@ -1,6 +1,7 @@
 ﻿using Generator.Equals;
 using System.Diagnostics;
 using System.Text.Json;
+#pragma warning disable CS0657 // Not a valid attribute location for this declaration
 
 namespace EvDb.Core;
 

@@ -94,28 +94,54 @@ public static class EvDbMongoDBStorageAdapterDI
 
     #region UseMongoDBChangeStream
 
+    /// <summary>
+    /// Register change stream with a specific key 
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="context"></param>
+    /// <param name="connectionStringOrConfigurationKey"></param>
     public static void UseMongoDBChangeStream(
             this IServiceCollection services,
             EvDbStorageContext? context,
             string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
-        services.AddSingleton(
-            (sp) =>
-            {
-                var ctx = context
-                    ?? sp.GetService<EvDbStorageContext>()
-                    ?? EvDbStorageContext.CreateWithEnvironment("evdb");
-
-                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<EvDbMongoDBStorageAdapter>();
-                IConfiguration? configuration = sp.GetService<IConfiguration>();
-
-                IEvDbChangeStream storageAdapter = ctx.GetMongoDBChangeStream(logger, connectionStringOrConfigurationKey, configuration);
-                return storageAdapter;
-            });
+        services.AddSingleton((sp) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
     }
 
     #endregion //  UseMongoDBChangeStream
+
+    #region UseKeyedMongoDBChangeStream
+
+    public static void UseKeyedMongoDBChangeStream<TKey>(
+            this IServiceCollection services,
+            EvDbStorageContext? context,
+            TKey key,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddKeyedSingleton(key, (sp, _) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
+    }
+
+    #endregion //  UseKeyedMongoDBChangeStream
+
+    #region ChangeStreamFactory
+
+    private static IEvDbChangeStream ChangeStreamFactory(IServiceProvider sp,
+                                                         EvDbStorageContext? context,
+                                                         string connectionStringOrConfigurationKey)
+    {
+        var ctx = context
+            ?? sp.GetService<EvDbStorageContext>()
+            ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+
+        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger<EvDbMongoDBStorageAdapter>();
+        IConfiguration? configuration = sp.GetService<IConfiguration>();
+
+        IEvDbChangeStream storageAdapter = ctx.GetMongoDBChangeStream(logger, connectionStringOrConfigurationKey, configuration);
+        return storageAdapter;
+    }
+
+    #endregion //  ChangeStreamFactory
 
     #region UseMongoDBForEvDbSnapshot
 
