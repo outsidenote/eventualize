@@ -83,6 +83,17 @@ jobs:
           --health-retries=5
           --health-start-period=40s
         # command: mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
+      localstack:
+        image: localstack/localstack:latest
+        env:
+          SERVICES: sqs,sns
+          DEBUG: 1
+          DOCKER_HOST: unix:///var/run/docker.sock
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+        ports:
+          - 4566:4566
 
     steps:
     - name: Checkout
@@ -150,4 +161,7 @@ jobs:
       working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test --filter "Db=MongoDB&Category=Stress"
 
+    - name: Execute AWS Sink Integration tests
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "(Sink=SQS|Sink=SNS)&Category!=Stress"
 

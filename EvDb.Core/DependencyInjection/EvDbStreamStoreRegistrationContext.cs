@@ -21,6 +21,6 @@ public readonly record struct EvDbStreamStoreRegistrationContext : IEvDbRegistra
 
     EvDbStorageContext? IEvDbRegistrationContext.Context => _context;
     EvDbStreamTypeName IEvDbRegistrationContext.Address => _address;
-    IServiceCollection IEvDbRegistrationEntry.Services => _services;
+    IServiceCollection IEvDbServiceCollectionWrapper.Services => _services;
 }
 

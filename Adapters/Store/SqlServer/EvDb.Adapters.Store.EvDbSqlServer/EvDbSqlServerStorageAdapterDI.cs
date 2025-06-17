@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: Sql
 
+using EvDb.Adapters.Internals;
 using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Store.Internals;
@@ -41,9 +42,7 @@ public static class EvDbSqlServerStorageAdapterDI
             key.ToString(),
             (sp, _) =>
                 {
-                    var ctx = context
-                        ?? sp.GetService<EvDbStorageContext>()
-                        ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+                    var ctx = sp.GetEvDbStorageContextFallback(context);
 
                     #region IEvDbConnectionFactory connectionFactory = ...
 
@@ -80,9 +79,27 @@ public static class EvDbSqlServerStorageAdapterDI
 
     #region UseSqlServerChangeStream
 
+    /// <summary>
+    /// Use change stream of sql-server
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="connectionStringOrConfigurationKey"></param>
     public static void UseSqlServerChangeStream(
             this IServiceCollection services,
-            EvDbStorageContext? context,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddSingleton((sp) => ChangeStreamFactory(sp, null, connectionStringOrConfigurationKey));
+    }
+
+    /// <summary>
+    /// Use change stream of sql-server
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="context"></param>
+    /// <param name="connectionStringOrConfigurationKey"></param>
+    public static void UseSqlServerChangeStream(
+            this IServiceCollection services,
+            EvDbStorageContext context,
             string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         services.AddSingleton((sp) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
@@ -92,10 +109,33 @@ public static class EvDbSqlServerStorageAdapterDI
 
     #region UseKeyedSqlServerChangeStream
 
+    /// <summary>
+    /// Use change stream of sql-server 
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <param name="services"></param>
+    /// <param name="key">The Microsoft.Extensions.DependencyInjection.ServiceDescriptor.ServiceKey of the service</param>
+    /// <param name="connectionStringOrConfigurationKey"></param>
     public static void UseKeyedSqlServerChangeStream<TKey>(
             this IServiceCollection services,
-            EvDbStorageContext? context,
             TKey key,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddKeyedSingleton(key, (sp, _) => ChangeStreamFactory(sp, null, connectionStringOrConfigurationKey));
+    }
+
+    /// <summary>
+    /// Use change stream of sql-server 
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <param name="services"></param>
+    /// <param name="key">The Microsoft.Extensions.DependencyInjection.ServiceDescriptor.ServiceKey of the service</param>
+    /// <param name="context"></param>
+    /// <param name="connectionStringOrConfigurationKey"></param>
+    public static void UseKeyedSqlServerChangeStream<TKey>(
+            this IServiceCollection services,
+            TKey key,
+            EvDbStorageContext context,
             string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         services.AddKeyedSingleton(key, (sp, _) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
@@ -109,9 +149,7 @@ public static class EvDbSqlServerStorageAdapterDI
                                                          EvDbStorageContext? context,
                                                          string connectionStringOrConfigurationKey)
     {
-        var ctx = context
-            ?? sp.GetService<EvDbStorageContext>()
-            ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+        var ctx = sp.GetEvDbStorageContextFallback(context);
 
         var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<EvDbSqlServerStorageAdapter>();
@@ -144,9 +182,7 @@ public static class EvDbSqlServerStorageAdapterDI
             key.ToString(),
             (sp, _) =>
                 {
-                    var ctx = context
-                        ?? sp.GetService<EvDbStorageContext>()
-                        ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+                    var ctx = sp.GetEvDbStorageContextFallback(context);
 
                     #region IEvDbConnectionFactory connectionFactory = ...
 
@@ -209,9 +245,7 @@ public static class EvDbSqlServerStorageAdapterDI
 
             (sp, _) =>
             {
-                var ctx = context
-                    ?? sp.GetService<EvDbStorageContext>()
-                    ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+                var ctx = sp.GetEvDbStorageContextFallback(context);
 
                 #region IEvDbConnectionFactory connectionFactory = ...
 

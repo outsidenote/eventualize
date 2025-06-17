@@ -61,7 +61,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StressTestsConsole", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvDb.StressTestsWebApi", "Tests\EvDb.StressTestsWebApi\EvDb.StressTestsWebApi.csproj", "{DA0D9F51-C4D8-42FA-943D-F2AECD9EF6C9}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compose", "Compose", "{470EB5B5-2EA7-402F-BD7F-A9A49911C29E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{470EB5B5-2EA7-402F-BD7F-A9A49911C29E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DBs", "DBs", "{2892D150-8922-4CDE-AD60-0B3C99654CC7}"
 	ProjectSection(SolutionItems) = preProject
@@ -128,9 +128,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Adapters.Store.EvDbTes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{33857C97-409B-4B7B-B3A6-F3404AD39410}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\dotnet-deploy.yml = .github\workflows\dotnet-deploy.yml
-		.github\workflows\dotnet-verify.yml = .github\workflows\dotnet-verify.yml
 		.github\workflows\pages.yml = .github\workflows\pages.yml
+		.github\workflows\dotnet-nuget.yml = .github\workflows\dotnet-nuget.yml
+		.github\workflows\dotnet-version.yml = .github\workflows\dotnet-version.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sinks", "Sinks", "{7F718183-E2B2-41F6-89CE-0C8FEBCFEDC6}"
@@ -146,6 +146,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Sinks.AwsAdmin", "Sinks\AWS\EvDb.Sinks.AwsAdmin\EvDb.Sinks.AwsAdmin.csproj", "{D59D35F3-578A-46E6-8B34-6AD37B144951}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Sinks.Processing", "Sinks\EvDb.Sinks.Processing\EvDb.Sinks.Processing.csproj", "{EA1414F0-0787-45FB-B133-29095A0A32F9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "localstack", "localstack", "{10098330-4E08-435A-BEEF-8F9CBA5B4115}"
+	ProjectSection(SolutionItems) = preProject
+		docker\localstack\docker-compose.yml = docker\localstack\docker-compose.yml
+		docker\localstack\init-aws.sh = docker\localstack\init-aws.sh
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -858,6 +864,7 @@ Global
 		{2ED8E4A9-46D8-48D3-9F03-DFEA967A53D9} = {6C81E6A0-E89E-4717-806B-17110A043E3F}
 		{D59D35F3-578A-46E6-8B34-6AD37B144951} = {6C81E6A0-E89E-4717-806B-17110A043E3F}
 		{EA1414F0-0787-45FB-B133-29095A0A32F9} = {7F718183-E2B2-41F6-89CE-0C8FEBCFEDC6}
+		{10098330-4E08-435A-BEEF-8F9CBA5B4115} = {470EB5B5-2EA7-402F-BD7F-A9A49911C29E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CF849979-7A01-419B-A9C7-8EA947DCD0C2}

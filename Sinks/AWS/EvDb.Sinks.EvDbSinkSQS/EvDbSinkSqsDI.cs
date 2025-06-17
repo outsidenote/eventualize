@@ -1,6 +1,7 @@
 ﻿using Amazon.SQS;
 using EvDb.Sinks;
 using EvDb.Sinks.EvDbSinkSQS;
+using EvDb.Sinks.Internals;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 #pragma warning disable S101 // Types should be named in PascalCase
@@ -20,7 +21,7 @@ public static class EvDbSinkSQSDI
     /// <param name="registration"></param>
     /// <param name="queueName"></param>
     /// <returns></returns>
-    public static IEvDbSinkRegistration TryAddSinkSQS(this IEvDbSinkRegistration registration, string queueName)
+    public static IEvDbSinkRegistration SendToSQS(this IEvDbSinkRegistration registration, string queueName)
     {
         var services = registration.Services;
         services.TryAddKeyedSingleton<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY, (sp, _) =>

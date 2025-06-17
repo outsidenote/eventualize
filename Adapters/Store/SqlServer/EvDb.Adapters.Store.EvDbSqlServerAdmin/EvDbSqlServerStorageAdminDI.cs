@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: Sql Admin
 
+using EvDb.Adapters.Internals;
 using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core;
 using EvDb.Core.Adapters;
@@ -43,9 +44,7 @@ public static class EvDbSqlServerStorageAdminDI
     {
         services.AddSingleton(sp =>
         {
-            var ctx = context
-                ?? sp.GetService<EvDbStorageContext>()
-                ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+            var ctx = sp.GetEvDbStorageContextFallback(context);
 
             ILogger logger = sp.GetRequiredService<ILogger<EvDbRelationalStorageAdminFactory>>();
             string connectionString;

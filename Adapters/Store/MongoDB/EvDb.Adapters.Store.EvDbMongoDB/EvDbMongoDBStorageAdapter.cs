@@ -126,11 +126,11 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (cancellation.IsCancellationRequested)
             yield break;
 
-        var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
+        var opts = options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty;
         IMongoCollection<BsonDocument> collection =
                         await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shard);
 
-        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
+        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty);
 
         int attemptsWhenEmpty = 0;
         TimeSpan delay = opts.DelayWhenEmpty.StartDuration;

@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: Postgres
 
+using EvDb.Adapters.Internals;
 using EvDb.Adapters.Store.Postgres;
 using EvDb.Core;
 using EvDb.Core.Adapters;
@@ -44,9 +45,7 @@ public static class EvDbPostgresStorageAdminDI
         services.AddSingleton<IEvDbStorageAdminScripting, PostgresStorageScripting>();
         services.AddSingleton(sp =>
         {
-            var ctx = context
-                ?? sp.GetService<EvDbStorageContext>()
-                ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+            var ctx = sp.GetEvDbStorageContextFallback(context);
 
             #region IEvDbConnectionFactory connectionFactory = ...
 

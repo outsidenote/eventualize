@@ -1,10 +1,31 @@
-﻿using EvDb.Core;
+﻿// Ignore Spelling: Fallback
+
+using EvDb.Core;
 using EvDb.Core.Adapters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EvDb.Adapters.Internals;
 
 public static class EvDbAdapterInternalExtensions
 {
+
+    #region GetEvDbStorageContextFallback
+
+    /// <summary>
+    /// Context fall-back
+    /// </summary>
+    /// <param name="sp"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public static EvDbStorageContext GetEvDbStorageContextFallback(this IServiceProvider sp, EvDbStorageContext? context)
+    {
+        var ctx = context
+                        ?? sp.GetService<EvDbStorageContext>()
+                        ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+        return ctx;
+    }
+
+    #endregion //  GetEvDbStorageContextFallback
 
     #region DelayWhenEmptyAsync
 

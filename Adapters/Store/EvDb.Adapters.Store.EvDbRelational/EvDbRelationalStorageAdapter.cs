@@ -393,9 +393,9 @@ public abstract class EvDbRelationalStorageAdapter :
         string query = string.Format(StreamQueries.GetMessages, shard);
         _logger.LogQuery(query);
 
-        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
+        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty);
         using DbConnection conn = await InitAsync();
-        var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
+        var opts = options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty;
         int attemptsWhenEmpty = 0;
         TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
         var duplicateDetection = new HashSet<Guid>(parameters.BatchSize);

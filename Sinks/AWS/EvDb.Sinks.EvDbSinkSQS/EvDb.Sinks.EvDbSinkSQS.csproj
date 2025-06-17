@@ -5,7 +5,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\EvDb.Sinks.Abstractions\EvDb.Sinks.Abstractions.csproj" />
+		<ProjectReference Include="..\..\EvDb.Sinks.Processing\EvDb.Sinks.Processing.csproj" />
 	</ItemGroup>
 
   <ItemGroup>

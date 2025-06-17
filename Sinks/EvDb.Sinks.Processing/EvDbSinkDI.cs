@@ -1,6 +1,7 @@
 ﻿using EvDb.Core;
 using EvDb.Core.Internals;
 using EvDb.Sinks;
+using EvDb.Sinks.Internals;
 using EvDb.Sinks.Processing;
 using Microsoft.Extensions.Logging;
 
@@ -8,17 +9,15 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbSinkDI
 {
-    #region Build
+    #region BuildHostedService
 
     /// <summary>
     /// Add message sink (usually sink from outbox to a stream or a queue)
     /// </summary>
     /// <param name="builder"></param>
-    /// <param name="target">sink target (queue name or topic name)</param>
     /// <returns></returns>
-    public static IEvDbSinkRegistration Build(
-                                        this IEvDbSinkRegistrationBuilder builder,
-                                        EvDbSinkTarget target)
+    public static IEvDbSinkRegistration BuildHostedService(
+                                        this IEvDbSinkRegistrationBuilder builder)
     {
         var bag = (SinkBag)builder;
         var services = bag.Services;
@@ -48,20 +47,31 @@ public static class EvDbSinkDI
         return result;
     }
 
-    #endregion //  Build
+    #endregion //  BuildHostedService
 
-    #region AddHostedMessageSink
+    #region AddSink
 
-    public static IEvDbSinkRegistrationBuilder AddHostedMessageSink(
-                                        this IEvDbRegistrationEntry entry,
+    public static SinkChoices AddSink(this EvDbRegistrationEntry self)
+    {
+        IEvDbServiceCollectionWrapper entry = self;
+        return new SinkChoices(entry.Services);
+    }
+
+    #endregion //  AddSink
+
+    #region ForMessages
+
+    public static IEvDbSinkRegistrationBuilder ForMessages(
+                                        this SinkChoices self,
                                         EvDbStorageContextData? context = null)
     {
+        IEvDbServiceCollectionWrapper entry = self;
         IServiceCollection services = entry.Services;
         var bag = new SinkBag(services); 
         return bag;
     }
 
-    #endregion //  AddHostedMessageSink
+    #endregion //  ForMessages
 
     #region AddShard
 
@@ -101,11 +111,39 @@ public static class EvDbSinkDI
 
     #region SinkRegistration
 
-    internal record SinkRegistration(IServiceCollection Services, string Id) : IEvDbSinkRegistration
+    public record SinkRegistration : IEvDbSinkRegistration
     {
+        private readonly IServiceCollection _services;
+        private readonly string _id;
+
+        public SinkRegistration(IServiceCollection services, string Id)
+        {
+            _services = services;
+            _id = Id;
+        }
+
+        IServiceCollection IEvDbServiceCollectionWrapper.Services => _services;
+        string IEvDbSinkRegistration.Id => _id;
+
     }
 
     #endregion //  SinkRegistration
+
+    #region SinkChoices
+
+    public readonly record struct SinkChoices : IEvDbServiceCollectionWrapper
+    {
+        private readonly IServiceCollection _services;
+
+        public SinkChoices(IServiceCollection services)
+        {
+            _services = services;
+        }
+
+        IServiceCollection IEvDbServiceCollectionWrapper.Services => _services;
+    }
+
+    #endregion //  SinkChoices
 }
 
 #region SinkBag

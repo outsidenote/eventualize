@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: Mongo
 
+using EvDb.Adapters.Internals;
 using EvDb.Adapters.Store.MongoDB;
 using EvDb.Core;
 using Microsoft.Extensions.Configuration;
@@ -43,9 +44,7 @@ public static class EvDbMongoDBStorageMigrationDI
         services.AddSingleton<IEvDbStorageAdminScripting, MongoStorageScripting>();
         services.AddSingleton(sp =>
         {
-            var ctx = context
-                ?? sp.GetService<EvDbStorageContext>()
-                ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+            var ctx = sp.GetEvDbStorageContextFallback(context);
 
             #region IEvDbConnectionFactory connectionFactory = ...
 

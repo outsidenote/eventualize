@@ -14,7 +14,7 @@ public readonly record struct EvDbRegistrationEntry : IEvDbRegistrationEntry
         _services = services;
     }
 
-    IServiceCollection IEvDbRegistrationEntry.Services => _services;
+    IServiceCollection IEvDbServiceCollectionWrapper.Services => _services;
 }
 
 

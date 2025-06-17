@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: sns
+﻿// Ignore Spelling: sns Aws
 // Ignore Spelling: sqs
 
 using Amazon.SimpleNotificationService;
@@ -7,7 +7,9 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using EvDb.Sinks.AwsAdmin;
 using System.Globalization;
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 using ms = Microsoft.Extensions.Logging;
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 
 #pragma warning disable S101 // Types should be named in PascalCase
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
@@ -236,6 +238,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="topicARN">The topic ARN.</param>
     /// <param name="queueURL">The queue URL.</param>
     /// <param name="queueARN">The queue ARN.</param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static async Task SetSNSToSQSPolicyAsync(this AmazonSQSClient sqsClient,
                                                     string topicARN,

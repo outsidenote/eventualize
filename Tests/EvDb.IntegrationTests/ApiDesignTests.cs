@@ -35,8 +35,20 @@ public class ApiDesignTests
                             .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
                             .ForALL(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection-server1"))
                             .ForStudentStats(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection2"));
-        //services.AddEvDb() 
-        //        .AddChangeStream(StoreType.MongoDB,)
+        services.AddEvDb()
+                .AddChangeStream(StoreType.MongoDB);
+
+        services.AddEvDb()
+                .AddSink()
+                .ForMessages()
+                .AddShard(EvDbShardName.Default)
+                .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow))
+                .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
+                .BuildHostedService()
+                .SendToSQS("app-commands")
+                .SendToSNS("app-internal-messages")
+                .SendToSNS("app-vip-messages");
+                
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
     }

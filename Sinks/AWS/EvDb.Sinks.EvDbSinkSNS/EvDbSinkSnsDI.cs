@@ -1,6 +1,7 @@
 ﻿using Amazon.SimpleNotificationService;
 using EvDb.Sinks;
 using EvDb.Sinks.EvDbSinkSNS;
+using EvDb.Sinks.Internals;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 #pragma warning disable S101 // Types should be named in PascalCase
@@ -12,7 +13,7 @@ public static class EvDbSinkSNSDI
 {
     private const string PROVIDER_KEY = "SNS";
 
-    public static IEvDbSinkRegistration TryAddSinkSQS(this IEvDbSinkRegistration registration, EvDbSinkTarget topicName)
+    public static IEvDbSinkRegistration SendToSNS(this IEvDbSinkRegistration registration, EvDbSinkTarget topicName)
     {
         var services = registration.Services;
         services.TryAddKeyedSingleton<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY, (sp, _) =>

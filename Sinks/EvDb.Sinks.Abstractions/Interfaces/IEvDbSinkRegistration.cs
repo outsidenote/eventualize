@@ -1,14 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using EvDb.Core.Internals;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace EvDb.Sinks;
+namespace EvDb.Sinks.Internals;
 
 /// <summary>
 /// Use for fluent registration of the sinks
 /// </summary>
-public interface IEvDbSinkRegistration
+public interface IEvDbSinkRegistration: IEvDbServiceCollectionWrapper
 {
-    IServiceCollection Services { get; init; }
-    string Id { get; init; }
-    // EvDbSinkTarget Target { get; init; }
+    string Id { get; }
 }
 

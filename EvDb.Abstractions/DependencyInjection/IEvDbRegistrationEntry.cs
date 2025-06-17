@@ -2,7 +2,6 @@
 
 namespace EvDb.Core.Internals;
 
-public interface IEvDbRegistrationEntry
+public interface IEvDbRegistrationEntry: IEvDbServiceCollectionWrapper
 {
-    IServiceCollection Services { get; }
 }

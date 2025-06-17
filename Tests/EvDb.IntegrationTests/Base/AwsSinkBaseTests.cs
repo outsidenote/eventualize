@@ -14,7 +14,7 @@ using System.Threading;
 using System.Threading.Tasks.Dataflow;
 using Xunit.Abstractions;
 
-public abstract class ChangeStreamBaseTests : BaseIntegrationTests
+public abstract class AwsSinkBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbNoViews _stream;
     protected readonly IConfiguration _configuration;
@@ -24,7 +24,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
 
     #region Ctor
 
-    protected ChangeStreamBaseTests(ITestOutputHelper output, StoreType storeType) :
+    protected AwsSinkBaseTests(ITestOutputHelper output, StoreType storeType) :
         base(output, storeType, true)
     {
         var builder = CoconaApp.CreateBuilder();

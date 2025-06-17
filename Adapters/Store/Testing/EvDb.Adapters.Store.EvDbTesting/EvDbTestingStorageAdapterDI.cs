@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: Sql Testing
 
+using EvDb.Adapters.Internals;
 using EvDb.Core;
 using EvDb.Core.Store.Internals;
 
@@ -44,9 +45,7 @@ public static class EvDbTestingStorageAdapterDI
                     storage = storage
                         ?? sp.GetService<EvDbStreamTestingStorage>()
                         ?? new EvDbStreamTestingStorage();
-                    var ctx = context
-                        ?? sp.GetService<EvDbStorageContext>()
-                        ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+                    var ctx = sp.GetEvDbStorageContextFallback(context);
 
                     IEvDbStorageStreamAdapter adapter = ctx.CreateStreamAdapter(storage,
                                                                                 transformers);
@@ -73,9 +72,7 @@ public static class EvDbTestingStorageAdapterDI
                     storage = storage
                        ?? sp.GetService<EvDbStreamTestingStorage>()
                        ?? new EvDbStreamTestingStorage();
-                    var ctx = context
-                        ?? sp.GetService<EvDbStorageContext>()
-                        ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+                    var ctx = sp.GetEvDbStorageContextFallback(context);
 
                     IEvDbStorageSnapshotAdapter adapter = ctx.CreateSnapshotAdapter(storage);
                     return adapter;

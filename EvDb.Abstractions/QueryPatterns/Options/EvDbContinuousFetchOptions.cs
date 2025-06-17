@@ -7,7 +7,7 @@
 public readonly record struct EvDbContinuousFetchOptions
 {
     public static EvDbContinuousFetchOptions CompleteIfEmpty { get; } = new EvDbContinuousFetchOptions { CompleteWhenEmpty = true };
-    public static EvDbContinuousFetchOptions ContinueIfEmpty { get; } = new EvDbContinuousFetchOptions();
+    public static EvDbContinuousFetchOptions ContinueWhenEmpty { get; } = new EvDbContinuousFetchOptions();
 
     public EvDbContinuousFetchOptions()
     {
