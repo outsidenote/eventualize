@@ -1,11 +1,13 @@
 ﻿// Ignore Spelling: sns Aws
 // Ignore Spelling: sqs
 
+using Amazon.Runtime.Internal.Util;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using EvDb.Sinks.AwsAdmin;
+using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
 #pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 using ms = Microsoft.Extensions.Logging;
@@ -20,6 +22,9 @@ public static class EvDbAwsAdminExtensions
 {
     private static readonly SemaphoreSlim _streamLock = new(1, 1);
     private static readonly SemaphoreSlim _queueLock = new(1, 1);
+    private static readonly IMemoryCache _snsArnCache = new MemoryCache(new MemoryCacheOptions());
+    private static readonly IMemoryCache _sqsArnCache = new MemoryCache(new MemoryCacheOptions());
+    private static readonly TimeSpan SLIDING_CACHE_EXPIRATION = TimeSpan.FromMinutes(5); 
 
     #region GetOrCreateTopicAsync
 
@@ -54,6 +59,12 @@ public static class EvDbAwsAdminExtensions
                                                            ms.ILogger? logger = null,
                                                            CancellationToken cancellationToken = default)
     {
+        if(_snsArnCache.TryGetValue(topicName, out string? cachedTopicArn))
+        {
+            logger?.LogSNSTopicExists(topicName);
+            return cachedTopicArn!;
+        }
+
         await _streamLock.WaitAsync(6000);
         try
         {
@@ -77,6 +88,8 @@ public static class EvDbAwsAdminExtensions
                 logger?.LogSNSTopicExists(topicName);
                 Console.WriteLine($"Using existing SNS topic: {topicArn}");
             }
+
+            _snsArnCache.Set(topicName, topicArn, new MemoryCacheEntryOptions { SlidingExpiration = SLIDING_CACHE_EXPIRATION }); 
 
             return topicArn;
         }
@@ -208,21 +221,29 @@ public static class EvDbAwsAdminExtensions
     /// </summary>
     /// <param name="sqsClient"></param>
     /// <param name="queueUrl"></param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="cancellatims.onToken"></param>
     /// <returns></returns>
     public static async Task<string> GetQueueARNAsync(this AmazonSQSClient sqsClient,
                                                       string queueUrl,
+                                                      ms.ILogger? logger = null,
                                                       CancellationToken cancellationToken = default)
-#pragma warning restore CA1054 // URI-like parameters should not be strings
     {
+        if (_sqsArnCache.TryGetValue(queueUrl, out string? cachedTopicArn))
+        {
+            logger?.LogSQSQueueExists(queueUrl);
+            return cachedTopicArn!;
+        }
+
         var attrs = await sqsClient.GetQueueAttributesAsync(new GetQueueAttributesRequest
         {
             QueueUrl = queueUrl,
             AttributeNames = new List<string> { "QueueArn" }
         }, cancellationToken);
         string arn = attrs.Attributes["QueueArn"];
+        _sqsArnCache.Set(queueUrl, arn, new MemoryCacheEntryOptions { SlidingExpiration = SLIDING_CACHE_EXPIRATION });
         return arn;
     }
+#pragma warning restore CA1054 // URI-like parameters should not be strings
 
     #endregion // GetQueueARNAsync
 

@@ -379,9 +379,9 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #endregion //  class EventRecordParser
 
-    #region IEvDbChangeStream.GetMessagesAsync
+    #region IEvDbChangeStream.GetMessageRecordssAsync
 
-    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
+    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetMessageRecordssAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options,
@@ -403,11 +403,11 @@ public abstract class EvDbRelationalStorageAdapter :
         {
             using DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
             var parser = RecordParserFactory.CreateParser(reader);
-            EvDbMessage? last = null;
+            EvDbMessageRecord? last = null;
             int count = 0;
             while (!cancellation.IsCancellationRequested && await reader.ReadAsync(cancellation).FalseWhenCancelAsync())
             {
-                EvDbMessage m = parser.ParseMessage();
+                EvDbMessageRecord m = parser.ParseMessage();
                 if (duplicateDetection.Contains(m.Id))
                     continue; // Skip duplicate messages
                 ManageDuplicationList();
@@ -440,7 +440,7 @@ public abstract class EvDbRelationalStorageAdapter :
         }
     }
 
-    #endregion //  IEvDbChangeStream.GetMessagesAsync
+    #endregion //  IEvDbChangeStream.GetMessageRecordssAsync
 
     #region IEvDbStorageStreamAdapter Members
 

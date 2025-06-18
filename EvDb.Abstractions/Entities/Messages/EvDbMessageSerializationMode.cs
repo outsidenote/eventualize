@@ -2,7 +2,7 @@
 
 namespace EvDb.Core;
 
-public enum EvDbOutboxSerializationMode
+public enum EvDbMessageSerializationMode
 {
     /// <summary>
     /// The Permissive mode will take the first serialization that

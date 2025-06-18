@@ -1,4 +1,7 @@
-﻿namespace EvDb.Core;
+﻿using EvDb.Core.Adapters;
+using System.Runtime.CompilerServices;
+
+namespace EvDb.Core;
 
 public interface IEvDbChangeStream
 {
@@ -21,7 +24,39 @@ public interface IEvDbChangeStream
     /// <param name="options">Options for the continuous fetch.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    IAsyncEnumerable<EvDbMessage> GetMessagesAsync(
+    async IAsyncEnumerable<EvDbMessage> GetMessagesAsync(
+                                EvDbShardName shard,
+                                EvDbMessageFilter filter,
+                                EvDbContinuousFetchOptions? options = null,
+                                [EnumeratorCancellation] CancellationToken cancellation = default)
+    { 
+        await foreach (EvDbMessageRecord record in this.GetMessageRecordssAsync(shard, filter, options, cancellation))
+        {
+            EvDbMessage message = record;
+            yield return message;
+        }
+    }
+
+    /// <summary>
+    /// Gets stored events.
+    /// </summary>
+    /// <param name="filter">filtering options use `EvDbMessageFilter.Builder` for the filter creation.</param>
+    /// <param name="options">Options for the continuous fetch.</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    IAsyncEnumerable<EvDbMessageRecord> GetMessageRecordssAsync(
+                                EvDbMessageFilter filter,
+                                EvDbContinuousFetchOptions? options = null,
+                                CancellationToken cancellation = default) => this.GetMessageRecordssAsync(EvDbShardName.Default, filter, options, cancellation);
+    /// <summary>
+    /// Gets stored events.
+    /// </summary>
+    /// <param name="shard">The shard (table/collection) of the messages</param>
+    /// <param name="filter">filtering options use `EvDbMessageFilter.Builder` for the filter creation.</param>
+    /// <param name="options">Options for the continuous fetch.</param>
+    /// <param name="cancellation">The cancellation.</param>
+    /// <returns></returns>
+    IAsyncEnumerable<EvDbMessageRecord> GetMessageRecordssAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,

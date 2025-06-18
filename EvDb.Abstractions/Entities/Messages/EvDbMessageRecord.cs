@@ -2,6 +2,10 @@
 
 namespace EvDb.Core.Adapters;
 
+/// <summary>
+/// Raw message record that is stored in the storage.
+/// Can be cast to `EvDbMessage`.
+/// </summary>
 [DebuggerDisplay("MessageType: {MessageType} ,EventType:{EventType}, Channel:{Channel} Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbMessageRecord
 {
@@ -157,4 +161,13 @@ public struct EvDbMessageRecord
     #endregion //  readonly record EvDbMessageMeta struct(...): IEvDbMessageMeta
 
     #endregion //  GetMetadata
+
+    #region GetAddress
+
+    /// <summary>
+    /// Get the address of the message.
+    /// </summary>
+    public EvDbStreamAddress GetAddress() => new EvDbStreamAddress(StreamType, StreamId);
+
+    #endregion //  GetAddress
 }

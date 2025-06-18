@@ -17,13 +17,6 @@ internal class EvDbSysMeters : IEvDbSysMeters
     {
     }
 
-    //public EvDbSysMeters(
-    //              [FromKeyedServices(MetricCounterName)]IMeterFactory meterFactory,
-    //              [FromKeyedServices(MetricDurationName)]IMeterFactory meterDurationFactory
-    //              ): this(meterFactory.Create(MetricCounterName))
-    //{
-    //}
-
     private EvDbSysMeters(Meter counterMeter, Meter durationMeter)
     {
         OCC = counterMeter.CreateCounter<int>("evdb_occ",

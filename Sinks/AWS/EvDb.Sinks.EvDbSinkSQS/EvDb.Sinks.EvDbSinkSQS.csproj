@@ -6,6 +6,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\EvDb.Sinks.Processing\EvDb.Sinks.Processing.csproj" />
+		<ProjectReference Include="..\EvDb.Sinks.AwsAdmin\EvDb.Sinks.AwsAdmin.csproj" />
 	</ItemGroup>
 
   <ItemGroup>

@@ -115,9 +115,9 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #endregion //  GetEventsAsync
 
-    #region GetMessagesAsync
+    #region GetMessageRecordssAsync
 
-    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
+    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetMessageRecordssAsync(
                             EvDbShardName shard,
                             EvDbMessageFilter filter,
                             EvDbContinuousFetchOptions? options,
@@ -136,7 +136,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
         ObjectId? lastId = null;
         var duplicateDetection = new HashSet<Guid>();
-        EvDbMessage? last = null;
+        EvDbMessageRecord? last = null;
         while (!cancellation.IsCancellationRequested)
         {
             IAsyncCursor<BsonDocument> cursor = await GetCursorAsync();
@@ -150,7 +150,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
                     lastId = doc.GetObjectId();
                     // Convert from BsonDocument back to EvDbEvent.
-                    EvDbMessage message = doc.ToMessage();
+                    EvDbMessageRecord message = doc.ToMessage();
                     if (duplicateDetection.Contains(message.Id))
                         continue; // Skip duplicate messages
                     ManageDuplicationList();
@@ -201,7 +201,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         #endregion //  GetCursorAsync
     }
 
-    #endregion //  GetMessagesAsync
+    #endregion //  GetMessageRecordssAsync
 
     #region GetLastEventAsync
 

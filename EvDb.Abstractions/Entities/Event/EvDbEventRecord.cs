@@ -2,7 +2,10 @@
 
 namespace EvDb.Core.Adapters;
 
-
+/// <summary>
+/// Raw event record that is stored in the storage.
+/// Can be cast to `EvDbEvent`.
+/// </summary>
 [DebuggerDisplay("EventType:{EventType}, Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbEventRecord
 {
