@@ -238,8 +238,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                                         attOfOutboxSerialization?.ConstructorArguments ?? ImmutableArray<TypedConstant>.Empty;
         string mode = attOfOutboxSerializationCtorArgs.FirstOrDefault().Value switch
         {
-            0 => "EvDbOutboxSerializationMode.Permissive",
-            _ => "EvDbOutboxSerializationMode.Strict"
+            0 => "EvDbMessageSerializationMode.Permissive",
+            _ => "EvDbMessageSerializationMode.Strict"
         };
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);

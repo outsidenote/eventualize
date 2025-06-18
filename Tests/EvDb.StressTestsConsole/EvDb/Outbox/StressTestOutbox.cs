@@ -7,7 +7,7 @@ namespace EvDb.StressTests.Outbox;
 [EvDbAttachMessageType<Message1>]
 [EvDbAttachMessageType<Message2>]
 [EvDbOutbox<DemoStreamFactory, OutboxShards>]
-//[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)] 
+//[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbMessageSerializationMode.Strict)] 
 public partial class StressTestOutbox
 {
     protected override Shards[] ChannelToShards(Channels outbox) =>
