@@ -117,7 +117,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #region GetMessageRecordssAsync
 
-    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetMessageRecordssAsync(
+    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetMessageRecordsAsync(
                             EvDbShardName shard,
                             EvDbMessageFilter filter,
                             EvDbContinuousFetchOptions? options,
@@ -201,7 +201,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         #endregion //  GetCursorAsync
     }
 
-    #endregion //  GetMessageRecordssAsync
+    #endregion //  GetMessageRecordsAsync
 
     #region GetLastEventAsync
 

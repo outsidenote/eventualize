@@ -30,7 +30,7 @@ public interface IEvDbChangeStream
                                 EvDbContinuousFetchOptions? options = null,
                                 [EnumeratorCancellation] CancellationToken cancellation = default)
     { 
-        await foreach (EvDbMessageRecord record in this.GetMessageRecordssAsync(shard, filter, options, cancellation))
+        await foreach (EvDbMessageRecord record in this.GetMessageRecordsAsync(shard, filter, options, cancellation))
         {
             EvDbMessage message = record;
             yield return message;
@@ -44,10 +44,10 @@ public interface IEvDbChangeStream
     /// <param name="options">Options for the continuous fetch.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    IAsyncEnumerable<EvDbMessageRecord> GetMessageRecordssAsync(
+    IAsyncEnumerable<EvDbMessageRecord> GetMessageRecordsAsync(
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
-                                CancellationToken cancellation = default) => this.GetMessageRecordssAsync(EvDbShardName.Default, filter, options, cancellation);
+                                CancellationToken cancellation = default) => this.GetMessageRecordsAsync(EvDbShardName.Default, filter, options, cancellation);
     /// <summary>
     /// Gets stored events.
     /// </summary>
@@ -56,7 +56,7 @@ public interface IEvDbChangeStream
     /// <param name="options">Options for the continuous fetch.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
-    IAsyncEnumerable<EvDbMessageRecord> GetMessageRecordssAsync(
+    IAsyncEnumerable<EvDbMessageRecord> GetMessageRecordsAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,

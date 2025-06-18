@@ -381,7 +381,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #region IEvDbChangeStream.GetMessageRecordssAsync
 
-    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetMessageRecordssAsync(
+    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetMessageRecordsAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options,
@@ -440,7 +440,7 @@ public abstract class EvDbRelationalStorageAdapter :
         }
     }
 
-    #endregion //  IEvDbChangeStream.GetMessageRecordssAsync
+    #endregion //  IEvDbChangeStream.GetMessageRecordsAsync
 
     #region IEvDbStorageStreamAdapter Members
 

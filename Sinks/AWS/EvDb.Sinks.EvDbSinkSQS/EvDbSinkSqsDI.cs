@@ -30,7 +30,7 @@ public static class EvDbSinkSQSDI
             var logger = logFactory.CreateLogger<EvDbSinkProviderSQS>();
             var client = sp.GetRequiredService<AmazonSQSClient>();
 
-            return new EvDbSinkProviderSQS(logger, client, queueName);
+            return new EvDbSinkProviderSQS(logger, client);
         });
 
         services.TryAddKeyedSingleton(registration.Id, (sp, key) =>
@@ -38,15 +38,6 @@ public static class EvDbSinkSQSDI
             var sink = sp.GetRequiredKeyedService<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY);
             IEvDbTargetedMessagesSinkPublish result = sink.Create(queueName);
             return result;
-        });
-
-
-        services.TryAddKeyedSingleton<IEvDbMessagesSinkPublishProvider>(queueName, (sp, key) =>
-        {
-            var logFactory = sp.GetRequiredService<ILoggerFactory>();
-            var logger = logFactory.CreateLogger<EvDbSinkProviderSQS>();
-            var client = sp.GetRequiredService<AmazonSQSClient>();
-            return new EvDbSinkProviderSQS(logger, client, (string)key!);
         });
 
         return registration;
