@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Sql
+﻿// Ignore Spelling:  Aws
 
 namespace EvDb.Core.Tests;
 
@@ -7,10 +7,10 @@ using Xunit.Abstractions;
 
 [Trait("Kind", "Integration")]
 [Trait("DB", "SqlServer")]
-[Trait("Feature", "ChangeStream")]
-public class SqlServerChangeStreamTests : ChangeStreamBaseTests
+[Trait("Feature", "Sink")]
+public class AwsSinkSqlServerTests : AwsSinkBaseTests
 {
-    public SqlServerChangeStreamTests(ITestOutputHelper output) :
+    public AwsSinkSqlServerTests(ITestOutputHelper output) :
         base(output, StoreType.SqlServer)
     {
     }

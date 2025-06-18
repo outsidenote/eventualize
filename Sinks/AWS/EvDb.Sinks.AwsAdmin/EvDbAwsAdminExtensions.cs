@@ -8,6 +8,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using EvDb.Sinks.AwsAdmin;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using System.Globalization;
 #pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 using ms = Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ public static class EvDbAwsAdminExtensions
     private static readonly SemaphoreSlim _queueLock = new(1, 1);
     private static readonly IMemoryCache _snsArnCache = new MemoryCache(new MemoryCacheOptions());
     private static readonly IMemoryCache _sqsArnCache = new MemoryCache(new MemoryCacheOptions());
-    private static readonly TimeSpan SLIDING_CACHE_EXPIRATION = TimeSpan.FromMinutes(5); 
+    private static readonly TimeSpan SLIDING_CACHE_EXPIRATION = TimeSpan.FromMinutes(5);
 
     #region GetOrCreateTopicAsync
 
@@ -59,7 +60,7 @@ public static class EvDbAwsAdminExtensions
                                                            ms.ILogger? logger = null,
                                                            CancellationToken cancellationToken = default)
     {
-        if(_snsArnCache.TryGetValue(topicName, out string? cachedTopicArn))
+        if (_snsArnCache.TryGetValue(topicName, out string? cachedTopicArn))
         {
             logger?.LogSNSTopicExists(topicName);
             return cachedTopicArn!;
@@ -89,7 +90,7 @@ public static class EvDbAwsAdminExtensions
                 Console.WriteLine($"Using existing SNS topic: {topicArn}");
             }
 
-            _snsArnCache.Set(topicName, topicArn, new MemoryCacheEntryOptions { SlidingExpiration = SLIDING_CACHE_EXPIRATION }); 
+            _snsArnCache.Set(topicName, topicArn, new MemoryCacheEntryOptions { SlidingExpiration = SLIDING_CACHE_EXPIRATION });
 
             return topicArn;
         }
@@ -221,7 +222,8 @@ public static class EvDbAwsAdminExtensions
     /// </summary>
     /// <param name="sqsClient"></param>
     /// <param name="queueUrl"></param>
-    /// <param name="cancellatims.onToken"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static async Task<string> GetQueueARNAsync(this AmazonSQSClient sqsClient,
                                                       string queueUrl,
@@ -249,27 +251,6 @@ public static class EvDbAwsAdminExtensions
 
     #region SetSNSToSQSPolicyAsync
 
-    #region Overloads
-
-#pragma warning disable CA1054 // URI-like parameters should not be strings
-    /// <summary>
-    /// Allow SNS to send to SQS (Policy)
-    /// </summary>
-    /// <param name="sqsClient">The SQS client.</param>
-    /// <param name="topicARN">The topic ARN.</param>
-    /// <param name="queueURL">The queue URL.</param>
-    /// <param name="queueARN">The queue ARN.</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public static async Task SetSNSToSQSPolicyAsync(this AmazonSQSClient sqsClient,
-                                                    string topicARN,
-                                                    string queueURL,
-                                                    string queueARN,
-                                                    CancellationToken cancellationToken = default)
-    {
-        await sqsClient.SetSNSToSQSPolicyAsync(topicARN, queueURL, queueARN, "*", cancellationToken);
-    }
-
     /// <summary>
     /// Allow SNS to send to SQS (Policy)
     /// </summary>
@@ -277,53 +258,13 @@ public static class EvDbAwsAdminExtensions
     /// <param name="topicARN"></param>
     /// <param name="queueURL"></param>
     /// <param name="queueARN"></param>
+    /// <param name="principal">
+    /// The AWS principal (account or '*') to allow publishing from SNS to SQS. Defaults to '*', which allows any principal.
+    /// </param>
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task SetSNSToSQSPolicyAsync(this AmazonSQSClient sqsClient,
-                                                    string topicARN,
-                                                    string queueURL,
-                                                    string queueARN,
-                                                    ms.ILogger? logger = null,
-                                                    CancellationToken cancellationToken = default)
-    {
-        await sqsClient.SetSNSToSQSPolicyAsync(topicARN, queueURL, queueARN, "*", null, cancellationToken);
-    }
-
-    /// <summary>
-    /// Allow SNS to send to SQS (Policy)
-    /// </summary>
-    /// <param name="sqsClient"></param>
-    /// <param name="topicARN"></param>
-    /// <param name="queueURL"></param>
-    /// <param name="queueARN"></param>
-    /// <param name="principal"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public static async Task SetSNSToSQSPolicyAsync(this AmazonSQSClient sqsClient,
-                                                    string topicARN,
-                                                    string queueURL,
-                                                    string queueARN,
-                                                    string principal = "*",
-                                                    CancellationToken cancellationToken = default)
-    {
-        await sqsClient.SetSNSToSQSPolicyAsync(topicARN, queueURL, queueARN, principal, null, cancellationToken);
-    }
-
-    #endregion //  Overloads
-
-    /// <summary>
-    /// Allow SNS to send to SQS (Policy)
-    /// </summary>
-    /// <param name="sqsClient"></param>
-    /// <param name="topicARN"></param>
-    /// <param name="queueURL"></param>
-    /// <param name="queueARN"></param>
-    /// <param name="principal"></param>
-    /// <param name="logger"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public static async Task SetSNSToSQSPolicyAsync(this AmazonSQSClient sqsClient,
+    private static async Task SetSNSToSQSPolicyAsync(this AmazonSQSClient sqsClient,
                                                     string topicARN,
                                                     string queueURL,
                                                     string queueARN,
@@ -362,27 +303,6 @@ public static class EvDbAwsAdminExtensions
 #pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning restore CA1062 // Validate arguments of public methods
 
-    #region Overloads
-
-    /// <summary>
-    /// Attaches an SQS queue to an SNS topic if not already attached.
-    /// </summary>
-    /// <param name="snsClient"></param>
-    /// <param name="topicARN"></param>
-    /// <param name="queueARN"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public static async Task AttachSQSToSNSAsync(
-                            this AmazonSimpleNotificationServiceClient snsClient,
-                            string topicARN,
-                            string queueARN,
-                            CancellationToken cancellationToken = default)
-    {
-        await snsClient.AttachSQSToSNSAsync(topicARN, queueARN, null, cancellationToken);
-    }
-
-    #endregion //  Overloads
-
     /// <summary>
     /// Attaches an SQS queue to an SNS topic if not already attached.
     /// As result the SQS queue will receive messages published to the SNS topic.
@@ -393,7 +313,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task AttachSQSToSNSAsync(
+    private static async Task AttachSQSToSNSAsync(
                             this AmazonSimpleNotificationServiceClient snsClient,
                             string topicARN,
                             string queueARN,
@@ -401,7 +321,7 @@ public static class EvDbAwsAdminExtensions
                             CancellationToken cancellationToken = default)
     {
         // Check if subscription exists, if not create it
-        var snsSubscriptions = await snsClient.ListSubscriptionsByTopicAsync(topicARN);
+        var snsSubscriptions = await snsClient.ListSubscriptionsByTopicAsync(topicARN, cancellationToken);
 
         bool subscriptionExists = false;
         foreach (var sub in snsSubscriptions.Subscriptions ?? [])
@@ -423,7 +343,7 @@ public static class EvDbAwsAdminExtensions
                     TopicArn = topicARN,
                     Protocol = "sqs",
                     Endpoint = queueARN
-                });
+                }, cancellationToken);
                 logger?.LogSQSAttachedToSNSAsync(topicARN, queueARN, subscribeResponse.SubscriptionArn);
             }
             catch (Exception ex)
@@ -432,7 +352,91 @@ public static class EvDbAwsAdminExtensions
             }
         }
     }
-#pragma warning restore CA1031 // Do not catch general exception types
 
     #endregion //  AllowSNSToSendToSQSAsync
+
+    #region SubscribeSQSToSNSOptions
+
+    public record SubscribeSQSToSNSOptions
+    {
+        public static readonly SubscribeSQSToSNSOptions Default = new();
+
+        public string Principal { get; set; } = "*";
+        public TimeSpan? SqsVisibilityTimeoutOnCreation { get; set; }
+        public ms.ILogger? Logger { get; set; }
+    }
+
+    #endregion //  SubscribeSQSToSNSOptions
+
+    #region SubscribeSQSToSNSAsync
+
+    public static async Task SubscribeSQSToSNSAsync(
+        this AmazonSimpleNotificationServiceClient snsClient,
+        AmazonSQSClient sqsClient,
+        string topicName,
+        string queueName,
+        CancellationToken cancellationToken = default)
+    {
+        var options = SubscribeSQSToSNSOptions.Default;
+
+        await SubscribeSQSToSNSAsync(
+            snsClient,
+            sqsClient,
+            topicName,
+            queueName,
+            options.Principal,
+            options.SqsVisibilityTimeoutOnCreation,
+            options.Logger,
+            cancellationToken);
+    }
+
+    public static async Task SubscribeSQSToSNSAsync(
+        this AmazonSimpleNotificationServiceClient snsClient,
+        AmazonSQSClient sqsClient,
+        string topicName,
+        string queueName,
+        Action<SubscribeSQSToSNSOptions> optionsBuilder,
+        CancellationToken cancellationToken = default)
+    {
+        var options = SubscribeSQSToSNSOptions.Default;
+        optionsBuilder?.Invoke(options);
+
+        await SubscribeSQSToSNSAsync(
+            snsClient,
+            sqsClient,
+            topicName,
+            queueName,
+            options.Principal,
+            options.SqsVisibilityTimeoutOnCreation,
+            options.Logger,
+            cancellationToken);
+    }
+
+    // Original method (now private)
+    private static async Task SubscribeSQSToSNSAsync(
+        this AmazonSimpleNotificationServiceClient snsClient,
+        AmazonSQSClient sqsClient,
+        string topicName,
+        string queueName,
+        string principal = "*",
+        TimeSpan? sqsVisibilityTimeoutOnCreation = null,
+        ms.ILogger? logger = null,
+        CancellationToken cancellationToken = default)
+    {
+        var topicArn = await snsClient.GetOrCreateTopicAsync(topicName, cancellationToken);
+        TimeSpan visibilityTimeout = sqsVisibilityTimeoutOnCreation ?? TimeSpan.FromMinutes(10);
+        var queueUrl = await sqsClient.GetOrCreateQueueAsync(queueName, visibilityTimeout, cancellationToken: cancellationToken);
+        var queueArn = await sqsClient.GetQueueARNAsync(queueUrl, logger, cancellationToken);
+
+        await sqsClient.SetSNSToSQSPolicyAsync(topicArn,
+                                               queueUrl,
+                                               queueArn,
+                                               principal,
+                                               logger,
+                                               cancellationToken: cancellationToken);
+    }
+
+    #endregion //  SubscribeSQSToSNSAsync
+
+#pragma warning restore CA1031 // Do not catch general exception types
 }

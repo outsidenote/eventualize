@@ -26,12 +26,12 @@ public static class EvDbSinkDI
         services.AddKeyedSingleton(bag.Id, bag);
         services.AddKeyedSingleton(bag.Id, (sp, key) =>
         {
-            var publisher = sp.GetRequiredKeyedService<IEvDbTargetedMessagesSinkPublish>(bag.Id);
+            var publishers = sp.GetRequiredKeyedService<IEnumerable<IEvDbTargetedMessagesSinkPublish>>(bag.Id);
             IEvDbChangeStream changeStream = sp.GetKeyedService<IEvDbChangeStream>(bag.Id) ??
                                              sp.GetRequiredService<IEvDbChangeStream>();
             var logFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = logFactory.CreateLogger<EvDbMessagesSinkProcessor>();
-            var result = new EvDbMessagesSinkProcessor(logger, publisher, changeStream, bag);
+            IEvDbMessagesSinkProcessor result = new EvDbMessagesSinkProcessor(logger, changeStream, publishers, bag);
             return result;
         });
 
@@ -48,6 +48,38 @@ public static class EvDbSinkDI
     }
 
     #endregion //  BuildHostedService
+
+    #region BuildProcessor
+
+    /// <summary>
+    /// Add message sink (usually sink from outbox to a stream or a queue)
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    public static IEvDbSinkRegistration BuildProcessor(
+                                        this IEvDbSinkRegistrationBuilder builder)
+    {
+        var bag = (SinkBag)builder;
+        var services = bag.Services;
+
+
+        services.AddKeyedSingleton(bag.Id, bag);
+        services.AddKeyedSingleton(bag.Id, (sp, key) =>
+        {
+            var publishers = sp.GetRequiredKeyedService<IEnumerable<IEvDbTargetedMessagesSinkPublish>>(bag.Id);
+            IEvDbChangeStream changeStream = sp.GetKeyedService<IEvDbChangeStream>(bag.Id) ??
+                                             sp.GetRequiredService<IEvDbChangeStream>();
+            var logFactory = sp.GetRequiredService<ILoggerFactory>();
+            var logger = logFactory.CreateLogger<EvDbMessagesSinkProcessor>();
+            IEvDbMessagesSinkProcessor result = new EvDbMessagesSinkProcessor(logger, changeStream, publishers, bag);
+            return result;
+        });
+
+        var result = new SinkRegistration(services, bag.Id);
+        return result;
+    }
+
+    #endregion //  BuildProcessor
 
     #region AddSink
 
