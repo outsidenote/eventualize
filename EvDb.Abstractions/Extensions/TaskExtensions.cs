@@ -1,4 +1,4 @@
-﻿namespace EvDb.Core.Adapters;
+﻿namespace EvDb.Core;
 
 public static class TaskExtensions
 {

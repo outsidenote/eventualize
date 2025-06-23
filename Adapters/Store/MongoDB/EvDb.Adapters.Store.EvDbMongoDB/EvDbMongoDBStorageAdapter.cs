@@ -12,6 +12,7 @@ using MongoDB.Driver;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks.Dataflow;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 using static EvDb.Core.Adapters.StoreTelemetry;
 
@@ -115,7 +116,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #endregion //  GetEventsAsync
 
-    #region GetMessageRecordssAsync
+    #region GetMessageRecordsAsync
 
     async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetMessageRecordsAsync(
                             EvDbShardName shard,

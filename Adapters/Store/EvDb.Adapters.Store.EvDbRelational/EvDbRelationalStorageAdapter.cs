@@ -9,6 +9,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks.Dataflow;
 using System.Transactions;
 using static EvDb.Core.Adapters.StoreTelemetry;
 

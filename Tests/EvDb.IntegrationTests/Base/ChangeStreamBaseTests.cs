@@ -3,6 +3,7 @@
 namespace EvDb.Core.Tests;
 
 using Cocona;
+using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
 using Microsoft.Extensions.Configuration;
@@ -153,6 +154,170 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
     }
 
     #endregion //  ChangeStream_GetMessages_Succeed
+
+    #region ChangeStream_GetMessageRecords_Succeed
+
+    [Fact]
+    public virtual async Task ChangeStream_GetMessageRecords_Succeed()
+    {
+        const int BATCH_SIZE = 300;
+        const int FUTURE_COUNT = 30;
+        const int CHUNCK_SIZE = 40;
+        var cancellationDucraion = Debugger.IsAttached
+                                        ? TimeSpan.FromMinutes(10)
+                                        : TimeSpan.FromSeconds(5);
+
+        using var cts = new CancellationTokenSource(cancellationDucraion);
+        var cancellationToken = cts.Token;
+        var defaultEventsOptions = EvDbContinuousFetchOptions.ContinueWhenEmpty;
+        int count = BATCH_SIZE * 2;
+        var startAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+
+        // produce messages before start listening to the change stream
+        for (int i = 0; i < count; i += CHUNCK_SIZE)
+        {
+            await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
+        }
+        await Task.Delay(50); // Change stream ignore last ms
+
+        EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
+        IAsyncEnumerable<EvDbMessageRecord> messages =
+                        _changeStream.GetMessageRecordsAsync(shard, startAt, defaultEventsOptions, cancellationToken);
+
+        long lastOffset = 0;
+        await foreach (var message in messages)
+        {
+            long messageOffset = message.Offset;
+            Assert.Equal(lastOffset, messageOffset - 1);
+            lastOffset = messageOffset;
+
+            AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
+            Assert.Equal(messageOffset, data!.Avg);
+
+            if (messageOffset == 50)
+            {
+                var _ = ProcuceStudentReceivedGradeAsync(FUTURE_COUNT, count); // produce more messages after start listening to the change stream
+            }
+            if (messageOffset == count + FUTURE_COUNT)
+                await cts.CancelAsync();
+        }
+
+        Assert.Equal(count + FUTURE_COUNT, lastOffset);
+    }
+
+    #endregion //  ChangeStream_GetMessageRecords_Succeed
+
+    #region ChangeStream_SubscribeToMessage_Succeed
+
+    [Fact]
+    public virtual async Task ChangeStream_SubscribeToMessage_Succeed()
+    {
+        const int BATCH_SIZE = 300;
+        const int FUTURE_COUNT = 30;
+        const int CHUNCK_SIZE = 40;
+        const int BOUNDED_CAPACITY = 50; // check the back-pressure
+
+        var cancellationDucraion = Debugger.IsAttached
+                                        ? TimeSpan.FromMinutes(10)
+                                        : TimeSpan.FromSeconds(5);
+
+        using var cts = new CancellationTokenSource(cancellationDucraion);
+        var cancellationToken = cts.Token;
+        var defaultEventsOptions = EvDbContinuousFetchOptions.ContinueWhenEmpty;
+        int count = BATCH_SIZE * 2;
+        var startAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+
+        // produce messages before start listening to the change stream
+        for (int i = 0; i < count; i += CHUNCK_SIZE)
+        {
+            await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
+        }
+        await Task.Delay(50); // Change stream ignore last ms
+
+        int total = count + FUTURE_COUNT;
+        EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
+        long processingCounter = 0;
+        var actionblock = new ActionBlock<EvDbMessage>(async message =>
+        {
+            var processed = Interlocked.Increment(ref processingCounter);
+
+            if (processed == 50)
+            {
+                var _ = ProcuceStudentReceivedGradeAsync(FUTURE_COUNT, count); // produce more messages after start listening to the change stream
+            }
+            if (processed == total)
+                await cts.CancelAsync();
+        }, new ExecutionDataflowBlockOptions
+        {
+            CancellationToken = CancellationToken.None,
+            MaxDegreeOfParallelism = 10,
+            BoundedCapacity = BOUNDED_CAPACITY
+        });
+        Task subscription = _changeStream.SubscribeToMessageAsync(actionblock, shard, startAt, defaultEventsOptions, cancellationToken);
+
+        await subscription; // push all into the action block
+        await actionblock.Completion; // all completed
+
+        Assert.Equal(total, processingCounter);
+    }
+
+    #endregion //  ChangeStream_SubscribeToMessage_Succeed
+
+    #region ChangeStream_SubscribeToMessageRecords_Succeed
+
+    [Fact]
+    public virtual async Task ChangeStream_SubscribeToMessageRecords_Succeed()
+    {
+        const int BATCH_SIZE = 300;
+        const int FUTURE_COUNT = 30;
+        const int CHUNCK_SIZE = 40;
+        const int BOUNDED_CAPACITY = 50; // check the back-pressure
+
+        var cancellationDucraion = Debugger.IsAttached
+                                        ? TimeSpan.FromMinutes(10)
+                                        : TimeSpan.FromSeconds(5);
+
+        using var cts = new CancellationTokenSource(cancellationDucraion);
+        var cancellationToken = cts.Token;
+        var defaultEventsOptions = EvDbContinuousFetchOptions.ContinueWhenEmpty;
+        int count = BATCH_SIZE * 2;
+        var startAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+
+        // produce messages before start listening to the change stream
+        for (int i = 0; i < count; i += CHUNCK_SIZE)
+        {
+            await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
+        }
+        await Task.Delay(50); // Change stream ignore last ms
+
+        int total = count + FUTURE_COUNT;
+        EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
+        long processingCounter = 0;
+        var actionblock = new ActionBlock<EvDbMessageRecord>(async message =>
+        {
+            var processed = Interlocked.Increment(ref processingCounter);
+
+            if (processed == 50)
+            {
+                var _ = ProcuceStudentReceivedGradeAsync(FUTURE_COUNT, count); // produce more messages after start listening to the change stream
+            }
+            if (processed == total)
+                await cts.CancelAsync();
+        }, new ExecutionDataflowBlockOptions
+                    {
+                        CancellationToken = CancellationToken.None,
+                        MaxDegreeOfParallelism = 10,
+                        BoundedCapacity = BOUNDED_CAPACITY
+                    });
+        Task subscription = _changeStream.SubscribeToMessageRecordsAsync(actionblock, shard, startAt, defaultEventsOptions, cancellationToken);
+
+        await subscription; // push all into the action block
+        await actionblock.Completion; // all completed
+
+        Assert.Equal(total, processingCounter);
+    }
+
+    #endregion //  ChangeStream_SubscribeToMessageRecords_Succeed
 
     #region ProcuceStudentReceivedGradeAsync
 
