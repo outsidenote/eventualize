@@ -1,7 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿namespace EvDb.Core.Internals;
 
-namespace EvDb.Core.Internals;
-
-public interface IEvDbRegistrationEntry: IEvDbServiceCollectionWrapper
+public interface IEvDbRegistrationEntry : IEvDbServiceCollectionWrapper
 {
 }

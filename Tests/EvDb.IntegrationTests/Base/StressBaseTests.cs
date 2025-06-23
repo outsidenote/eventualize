@@ -11,6 +11,7 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
+[Collection("Stress")]
 public abstract class StressBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbDemoStreamFactory _factory;
@@ -165,7 +166,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
         int expectedEventsCount = writeCycleCount * batchSize;
         Assert.Equal(writeCycleCount * streamsCount, counter);
         _output.WriteLine($"count: {counter}");
-        _output.WriteLine($"OCC count: {occCounter}");
+        _output.WriteLine($"Published count: {occCounter}");
         for (int i = 0; i < streamsCount; i++)
         {
             var streamId = $"stream-{i}";
@@ -241,7 +242,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
 
         int expectedEventsCount = writeCycleCount * batchSize;
         Assert.Equal(writeCycleCount * streamsCount, counter);
-        _output.WriteLine($"OCC count: {occCounter}");
+        _output.WriteLine($"Published count: {occCounter}");
         for (int i = 0; i < streamsCount; i++)
         {
             var streamId = $"stream-{i}";

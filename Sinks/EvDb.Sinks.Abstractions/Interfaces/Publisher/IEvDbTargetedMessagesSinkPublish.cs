@@ -8,6 +8,11 @@ namespace EvDb.Sinks;
 public interface IEvDbTargetedMessagesSinkPublish
 {
     /// <summary>
+    /// The kind of the sink, e.g. "SNS", "SQS", "Kafka", etc.
+    /// </summary>
+    string Kind { get; }
+
+    /// <summary>
     /// Publishes a message to the specified sink and specific target (topic/queue).
     /// </summary>
     /// <param name="message">the payload</param>

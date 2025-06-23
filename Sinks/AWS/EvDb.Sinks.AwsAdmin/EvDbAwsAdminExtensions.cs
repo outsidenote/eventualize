@@ -1,14 +1,13 @@
 ﻿// Ignore Spelling: sns Aws
 // Ignore Spelling: sqs
 
-using Amazon.Runtime.Internal.Util;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using EvDb.Sinks;
 using EvDb.Sinks.AwsAdmin;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using System.Globalization;
 #pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 using ms = Microsoft.Extensions.Logging;
@@ -39,7 +38,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
-                                                           string topicName,
+                                                           EvDbSinkTarget topicName,
                                                            CancellationToken cancellationToken = default)
     {
         return await snsClient.GetOrCreateTopicAsync(topicName, null, cancellationToken);
@@ -56,10 +55,11 @@ public static class EvDbAwsAdminExtensions
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
-                                                           string topicName,
+                                                           EvDbSinkTarget topicName,
                                                            ms.ILogger? logger = null,
                                                            CancellationToken cancellationToken = default)
     {
+
         if (_snsArnCache.TryGetValue(topicName, out string? cachedTopicArn))
         {
             logger?.LogSNSTopicExists(topicName);
@@ -80,7 +80,30 @@ public static class EvDbAwsAdminExtensions
 
             if (string.IsNullOrEmpty(topicArn))
             {
-                var createTopicResponse = await snsClient.CreateTopicAsync(topicName, cancellationToken);
+                bool isFifo = topicName.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase);
+                var attributes = new Dictionary<string, string>();
+                string name = topicName.Value;
+                if(isFifo)
+                {
+                    attributes.Add("FifoTopic", "true");
+                    attributes.Add("ContentBasedDeduplication", "true"); // auto deduplication
+                }
+                var options = new CreateTopicRequest
+                {
+                    Name = name,
+                    Attributes = attributes
+                };
+                CreateTopicResponse createTopicResponse = await snsClient.CreateTopicAsync(options, cancellationToken);
+
+                #region Validation
+
+                if (createTopicResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new InvalidOperationException($"Failed to create SNS topic: {name}");
+                }
+
+                #endregion //  Validation
+
                 topicArn = createTopicResponse.TopicArn;
                 logger?.LogSNSTopicCreated(topicName);
             }
@@ -115,7 +138,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static async Task<string> GetOrCreateQueueAsync(this AmazonSQSClient sqsClient,
-                                                              string queueName,
+                                                              EvDbSinkTarget queueName,
                                                               TimeSpan visibilityTimeout,
                                                               CancellationToken cancellationToken = default)
     {
@@ -134,7 +157,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static async Task<string> GetOrCreateQueueAsync(this AmazonSQSClient sqsClient,
-                                                              string queueName,
+                                                              EvDbSinkTarget queueName,
                                                               TimeSpan visibilityTimeout,
                                                               ms.ILogger? logger = null,
                                                               CancellationToken cancellationToken = default)
@@ -153,7 +176,7 @@ public static class EvDbAwsAdminExtensions
             if (listQueuesResponse.QueueUrls is not null)
             {
                 existingQueueUrl = listQueuesResponse.QueueUrls
-                                                        .FirstOrDefault(url => url.EndsWith($"/{queueName}",
+                                                        .FirstOrDefault(url => url.EndsWith($"{queueName}",
                                                                              StringComparison.OrdinalIgnoreCase));
             }
 
@@ -164,7 +187,41 @@ public static class EvDbAwsAdminExtensions
             }
             else
             {
-                var createQueueResponse = await sqsClient.CreateQueueAsync(queueName, cancellationToken);
+                bool isFifo = queueName.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase);
+                var attributes = new Dictionary<string, string>();
+                if (isFifo)
+                {
+                    attributes.Add("FifoQueue", "true");
+                    attributes.Add("ContentBasedDeduplication", "true"); // auto deduplication
+                }
+
+                /* TODO: consider
+                 [QueueAttributeName.MessageRetentionPeriod] = (config.MessageRetentionPeriodDays * 24 * 60 * 60).ToString(),
+                [QueueAttributeName.DelaySeconds] = config.DelaySeconds.ToString(),
+                [QueueAttributeName.RedrivePolicy] = $$"""
+                {
+                    "deadLetterTargetArn": "{{dlqAttributes.Attributes["QueueArn"]}}",
+                    "maxReceiveCount": {{config.MaxReceiveCount}}
+                }
+                 */
+
+                string name = queueName.Value;
+                var options = new CreateQueueRequest
+                {
+                    QueueName = name,
+                    Attributes = attributes
+                };
+                CreateQueueResponse createQueueResponse = await sqsClient.CreateQueueAsync(options, cancellationToken);
+
+
+                #region Validation
+
+                if (createQueueResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new InvalidOperationException($"Failed to create SQS queue: {name}");
+                }
+
+                #endregion //  Validation
 
                 queueUrl = createQueueResponse.QueueUrl;
                 await SetQueueVisibilityAsync(sqsClient, visibilityTimeout, queueUrl, cancellationToken);
@@ -335,7 +392,6 @@ public static class EvDbAwsAdminExtensions
 
         if (!subscriptionExists)
         {
-            Console.WriteLine("Creating SNS to SQS subscription...");
             try
             {
                 var subscribeResponse = await snsClient.SubscribeAsync(new SubscribeRequest
@@ -434,6 +490,8 @@ public static class EvDbAwsAdminExtensions
                                                principal,
                                                logger,
                                                cancellationToken: cancellationToken);
+
+        await snsClient.AttachSQSToSNSAsync(topicArn,queueArn, logger, cancellationToken);
     }
 
     #endregion //  SubscribeSQSToSNSAsync

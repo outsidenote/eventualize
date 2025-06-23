@@ -14,4 +14,8 @@
     </None>
   </ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\..\EvDb.Sinks.Abstractions\EvDb.Sinks.Abstractions.csproj" />
+	</ItemGroup>
+
 </Project>

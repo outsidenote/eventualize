@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 [Trait("Kind", "Integration")]
 [Trait("DB", "SqlServer")]
 [Trait("Feature", "Sink")]
+[Collection("Sink")]
 public class AwsSinkSqlServerTests : AwsSinkBaseTests
 {
     public AwsSinkSqlServerTests(ITestOutputHelper output) :

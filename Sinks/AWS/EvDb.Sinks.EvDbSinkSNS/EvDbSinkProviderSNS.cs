@@ -4,8 +4,8 @@ using EvDb.Core;
 using EvDb.Core.Adapters;
 using Microsoft.Extensions;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Context.Propagation;
 using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
 using System.Text.Json;
 using static EvDb.Sinks.EvDbSinkTelemetry;
@@ -18,13 +18,16 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
 {
     private readonly ILogger<EvDbSinkProviderSNS> _logger;
     private readonly AmazonSimpleNotificationServiceClient _client;
+    private readonly IEvDbSinkSNSMeters _meters;
     private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
     public EvDbSinkProviderSNS(ILogger<EvDbSinkProviderSNS> logger,
-                               AmazonSimpleNotificationServiceClient client)
+                               AmazonSimpleNotificationServiceClient client,
+                               IEvDbSinkSNSMeters meters)
     {
         _logger = logger;
         _client = client;
+        _meters = meters;
     }
 
     async Task IEvDbMessagesSinkPublishProvider.PublishMessageToSinkAsync(EvDbSinkTarget target,
@@ -38,8 +41,9 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
                                       .WithKind(ActivityKind.Producer)
                                       .AddTag("evdb.sink.target", target)
                                       .Start();
+        _meters.Published.Add(1);
 
-        _logger.LogPublish(target, message);
+        _logger.LogPublish(target, message.Id);
 
         string json = JsonSerializer.Serialize(message, serializerOptions);
         string topicArn = await _client.GetOrCreateTopicAsync(target, cancellationToken);
@@ -73,11 +77,12 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
             MessageAttributes = messageAttributes,
             MessageGroupId = message.GetAddress().ToString(), // Use the message address as the group ID
             MessageDeduplicationId = message.Id.ToString("N"), // Use a unique identifier to avoid duplication
-            MessageStructure = "json"
+            // MessageStructure = "json"
         };
 
         await _client.PublishAsync(request, cancellationToken);
     }
+
 
     IEvDbTargetedMessagesSinkPublish IEvDbMessagesSinkPublishProvider.Create(EvDbSinkTarget target) => new SpecializedTarget(this, target);
 
@@ -91,6 +96,8 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
             _provider = provider;
             _target = target;
         }
+
+        string IEvDbTargetedMessagesSinkPublish.Kind { get; } = "SNS";
 
         async Task IEvDbTargetedMessagesSinkPublish.PublishMessageToSinkAsync(EvDbMessage message,
                                                                         CancellationToken cancellationToken)

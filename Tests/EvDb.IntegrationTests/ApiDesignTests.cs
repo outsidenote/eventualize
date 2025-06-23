@@ -48,7 +48,7 @@ public class ApiDesignTests
                 .SendToSQS("app-commands")
                 .SendToSNS("app-internal-messages")
                 .SendToSNS("app-vip-messages");
-                
+
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
     }

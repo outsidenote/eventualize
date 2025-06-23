@@ -1,5 +1,4 @@
-﻿using EvDb.Core;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace EvDb.Sinks.Processing;
@@ -14,5 +13,5 @@ internal static partial class Logs
     [LoggerMessage(LogLevel.Information, """
                     EvDb messages sink processor start listening.
                     """)]
-    public static partial void LogStartListening(this ILogger logger, [LogProperties]SinkBag info);
+    public static partial void LogStartListening(this ILogger logger, [LogProperties] SinkBag info);
 }

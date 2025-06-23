@@ -29,7 +29,7 @@ public interface IEvDbChangeStream
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
                                 [EnumeratorCancellation] CancellationToken cancellation = default)
-    { 
+    {
         await foreach (EvDbMessageRecord record in this.GetMessageRecordsAsync(shard, filter, options, cancellation))
         {
             EvDbMessage message = record;

@@ -401,6 +401,7 @@ public abstract class EvDbRelationalStorageAdapter :
         var duplicateDetection = new HashSet<Guid>(parameters.BatchSize);
         while (!cancellation.IsCancellationRequested)
         {
+            // TODO: [bnaya] Use Polly for Timeout exceptions (retry, circuit breaker)
             using DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
             var parser = RecordParserFactory.CreateParser(reader);
             EvDbMessageRecord? last = null;

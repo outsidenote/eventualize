@@ -1,8 +1,5 @@
-﻿using EvDb.Core.Adapters;
-using OpenTelemetry;
+﻿using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
 using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
@@ -74,11 +71,6 @@ public static class TelemetryPropagatorExtensions
             return default;
 
         propagator = propagator ?? Propagator;
-
-        // Use Utf8JsonReader directly with the span
-        var reader = new Utf8JsonReader(contextData);
-
-
 
         // Use a local function for the extraction delegate to improve readability and performance
         static IEnumerable<string>? ExtractValue(JsonElement carrier, string key)

@@ -64,7 +64,7 @@ public static class EvDbSinkDI
 
 
         services.AddKeyedSingleton(bag.Id, bag);
-        services.AddKeyedSingleton(bag.Id, (sp, key) =>
+        services.AddSingleton((sp) =>
         {
             var publishers = sp.GetRequiredKeyedService<IEnumerable<IEvDbTargetedMessagesSinkPublish>>(bag.Id);
             IEvDbChangeStream changeStream = sp.GetKeyedService<IEvDbChangeStream>(bag.Id) ??
@@ -99,7 +99,7 @@ public static class EvDbSinkDI
     {
         IEvDbServiceCollectionWrapper entry = self;
         IServiceCollection services = entry.Services;
-        var bag = new SinkBag(services); 
+        var bag = new SinkBag(services);
         return bag;
     }
 

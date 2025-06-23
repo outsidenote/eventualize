@@ -489,7 +489,7 @@ public readonly bool IsInitialized() => true;
                                                       Type typeToConvert,
                                                       JsonSerializerOptions options)
         {
-            ImmutableArray<byte> value = JsonSerializer.Deserialize<ImmutableArray<byte>>(ref reader, options);
+            var value = JsonSerializer.Deserialize<byte[]>(ref reader, options);
             return new EvDbMessagePayloadName(value);
         }
 

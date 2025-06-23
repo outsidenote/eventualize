@@ -1,14 +1,13 @@
 ﻿using Amazon.SQS;
+using Amazon.SQS.Model;
 using EvDb.Core;
+using EvDb.Core.Adapters;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Context.Propagation;
 using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
 using System.Text.Json;
 using static EvDb.Sinks.EvDbSinkTelemetry;
-using Microsoft.Extensions;
-using EvDb.Core.Adapters;
-using Amazon.SQS.Model;
 
 #pragma warning disable S101 // Types should be named in PascalCase
 
@@ -18,13 +17,16 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
 {
     private readonly ILogger<EvDbSinkProviderSQS> _logger;
     private readonly AmazonSQSClient _client;
+    private readonly IEvDbSinkSQSMeters _meters;
     private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
     public EvDbSinkProviderSQS(ILogger<EvDbSinkProviderSQS> logger,
-                               AmazonSQSClient client)
+                               AmazonSQSClient client,
+                               IEvDbSinkSQSMeters meters)
     {
         _logger = logger;
         _client = client;
+        _meters = meters;
     }
 
     async Task IEvDbMessagesSinkPublishProvider.PublishMessageToSinkAsync(EvDbSinkTarget target,
@@ -38,11 +40,14 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
                                       .WithKind(ActivityKind.Producer)
                                       .AddTag("evdb.sink.target", target)
                                       .Start();
+        _meters.Published.Add(1);
 
         _logger.LogPublish(target, message);
 
         string json = JsonSerializer.Serialize(message, serializerOptions);
         //string queueArn = await _client.GetQueueARNAsync(target, _logger, cancellationToken);
+
+        #region MessageAttributeValue messageAttributes = OTEL Context
 
         // Create SNS message attributes dictionary
         var messageAttributes = new Dictionary<string, MessageAttributeValue>();
@@ -66,14 +71,20 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
             };
         }
 
+        #endregion // MessageAttributeValue messageAttributes = OTEL Context
+
+        #region var request = new SendMessageRequest(..)
+
         var request = new SendMessageRequest
         {
             QueueUrl = target,
             MessageBody = json,
             MessageGroupId = message.GetAddress().ToString(),
             MessageAttributes = messageAttributes,
-            MessageDeduplicationId = message.Id.ToString("N"), 
+            MessageDeduplicationId = message.Id.ToString("N")
         };
+
+        #endregion //  var request = new SendMessageRequest(..)
 
         await _client.SendMessageAsync(request, cancellationToken);
     }
@@ -90,6 +101,8 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
             _provider = provider;
             _target = target;
         }
+
+        string IEvDbTargetedMessagesSinkPublish.Kind { get; } = "SQS";
 
         async Task IEvDbTargetedMessagesSinkPublish.PublishMessageToSinkAsync(EvDbMessage message,
                                                                         CancellationToken cancellationToken)

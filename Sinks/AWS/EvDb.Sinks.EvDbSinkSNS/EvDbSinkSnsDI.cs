@@ -16,16 +16,19 @@ public static class EvDbSinkSNSDI
     public static IEvDbSinkRegistration SendToSNS(this IEvDbSinkRegistration registration, EvDbSinkTarget topicName)
     {
         var services = registration.Services;
+
+        services.AddSingleton<IEvDbSinkSNSMeters, EvDbSinkSNSMeters>();
+
         services.TryAddKeyedSingleton<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY, (sp, _) =>
         {
             var logFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = logFactory.CreateLogger<EvDbSinkProviderSNS>();
             var client = sp.GetRequiredService<AmazonSimpleNotificationServiceClient>();
 
-            return new EvDbSinkProviderSNS(logger, client);
+            return new EvDbSinkProviderSNS(logger, client, EvDbSinkSNSMeters.Default);
         });
 
-        services.TryAddKeyedSingleton(registration.Id, (sp, key) =>
+        services.AddKeyedSingleton(registration.Id, (sp, key) =>
         {
             var sink = sp.GetRequiredKeyedService<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY);
             IEvDbTargetedMessagesSinkPublish result = sink.Create(topicName);

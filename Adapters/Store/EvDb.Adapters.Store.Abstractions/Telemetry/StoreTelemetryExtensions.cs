@@ -1,11 +1,6 @@
 ﻿using EvDb.Core.Adapters;
-using OpenTelemetry;
-using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using System.Buffers;
-using System.Diagnostics;
-using System.Text.Json;
 
 namespace EvDb.Core;
 

@@ -110,6 +110,8 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
 
     #endregion //  Stream_NoViewEmpty_Succeed
 
+    #region ProcuceEventsAsync
+
     private async Task ProcuceEventsAsync(int numOfGrades = 3)
     {
         var student = new StudentEntity(10, "Mikey");
@@ -122,4 +124,6 @@ public abstract class StreamNoViewsBaseTests : BaseIntegrationTests
         }
         await _stream.StoreAsync();
     }
+
+    #endregion //  ProcuceEventsAsync
 }

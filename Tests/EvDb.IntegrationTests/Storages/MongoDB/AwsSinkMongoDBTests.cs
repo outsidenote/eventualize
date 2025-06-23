@@ -6,6 +6,7 @@ using Xunit.Abstractions;
 [Trait("Kind", "Integration")]
 [Trait("DB", "MongoDB")]
 [Trait("Feature", "Sink")]
+[Collection("Sink")]
 public class AwsSinkMongoDBTests : AwsSinkBaseTests
 {
     public AwsSinkMongoDBTests(ITestOutputHelper output) :

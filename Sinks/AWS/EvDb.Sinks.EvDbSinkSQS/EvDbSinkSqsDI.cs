@@ -24,16 +24,19 @@ public static class EvDbSinkSQSDI
     public static IEvDbSinkRegistration SendToSQS(this IEvDbSinkRegistration registration, string queueName)
     {
         var services = registration.Services;
+
+        services.AddSingleton<IEvDbSinkSQSMeters, EvDbSinkSQSMeters>();
+
         services.TryAddKeyedSingleton<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY, (sp, _) =>
         {
             var logFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = logFactory.CreateLogger<EvDbSinkProviderSQS>();
             var client = sp.GetRequiredService<AmazonSQSClient>();
 
-            return new EvDbSinkProviderSQS(logger, client);
+            return new EvDbSinkProviderSQS(logger, client, EvDbSinkSQSMeters.Default);
         });
 
-        services.TryAddKeyedSingleton(registration.Id, (sp, key) =>
+        services.AddKeyedSingleton(registration.Id, (sp, key) =>
         {
             var sink = sp.GetRequiredKeyedService<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY);
             IEvDbTargetedMessagesSinkPublish result = sink.Create(queueName);

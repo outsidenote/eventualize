@@ -1,8 +1,5 @@
 ﻿using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using System.Runtime.CompilerServices;
 
 namespace EvDb.Core;
 

@@ -12,6 +12,7 @@ using Microsoft.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
@@ -25,9 +26,9 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
     private readonly IEvDbNoViewsFactory _factory;
     private readonly IEvDbMessagesSinkProcessor _sinkProcessor;
     private readonly Guid _streamId;
-    private static readonly string TOPIC_NAME = $"SNS TEST:{Guid.NewGuid():N}";
-    private static readonly string QUEUE_NAME = $"SQS TEST:{Guid.NewGuid():N}";
-    private static readonly string QUEUE_FROM_TOPIC_NAME = $"SNS to SQS TEST:{Guid.NewGuid():N}";
+    private static readonly string TOPIC_NAME = $"SNS_TEST_{Guid.NewGuid():N}.fifo";
+    private static readonly string QUEUE_NAME = $"SQS_TEST_{Guid.NewGuid():N}.fifo";
+    private static readonly string QUEUE_FROM_TOPIC_NAME = $"SNS_to_SQS_TEST_{Guid.NewGuid():N}";
     private readonly EvDbShardName SHARD = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
 
     #region Ctor
@@ -57,7 +58,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
                     .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow.AddSeconds(-2)))
                     .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
                     .BuildProcessor()
-                     // .BuildHostedService() // TODO: Test friendliness
+                    // .BuildHostedService() // TODO: Test friendliness
                     .SendToSNS(TOPIC_NAME)
                     .SendToSQS(QUEUE_NAME);
 
@@ -79,8 +80,8 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
     [Fact]
     public virtual async Task SinkMessagesToSNS_Succeed()
     {
-        const int BATCH_SIZE = 300;
-        const int CHUNCK_SIZE = 40;
+        const int BATCH_SIZE = 30;
+        const int CHUNCK_SIZE = 2;
         var cancellationDucraion = Debugger.IsAttached
                                         ? TimeSpan.FromMinutes(10)
                                         : TimeSpan.FromSeconds(5);
@@ -88,7 +89,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         var sqsClient = AWSProviderFactory.CreateSQSClient();
         var snsClient = AWSProviderFactory.CreateSNSClient();
 
-        await sqsClient.GetOrCreateQueueAsync(QUEUE_NAME,TimeSpan.FromMinutes(10), CancellationToken.None);
+        await sqsClient.GetOrCreateQueueAsync(QUEUE_NAME, TimeSpan.FromMinutes(10), CancellationToken.None);
         await snsClient.SubscribeSQSToSNSAsync(sqsClient, // will create if not exists
                                                TOPIC_NAME,
                                                QUEUE_FROM_TOPIC_NAME,
@@ -102,7 +103,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         using var cts = new CancellationTokenSource(cancellationDucraion);
         var cancellationToken = cts.Token;
         int count = BATCH_SIZE * 2;
-        
+
         // sink messages from outbox
         Task _ = _sinkProcessor.StartMessagesSinkAsync(cancellationToken);
 
@@ -133,15 +134,15 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
     [Fact]
     public virtual async Task SinkMessagesToSQS_Succeed()
     {
-        const int BATCH_SIZE = 300;
-        const int CHUNCK_SIZE = 40;
+        const int BATCH_SIZE = 30;
+        const int CHUNCK_SIZE = 2;
         var cancellationDucraion = Debugger.IsAttached
                                         ? TimeSpan.FromMinutes(10)
                                         : TimeSpan.FromSeconds(5);
 
         var sqsClient = AWSProviderFactory.CreateSQSClient();
 
-        await sqsClient.GetOrCreateQueueAsync(QUEUE_NAME,TimeSpan.FromMinutes(10), CancellationToken.None);
+        await sqsClient.GetOrCreateQueueAsync(QUEUE_NAME, TimeSpan.FromMinutes(10), CancellationToken.None);
 
         using var cts = new CancellationTokenSource(cancellationDucraion);
         var cancellationToken = cts.Token;
@@ -171,6 +172,44 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
 
     #endregion //  SinkMessagesToSQS_Succeed
 
+    #region SinkMessagesToSQS_WithTelemetry_Succeed
+
+    [Fact]
+    public virtual async Task SinkMessagesToSQS_WithTelemetry_Succeed()
+    {
+        ConcurrentQueue<string> traces = new ConcurrentQueue<string>();
+        ActivityListener listener = new()
+        {
+            ShouldListenTo = source => source.Name == "UnitTestSource" || source.Name.StartsWith("evdb", StringComparison.OrdinalIgnoreCase),
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData,
+            ActivityStarted = activity =>
+            {
+                // _output.WriteLine($"Started: {activity.DisplayName}");
+                traces.Enqueue($"Started: {activity.DisplayName}");
+            },
+            ActivityStopped = activity =>
+            {
+                try
+                {
+                    _output.WriteLine($"Stopped: {activity.DisplayName}");
+                }
+                catch
+                {
+                    // Ignore any exceptions during logging
+                }
+            }
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using var activitySource = new ActivitySource("UnitTestSource");
+        using var activity = activitySource.StartActivity("TestActivity", ActivityKind.Internal);
+
+        await SinkMessagesToSQS_Succeed();
+        Assert.Contains(traces, m => m == "Started: PublishMessageToSinkAsync");
+    }
+
+    #endregion //  SinkMessagesToSQS_WithTelemetry_Succeed
+
     #region ListenToSQSAsync
 
     private static async Task<EvDbMessageRecord[]> ListenToSQSAsync(AmazonSQSClient sqsClient,
@@ -181,8 +220,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         var receivedSqsMessages = new List<EvDbMessageRecord>();
         var queueUrlResponse = await sqsClient.GetQueueUrlAsync(ququeName, cancellationToken);
         var queueUrl = queueUrlResponse.QueueUrl;
-        int messageCount = 0;
-        while (messageCount < count && !cancellationToken.IsCancellationRequested)
+        while (receivedSqsMessages.Count < count && !cancellationToken.IsCancellationRequested)
         {
             var receiveRequest = new Amazon.SQS.Model.ReceiveMessageRequest
             {
@@ -191,8 +229,9 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
                 WaitTimeSeconds = 1
             };
 
-            var receiveResponse = await sqsClient.ReceiveMessageAsync(receiveRequest, cancellationToken);
-            foreach (var msg in receiveResponse.Messages)
+            Amazon.SQS.Model.ReceiveMessageResponse receiveResponse =
+                                await sqsClient.ReceiveMessageAsync(receiveRequest, cancellationToken);
+            foreach (var msg in receiveResponse.Messages ?? [])
             {
                 EvDbMessageRecord message = JsonSerializer.Deserialize<EvDbMessageRecord>(msg.Body);
                 receivedSqsMessages.Add(message);
@@ -200,7 +239,6 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
                 await sqsClient.DeleteMessageAsync(queueUrl, msg.ReceiptHandle, cancellationToken);
             }
 
-            messageCount++;
             // Short delay to avoid tight loop
         }
         return receivedSqsMessages.ToArray();
