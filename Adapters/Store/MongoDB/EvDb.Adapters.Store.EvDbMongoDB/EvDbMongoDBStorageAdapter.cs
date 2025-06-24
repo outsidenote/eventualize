@@ -157,6 +157,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                     ManageDuplicationList();
                     last = message;
 
+                    // TODO:[Bnaya 2025-06-24] Add Otel Trace and attach it to the message's OTEL
                     yield return message;
 
                     #region ManageDuplicationList

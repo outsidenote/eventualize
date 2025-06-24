@@ -9,6 +9,7 @@ using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using System.Diagnostics;
@@ -129,7 +130,8 @@ public abstract class StreamBaseTests : BaseIntegrationTests
             var events = eventsCollection.ToArray();
 
             var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
-            Assert.True(eventsOffsets.SequenceEqual([1, 2, 3, 4]));
+            _output.WriteLine($"offsets: {string.Join(", ", eventsOffsets)}");
+            Assert.True(eventsOffsets.SequenceEqual([1, 2, 3, 4]), "sequence equality");
             for (int i = 1; i <= defaults.Length; i++)
             {
                 EvDbMessageRecord item = defaults[i - 1];

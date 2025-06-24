@@ -1,0 +1,74 @@
+using EvDb.Core;
+using EvDb.Core.Adapters;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks.Dataflow;
+using static EvDb.DemoWebApi.DemoConstants;
+using Microsoft.Extensions;
+
+namespace EvDb.DemoWebApi;
+
+public class SinkJob : BackgroundService
+{
+    private readonly ILogger<SinkJob> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly State _state;
+
+    public SinkJob(
+        ILogger<SinkJob> logger,
+        IServiceScopeFactory scopeFactory,
+        State state)
+    {
+        _logger = logger;
+        _scopeFactory = scopeFactory;
+        _state = state;
+    }
+
+    #region ExecuteAsync
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        var sqsClient = AWSProviderFactory.CreateSQSClient();
+        var snsClient = AWSProviderFactory.CreateSNSClient();
+
+        await snsClient.SubscribeSQSToSNSAsync(sqsClient, // will create if not exists
+                                       TOPIC_NAME,
+                                       QUEUE_NAME,
+                                       o =>
+                                       {
+                                           o.Logger = _logger;
+                                           o.SqsVisibilityTimeoutOnCreation = TimeSpan.FromMinutes(10);
+                                       },
+                                       CancellationToken.None);
+
+
+        var receivedSqsMessages = new List<EvDbMessageRecord>();
+        var queueUrlResponse = await sqsClient.GetQueueUrlAsync(QUEUE_NAME, stoppingToken);
+        var queueUrl = queueUrlResponse.QueueUrl;
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var receiveRequest = new Amazon.SQS.Model.ReceiveMessageRequest
+            {
+                QueueUrl = queueUrl,
+                MaxNumberOfMessages = 1,
+                WaitTimeSeconds = 1
+            };
+
+            Amazon.SQS.Model.ReceiveMessageResponse receiveResponse =
+                                await sqsClient.ReceiveMessageAsync(receiveRequest, stoppingToken);
+            foreach (var msg in receiveResponse.Messages ?? [])
+            {
+                EvDbMessageRecord message = JsonSerializer.Deserialize<EvDbMessageRecord>(msg.Body);
+                receivedSqsMessages.Add(message);
+                // Optionally delete the message after processing
+                await sqsClient.DeleteMessageAsync(queueUrl, msg.ReceiptHandle, stoppingToken);
+            }
+        }
+
+    }
+
+    #endregion //  ExecuteAsync
+}

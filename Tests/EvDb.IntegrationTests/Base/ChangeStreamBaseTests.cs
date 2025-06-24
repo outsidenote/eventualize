@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks.Dataflow;
 using Xunit.Abstractions;
 
+[Collection("Stress")]
 public abstract class ChangeStreamBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbNoViews _stream;

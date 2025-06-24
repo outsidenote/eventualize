@@ -128,9 +128,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Adapters.Store.EvDbTes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{33857C97-409B-4B7B-B3A6-F3404AD39410}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\pages.yml = .github\workflows\pages.yml
 		.github\workflows\dotnet-nuget.yml = .github\workflows\dotnet-nuget.yml
 		.github\workflows\dotnet-version.yml = .github\workflows\dotnet-version.yml
+		.github\workflows\pages.yml = .github\workflows\pages.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sinks", "Sinks", "{7F718183-E2B2-41F6-89CE-0C8FEBCFEDC6}"
@@ -152,6 +152,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "localstack", "localstack", 
 		docker\localstack\docker-compose.yml = docker\localstack\docker-compose.yml
 		docker\localstack\init-aws.sh = docker\localstack\init-aws.sh
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.DemoWebApi", "Tests\EvDb.DemoWebApi\EvDb.DemoWebApi.csproj", "{09455244-D560-3B9B-0304-08F3F3006654}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -814,6 +816,24 @@ Global
 		{EA1414F0-0787-45FB-B133-29095A0A32F9}.Release|x64.Build.0 = Release|Any CPU
 		{EA1414F0-0787-45FB-B133-29095A0A32F9}.Release|x86.ActiveCfg = Release|Any CPU
 		{EA1414F0-0787-45FB-B133-29095A0A32F9}.Release|x86.Build.0 = Release|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Debug|x64.Build.0 = Debug|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Debug|x86.Build.0 = Debug|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Gen|Any CPU.ActiveCfg = Gen|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Gen|Any CPU.Build.0 = Gen|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Gen|x64.ActiveCfg = Gen|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Gen|x64.Build.0 = Gen|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Gen|x86.ActiveCfg = Gen|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Gen|x86.Build.0 = Gen|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Release|x64.ActiveCfg = Release|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Release|x64.Build.0 = Release|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Release|x86.ActiveCfg = Release|Any CPU
+		{09455244-D560-3B9B-0304-08F3F3006654}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -865,6 +885,7 @@ Global
 		{D59D35F3-578A-46E6-8B34-6AD37B144951} = {6C81E6A0-E89E-4717-806B-17110A043E3F}
 		{EA1414F0-0787-45FB-B133-29095A0A32F9} = {7F718183-E2B2-41F6-89CE-0C8FEBCFEDC6}
 		{10098330-4E08-435A-BEEF-8F9CBA5B4115} = {470EB5B5-2EA7-402F-BD7F-A9A49911C29E}
+		{09455244-D560-3B9B-0304-08F3F3006654} = {BF7A8F35-38ED-48E8-8368-200E13753216}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CF849979-7A01-419B-A9C7-8EA947DCD0C2}

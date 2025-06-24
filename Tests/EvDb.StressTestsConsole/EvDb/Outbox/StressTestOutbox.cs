@@ -22,16 +22,8 @@ public partial class StressTestOutbox
     protected override void ProduceOutboxMessages(FaultOccurred payload, IEvDbEventMeta meta, EvDbDemoStreamViews views,
         StressTestOutboxContext outboxs)
     {
-        outboxs.Append(new Message1(views.Count), Message1.Channels.Channel1);
-        outboxs.Append(new Message2(views.Count), Message2.Channels.Channel3);
-        ////if (views.Count % 2 == 0)
-        ////{
-        ////    outboxs.Append(new Message1(views.Count), Message1.Channels.Channel1);
-        ////}
-        ////else
-        ////{
-        ////    outboxs.Append(new Message2(views.Count), Message2.Channels.Channel3);
-        ////}
+        outboxs.Append(new Message1(views.Count), Message1Channels.Channel1);
+        outboxs.Append(new Message2(views.Count), Message2Channels.Channel3);
     }
 }
 

@@ -7,13 +7,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class TelemetryCoreExtensions
 {
-    public static TracerProviderBuilder AddEvDbInstrumentation(this TracerProviderBuilder builder)
+    public static TracerProviderBuilder AddEvDbSinkSQSInstrumentation(this TracerProviderBuilder builder)
     {
         builder.AddSource(OtelTrace.Name);
         return builder;
     }
 
-    public static MeterProviderBuilder AddEvDbInstrumentation(this MeterProviderBuilder builder)
+    public static MeterProviderBuilder AddEvDbSinkSQSInstrumentation(this MeterProviderBuilder builder)
     {
         builder.AddMeter(EvDbSinkSQSMeters.Default.Name);
         return builder;

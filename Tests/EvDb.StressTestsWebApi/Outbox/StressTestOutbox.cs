@@ -11,7 +11,6 @@ namespace EvDb.StressTestsWebApi.Outbox;
 public partial class StressTestOutbox
 {
     protected override Shards[] ChannelToShards(Channels outbox) =>
-
         outbox switch
         {
             Channels.Channel1 => [Shards.Table1],
@@ -24,11 +23,11 @@ public partial class StressTestOutbox
     {
         if (views.Count % 2 == 0)
         {
-            outbox.Append(new Message1 { Amount = views.Count }, Message1.Channels.Channel1);
+            outbox.Append(new Message1 { Amount = views.Count }, Message1Channels.Channel1);
         }
         else
         {
-            outbox.Append(new Message2 { Value = views.Count }, Message2.Channels.Channel3);
+            outbox.Append(new Message2 { Value = views.Count }, Message2Channels.Channel3);
         }
     }
 }

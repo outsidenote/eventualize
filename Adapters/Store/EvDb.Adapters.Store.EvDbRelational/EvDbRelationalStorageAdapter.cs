@@ -416,6 +416,7 @@ public abstract class EvDbRelationalStorageAdapter :
                 last = m;
                 count++;
 
+                // TODO:[Bnaya 2025-06-24] Add Otel Trace and attach it to the message's OTEL
                 yield return m;
 
                 #region ManageDuplicationList

@@ -17,7 +17,7 @@ public partial class CustomerEntityModelMultiChannelsOutbox
             Email = payload.Email,
             EmailIsValid = payload.IsValid
         };
-        outbox.Append(personChanged, PersonChangedMultiChannelsMessage.Channels.Channel1);
-        outbox.Append(personChanged, PersonChangedMultiChannelsMessage.Channels.Channel2);
+        outbox.Append(personChanged, PersonChangedMultiChannelsMessageChannels.Channel1);
+        outbox.Append(personChanged, PersonChangedMultiChannelsMessageChannels.Channel2);
     }
 }

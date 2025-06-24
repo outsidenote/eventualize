@@ -1,4 +1,6 @@
-﻿#pragma warning disable HAA0301 // Closure Allocation Source
+﻿// Ignore Spelling: Inline
+
+#pragma warning disable HAA0301 // Closure Allocation Source
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
 #pragma warning disable HAA0401 // Possible allocation of reference type enumerator
 using EvDb.SourceGenerator.Helpers;
@@ -15,7 +17,9 @@ public partial class EventPayloadGenerator : BaseGenerator
 
     protected virtual string StartWith { get; } = "EvDbDefineEventPayload";
 
-    protected virtual string GetAdditions(INamedTypeSymbol typeSymbol, string type, string name) => string.Empty;
+    protected virtual string GetInlineAdditions(INamedTypeSymbol typeSymbol, string type, string name) => string.Empty;
+
+    protected virtual void GetExternalAdditions(SourceProductionContext context, TypeDeclarationSyntax syntax, INamedTypeSymbol typeSymbol, string type, string name) { }
 
     protected virtual void BeforeClassDeclaration(StringBuilder builder) { }
 
@@ -58,11 +62,13 @@ public partial class EventPayloadGenerator : BaseGenerator
                         [System.Text.Json.Serialization.JsonIgnore]
                         string IEvDbPayload.PayloadType => PAYLOAD_TYPE;
 
-                    {{GetAdditions(typeSymbol, type, name)}}
-                    }                
+                    {{GetInlineAdditions(typeSymbol, type, name)}}
+                    } 
                     """);
 
         context.AddSource(typeSymbol.StandardPath(), builder.ToString());
+
+        GetExternalAdditions(context, syntax, typeSymbol, type, name);
     }
 
     #endregion // OnGenerate

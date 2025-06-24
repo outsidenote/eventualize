@@ -58,7 +58,6 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
                     .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow.AddSeconds(-2)))
                     .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
                     .BuildProcessor()
-                    // .BuildHostedService() // TODO: Test friendliness
                     .SendToSNS(TOPIC_NAME)
                     .SendToSQS(QUEUE_NAME);
 

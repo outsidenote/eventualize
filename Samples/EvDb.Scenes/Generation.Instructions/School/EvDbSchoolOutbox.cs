@@ -38,8 +38,8 @@ public partial class EvDbSchoolOutbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            outbox.Append(pass, StudentPassedMessage.Channels.Channel2);
-            outbox.Append(pass, StudentPassedMessage.Channels.Channel3);
+            outbox.Append(pass, StudentPassedMessageChannels.Channel2);
+            outbox.Append(pass, StudentPassedMessageChannels.Channel3);
         }
         else
         {

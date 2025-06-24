@@ -1,0 +1,12 @@
+@DemoWebApi_HostAddress = http://127.0.0.1:5294
+
+
+POST {{DemoWebApi_HostAddress}}/Demo/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "NumberOfEventsToProcude": 300,
+}
+
+### 

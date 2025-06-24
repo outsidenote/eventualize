@@ -200,7 +200,6 @@ public class StressJob : BackgroundService
 
     #endregion //  RunAsync
 
-
     #region CreateEvents
 
     static IEnumerable<SomethingHappened> CreateEvents(string streamId, int batchSize, int baseId)
