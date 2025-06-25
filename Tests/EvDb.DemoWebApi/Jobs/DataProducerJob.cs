@@ -11,18 +11,20 @@ public class DataProducerJob : BackgroundService
 {
     private readonly ILogger<DataProducerJob> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IEvDbStorageAdmin _admin;
     private readonly Channel<DemoOptions> _channel;
-    private const int REPORT_CYCLE = 300;
     private static readonly Faker _faker = new();
     private static readonly Random _rnd = new();
 
     public DataProducerJob(
         ILogger<DataProducerJob> logger,
         IServiceScopeFactory scopeFactory,
+        IEvDbStorageAdmin admin,
         Channel<DemoOptions> channel)
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
+        _admin = admin;
         _channel = channel;
     }
 
@@ -30,17 +32,24 @@ public class DataProducerJob : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await CreateEnvironmentAsync(stoppingToken);
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 var options = await _channel.Reader.ReadAsync(stoppingToken);
-                await CreateEnvironmentAsync(options, stoppingToken);
+                _logger.LogInformation("Start: {options}", options);
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var factory = scope.ServiceProvider.GetRequiredService<IEvDbDemoStreamFactory>();
+                    await RunAsync(options, factory, stoppingToken);
+                }
             }
             catch (OperationCanceledException)
             {
             }
         }
+        await _admin.DestroyEnvironmentAsync(stoppingToken);
     }
 
     #endregion //  ExecuteAsync
@@ -48,28 +57,15 @@ public class DataProducerJob : BackgroundService
     #region CreateEnvironmentAsync
 
     public async Task CreateEnvironmentAsync(
-        DemoOptions options,
         CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Start: {options}", options);
-        using (var scope = _scopeFactory.CreateScope())
+        try
         {
-            var factory = scope.ServiceProvider.GetRequiredService<IEvDbDemoStreamFactory>();
-            var storageMigration = scope.ServiceProvider.GetRequiredService<IEvDbStorageAdmin>();
-            try
-            {
-                try
-                {
-                    await storageMigration.CreateEnvironmentAsync(stoppingToken);
-                }
-                catch { }
-
-                await RunAsync(options, factory, stoppingToken);
-            }
-            finally
-            {
-                await storageMigration.DestroyEnvironmentAsync(stoppingToken);
-            }
+            await _admin.CreateEnvironmentAsync(stoppingToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fail to create environment");
         }
     }
 

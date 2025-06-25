@@ -15,10 +15,13 @@ public static class EvDbSinkDI
     /// Add message sink (usually sink from outbox to a stream or a queue)
     /// </summary>
     /// <param name="builder"></param>
+    /// <param name="readiness">Enable to postpone the hosted service execution until readiness of the environment</param>
     /// <returns></returns>
     public static IEvDbSinkRegistration BuildHostedService(
-                                        this IEvDbSinkRegistrationBuilder builder)
+                                        this IEvDbSinkRegistrationBuilder builder,
+                                        Func<IServiceProvider, CancellationToken, Task>? readiness = null)
     {
+        readiness ??= (sp, ct) => Task.CompletedTask;
         var bag = (SinkBag)builder;
         var services = bag.Services;
 
@@ -39,7 +42,8 @@ public static class EvDbSinkDI
         services.AddHostedService(sp =>
         {
             var provider = sp.GetRequiredKeyedService<IEvDbMessagesSinkProcessor>(bag.Id);
-            var result = new EvDbSinkProcessorHost(provider);
+            var isReady = readiness(sp, default);
+            var result = new EvDbSinkProcessorHost(provider, isReady);
             return result;
         });
 

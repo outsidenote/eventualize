@@ -41,8 +41,8 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
                                       .WithKind(ActivityKind.Producer)
                                       .AddTag("evdb.sink.target", target)
                                       .Start();
-        _meters.Published.Add(1);
 
+        _meters.IncrementPublish(target);
         _logger.LogPublish(target, message.Id);
 
         string json = JsonSerializer.Serialize(message, serializerOptions);

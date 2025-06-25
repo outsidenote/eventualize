@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Metrics;
+﻿using EvDb.Core;
+using System.Diagnostics.Metrics;
 
 namespace EvDb.Sinks;
 
@@ -6,6 +7,8 @@ namespace EvDb.Sinks;
 
 public abstract class EvDbSinkMeters : IEvDbSinkMeters
 {
+    private readonly Counter<int> _published;
+
     public string Name { get; }
 
     public EvDbSinkMeters(string sinkChannel) : this(new Meter($"EvDb.Sink.{sinkChannel}"), sinkChannel)
@@ -14,15 +17,16 @@ public abstract class EvDbSinkMeters : IEvDbSinkMeters
 
     public EvDbSinkMeters(Meter meter, string sinkChannel)
     {
-        Published = meter.CreateCounter<int>($"evdb_{sinkChannel}_published",
+        _published = meter.CreateCounter<int>($"evdb_{sinkChannel}_published",
             "{messages}",
             $"Number of publish via {sinkChannel}");
 
         Name = meter.Name;
     }
 
-    /// <summary>
-    /// Optimistic Concurrency Collisions
-    /// </summary>
-    public Counter<int> Published { get; }
+    void IEvDbSinkMeters.IncrementPublish(EvDbSinkTarget target)
+    {
+        var tags = OtelTags.Create("evdb.sink.target", target.ToString());
+        _published.Add(1, tags);
+    }
 }

@@ -4,13 +4,14 @@ using EvDb.DemoWebApi;
 using EvDb.DemoWebApi.Controllers;
 using EvDb.DemoWebApi.Outbox;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Data.SqlClient;
 using System.Threading.Channels;
 using static EvDb.DemoWebApi.DemoConstants;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
-services.AddScoped<EvDbStorageContext>(_ => new EvDbTestStorageContext());
+services.AddSingleton<EvDbStorageContext>(_ => EvDbStorageContext.CreateWithEnvironment("master", "demo", schema:"dbo"));
 services.AddEvDbSqlServerStoreAdmin();
 services.AddEvDb()
         .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
@@ -24,14 +25,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Change Stream
+services.UseSqlServerChangeStream();
+
 // Sink
+services.AddSingleton(AWSProviderFactory.CreateSQSClient());
+services.AddSingleton(AWSProviderFactory.CreateSNSClient());
 services.AddEvDb()
         .AddSink()
         .ForMessages()
             .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow.AddSeconds(-2))
                                         .AddChannel(CommentsMessage.Channels.Comments))
             .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
-            .BuildHostedService() 
+            .BuildHostedService(CreateEnvironmentAsync) 
             .SendToSNS(TOPIC_NAME);
 
 services.AddSingleton<State>();
@@ -52,4 +58,21 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
+
+#region CreateEnvironmentAsync
+
+async Task CreateEnvironmentAsync(IServiceProvider sp, CancellationToken cancellationToken)
+{
+    try
+    {
+        var admin = sp.GetRequiredService<IEvDbStorageAdmin>();
+        await admin.CreateEnvironmentAsync(cancellationToken);
+    }
+    catch (Microsoft.Data.SqlClient.SqlException)
+    {
+        // Assume already exists
+    }
+}
+
+#endregion //  CreateEnvironmentAsync

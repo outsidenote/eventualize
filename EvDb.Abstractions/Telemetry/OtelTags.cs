@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
 
 namespace EvDb.Core;
 
@@ -19,6 +20,7 @@ public readonly record struct OtelTags : IEnumerable<KeyValuePair<string, object
     private ImmutableArray<KeyValuePair<string, object?>> Tags { get; init; }
 
     public static OtelTags Empty { get; } = new OtelTags();
+    public static OtelTags Create<T>(string key, T value) => Empty.Add(key, value);
 
     public OtelTags Add<T>(string key, T value)
     {

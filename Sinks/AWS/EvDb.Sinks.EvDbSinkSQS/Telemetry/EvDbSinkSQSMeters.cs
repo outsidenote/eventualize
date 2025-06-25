@@ -9,15 +9,15 @@ namespace EvDb.Sinks.EvDbSinkSQS;
 
 public class EvDbSinkSQSMeters : EvDbSinkMeters, IEvDbSinkSQSMeters
 {
-    public static readonly IEvDbSinkSQSMeters Default = new EvDbSinkSQSMeters(SINK_CHANNEL);
+    public static readonly IEvDbSinkSQSMeters Default = new EvDbSinkSQSMeters();
 
     private const string SINK_CHANNEL = "sqs";
 
-    public EvDbSinkSQSMeters(string sinkChannel) : base(SINK_CHANNEL)
+    public EvDbSinkSQSMeters() : base(SINK_CHANNEL)
     {
     }
 
-    public EvDbSinkSQSMeters(Meter meter, string sinkChannel) : base(meter, SINK_CHANNEL)
+    public EvDbSinkSQSMeters(Meter meter) : base(meter, SINK_CHANNEL)
     {
     }
 }

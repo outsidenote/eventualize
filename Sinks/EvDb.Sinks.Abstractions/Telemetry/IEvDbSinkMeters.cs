@@ -9,8 +9,5 @@ public interface IEvDbSinkMeters
     /// </summary>
     string Name { get; }
 
-    /// <summary>
-    /// Events stored into the storage database
-    /// </summary>
-    Counter<int> Published { get; }
+    public void IncrementPublish(EvDbSinkTarget target);
 }
