@@ -8,7 +8,7 @@ namespace EvDb.Demo;
 
 internal static class OtelExtensions
 {
-    private const string APP_NAME = "evdb:stress";
+    private const string APP_NAME = "evdb:demo";
     private const string OTEL_ENC_KEY = "EVDB_OTEL_EXPORTER_HOST";
 
     public static WebApplicationBuilder AddOtel(this WebApplicationBuilder builder)
