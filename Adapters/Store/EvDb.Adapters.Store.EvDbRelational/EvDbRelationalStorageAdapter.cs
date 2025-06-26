@@ -394,7 +394,7 @@ public abstract class EvDbRelationalStorageAdapter :
         string query = string.Format(StreamQueries.GetMessages, shard);
         _logger.LogQuery(query);
 
-        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty);
+        EvDbGetMessagesParameters parameters = new (filter, options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty);
         using DbConnection conn = await InitAsync();
         var opts = options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty;
         int attemptsWhenEmpty = 0;

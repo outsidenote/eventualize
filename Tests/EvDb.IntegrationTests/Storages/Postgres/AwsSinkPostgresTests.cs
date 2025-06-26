@@ -3,9 +3,8 @@
 namespace EvDb.Core.Tests;
 using Xunit.Abstractions;
 
-[Trait("Kind", "Integration")]
-[Trait("DB", "Postgres")]
-[Trait("Feature", "Sink")]
+[Trait("Kind", "Integration:sink")]
+[Trait("DB", "Postgres:sink")]
 [Collection("Sink")]
 public class AwsSinkPostgresTests : AwsSinkBaseTests
 {

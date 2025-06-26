@@ -1,16 +1,15 @@
-﻿// Ignore Spelling:  Aws
+﻿// Ignore Spelling: Sql
 
 namespace EvDb.Core.Tests;
 
 using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
-[Trait("Kind", "Integration:sink")]
-[Trait("DB", "SqlServer:sink")]
-[Collection("Sink")]
-public class AwsSinkSqlServerTests : AwsSinkBaseTests
+[Trait("Kind", "Integration:otel")]
+[Trait("DB", "SqlServer:otel")]
+public class SqlServerStreamOtelTests : StreamOtelBaseTests
 {
-    public AwsSinkSqlServerTests(ITestOutputHelper output) :
+    public SqlServerStreamOtelTests(ITestOutputHelper output) :
         base(output, StoreType.SqlServer)
     {
     }

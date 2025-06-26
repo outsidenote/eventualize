@@ -31,17 +31,18 @@ services.UseSqlServerChangeStream();
 // Sink
 services.AddSingleton(AWSProviderFactory.CreateSQSClient());
 services.AddSingleton(AWSProviderFactory.CreateSNSClient());
-services.AddEvDb()
-        .AddSink()
-        .ForMessages()
-            .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow.AddSeconds(-2))
-                                        .AddChannel(CommentsMessage.Channels.Comments))
-            .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
-            .BuildHostedService(CreateEnvironmentAsync) 
-            .SendToSNS(TOPIC_NAME);
+//services.AddEvDb()
+//        .AddSink()
+//        .ForMessages()
+//            .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow.AddSeconds(-2))
+//                                        .AddChannel(CommentsMessage.Channels.Comments))
+//            .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
+//            .BuildHostedService(CreateEnvironmentAsync) 
+//            .SendToSNS(TOPIC_NAME);
 
 services.AddSingleton<State>();
-
+services.AddHostedService<SinkJob>();
+services.AddHostedService<DataProducerJob>();
 
 var app = builder.Build();
 

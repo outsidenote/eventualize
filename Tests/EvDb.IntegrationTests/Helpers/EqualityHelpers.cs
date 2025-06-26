@@ -39,6 +39,6 @@ public static class EqualityHelpers
         EvDbTelemetryContextName expected)
     {
         bool isEquals = otelContext.JsonEquals(expected);
-        Assert.True(isEquals);
+        Assert.True(isEquals, "OTEL Equality");
     }
 }

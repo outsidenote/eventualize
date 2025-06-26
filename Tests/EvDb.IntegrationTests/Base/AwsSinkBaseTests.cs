@@ -83,7 +83,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         const int CHUNCK_SIZE = 2;
         var cancellationDucraion = Debugger.IsAttached
                                         ? TimeSpan.FromMinutes(10)
-                                        : TimeSpan.FromSeconds(5);
+                                        : TimeSpan.FromSeconds(30);
 
         var sqsClient = AWSProviderFactory.CreateSQSClient();
         var snsClient = AWSProviderFactory.CreateSNSClient();

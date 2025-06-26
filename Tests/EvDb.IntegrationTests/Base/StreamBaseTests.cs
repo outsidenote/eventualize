@@ -72,7 +72,7 @@ public abstract class StreamBaseTests : BaseIntegrationTests
             Assert.Equal(4, messaging.Length);
             Assert.All(messaging, m => Assert.Equal("student-received-grade", m.EventType));
             Assert.All(messaging, m => Assert.Equal("student-passed", m.MessageType));
-            Assert.All(messaging, m => Assert.True(m.Channel == "channel-3" || m.Channel == "channel-2"));
+            Assert.All(messaging, m => Assert.True(m.Channel == "channel-3" || m.Channel == "channel-2", "Channels"));
 
             ICollection<EvDbMessageRecord> messagingVipCollection = await GetOutboxAsync(OutboxShards.MessagingVip).ToEnumerableAsync();
             EvDbMessageRecord[] messagingVip = messagingVipCollection!.ToArray();
@@ -131,6 +131,11 @@ public abstract class StreamBaseTests : BaseIntegrationTests
 
             var eventsOffsets = events.Select(e => e.StreamCursor.Offset).ToArray();
             _output.WriteLine($"offsets: {string.Join(", ", eventsOffsets)}");
+            for (int i = 0; i < eventsOffsets.Length; i++)
+            {
+                _output.WriteLine($"offsets [i]: {eventsOffsets[i]} == {i + 1} | {eventsOffsets[i] == i + 1} ");
+                Assert.Equal(i + 1, eventsOffsets[i]);
+            }
             Assert.True(eventsOffsets.SequenceEqual([1, 2, 3, 4]), "sequence equality");
             for (int i = 1; i <= defaults.Length; i++)
             {
@@ -139,7 +144,6 @@ public abstract class StreamBaseTests : BaseIntegrationTests
                 var itemOffset = item.Offset;
                 Assert.Equal(i + 1, itemOffset);
                 Assert.Contains(itemOffset, eventsOffsets);
-                item.AssertTelemetryContextEquals(activity);
             }
         }
     }

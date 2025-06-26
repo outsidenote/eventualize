@@ -75,10 +75,13 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
             TopicArn = topicArn,
             Message = json,
             MessageAttributes = messageAttributes,
-            MessageGroupId = message.GetAddress().ToString(), // Use the message address as the group ID
-            MessageDeduplicationId = message.Id.ToString("N"), // Use a unique identifier to avoid duplication
             // MessageStructure = "json"
         };
+        if(target.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase))
+        {
+            request.MessageGroupId = message.GetAddress().ToString();
+            request.MessageDeduplicationId = message.Id.ToString("N");
+        }
 
         await _client.PublishAsync(request, cancellationToken);
     }

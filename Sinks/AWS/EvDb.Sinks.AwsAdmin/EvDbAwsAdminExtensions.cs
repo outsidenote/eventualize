@@ -5,10 +5,13 @@ using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using EvDb.Core.Adapters;
 using EvDb.Sinks;
 using EvDb.Sinks.AwsAdmin;
 using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
+using System.Text.Json;
+
 #pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 using ms = Microsoft.Extensions.Logging;
 #pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
@@ -83,7 +86,7 @@ public static class EvDbAwsAdminExtensions
                 bool isFifo = topicName.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase);
                 var attributes = new Dictionary<string, string>();
                 string name = topicName.Value;
-                if(isFifo)
+                if (isFifo)
                 {
                     attributes.Add("FifoTopic", "true");
                     attributes.Add("ContentBasedDeduplication", "true"); // auto deduplication
@@ -491,10 +494,49 @@ public static class EvDbAwsAdminExtensions
                                                logger,
                                                cancellationToken: cancellationToken);
 
-        await snsClient.AttachSQSToSNSAsync(topicArn,queueArn, logger, cancellationToken);
+        await snsClient.AttachSQSToSNSAsync(topicArn, queueArn, logger, cancellationToken);
     }
 
     #endregion //  SubscribeSQSToSNSAsync
+
+    #region SNSToMessageRecord
+
+    /// <summary>
+    /// Convert message originated via SNS and forwarded to SQS into EvDbMessageRecord.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="serializerOptions"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static EvDbMessageRecord SNSToMessageRecord(this Message message,
+                                                   JsonSerializerOptions? serializerOptions = null)
+    {
+        try
+        {
+            var snsEnvelope = System.Text.Json.JsonSerializer.Deserialize<SnsNotification>(message.Body, serializerOptions);
+            var eventPayload = System.Text.Json.JsonSerializer.Deserialize<EvDbMessageRecord>(snsEnvelope!.Message, serializerOptions);
+            return eventPayload!;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to convert SNS message to EvDbMessageRecord.", ex);
+        }
+    }
+
+    #endregion //  SNSToMessageRecord
+
+    #region SnsNotification
+
+    public sealed record SnsNotification
+    {
+        public required string Type { get; init; }
+        public required string MessageId { get; init; }
+        public required string TopicArn { get; init; }
+        public required string Message { get; init; } // this contains your real message as JSON string
+        public required DateTime Timestamp { get; init; }
+    }
+
+    #endregion //  SnsNotification
 
 #pragma warning restore CA1031 // Do not catch general exception types
 }

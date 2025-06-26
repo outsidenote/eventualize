@@ -5,8 +5,8 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
-[Trait("Kind", "Integration")]
-[Trait("DB", "SqlServer")]
+[Trait("Kind", "Stress")]
+[Trait("DB", "SqlServer:stress")]
 public sealed class SqlServerStressTests : StressBaseTests
 {
     #region Ctor

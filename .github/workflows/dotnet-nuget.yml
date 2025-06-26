@@ -163,5 +163,5 @@ jobs:
 
     - name: Execute AWS Sink Integration tests
       working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Feature=Sink"
+      run: dotnet test --filter "KindIntegration:sink"
 

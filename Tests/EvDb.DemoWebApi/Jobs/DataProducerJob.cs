@@ -83,6 +83,7 @@ public class DataProducerJob : BackgroundService
         int rate = _rnd.Next(1, 5);
         CreatedEvent created = new(name, rate);
         await stream.AppendAsync(created);
+        await stream.StoreAsync(stoppingToken);
 
         await Task.Delay(_rnd.Next(500, 5000), stoppingToken); // Simulate some delay
 
@@ -101,9 +102,9 @@ public class DataProducerJob : BackgroundService
         }
         await Task.Delay(_rnd.Next(500, 5000), stoppingToken); // Simulate some delay
 
-        rate = _rnd.Next(1, 5);
         DeletedEvent deleted = new();
         await stream.AppendAsync(deleted);
+        await stream.StoreAsync(stoppingToken);
     }
 
     #endregion //  RunAsync

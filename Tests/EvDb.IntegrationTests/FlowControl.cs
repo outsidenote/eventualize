@@ -10,3 +10,8 @@ public abstract class SinkDefinition
 public abstract class StressDefinition
 {
 }
+
+[CollectionDefinition("otel", DisableParallelization = true)]
+public abstract class OtelDefinition
+{
+}

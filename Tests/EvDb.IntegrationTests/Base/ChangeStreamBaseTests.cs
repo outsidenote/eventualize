@@ -140,8 +140,20 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
             Assert.Equal(lastOffset, messageOffset - 1);
             lastOffset = messageOffset;
 
-            AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
-            Assert.Equal(messageOffset, data!.Avg);
+            if (message.MessageType == AvgMessage.PAYLOAD_TYPE)
+            {
+                AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
+                Assert.Equal(messageOffset, data!.Avg);
+            }
+            else if (message.MessageType == StudentPassedMessage.PAYLOAD_TYPE)
+            {
+                StudentPassedMessage data = JsonSerializer.Deserialize<StudentPassedMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
+                Assert.Equal(88, data.StudentId);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unknown message type: {message.MessageType}");
+            }
 
             if (messageOffset == 50)
             {
@@ -155,6 +167,104 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
     }
 
     #endregion //  ChangeStream_GetMessages_Succeed
+
+    #region ChangeStream_GetMessages_Filter_Channels
+
+    [Fact]
+    public virtual async Task ChangeStream_GetMessages_Filter_Channels()
+    {
+        const int BATCH_SIZE = 300;
+        const int CHUNCK_SIZE = 40;
+        var cancellationDucraion = Debugger.IsAttached
+                                        ? TimeSpan.FromMinutes(10)
+                                        : TimeSpan.FromSeconds(5);
+
+        using var cts = new CancellationTokenSource(cancellationDucraion);
+        var cancellationToken = cts.Token;
+        var defaultEventsOptions = EvDbContinuousFetchOptions.ContinueWhenEmpty;
+        int count = BATCH_SIZE * 2;
+        var startAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+
+        // produce messages before start listening to the change stream
+        for (int i = 0; i < count; i += CHUNCK_SIZE)
+        {
+            await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
+        }
+        await Task.Delay(50); // Change stream ignore last ms
+
+        EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
+        EvDbMessageFilter filter = EvDbMessageFilter.Create(startAt)
+                                                    .AddChannel(AvgMessage.Channels.DEFAULT);    
+        IAsyncEnumerable<EvDbMessage> messages =
+                        _changeStream.GetMessagesAsync(shard, filter, defaultEventsOptions, cancellationToken);
+
+        await foreach (var message in messages)
+        {
+            if (message.MessageType == AvgMessage.PAYLOAD_TYPE)
+            {
+                AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
+                Assert.NotEqual(0, data!.Avg);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unknown message type: {message.MessageType}");
+            }
+
+            if (message.StreamCursor.Offset > count - 5)
+                await cts.CancelAsync();
+        }
+    }
+
+    #endregion //  ChangeStream_GetMessages_Filter_Channels
+
+    #region ChangeStream_GetMessages_Filter_MessageTypes
+
+    [Fact]
+    public virtual async Task ChangeStream_GetMessages_Filter_MessageTypes()
+    {
+        const int BATCH_SIZE = 300;
+        const int CHUNCK_SIZE = 40;
+        var cancellationDucraion = Debugger.IsAttached
+                                        ? TimeSpan.FromMinutes(10)
+                                        : TimeSpan.FromSeconds(5);
+
+        using var cts = new CancellationTokenSource(cancellationDucraion);
+        var cancellationToken = cts.Token;
+        var defaultEventsOptions = EvDbContinuousFetchOptions.ContinueWhenEmpty;
+        int count = BATCH_SIZE * 2;
+        var startAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+
+        // produce messages before start listening to the change stream
+        for (int i = 0; i < count; i += CHUNCK_SIZE)
+        {
+            await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
+        }
+        await Task.Delay(50); // Change stream ignore last ms
+
+        EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
+        EvDbMessageFilter filter = EvDbMessageFilter.Create(startAt)
+                                                    .AddMessageType(AvgMessage.PAYLOAD_TYPE);    
+        IAsyncEnumerable<EvDbMessage> messages =
+                        _changeStream.GetMessagesAsync(shard, filter, defaultEventsOptions, cancellationToken);
+
+        await foreach (var message in messages)
+        {
+            if (message.MessageType == AvgMessage.PAYLOAD_TYPE)
+            {
+                AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
+                Assert.NotEqual(0, data!.Avg);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unknown message type: {message.MessageType}");
+            }
+
+            if (message.StreamCursor.Offset > count - 5)
+                await cts.CancelAsync();
+        }
+    }
+
+    #endregion //  ChangeStream_GetMessages_Filter_MessageTypes
 
     #region ChangeStream_GetMessageRecords_Succeed
 
@@ -192,8 +302,20 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
             Assert.Equal(lastOffset, messageOffset - 1);
             lastOffset = messageOffset;
 
-            AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
-            Assert.Equal(messageOffset, data!.Avg);
+            if (message.MessageType == AvgMessage.PAYLOAD_TYPE)
+            {
+                AvgMessage data = JsonSerializer.Deserialize<AvgMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
+                Assert.Equal(messageOffset, data!.Avg);
+            }
+            else if (message.MessageType == StudentPassedMessage.PAYLOAD_TYPE)
+            {
+                StudentPassedMessage data = JsonSerializer.Deserialize<StudentPassedMessage>(message.Payload) ?? throw new Exception("Deserialize returned null");
+                Assert.Equal(88, data.StudentId);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unknown message type: {message.MessageType}");
+            }
 
             if (messageOffset == 50)
             {

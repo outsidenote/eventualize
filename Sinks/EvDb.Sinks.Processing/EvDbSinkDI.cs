@@ -25,7 +25,6 @@ public static class EvDbSinkDI
         var bag = (SinkBag)builder;
         var services = bag.Services;
 
-
         services.AddKeyedSingleton(bag.Id, bag);
         services.AddKeyedSingleton(bag.Id, (sp, key) =>
         {

@@ -3,9 +3,8 @@
 namespace EvDb.Core.Tests;
 using Xunit.Abstractions;
 
-[Trait("Kind", "Integration")]
-[Trait("DB", "MongoDB")]
-[Trait("Feature", "Sink")]
+[Trait("Kind", "Integration:sink")]
+[Trait("DB", "MongoDB:sink")]
 [Collection("Sink")]
 public class AwsSinkMongoDBTests : AwsSinkBaseTests
 {

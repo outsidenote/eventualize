@@ -16,6 +16,7 @@ public partial class MessagePayloadGenerator : EventPayloadGenerator
     private const string MESSAGE_PAYLOAD = "EvDbDefineMessagePayload";
     public const string MESSAGE_PAYLOAD_ATTRIBUTE = MESSAGE_PAYLOAD + "Attribute";
     private const string CHANNEL_ATT = "EvDbAttachChannelAttribute";
+    private const string DEFAULT_CHANNEL_ATT = "EvDbAttachDefaultChannelAttribute";
     protected override string EventTargetAttribute { get; } = MESSAGE_PAYLOAD_ATTRIBUTE;
     protected override string StartWith { get; } = MESSAGE_PAYLOAD;
 
@@ -33,20 +34,27 @@ public partial class MessagePayloadGenerator : EventPayloadGenerator
     protected override string GetInlineAdditions(INamedTypeSymbol typeSymbol, string type, string name)
     {
         var allAttributes = typeSymbol.GetAttributes();
-        string[] channels = allAttributes
+        var channels = allAttributes
                           .Where(att => att.AttributeClass?.Name == CHANNEL_ATT)
                           .Select(m => m.ConstructorArguments.First().Value?.ToString() ?? "")
                                 .OrderBy(m => m)
-                                .ToArray();
+                                .Select(t => $$"""
 
-        if (channels.Length == 0)
-            return string.Empty;
+                                        public static readonly EvDbChannelName {{t.FixNameForClass()}} = "{{t.FixNameForClass()}}";  
+                                """)
+                                .ToList();
 
-        string channelValues = string.Join("", channels.Select(t =>
-                    $$"""
+        bool hasDefaultChannel = channels.Count == 0 ||
+                                allAttributes.Any(att => att.AttributeClass?.Name == DEFAULT_CHANNEL_ATT);
+        if (hasDefaultChannel)
+        {
+            channels.Insert(0, $$"""
 
-                                public static readonly EvDbChannelName {{t.FixNameForClass()}} = "{{t.FixNameForClass()}}";  
-                        """));
+                                        public static readonly EvDbChannelName DEFAULT = EvDbOutboxConstants.DEFAULT_OUTBOX;  
+                                """);
+        }
+
+        string channelValues = string.Join("", channels);
 
         string result = ($$"""
                         public static class Channels

@@ -126,20 +126,11 @@ public abstract class StressBaseTests : BaseIntegrationTests
                         IEvDbDemoStream stream = await _factory.GetAsync(streamId);
                         var tasks = events.Select(async e => await stream.AppendAsync(e));
                         IEvDbEventMeta[] es = await Task.WhenAll(tasks);
-                        for (int q = 0; q < es.Length; q++)
-                        {
-                            var e = es[q];
-                            //Assert.Equal(q, e.StreamCursor.Offset % batchSize);
-                        }
                         Assert.Equal(batchSize, stream?.CountOfPendingEvents);
                         try
                         {
-                            var offset0 = stream!.StoredOffset;
                             StreamStoreAffected affected = await stream!.StoreAsync();
                             Assert.Equal(batchSize, affected.Events);
-                            var offset1 = stream.StoredOffset;
-                            //Assert.Equal(batchSize, offset1 - offset0);
-                            //Assert.Equal(0 ,(offset1 + 1) % batchSize);
 
                             success = true;
                         }

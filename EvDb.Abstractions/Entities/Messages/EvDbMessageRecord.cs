@@ -6,7 +6,7 @@ namespace EvDb.Core.Adapters;
 /// Raw message record that is stored in the storage.
 /// Can be cast to `EvDbMessage`.
 /// </summary>
-[DebuggerDisplay("MessageType: {MessageType} ,EventType:{EventType}, Channel:{Channel} Offset:{Offset}, StreamId:{StreamId}")]
+[DebuggerDisplay("ID: {Id}, MessageType: {MessageType} ,EventType:{EventType}, Channel:{Channel} Offset:{Offset}, StreamId:{StreamId}")]
 public struct EvDbMessageRecord
 {
     /// <summary>

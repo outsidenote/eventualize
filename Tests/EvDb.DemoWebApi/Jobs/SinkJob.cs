@@ -82,9 +82,9 @@ public class SinkJob : BackgroundService
 
             Amazon.SQS.Model.ReceiveMessageResponse receiveResponse =
                                 await sqsClient.ReceiveMessageAsync(receiveRequest, stoppingToken);
-            foreach (var msg in receiveResponse.Messages ?? [])
+            foreach (Amazon.SQS.Model.Message msg in receiveResponse.Messages ?? [])
             {
-                EvDbMessageRecord message = JsonSerializer.Deserialize<EvDbMessageRecord>(msg.Body);
+                EvDbMessageRecord message = msg.SNSToMessageRecord();
                 var comments = JsonSerializer.Deserialize<CommentsMessage>(message.Payload.ToString());
                 _state.Comments.AddOrUpdate(comments.Id, 
                                             ImmutableList.CreateRange(comments.Comments), 
@@ -105,4 +105,5 @@ public class SinkJob : BackgroundService
     }
 
     #endregion //  ExecuteAsync
+
 }
