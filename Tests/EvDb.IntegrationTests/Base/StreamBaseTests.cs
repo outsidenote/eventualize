@@ -9,7 +9,6 @@ using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using System.Diagnostics;

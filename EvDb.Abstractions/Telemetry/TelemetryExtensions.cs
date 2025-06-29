@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using EvDb.Core.Adapters;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Core;
 
@@ -190,5 +192,27 @@ public static class TelemetryExtensions
     }
 
     #endregion //  ActivityBuilder
+
+    #region ToTelemetryTags
+
+    /// <summary>
+    /// Convert `EvDbMessageRecord` to `OtelTags` for telemetry purposes.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="shard"></param>
+    /// <returns></returns>
+    public static OtelTags ToTelemetryTags(this EvDbMessageRecord message, EvDbShardName? shard = null)
+    {
+        var tags = OtelTags.Create(TAG_CHANNEL_NAME, message.Channel)
+                        .Add(TAG_STREAM_TYPE, message.StreamType)
+                        .Add(TAG_MESSAGE_TYPE_NAME, message.MessageType);
+
+        if (shard.HasValue)
+            tags = tags.Add(TAG_SHARD_NAME, shard.Value);
+
+        return tags;
+    }
+
+    #endregion //  ToTelemetryTags
 }
 

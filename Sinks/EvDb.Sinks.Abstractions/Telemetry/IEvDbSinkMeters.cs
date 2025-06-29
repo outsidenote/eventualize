@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Metrics;
-
-namespace EvDb.Sinks;
+﻿namespace EvDb.Sinks;
 
 public interface IEvDbSinkMeters
 {

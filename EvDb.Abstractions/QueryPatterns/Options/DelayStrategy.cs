@@ -6,14 +6,14 @@ public readonly record struct DelayStrategy
                         attempt switch
                         {
                             <= 5 => StartDuration,
-                            _ when lastDelay.TotalMicroseconds == 0 => TimeSpan.FromMilliseconds(50),
+                            // make sure to not multiply by zero
+                            _ when lastDelay == TimeSpan.Zero => TimeSpan.FromMilliseconds(50),
                             _ => TimeSpan.FromMicroseconds(lastDelay.TotalMicroseconds * 2)
                         };
 
     public DelayStrategy()
     {
         StartDuration = TimeSpan.FromMilliseconds(200); // Default delay when empty
-        MaxDuration = TimeSpan.FromSeconds(5); // Default max duration
         IncrementalLogic = DefaultNextDelay; // Default incremental logic
     }
 
@@ -24,13 +24,8 @@ public readonly record struct DelayStrategy
     public TimeSpan StartDuration { get; init; }
 
     /// <summary>
-    /// Delay duration when the fetch operation returns no items (and CompleteWhenEmpty is false).
-    /// </summary>
-    public TimeSpan MaxDuration { get; init; }
-
-    /// <summary>
     /// Custom incremental logic to calculate the next delay duration 
-    /// based on the previous delay and the number of attempts.
+    /// based on the previous delay and number of attempts.
     /// </summary>
     public Func<TimeSpan, int, TimeSpan> IncrementalLogic { get; init; }
 }

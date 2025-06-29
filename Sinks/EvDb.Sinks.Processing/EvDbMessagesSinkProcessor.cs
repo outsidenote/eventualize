@@ -37,10 +37,10 @@ internal class EvDbMessagesSinkProcessor : IEvDbMessagesSinkProcessor
         #endregion //  Validation
 
         _logger.LogStartListening(_bag);
-        var messages = _changeStream.GetMessageRecordsAsync(_bag.Shard, _bag.Filter, _bag.Options, cancellationToken);
+        var messages = _changeStream.GetRecordsFromOutboxAsync(_bag.Shard, _bag.Filter, _bag.Options, cancellationToken);
         await foreach (EvDbMessageRecord message in messages)
         {
-            if(cancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
                 break;
 
             if (Debugger.IsAttached)

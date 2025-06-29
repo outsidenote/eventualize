@@ -1,15 +1,9 @@
 using EvDb.Core;
-using EvDb.Core.Adapters;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Channels;
-using System.Threading.Tasks.Dataflow;
-using static EvDb.DemoWebApi.DemoConstants;
-using Microsoft.Extensions;
 using EvDb.DemoWebApi.Outbox;
+using Microsoft.Extensions;
 using System.Collections.Immutable;
+using System.Text.Json;
+using static EvDb.DemoWebApi.DemoConstants;
 
 namespace EvDb.DemoWebApi;
 
@@ -80,14 +74,12 @@ public class SinkJob : BackgroundService
                 WaitTimeSeconds = 1
             };
 
-            Amazon.SQS.Model.ReceiveMessageResponse receiveResponse =
-                                await sqsClient.ReceiveMessageAsync(receiveRequest, stoppingToken);
-            foreach (Amazon.SQS.Model.Message msg in receiveResponse.Messages ?? [])
+            var receiveResponse = sqsClient.ReceiveEvDbMessageRecordsAsync(receiveRequest, _logger, stoppingToken);
+            await foreach (var message in receiveResponse)
             {
-                EvDbMessageRecord message = msg.SNSToMessageRecord();
-                var comments = JsonSerializer.Deserialize<CommentsMessage>(message.Payload.ToString());
-                _state.Comments.AddOrUpdate(comments.Id, 
-                                            ImmutableList.CreateRange(comments.Comments), 
+                var comments = JsonSerializer.Deserialize<CommentsMessage>(message.EvDbPayload.ToString());
+                _state.Comments.AddOrUpdate(comments!.Id,
+                                            ImmutableList.CreateRange(comments.Comments),
                                             (key, oldValue) =>
                                                 {
                                                     var result = oldValue.InsertRange(0, comments.Comments.Reverse());
@@ -98,7 +90,7 @@ public class SinkJob : BackgroundService
                                                     return result;
                                                 });
                 // Optionally delete the message after processing
-                await sqsClient.DeleteMessageAsync(queueUrl, msg.ReceiptHandle, stoppingToken);
+                await sqsClient.DeleteMessageAsync(queueUrl, message.SQSReceiptHandle, stoppingToken);
             }
         }
 

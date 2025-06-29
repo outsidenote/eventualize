@@ -1,7 +1,6 @@
 ﻿// Ignore Spelling: Fallback
 
 using EvDb.Core;
-using EvDb.Core.Adapters;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvDb.Adapters.Internals;
@@ -48,8 +47,8 @@ public static class EvDbAdapterInternalExtensions
         }
         if (attemptsWhenEmpty != 0)
             delay = whenEmpty.IncrementalLogic(delay, attemptsWhenEmpty);
-        if (delay > whenEmpty.MaxDuration)
-            delay = whenEmpty.MaxDuration;
+        if (delay > options.MaxDelayWhenEmpty)
+            delay = options.MaxDelayWhenEmpty;
         await Task.Delay(delay, cancellation).SwallowCancellationAsync();
 
         attemptsWhenEmpty++;

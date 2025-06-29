@@ -8,13 +8,13 @@ using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.Sinks;
 using EvDb.UnitTests;
+using FakeItEasy;
 using Microsoft.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Text.Json;
 using System.Threading;
 using Xunit.Abstractions;
 
@@ -204,7 +204,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         using var activity = activitySource.StartActivity("TestActivity", ActivityKind.Internal);
 
         await SinkMessagesToSQS_Succeed();
-        Assert.Contains(traces, m => m == "Started: PublishMessageToSinkAsync");
+        Assert.Contains(traces, m => m.StartsWith("Started: Publish"));
     }
 
     #endregion //  SinkMessagesToSQS_WithTelemetry_Succeed
@@ -228,14 +228,12 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
                 WaitTimeSeconds = 1
             };
 
-            Amazon.SQS.Model.ReceiveMessageResponse receiveResponse =
-                                await sqsClient.ReceiveMessageAsync(receiveRequest, cancellationToken);
-            foreach (var msg in receiveResponse.Messages ?? [])
+            var receiveResponse = sqsClient.ReceiveEvDbMessageRecordsAsync(receiveRequest, A.Fake<ILogger>(), cancellationToken);
+            await foreach (var msg in receiveResponse)
             {
-                EvDbMessageRecord message = JsonSerializer.Deserialize<EvDbMessageRecord>(msg.Body);
-                receivedSqsMessages.Add(message);
+                receivedSqsMessages.Add(msg);
                 // Optionally delete the message after processing
-                await sqsClient.DeleteMessageAsync(queueUrl, msg.ReceiptHandle, cancellationToken);
+                await sqsClient.DeleteMessageAsync(queueUrl, msg.SQSReceiptHandle, cancellationToken);
             }
 
             // Short delay to avoid tight loop

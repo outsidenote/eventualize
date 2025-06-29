@@ -9,7 +9,7 @@ public static class TelemetryCoreExtensions
 {
     public static TracerProviderBuilder AddEvDbSinkSQSInstrumentation(this TracerProviderBuilder builder)
     {
-        builder.AddSource(OtelTrace.Name);
+        builder.AddSource(OtelSinkTrace.Name);
         return builder;
     }
 

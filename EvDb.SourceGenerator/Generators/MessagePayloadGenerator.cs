@@ -62,7 +62,7 @@ public partial class MessagePayloadGenerator : EventPayloadGenerator
                     {{channelValues}}
                         }
                     """);
-        return  result;
+        return result;
     }
 
     #endregion //  GetInlineAdditions
@@ -76,7 +76,7 @@ public partial class MessagePayloadGenerator : EventPayloadGenerator
                                              string name)
     {
         string enums = GetEnum(typeSymbol);
-        if(string.IsNullOrEmpty(enums))
+        if (string.IsNullOrEmpty(enums))
             return;
 
         StringBuilder builder = new StringBuilder();
@@ -123,7 +123,7 @@ public partial class MessagePayloadGenerator : EventPayloadGenerator
                     {{channelEnums}}
                     }
                     """);
-        return  result;
+        return result;
     }
 
     #endregion //  GetEnum

@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Core;
 
@@ -47,7 +48,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         var views = CreateEmptyViews(address);
 
         OtelTags tags = address.ToOtelTagsToOtelTags();
-        using var activity = _trace.StartActivity(tags, "EvDb.Factory.CreateAsync");
+        using var activity = _trace.StartActivity(tags, "EvDb.Factory.Create");
 
         var result = OnCreate(id, views, 0);
         return result;
@@ -63,7 +64,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         var address = new EvDbStreamAddress(StreamType, id);
 
         OtelTags tags = address.ToOtelTagsToOtelTags();
-        using var activity = _trace.StartActivity(tags, "EvDb.Factory.GetAsync");
+        using var activity = _trace.StartActivity(tags, "EvDb.Factory.Get");
         using var duration = _sysMeters.MeasureFactoryGetDuration(tags);
 
         using var snapsActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshots");
@@ -76,7 +77,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         {
             EvDbViewAddress viewAddress = new(address, viewFactory.ViewName);
             using var snapActivity = _trace.StartActivity(tags, "EvDb.Factory.GetSnapshot")
-                                           ?.AddTag("evdb.view.name", viewAddress.ViewName);
+                                           ?.AddTag(TAG_VIEW_NAME, viewAddress.ViewName);
             IEvDbViewStore view = await viewFactory.GetAsync(viewAddress, Options, TimeProvider, cancellationToken);
             return view;
         }

@@ -1,5 +1,6 @@
 ﻿using EvDb.Core;
 using System.Diagnostics.Metrics;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Sinks;
 
@@ -26,7 +27,7 @@ public abstract class EvDbSinkMeters : IEvDbSinkMeters
 
     void IEvDbSinkMeters.IncrementPublish(EvDbSinkTarget target)
     {
-        var tags = OtelTags.Create("evdb.sink.target", target.ToString());
+        var tags = OtelTags.Create(TAG_SINK_TARGET_NAME, target.ToString());
         _published.Add(1, tags);
     }
 }

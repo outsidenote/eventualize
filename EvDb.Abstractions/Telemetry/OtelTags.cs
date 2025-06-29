@@ -2,7 +2,6 @@
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
 
 namespace EvDb.Core;
 

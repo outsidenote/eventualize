@@ -14,7 +14,7 @@ public partial class EvDbNoViewsOutbox
                                                  IEvDbEventMeta meta,
                                                  EvDbNoViewsViews views,
                                                  EvDbNoViewsOutboxContext outbox)
-    {        
+    {
         switch (meta.StreamCursor.Offset % 4)
         {
             case 0:
@@ -34,6 +34,6 @@ public partial class EvDbNoViewsOutbox
                 outbox.Append(m3, StudentPassedMessageChannels.Channel3);
                 break;
         }
-        
+
     }
 }

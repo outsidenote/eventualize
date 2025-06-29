@@ -74,7 +74,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
 
 
         IAsyncEnumerable<EvDbMessage> messages =
-                _changeStream.GetMessagesAsync(shard, startAt, defaultEventsOptions, cancellationToken);
+                _changeStream.GetFromOutboxAsync(shard, startAt, defaultEventsOptions, cancellationToken);
 
         var block = new ActionBlock<int>(async i =>
         {
@@ -131,7 +131,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
 
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
         IAsyncEnumerable<EvDbMessage> messages =
-                        _changeStream.GetMessagesAsync(shard, startAt, defaultEventsOptions, cancellationToken);
+                        _changeStream.GetFromOutboxAsync(shard, startAt, defaultEventsOptions, cancellationToken);
 
         long lastOffset = 0;
         await foreach (var message in messages)
@@ -194,9 +194,9 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
 
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
         EvDbMessageFilter filter = EvDbMessageFilter.Create(startAt)
-                                                    .AddChannel(AvgMessage.Channels.DEFAULT);    
+                                                    .AddChannel(AvgMessage.Channels.DEFAULT);
         IAsyncEnumerable<EvDbMessage> messages =
-                        _changeStream.GetMessagesAsync(shard, filter, defaultEventsOptions, cancellationToken);
+                        _changeStream.GetFromOutboxAsync(shard, filter, defaultEventsOptions, cancellationToken);
 
         await foreach (var message in messages)
         {
@@ -243,9 +243,9 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
 
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
         EvDbMessageFilter filter = EvDbMessageFilter.Create(startAt)
-                                                    .AddMessageType(AvgMessage.PAYLOAD_TYPE);    
+                                                    .AddMessageType(AvgMessage.PAYLOAD_TYPE);
         IAsyncEnumerable<EvDbMessage> messages =
-                        _changeStream.GetMessagesAsync(shard, filter, defaultEventsOptions, cancellationToken);
+                        _changeStream.GetFromOutboxAsync(shard, filter, defaultEventsOptions, cancellationToken);
 
         await foreach (var message in messages)
         {
@@ -293,7 +293,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
 
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
         IAsyncEnumerable<EvDbMessageRecord> messages =
-                        _changeStream.GetMessageRecordsAsync(shard, startAt, defaultEventsOptions, cancellationToken);
+                        _changeStream.GetRecordsFromOutboxAsync(shard, startAt, defaultEventsOptions, cancellationToken);
 
         long lastOffset = 0;
         await foreach (var message in messages)
@@ -427,11 +427,11 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
             if (processed == total)
                 await cts.CancelAsync();
         }, new ExecutionDataflowBlockOptions
-                    {
-                        CancellationToken = CancellationToken.None,
-                        MaxDegreeOfParallelism = 10,
-                        BoundedCapacity = BOUNDED_CAPACITY
-                    });
+        {
+            CancellationToken = CancellationToken.None,
+            MaxDegreeOfParallelism = 10,
+            BoundedCapacity = BOUNDED_CAPACITY
+        });
         Task subscription = _changeStream.SubscribeToMessageRecordsAsync(actionblock, shard, startAt, defaultEventsOptions, cancellationToken);
 
         await subscription; // push all into the action block

@@ -73,7 +73,7 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #region GetMessagesAsync
 
-    IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetMessageRecordsAsync(
+    IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetRecordsFromOutboxAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options,
@@ -82,7 +82,7 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
         throw new NotImplementedException();
     }
 
-    #endregion //  GetMessagesAsync
+    #endregion //  GetFromOutboxAsync
 
     #region StoreStreamAsync
 

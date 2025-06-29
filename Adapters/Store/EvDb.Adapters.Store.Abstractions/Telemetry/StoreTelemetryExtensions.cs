@@ -1,6 +1,9 @@
 ﻿using EvDb.Core.Adapters;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System.Diagnostics;
+using static EvDb.Core.Adapters.StoreTelemetry;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Core;
 
@@ -26,5 +29,20 @@ public static class StoreTelemetryExtensions
     }
 
     #endregion //  AddEvDbStoreInstrumentation
+
+    #region StartFetchFromOutboxActivity
+
+    public static Activity? StartFetchFromOutboxActivity(this EvDbMessageRecord message, EvDbShardName shard, string databaseType)
+    {
+        var telemetryContext = message.TelemetryContext.ToTelemetryContext();
+        var activity = StoreTrace.StartActivity(ActivityKind.Consumer, 
+                                    name: "EvDb.FetchedFromOutbox",
+                                    links: new[] {  new ActivityLink(telemetryContext) },
+                                    tags: message.ToTelemetryTags(shard)
+                                                 .Add(TAG_STORAGE_TYPE_NAME, databaseType));
+        return activity;
+    }
+
+    #endregion //  StartFetchFromOutboxActivity
 }
 

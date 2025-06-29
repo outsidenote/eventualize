@@ -36,17 +36,20 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
                                                                           CancellationToken cancellationToken)
     {
         ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
-        using var activity = OtelTrace.CreateBuilder()
+        using var activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToSNS")
                                       .WithParent(parentContext)
                                       .WithKind(ActivityKind.Producer)
                                       .AddTag("evdb.sink.target", target)
+                                      .AddTag("evdb.outbox.stream-type", message.StreamType)
+                                      .AddTag("evdb.outbox.channel", message.Channel)
+                                      .AddTag("evdb.outbox.event-type", message.EventType)
+                                      .AddTag("evdb.outbox.message-type", message.MessageType)
                                       .Start();
 
         _meters.IncrementPublish(target);
-        _logger.LogPublish(target, message.Id);
 
         string json = JsonSerializer.Serialize(message, serializerOptions);
-        string topicArn = await _client.GetOrCreateTopicAsync(target, cancellationToken);
+        string topicArn = await _client.GetOrCreateTopicAsync(target, _logger, cancellationToken);
 
         // Create SNS message attributes dictionary
         var messageAttributes = new Dictionary<string, MessageAttributeValue>();
@@ -77,13 +80,14 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
             MessageAttributes = messageAttributes,
             // MessageStructure = "json"
         };
-        if(target.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase))
+        if (target.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase))
         {
             request.MessageGroupId = message.GetAddress().ToString();
             request.MessageDeduplicationId = message.Id.ToString("N");
         }
 
-        await _client.PublishAsync(request, cancellationToken);
+        PublishResponse response = await _client.PublishAsync(request, cancellationToken);
+        _logger.LogPublished(target, message.Id, response.MessageId, response.HttpStatusCode.ToString());
     }
 
 

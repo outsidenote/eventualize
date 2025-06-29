@@ -1,5 +1,4 @@
-﻿using EvDb.Core.NamedTypes.Internals;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -219,7 +218,7 @@ public readonly partial struct EvDbTelemetryContextName :
     /// <returns></returns>
     public ReadOnlySpan<byte> AsSpan()
     {
-        return (_value?? []).AsSpan();
+        return (_value ?? []).AsSpan();
     }
 
     #endregion //  AsSpan

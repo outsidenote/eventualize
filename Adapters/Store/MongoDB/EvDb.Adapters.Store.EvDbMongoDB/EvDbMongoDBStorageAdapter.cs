@@ -12,9 +12,9 @@ using MongoDB.Driver;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks.Dataflow;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 using static EvDb.Core.Adapters.StoreTelemetry;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
@@ -26,7 +26,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 {
     private readonly ILogger _logger;
     private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
-    private readonly static ActivitySource _trace = StoreTelemetry.Trace;
+    private readonly static ActivitySource _trace = StoreTelemetry.StoreTrace;
     private const string DATABASE_TYPE = "MongoDB";
     private readonly CollectionsSetup _collectionsSetup;
     private bool _disposed;
@@ -118,7 +118,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #region GetMessageRecordsAsync
 
-    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetMessageRecordsAsync(
+    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetRecordsFromOutboxAsync(
                             EvDbShardName shard,
                             EvDbMessageFilter filter,
                             EvDbContinuousFetchOptions? options,
@@ -157,7 +157,9 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                     ManageDuplicationList();
                     last = message;
 
-                    // TODO:[Bnaya 2025-06-24] Add Otel Trace and attach it to the message's OTEL
+                    using var activity = message.StartFetchFromOutboxActivity(shard, "MongoDB");
+                    _logger.LogFetchedFromOutbox(message.Id, message.StreamType, message.StreamId, message.Offset, message.EventType, message.Channel, shard.Value);
+
                     yield return message;
 
                     #region ManageDuplicationList
@@ -203,7 +205,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         #endregion //  GetCursorAsync
     }
 
-    #endregion //  GetMessageRecordsAsync
+    #endregion //  GetRecordsFromOutboxAsync
 
     #region GetLastEventAsync
 
@@ -318,8 +320,8 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                     var tasks = shards.Select(async g =>
                     {
                         EvDbShardName shardName = g.Key;
-                        OtelTags tags = OtelTags.Empty.Add("shard", shardName);
-                        using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
+                        OtelTags tags = OtelTags.Empty.Add(TAG_SHARD_NAME, shardName);
+                        using Activity? activity = _trace.StartActivity(tags, ActivityKind.Producer, "EvDb.StoreToOutbox");
                         var outboxDocs = g.Select(m => m.EvDbToBsonDocument(shardName))
                                           .ToArray();
 
@@ -370,7 +372,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                             IClientSessionHandle? session,
                             CancellationToken cancellation)
         {
-            using var activity = _trace.StartActivity("EvDb.StoreEventsAsync");
+            using var activity = _trace.StartActivity("EvDb.StoreEvents");
             if (session == null)
                 await eventsCollection.InsertManyAsync(eventDocs, options, cancellation);
             else

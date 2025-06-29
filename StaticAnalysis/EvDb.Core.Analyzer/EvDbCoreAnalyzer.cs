@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 // TODO: [Bnaya 2025-06-24] Validate that IEventsAdder don't have duplicate event's names (from the event attribute)
 // TODO: [Bnaya 2025-06-24] Validate that attached messages don't have duplicate meaasge's names (from the message attribute)
 // TODO: [Bnaya 2025-06-24] Validate that attached views don't have duplicate view's names (from the view attribute)
- 
+
 namespace EvDb.Core;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]

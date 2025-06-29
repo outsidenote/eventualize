@@ -30,7 +30,7 @@ public class ApiDesignTests
                             //{
                             //    c.CreateTopicGroup(x => [x.Topic1, x.Topic2])
                             //            .WithTransformation<TState>()
-                            //            .WithTransformation(x => JsonSerializer.Serialize(x.Payload));
+                            //            .WithTransformation(x => JsonSerializer.Serialize(x.EvDbPayload));
                             //})
                             .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
                             .ForALL(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection-server1"))

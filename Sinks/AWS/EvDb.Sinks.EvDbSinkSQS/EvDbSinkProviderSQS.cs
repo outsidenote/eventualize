@@ -35,17 +35,15 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
                                                                           CancellationToken cancellationToken)
     {
         ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
-        using var activity = OtelTrace.CreateBuilder()
+        using var activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToSQS")
                                       .WithParent(parentContext)
                                       .WithKind(ActivityKind.Producer)
                                       .AddTag("evdb.sink.target", target)
                                       .Start();
 
         _meters.IncrementPublish(target);
-        _logger.LogPublish(target, message);
 
         string json = JsonSerializer.Serialize(message, serializerOptions);
-        //string queueArn = await _client.GetQueueARNAsync(target, _logger, cancellationToken);
 
         #region MessageAttributeValue messageAttributes = OTEL Context
 
@@ -86,7 +84,8 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
 
         #endregion //  var request = new SendMessageRequest(..)
 
-        await _client.SendMessageAsync(request, cancellationToken);
+        SendMessageResponse response = await _client.SendMessageAsync(request, cancellationToken);
+        _logger.LogPublished(target, message.Id, response.MessageId, response.HttpStatusCode.ToString());
     }
 
     IEvDbTargetedMessagesSinkPublish IEvDbMessagesSinkPublishProvider.Create(EvDbSinkTarget target) => new SpecializedTarget(this, target);

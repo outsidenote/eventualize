@@ -20,3 +20,13 @@ Content-Type: application/json
 }
 
 ### 
+
+GET {{DemoWebApi_HostAddress}}/State/1
+Accept: application/json
+
+### 
+
+GET {{DemoWebApi_HostAddress}}/State/2
+Accept: application/json
+
+### 

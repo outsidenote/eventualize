@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Channels;
 
 namespace EvDb.DemoWebApi.Controllers;
 
@@ -19,10 +18,10 @@ public class StateController : ControllerBase
     }
 
     [HttpGet("id")]
-    public string[] PostAsync(int id)
+    public string[] GetAsync(int id)
     {
         _logger.LogInformation("Get by id");
-        if(_state.Comments.TryGetValue(id.ToString(), out var comments))
+        if (_state.Comments.TryGetValue(id.ToString(), out var comments))
         {
             return comments.ToArray();
         }

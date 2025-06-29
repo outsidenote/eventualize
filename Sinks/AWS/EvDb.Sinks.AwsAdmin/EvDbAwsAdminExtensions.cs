@@ -11,9 +11,14 @@ using EvDb.Sinks.AwsAdmin;
 using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
 using System.Text.Json;
+using EvDb.Core;
+using static EvDb.Sinks.EvDbSinkTelemetry;
 
 #pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 using ms = Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using EvDb.Sinks.Internals;
 #pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 
 #pragma warning disable S101 // Types should be named in PascalCase
@@ -361,7 +366,6 @@ public static class EvDbAwsAdminExtensions
 
     #region AllowSNSToSendToSQSAsync
 #pragma warning disable CA1031 // Do not catch general exception types
-#pragma warning restore CA1062 // Validate arguments of public methods
 
     /// <summary>
     /// Attaches an SQS queue to an SNS topic if not already attached.
@@ -412,6 +416,8 @@ public static class EvDbAwsAdminExtensions
         }
     }
 
+
+#pragma warning restore CA1031 // Do not catch general exception types
     #endregion //  AllowSNSToSendToSQSAsync
 
     #region SubscribeSQSToSNSOptions
@@ -538,5 +544,63 @@ public static class EvDbAwsAdminExtensions
 
     #endregion //  SnsNotification
 
-#pragma warning restore CA1031 // Do not catch general exception types
+    #region ReceiveEvDbMessageRecordsAsync
+
+    #region Overloads
+
+    /// <summary>
+    /// Receives EvDbMessageRecords from the specified SQS queue.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="receiveRequest"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+                                                                    ReceiveMessageRequest receiveRequest,
+                                                                    ms.ILogger logger,
+                                                                    CancellationToken cancellationToken = default)
+    {
+        return ReceiveEvDbMessageRecordsAsync(sqsClient, receiveRequest, null, logger, cancellationToken);
+    }
+
+    #endregion //  Overloads
+
+    /// <summary>
+    /// Receives EvDbMessageRecords from the specified SQS queue.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="receiveRequest"></param>
+    /// <param name="serializerOptions"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+                                                                    ReceiveMessageRequest receiveRequest,
+                                                                    JsonSerializerOptions? serializerOptions,
+                                                                    ms.ILogger logger,
+                                                                    [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        ReceiveMessageResponse receiveResponse =
+                            await sqsClient.ReceiveMessageAsync(receiveRequest, cancellationToken);
+        foreach (Message msg in receiveResponse.Messages ?? [])
+        {
+            EvDbMessageRecord message = msg.SNSToMessageRecord(serializerOptions);
+            var parentContext = message.TelemetryContext.ToTelemetryContext();
+            using Activity? activity = OtelSinkTrace.CreateBuilder("EvDb.ReceivedFromSQS")
+                .WithParent(parentContext)
+                .WithKind(ActivityKind.Consumer)
+                .AddTag("evdb.sink.target", receiveRequest.QueueUrl)
+                .AddTag("evdb.outbox.stream-type", message.StreamType)
+                .AddTag("evdb.outbox.channel", message.Channel)
+                .AddTag("evdb.outbox.event-type", message.EventType)
+                .AddTag("evdb.outbox.message-type", message.MessageType)
+                .Start();
+            logger.LogReceivedFromSQS(receiveRequest.QueueUrl, msg.MessageId, message.Id, message.EventType, message.StreamId, message.Offset, message.MessageType, message.Channel);
+
+            EvDbSQSMessageRecord item = new EvDbSQSMessageRecord(message, msg);
+            yield return item;
+        }
+    }
+
+    #endregion //  ReceiveEvDbMessageRecordsAsync
 }

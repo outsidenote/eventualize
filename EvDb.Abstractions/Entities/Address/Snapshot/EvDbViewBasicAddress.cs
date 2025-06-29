@@ -1,6 +1,6 @@
 ﻿using Generator.Equals;
 
-using static EvDb.Core.OtelConstants;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Core;
 
@@ -23,7 +23,7 @@ public readonly partial record struct EvDbViewBasicAddress(string StreamType, st
     public OtelTags ToOtelTagsToOtelTags()
     {
         OtelTags tags = OtelTags.Empty
-                            .Add(TAG_ROOT_ADDRESS, StreamType)
+                            .Add(TAG_STREAM_TYPE, StreamType)
                             .Add(TAG_VIEW_NAME, ViewName);
         return tags;
     }

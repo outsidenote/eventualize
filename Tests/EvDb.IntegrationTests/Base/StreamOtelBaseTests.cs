@@ -1,15 +1,9 @@
 ﻿// Ignore Spelling: Sql
 
 namespace EvDb.Core.Tests;
-
-using EvDb.Adapters.Store.MongoDB;
-using EvDb.Adapters.Store.Postgres;
-using EvDb.Adapters.Store.SqlServer;
 using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.UnitTests;
-using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using System.Diagnostics;

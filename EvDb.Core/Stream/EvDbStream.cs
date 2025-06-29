@@ -7,6 +7,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Core;
 
@@ -134,7 +135,7 @@ public abstract class EvDbStream :
         OtelTags tags = StreamAddress.ToOtelTagsToOtelTags();
 
         using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
-        using var activity = _trace.StartActivity(tags, "EvDb.StoreAsync");
+        using var activity = _trace.StartActivity(tags, "EvDb.Store");
 
         #endregion //  Telemetry
 
@@ -155,7 +156,7 @@ public abstract class EvDbStream :
             _sysMeters.EventsStored.Add(affected.Events, tags);
             foreach (var outboxAffected in affected.Messages)
             {
-                var tgs = tags.Add("shard", outboxAffected.Key);
+                var tgs = tags.Add(TAG_SHARD_NAME, outboxAffected.Key);
                 _sysMeters.MessagesStored.Add(outboxAffected.Value, tgs);
             }
 
@@ -166,7 +167,7 @@ public abstract class EvDbStream :
             var viewSaveTasks = _views.Select(v => v.SaveAsync(cancellation));
             await Task.WhenAll(viewSaveTasks);
 
-            using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPendingEvents");
+            using var clearPendingActivity = _trace.StartActivity(tags, "EvDb.ClearPending");
             _pendingEvents = ImmutableList<EvDbEvent>.Empty;
             _pendingOutput = ImmutableList<EvDbMessage>.Empty;
 

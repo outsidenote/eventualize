@@ -170,4 +170,23 @@ public struct EvDbMessageRecord
     public EvDbStreamAddress GetAddress() => new EvDbStreamAddress(StreamType, StreamId);
 
     #endregion //  GetAddress
+
+    #region GetAddress
+
+    /// <summary>
+    /// Get the message's cursor.
+    /// </summary>
+    public EvDbStreamAddress GetCursor() => new EvDbStreamCursor(StreamType, StreamId, Offset);
+
+    #endregion //  GetAddress
+
+    #region ToString
+
+    /// <summary>
+    /// Get the unique fields as string (root_address:stream_id:offset).
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString() => $"{StreamType}:{StreamId}:{Offset:000_000_000_000}";
+
+    #endregion //  ToString
 }

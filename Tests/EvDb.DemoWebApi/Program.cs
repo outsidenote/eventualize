@@ -1,17 +1,14 @@
 using EvDb.Core;
 using EvDb.Demo;
 using EvDb.DemoWebApi;
-using EvDb.DemoWebApi.Controllers;
 using EvDb.DemoWebApi.Outbox;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Data.SqlClient;
 using System.Threading.Channels;
 using static EvDb.DemoWebApi.DemoConstants;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
-services.AddSingleton<EvDbStorageContext>(_ => EvDbStorageContext.CreateWithEnvironment("master", "demo", schema:"dbo"));
+services.AddSingleton<EvDbStorageContext>(_ => EvDbStorageContext.CreateWithEnvironment("master", "demo", schema: "dbo"));
 services.AddEvDbSqlServerStoreAdmin();
 services.AddEvDb()
         .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
@@ -31,14 +28,15 @@ services.UseSqlServerChangeStream();
 // Sink
 services.AddSingleton(AWSProviderFactory.CreateSQSClient());
 services.AddSingleton(AWSProviderFactory.CreateSNSClient());
-//services.AddEvDb()
-//        .AddSink()
-//        .ForMessages()
-//            .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow.AddSeconds(-2))
-//                                        .AddChannel(CommentsMessage.Channels.Comments))
-//            .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
-//            .BuildHostedService(CreateEnvironmentAsync) 
-//            .SendToSNS(TOPIC_NAME);
+services.AddEvDb()
+        .AddSink()
+        .ForMessages()
+            //.AddShard()
+            .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow.AddSeconds(-2))
+                                        .AddChannel(CommentsMessage.Channels.Comments))
+            .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
+            .BuildHostedService(CreateEnvironmentAsync)
+            .SendToSNS(TOPIC_NAME);
 
 services.AddSingleton<State>();
 services.AddHostedService<SinkJob>();

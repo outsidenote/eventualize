@@ -1,5 +1,4 @@
 ﻿using EvDb.Core;
-using System.Collections.Concurrent;
 
 namespace EvDb.DemoWebApi.Views.Count;
 
@@ -17,7 +16,7 @@ internal partial class View
 
     protected override Status Apply(Status state, ModifiedEvent payload, IEvDbEventMeta meta)
     {
-        return state with {  Rate = payload.Rate };
+        return state with { Rate = payload.Rate };
     }
 
     protected override Status Apply(Status state, DeletedEvent payload, IEvDbEventMeta meta)
