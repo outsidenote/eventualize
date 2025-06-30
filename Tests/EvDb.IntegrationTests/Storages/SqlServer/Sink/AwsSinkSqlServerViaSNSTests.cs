@@ -7,7 +7,6 @@ using Xunit.Abstractions;
 
 [Trait("Kind", "Integration:sink")]
 [Trait("DB", "SqlServer:sink")]
-[Collection("Sink")]
 public class AwsSinkSqlServerViaSNSTests : AwsSinkViaSNSBaseTests
 {
     public AwsSinkSqlServerViaSNSTests(ITestOutputHelper output) :

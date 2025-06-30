@@ -3,7 +3,6 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
-[Trait("Kind", "Stress")]
 [Trait("DB", "MongoDB:stress")]
 public sealed class MongoDBStressTests : StressBaseTests
 {

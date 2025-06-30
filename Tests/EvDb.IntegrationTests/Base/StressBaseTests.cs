@@ -11,6 +11,7 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
+[Trait("Kind", "Integration:stress")]
 [Collection("Stress")]
 public abstract class StressBaseTests : BaseIntegrationTests
 {
@@ -92,10 +93,8 @@ public abstract class StressBaseTests : BaseIntegrationTests
 
     #endregion // Otel
 
-    [Trait("Stress", "Stream")]
     [Theory(Timeout = 30_000)]
     // [Theory]
-    [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
     //[InlineData(10, 1, 2, 2)]
     //[InlineData(100, 10, 10, 5)]
@@ -168,9 +167,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
         }
     }
 
-    [Trait("Stress", "BadPractice")]
     [Theory(Timeout = 1_000)]
-    [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
     //[InlineData(10, 1, 2, 2)]
     [InlineData(50, 1, 10, 2)]

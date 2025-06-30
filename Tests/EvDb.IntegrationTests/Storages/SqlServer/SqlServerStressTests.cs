@@ -5,7 +5,6 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
-[Trait("Kind", "Stress")]
 [Trait("DB", "SqlServer:stress")]
 public sealed class SqlServerStressTests : StressBaseTests
 {

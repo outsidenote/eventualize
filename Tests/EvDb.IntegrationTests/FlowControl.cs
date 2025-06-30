@@ -1,7 +1,9 @@
 ﻿//[assembly: CollectionBehavior(MaxParallelThreads = 15)]
 //[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
-[CollectionDefinition("Sink")]
+using Castle.Components.DictionaryAdapter;
+
+[CollectionDefinition("sink", DisableParallelization = false)]
 public abstract class SinkDefinition
 {
 }

@@ -139,29 +139,49 @@ jobs:
 
     - name: Execute Postgres Integration tests
       working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=Postgres&Category!=Stress&Feature!=Sink"
+      run: dotnet test --filter "Db=Postgres"
+
+    - name: Execute Postgres Integration tests (sink)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=Postgres:sink"
+
+    - name: Execute Postgres Integration tests (stress)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=Postgres:stress"
+
+    - name: Execute Postgres Integration tests (otel)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=Postgres:otel"
 
     - name: Execute SqlServer Integration tests
       working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=SqlServer&Category!=Stress&Feature!=Sink"
+      run: dotnet test --filter "Db=SqlServer"
+
+    - name: Execute SqlServer Integration tests (sink)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=SqlServer:sink"
+
+    - name: Execute SqlServer Integration tests (stress)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=SqlServer:stress"
+
+    - name: Execute SqlServer Integration tests (otel)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=SqlServer:otel"
 
     - name: Execute MongoDB Integration tests
       working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=MongoDB&Category!=Stress&Feature!=Sink"
+      run: dotnet test --filter "Db=MongoDB"
 
-    - name: Execute Stress Postgres Integration tests
+    - name: Execute MongoDB Integration tests (sink)
       working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=Postgres&Category=Stress"
+      run: dotnet test --filter "Db=MongoDB:sink"
 
-    - name: Execute Stress SqlServer Integration tests
+    - name: Execute MongoDB Integration tests (stress)
       working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=SqlServer&Category=Stress"
+      run: dotnet test --filter "Db=MongoDB:stress"
 
-    - name: Execute Stress MongoDB Integration tests
+    - name: Execute MongoDB Integration tests (otel)
       working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=MongoDB&Category=Stress"
-
-    - name: Execute AWS Sink Integration tests
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "KindIntegration:sink"
+      run: dotnet test --filter "Db=MongoDB:otel"
 

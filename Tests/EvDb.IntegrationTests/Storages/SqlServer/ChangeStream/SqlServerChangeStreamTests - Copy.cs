@@ -5,12 +5,11 @@ namespace EvDb.Core.Tests;
 using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
-[Trait("Kind", "Integration")]
+[Trait("Kind", "Integration:stress")]
 [Trait("DB", "SqlServer")]
-[Trait("Feature", "ChangeStream")]
-public class SqlServerChangeStreamTests : ChangeStreamBaseTests
+public class SqlServerChangeStreamStressTests : ChangeStreamStressBaseTests
 {
-    public SqlServerChangeStreamTests(ITestOutputHelper output) :
+    public SqlServerChangeStreamStressTests(ITestOutputHelper output) :
         base(output, StoreType.SqlServer)
     {
     }
