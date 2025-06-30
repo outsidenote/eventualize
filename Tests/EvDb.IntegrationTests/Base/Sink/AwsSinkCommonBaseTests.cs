@@ -4,6 +4,7 @@ namespace EvDb.Core.Tests;
 
 using Amazon.SQS;
 using Cocona;
+using Docker.DotNet.Models;
 using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.Sinks;
@@ -19,23 +20,32 @@ using System.Threading;
 using Xunit.Abstractions;
 
 
-public abstract class AwsSinkBaseTests : BaseIntegrationTests
+public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbNoViews _stream;
     protected readonly IConfiguration _configuration;
     private readonly IEvDbNoViewsFactory _factory;
     private readonly IEvDbMessagesSinkProcessor _sinkProcessor;
     private readonly Guid _streamId;
-    private static readonly string TOPIC_NAME = $"SNS_TEST_{Guid.NewGuid():N}.fifo";
-    private static readonly string QUEUE_NAME = $"SQS_TEST_{Guid.NewGuid():N}.fifo";
-    private static readonly string QUEUE_FROM_TOPIC_NAME = $"SNS_to_SQS_TEST_{Guid.NewGuid():N}";
     private readonly EvDbShardName SHARD = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
+    private readonly SQSMessageFormat _messageFormat;
+    private static readonly TimeSpan DEFAULT_SQS_VISIBILITY_TIMEOUTON = TimeSpan.FromMinutes(10);
+
+    private readonly string TOPIC_NAME;
+    private readonly string QUEUE_NAME;
 
     #region Ctor
 
-    protected AwsSinkBaseTests(ITestOutputHelper output, StoreType storeType) :
+    protected AwsSinkCommonBaseTests(ITestOutputHelper output,
+                                     StoreType storeType,
+                                     SQSMessageFormat messageFormat,
+                                     string topicName,
+                                     string queueName) :
         base(output, storeType, true)
     {
+        _messageFormat = messageFormat;
+        TOPIC_NAME = topicName;
+        QUEUE_NAME = queueName;
 
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
@@ -51,17 +61,24 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         services.AddEvDb()
                 .AddChangeStream(storeType, StorageContext);
 
-        services.AddEvDb()
+       var processorRefistration = services.AddEvDb()
                 .AddSink()
                 .ForMessages()
                     .AddShard(SHARD)
                     .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow.AddSeconds(-2)))
                     .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
-                    .BuildProcessor()
-                    .SendToSNS(TOPIC_NAME)
-                    .SendToSQS(QUEUE_NAME);
+                    .BuildProcessor();
+                    
 
-        services.AddSingleton(AWSProviderFactory.CreateSNSClient());
+        if (messageFormat == SQSMessageFormat.SNSWrapper)
+        {
+            processorRefistration.SendToSNS(TOPIC_NAME);
+            services.AddSingleton(AWSProviderFactory.CreateSNSClient());
+        }
+        else
+        {
+            processorRefistration.SendToSQS(QUEUE_NAME);
+        }
         services.AddSingleton(AWSProviderFactory.CreateSQSClient());
 
         var sp = services.BuildServiceProvider();
@@ -72,12 +89,39 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         _stream = _factory.Create(_streamId);
     }
 
+
     #endregion //  Ctor
 
-    #region SinkMessagesToSNS_Succeed
+    #region SubscribeSQSToSNSWhenNeededAsync
+
+    private async Task SubscribeSQSToSNSWhenNeededAsync(AmazonSQSClient sqsClient, CancellationToken cancellationToken)
+    { 
+        var snsClient = AWSProviderFactory.CreateSNSClient();
+        if(_messageFormat == SQSMessageFormat.Raw)
+        {
+            // No need to subscribe SQS to SNS for Raw format
+            await sqsClient.GetOrCreateQueueAsync(QUEUE_NAME, DEFAULT_SQS_VISIBILITY_TIMEOUTON, cancellationToken: cancellationToken);
+            return;
+        }
+
+        await snsClient.SubscribeSQSToSNSAsync(sqsClient, // will create if not exists
+                                               TOPIC_NAME,
+                                               QUEUE_NAME,
+                                               o =>
+                                               {
+                                                   o.Logger = _logger;
+                                                   o.SqsVisibilityTimeoutOnCreation = DEFAULT_SQS_VISIBILITY_TIMEOUTON;
+                                               },
+                                               CancellationToken.None);
+        await Task.Delay(50);
+    }
+
+    #endregion //  SubscribeSQSToSNSWhenNeededAsync
+
+    #region SinkMessages_Succeed
 
     [Fact]
-    public virtual async Task SinkMessagesToSNS_Succeed()
+    public virtual async Task SinkMessages_Succeed()
     {
         const int BATCH_SIZE = 30;
         const int CHUNCK_SIZE = 2;
@@ -85,29 +129,19 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
                                         ? TimeSpan.FromMinutes(10)
                                         : TimeSpan.FromSeconds(30);
 
-        var sqsClient = AWSProviderFactory.CreateSQSClient();
-        var snsClient = AWSProviderFactory.CreateSNSClient();
-
-        await sqsClient.GetOrCreateQueueAsync(QUEUE_NAME, TimeSpan.FromMinutes(10), CancellationToken.None);
-        await snsClient.SubscribeSQSToSNSAsync(sqsClient, // will create if not exists
-                                               TOPIC_NAME,
-                                               QUEUE_FROM_TOPIC_NAME,
-                                               o =>
-                                               {
-                                                   o.Logger = _logger;
-                                                   o.SqsVisibilityTimeoutOnCreation = TimeSpan.FromMinutes(10);
-                                               },
-                                               CancellationToken.None);
+        AmazonSQSClient sqsClient = AWSProviderFactory.CreateSQSClient();
 
         using var cts = new CancellationTokenSource(cancellationDucraion);
         var cancellationToken = cts.Token;
+
+        await SubscribeSQSToSNSWhenNeededAsync(sqsClient, cancellationToken);
         int count = BATCH_SIZE * 2;
 
         // sink messages from outbox
         Task _ = _sinkProcessor.StartMessagesSinkAsync(cancellationToken);
 
         // Start a background task to poll SQS for messages
-        var sqsListeningTask = ListenToSQSAsync(sqsClient, QUEUE_FROM_TOPIC_NAME, count, cancellationToken);
+        var sqsListeningTask = ListenToSQSAsync(sqsClient, QUEUE_NAME, count, _messageFormat, cancellationToken);
 
         // produce messages before start listening to the change stream
         #region  await ProcuceStudentReceivedGradeAsync(...)
@@ -126,55 +160,12 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         Assert.Equal(count, messages.Length);
     }
 
-    #endregion //  SinkMessagesToSNS_Succeed
+    #endregion //  SinkMessages_Succeed
 
-    #region SinkMessagesToSQS_Succeed
-
-    [Fact]
-    public virtual async Task SinkMessagesToSQS_Succeed()
-    {
-        const int BATCH_SIZE = 30;
-        const int CHUNCK_SIZE = 2;
-        var cancellationDucraion = Debugger.IsAttached
-                                        ? TimeSpan.FromMinutes(10)
-                                        : TimeSpan.FromSeconds(5);
-
-        var sqsClient = AWSProviderFactory.CreateSQSClient();
-
-        await sqsClient.GetOrCreateQueueAsync(QUEUE_NAME, TimeSpan.FromMinutes(10), CancellationToken.None);
-
-        using var cts = new CancellationTokenSource(cancellationDucraion);
-        var cancellationToken = cts.Token;
-        int count = BATCH_SIZE * 2;
-
-        // sink messages from outbox
-        Task _ = _sinkProcessor.StartMessagesSinkAsync(cancellationToken);
-
-        // Start a background task to poll SQS for messages
-        var sqsListeningTask = ListenToSQSAsync(sqsClient, QUEUE_NAME, count, cancellationToken);
-
-        // produce messages before start listening to the change stream
-        #region  await ProcuceStudentReceivedGradeAsync(...)
-
-        for (int i = 0; i < count; i += CHUNCK_SIZE)
-        {
-            await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
-        }
-
-        #endregion //   await ProcuceStudentReceivedGradeAsync(...)
-
-        EvDbMessageRecord[] messages = await sqsListeningTask; // Wait for SQS listening task to complete
-
-        Assert.Equal(count, messages.Length);
-        // TODO: all messages offset test
-    }
-
-    #endregion //  SinkMessagesToSQS_Succeed
-
-    #region SinkMessagesToSQS_WithTelemetry_Succeed
+    #region SinkMessages_WithTelemetry_Succeed
 
     [Fact]
-    public virtual async Task SinkMessagesToSQS_WithTelemetry_Succeed()
+    public virtual async Task SinkMessages_WithTelemetry_Succeed()
     {
         ConcurrentQueue<string> traces = new ConcurrentQueue<string>();
         ActivityListener listener = new()
@@ -203,17 +194,18 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         using var activitySource = new ActivitySource("UnitTestSource");
         using var activity = activitySource.StartActivity("TestActivity", ActivityKind.Internal);
 
-        await SinkMessagesToSQS_Succeed();
-        Assert.Contains(traces, m => m.StartsWith("Started: Publish"));
+        await SinkMessages_Succeed();
+        Assert.Contains(traces, m => m.StartsWith("Started: EvDb.PublishTo"));
     }
 
-    #endregion //  SinkMessagesToSQS_WithTelemetry_Succeed
+    #endregion //  SinkMessages_WithTelemetry_Succeed
 
     #region ListenToSQSAsync
 
     private static async Task<EvDbMessageRecord[]> ListenToSQSAsync(AmazonSQSClient sqsClient,
                                                                     string ququeName,
                                                                     int count,
+                                                                    SQSMessageFormat messageFormat,
                                                                     CancellationToken cancellationToken)
     {
         var receivedSqsMessages = new List<EvDbMessageRecord>();
@@ -228,7 +220,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
                 WaitTimeSeconds = 1
             };
 
-            var receiveResponse = sqsClient.ReceiveEvDbMessageRecordsAsync(receiveRequest, A.Fake<ILogger>(), cancellationToken);
+            var receiveResponse = sqsClient.ReceiveEvDbMessageRecordsAsync(receiveRequest, messageFormat, A.Fake<ILogger>(), cancellationToken);
             await foreach (var msg in receiveResponse)
             {
                 receivedSqsMessages.Add(msg);

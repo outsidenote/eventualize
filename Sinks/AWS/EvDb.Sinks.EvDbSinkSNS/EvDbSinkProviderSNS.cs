@@ -9,6 +9,7 @@ using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
 using System.Text.Json;
 using static EvDb.Sinks.EvDbSinkTelemetry;
+using static EvDb.Core.Internals.OtelConstants;
 
 #pragma warning disable S101 // Types should be named in PascalCase
 
@@ -39,11 +40,9 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
         using var activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToSNS")
                                       .WithParent(parentContext)
                                       .WithKind(ActivityKind.Producer)
-                                      .AddTag("evdb.sink.target", target)
-                                      .AddTag("evdb.outbox.stream-type", message.StreamType)
-                                      .AddTag("evdb.outbox.channel", message.Channel)
-                                      .AddTag("evdb.outbox.event-type", message.EventType)
-                                      .AddTag("evdb.outbox.message-type", message.MessageType)
+                                      .AddTags(message.ToTelemetryTags())
+                                      .AddTag(TAG_SINK_TARGET_NAME, target)
+                                      .AddTag(TAG_STORAGE_TYPE_NAME, "SNS")
                                       .Start();
 
         _meters.IncrementPublish(target);

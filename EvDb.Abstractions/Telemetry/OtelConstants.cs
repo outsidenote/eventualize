@@ -11,5 +11,6 @@ public static class OtelConstants
     public const string TAG_EVENT_TYPE_NAME = "evdb.event-type";
     public const string TAG_MESSAGE_TYPE_NAME = "evdb.message-type";
     public const string TAG_SINK_TARGET_NAME = "evdb.sink.target";
+    public const string TAG_SINK_MESSAGE_ID_NAME = "evdb.sink.message-id";
 }
 

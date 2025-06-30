@@ -19,6 +19,8 @@ using ms = Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using EvDb.Sinks.Internals;
+using static EvDb.Core.Internals.OtelConstants;
+
 #pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 
 #pragma warning disable S101 // Types should be named in PascalCase
@@ -553,14 +555,17 @@ public static class EvDbAwsAdminExtensions
     /// </summary>
     /// <param name="sqsClient"></param>
     /// <param name="receiveRequest"></param>
+    /// <param name="messageFormat"></param>
+    /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
                                                                     ReceiveMessageRequest receiveRequest,
+                                                                    SQSMessageFormat messageFormat,
                                                                     ms.ILogger logger,
                                                                     CancellationToken cancellationToken = default)
     {
-        return ReceiveEvDbMessageRecordsAsync(sqsClient, receiveRequest, null, logger, cancellationToken);
+        return ReceiveEvDbMessageRecordsAsync(sqsClient, receiveRequest, messageFormat, null, logger, cancellationToken);
     }
 
     #endregion //  Overloads
@@ -570,12 +575,14 @@ public static class EvDbAwsAdminExtensions
     /// </summary>
     /// <param name="sqsClient"></param>
     /// <param name="receiveRequest"></param>
+    /// <param name="messageFormat"></param>
     /// <param name="serializerOptions"></param>
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public async static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
                                                                     ReceiveMessageRequest receiveRequest,
+                                                                    SQSMessageFormat messageFormat,
                                                                     JsonSerializerOptions? serializerOptions,
                                                                     ms.ILogger logger,
                                                                     [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -584,17 +591,21 @@ public static class EvDbAwsAdminExtensions
                             await sqsClient.ReceiveMessageAsync(receiveRequest, cancellationToken);
         foreach (Message msg in receiveResponse.Messages ?? [])
         {
-            EvDbMessageRecord message = msg.SNSToMessageRecord(serializerOptions);
+            EvDbMessageRecord message = messageFormat switch
+            {
+                SQSMessageFormat.SNSWrapper => msg.SNSToMessageRecord(serializerOptions),
+                _ => System.Text.Json.JsonSerializer.Deserialize<EvDbMessageRecord>(msg.Body, serializerOptions)
+            };
+
             var parentContext = message.TelemetryContext.ToTelemetryContext();
             using Activity? activity = OtelSinkTrace.CreateBuilder("EvDb.ReceivedFromSQS")
-                .WithParent(parentContext)
+                .WithParent(parentContext, OtelParentRelation.Link)
                 .WithKind(ActivityKind.Consumer)
-                .AddTag("evdb.sink.target", receiveRequest.QueueUrl)
-                .AddTag("evdb.outbox.stream-type", message.StreamType)
-                .AddTag("evdb.outbox.channel", message.Channel)
-                .AddTag("evdb.outbox.event-type", message.EventType)
-                .AddTag("evdb.outbox.message-type", message.MessageType)
-                .Start();
+                                      .AddTags(message.ToTelemetryTags())
+                                      .AddTag(TAG_SINK_TARGET_NAME, receiveRequest.QueueUrl)
+                                      .AddTag(TAG_SINK_MESSAGE_ID_NAME, msg.MessageId)
+                                      .AddTag(TAG_STORAGE_TYPE_NAME, "SQS")
+                                      .Start();
             logger.LogReceivedFromSQS(receiveRequest.QueueUrl, msg.MessageId, message.Id, message.EventType, message.StreamId, message.Offset, message.MessageType, message.Channel);
 
             EvDbSQSMessageRecord item = new EvDbSQSMessageRecord(message, msg);

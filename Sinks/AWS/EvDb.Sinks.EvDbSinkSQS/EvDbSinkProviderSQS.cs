@@ -8,6 +8,7 @@ using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
 using System.Text.Json;
 using static EvDb.Sinks.EvDbSinkTelemetry;
+using static EvDb.Core.Internals.OtelConstants;
 
 #pragma warning disable S101 // Types should be named in PascalCase
 
@@ -38,7 +39,9 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
         using var activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToSQS")
                                       .WithParent(parentContext)
                                       .WithKind(ActivityKind.Producer)
-                                      .AddTag("evdb.sink.target", target)
+                                      .AddTags(message.ToTelemetryTags())
+                                      .AddTag(TAG_SINK_TARGET_NAME, target)
+                                      .AddTag(TAG_STORAGE_TYPE_NAME, "SQS")
                                       .Start();
 
         _meters.IncrementPublish(target);
@@ -77,10 +80,15 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
         {
             QueueUrl = target,
             MessageBody = json,
-            MessageGroupId = message.GetAddress().ToString(),
             MessageAttributes = messageAttributes,
-            MessageDeduplicationId = message.Id.ToString("N")
         };
+
+        if(target.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase))
+        {
+            // For FIFO queues, we need to set MessageGroupId and MessageDeduplicationId
+            request.MessageGroupId = message.GetAddress().ToString();
+            request.MessageDeduplicationId = message.Id.ToString("N");
+        }
 
         #endregion //  var request = new SendMessageRequest(..)
 

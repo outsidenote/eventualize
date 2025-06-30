@@ -1,4 +1,5 @@
 ﻿using EvDb.Core.Adapters;
+using EvDb.Core.Internals;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
@@ -161,10 +162,12 @@ public static class TelemetryExtensions
         public ActivityKind Kind { get; init; } = ActivityKind.Internal;
 
         public ActivityContext Parent { get; init; } = Activity.Current?.Context ?? default;
+        public OtelParentRelation ParentRelation { get; init; } 
+        
 
-        public ActivityBuilder WithParent(ActivityContext parent)
+        public ActivityBuilder WithParent(ActivityContext parent, OtelParentRelation relation = OtelParentRelation.Child)
         {
-            return this with { Parent = parent };
+            return this with { Parent = parent, ParentRelation = relation };
         }
 
         public ActivityBuilder WithKind(ActivityKind kind)
@@ -177,9 +180,19 @@ public static class TelemetryExtensions
             return this with { Tags = Tags.Add(key, value) };
         }
 
+        public ActivityBuilder AddTags(OtelTags tags)
+        {
+            return this with { Tags = Tags.AddRange(tags) };
+        }
+
         public Activity? Start()
         {
-            var activity = ActivitySource.StartActivity(Name, Kind, Parent);
+            var activity =  ParentRelation switch
+            {
+                OtelParentRelation.Child => ActivitySource.StartActivity(Name, Kind, Parent),
+                _ => ActivitySource.StartActivity(Kind, name: Name, links: new[] { new ActivityLink(Parent) })
+            };
+            
             if (activity != null)
             {
                 foreach (var tag in Tags)
@@ -205,6 +218,7 @@ public static class TelemetryExtensions
     {
         var tags = OtelTags.Create(TAG_CHANNEL_NAME, message.Channel)
                         .Add(TAG_STREAM_TYPE, message.StreamType)
+                        .Add(TAG_EVENT_TYPE_NAME, message.EventType)
                         .Add(TAG_MESSAGE_TYPE_NAME, message.MessageType);
 
         if (shard.HasValue)

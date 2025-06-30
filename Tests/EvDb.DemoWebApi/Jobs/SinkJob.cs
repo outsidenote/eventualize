@@ -74,7 +74,7 @@ public class SinkJob : BackgroundService
                 WaitTimeSeconds = 1
             };
 
-            var receiveResponse = sqsClient.ReceiveEvDbMessageRecordsAsync(receiveRequest, _logger, stoppingToken);
+            var receiveResponse = sqsClient.ReceiveEvDbMessageRecordsAsync(receiveRequest, Sinks.SQSMessageFormat.SNSWrapper, _logger, stoppingToken);
             await foreach (var message in receiveResponse)
             {
                 var comments = JsonSerializer.Deserialize<CommentsMessage>(message.EvDbPayload.ToString());

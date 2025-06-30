@@ -34,7 +34,7 @@ public static class StoreTelemetryExtensions
 
     public static Activity? StartFetchFromOutboxActivity(this EvDbMessageRecord message, EvDbShardName shard, string databaseType)
     {
-        var telemetryContext = message.TelemetryContext.ToTelemetryContext();
+        ActivityContext telemetryContext = message.TelemetryContext.ToTelemetryContext();
         var activity = StoreTrace.StartActivity(ActivityKind.Consumer, 
                                     name: "EvDb.FetchedFromOutbox",
                                     links: new[] {  new ActivityLink(telemetryContext) },

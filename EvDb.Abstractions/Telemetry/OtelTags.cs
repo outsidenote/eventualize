@@ -28,6 +28,17 @@ public readonly record struct OtelTags : IEnumerable<KeyValuePair<string, object
         return this with { Tags = tags };
     }
 
+    public OtelTags AddRange(IEnumerable<KeyValuePair<string, object?>> tags)
+    {
+        var result = Tags;
+        foreach (var tag in tags)
+        {
+            result = result.Add(tag);
+        }
+       
+        return this with { Tags = result };
+    }
+
     public static implicit operator TagList(OtelTags tags)
     {
         return new TagList(tags.Tags.AsSpan());
