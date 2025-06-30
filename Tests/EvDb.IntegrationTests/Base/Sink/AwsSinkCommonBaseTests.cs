@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Threading;
 using Xunit.Abstractions;
 
+// TODO: [Bnaya 2025-06-30] Use [Theory] instead of the inheritance for Fifo or not and Sink Channel (SNS/SQS: SQSMessageFormat), 
 
 public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
 {
