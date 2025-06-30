@@ -1,5 +1,4 @@
-﻿using EvDb.Core.NamedTypes.Internals;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -42,8 +41,7 @@ public readonly partial struct EvDbTelemetryContextName :
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         get
         {
-            EnsureInitialized();
-            return _value;
+            return _value ?? [];
         }
     }
 
@@ -54,7 +52,7 @@ public readonly partial struct EvDbTelemetryContextName :
     /// <summary>
     /// Gets the length of the underlying Byte[].
     /// </summary>
-    public int Length => _value.Length;
+    public int Length => _value?.Length ?? 0;
 
     #endregion //  Length
 
@@ -215,13 +213,12 @@ public readonly partial struct EvDbTelemetryContextName :
     #region AsSpan
 
     /// <summary>
-    /// Gets the underlying Byte[] as a ReadOnlySpan<byte>.
+    /// <![CDATA[Gets the underlying Byte[] as a ReadOnlySpan<byte>.]]>
     /// </summary>
     /// <returns></returns>
     public ReadOnlySpan<byte> AsSpan()
     {
-        EnsureInitialized();
-        return _value.AsSpan();
+        return (_value ?? []).AsSpan();
     }
 
     #endregion //  AsSpan
@@ -428,8 +425,7 @@ public readonly bool IsInitialized() => true;
 
     IEnumerator<byte> IEnumerable<byte>.GetEnumerator()
     {
-        EnsureInitialized();
-        foreach (var item in _value)
+        foreach (var item in _value ?? [])
         {
             yield return item;
         }
@@ -441,22 +437,6 @@ public readonly bool IsInitialized() => true;
     }
 
     #endregion //  IEnumerable
-
-    #region EnsureInitialized
-
-    private readonly void EnsureInitialized()
-    {
-        if (!IsInitialized())
-        {
-#if DEBUG
-            ThrowHelper.ThrowWhenNotInitialized(_stackTrace);
-#else
-            ThrowHelper.ThrowWhenNotInitialized();
-#endif
-        }
-    }
-
-    #endregion //  EnsureInitialized
 
 #nullable disable
 
@@ -472,7 +452,7 @@ public readonly bool IsInitialized() => true;
                                                       Type typeToConvert,
                                                       JsonSerializerOptions options)
         {
-            ImmutableArray<byte> value = JsonSerializer.Deserialize<ImmutableArray<byte>>(ref reader, options);
+            var value = JsonSerializer.Deserialize<byte[]>(ref reader, options);
             return new EvDbTelemetryContextName(value);
         }
 

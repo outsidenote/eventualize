@@ -6,16 +6,16 @@ using EvDb.Core;
 
 namespace EvDb.Adapters.Store.Postgres;
 
-public class PostgresStorageScripting : IEvDbStorageScripting
+public class PostgresStorageScripting : IEvDbStorageAdminScripting
 {
-    public static readonly IEvDbStorageScripting Default = new PostgresStorageScripting();
+    public static readonly IEvDbStorageAdminScripting Default = new PostgresStorageScripting();
 
-    EvDbMigrationQueryTemplates IEvDbStorageScripting.CreateScripts(
+    EvDbAdminQueryTemplates IEvDbStorageAdminScripting.CreateScripts(
                                                         EvDbStorageContext context,
                                                         StorageFeatures features,
                                                         IEnumerable<EvDbShardName> shardNames)
     {
-        EvDbMigrationQueryTemplates scripts = Scripts.Create(context, features, shardNames);
+        EvDbAdminQueryTemplates scripts = Scripts.Create(context, features, shardNames);
         return scripts;
     }
 }

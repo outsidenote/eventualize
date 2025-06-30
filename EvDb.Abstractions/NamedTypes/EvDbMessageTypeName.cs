@@ -35,7 +35,7 @@ public partial struct EvDbMessageTypeName :
     {
 
         true => Validation.Ok,
-        _ => Validation.Invalid("The channel name must start with letters (A-Z) or (a-z), follow by alphabets, numbers, or the characters `-`, `.`, `_`, `@`, or `#`     .")
+        _ => Validation.Invalid("The message type name must start with letters (A-Z) or (a-z), follow by alphabets, numbers, or the characters `-`, `.`, `_`, `@`, or `#`     .")
     };
 
     #endregion //  Validation

@@ -1,7 +1,7 @@
 ﻿namespace EvDb.Core;
 
 /// <summary>
-/// Messsage metadata
+/// Message metadata
 /// </summary>
 public interface IEvDbMessageMeta : IEvDbEventMeta
 {

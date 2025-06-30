@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: Sql
 
+using EvDb.Adapters.Internals;
 using EvDb.Adapters.Store.Postgres;
 using EvDb.Core;
 using EvDb.Core.Store.Internals;
@@ -41,9 +42,7 @@ public static class EvDbPostgresStorageAdapterDI
             key.ToString(),
             (sp, _) =>
                 {
-                    var ctx = context
-                        ?? sp.GetService<EvDbStorageContext>()
-                        ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+                    var ctx = sp.GetEvDbStorageContextFallback(context);
 
                     #region IEvDbConnectionFactory connectionFactory = ...
 
@@ -80,28 +79,89 @@ public static class EvDbPostgresStorageAdapterDI
 
     #region UsePostgresChangeStream
 
+    /// <summary>
+    /// Use change stream of Postgres
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="connectionStringOrConfigurationKey"></param>
     public static void UsePostgresChangeStream(
             this IServiceCollection services,
-            EvDbStorageContext? context,
             string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         services.AddSingleton(
-            (sp) =>
-            {
-                var ctx = context
-                    ?? sp.GetService<EvDbStorageContext>()
-                    ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+            (sp) => ChangeStreamFactory(sp, null, connectionStringOrConfigurationKey));
+    }
 
-                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<EvDbPostgresStorageAdapter>();
-                IConfiguration? configuration = sp.GetService<IConfiguration>();
-
-                IEvDbChangeStream storageAdapter = ctx.GetPostgresChangeStream(logger, connectionStringOrConfigurationKey, configuration);
-                return storageAdapter;
-            });
+    /// <summary>
+    /// Use change stream of Postgres
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="context"></param>
+    /// <param name="connectionStringOrConfigurationKey"></param>
+    public static void UsePostgresChangeStream(
+            this IServiceCollection services,
+            EvDbStorageContext context,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddSingleton(
+            (sp) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
     }
 
     #endregion //  UsePostgresChangeStream
+
+    #region UseKeyedPostgresChangeStream
+
+    /// <summary>
+    /// Use change stream of Postgres
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <param name="services"></param>
+    /// <param name="key">The Microsoft.Extensions.DependencyInjection.ServiceDescriptor.ServiceKey of the service</param>
+    /// <param name="connectionStringOrConfigurationKey"></param>
+    public static void UseKeyedPostgresChangeStream<TKey>(
+            this IServiceCollection services,
+            TKey key,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddKeyedSingleton(key, (sp, _) => ChangeStreamFactory(sp, null, connectionStringOrConfigurationKey));
+    }
+
+    /// <summary>
+    /// Use change stream of Postgres
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <param name="services"></param>
+    /// <param name="key">The Microsoft.Extensions.DependencyInjection.ServiceDescriptor.ServiceKey of the service</param>
+    /// <param name="context"></param>
+    /// <param name="connectionStringOrConfigurationKey"></param>
+    public static void UseKeyedPostgresChangeStream<TKey>(
+            this IServiceCollection services,
+            TKey key,
+            EvDbStorageContext context,
+            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
+    {
+        services.AddKeyedSingleton(key, (sp, _) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));
+    }
+
+    #endregion //  UseKeyedPostgresChangeStream
+
+    #region ChangeStreamFactory
+
+    private static IEvDbChangeStream ChangeStreamFactory(IServiceProvider sp,
+                                                         EvDbStorageContext? context,
+                                                         string connectionStringOrConfigurationKey)
+    {
+        var ctx = sp.GetEvDbStorageContextFallback(context);
+
+        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger<EvDbPostgresStorageAdapter>();
+        IConfiguration? configuration = sp.GetService<IConfiguration>();
+
+        IEvDbChangeStream storageAdapter = ctx.GetPostgresChangeStream(logger, connectionStringOrConfigurationKey, configuration);
+        return storageAdapter;
+    }
+
+    #endregion //  ChangeStreamFactory
 
     #region UsePostgresForEvDbSnapshot
 
@@ -124,9 +184,7 @@ public static class EvDbPostgresStorageAdapterDI
             key.ToString(),
             (sp, _) =>
                 {
-                    var ctx = context
-                        ?? sp.GetService<EvDbStorageContext>()
-                        ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+                    var ctx = sp.GetEvDbStorageContextFallback(context);
 
                     #region IEvDbConnectionFactory connectionFactory = ...
 
@@ -189,9 +247,7 @@ public static class EvDbPostgresStorageAdapterDI
 
             (sp, _) =>
             {
-                var ctx = context
-                    ?? sp.GetService<EvDbStorageContext>()
-                    ?? EvDbStorageContext.CreateWithEnvironment("evdb");
+                var ctx = sp.GetEvDbStorageContextFallback(context);
 
                 #region IEvDbConnectionFactory connectionFactory = ...
 

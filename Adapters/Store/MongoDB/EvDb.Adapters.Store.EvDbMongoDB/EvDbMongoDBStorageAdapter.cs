@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 using static EvDb.Core.Adapters.StoreTelemetry;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Adapters.Store.MongoDB;
 
@@ -25,7 +26,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 {
     private readonly ILogger _logger;
     private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
-    private readonly static ActivitySource _trace = StoreTelemetry.Trace;
+    private readonly static ActivitySource _trace = StoreTelemetry.StoreTrace;
     private const string DATABASE_TYPE = "MongoDB";
     private readonly CollectionsSetup _collectionsSetup;
     private bool _disposed;
@@ -115,9 +116,9 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #endregion //  GetEventsAsync
 
-    #region GetMessagesAsync
+    #region GetMessageRecordsAsync
 
-    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
+    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetRecordsFromOutboxAsync(
                             EvDbShardName shard,
                             EvDbMessageFilter filter,
                             EvDbContinuousFetchOptions? options,
@@ -126,17 +127,17 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (cancellation.IsCancellationRequested)
             yield break;
 
-        var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
+        var opts = options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty;
         IMongoCollection<BsonDocument> collection =
                         await _collectionsSetup.CreateOutboxCollectionIfNotExistsAsync(shard);
 
-        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
+        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty);
 
         int attemptsWhenEmpty = 0;
         TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
         ObjectId? lastId = null;
         var duplicateDetection = new HashSet<Guid>();
-        EvDbMessage? last = null;
+        EvDbMessageRecord? last = null;
         while (!cancellation.IsCancellationRequested)
         {
             IAsyncCursor<BsonDocument> cursor = await GetCursorAsync();
@@ -150,11 +151,14 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
                     lastId = doc.GetObjectId();
                     // Convert from BsonDocument back to EvDbEvent.
-                    EvDbMessage message = doc.ToMessage();
+                    EvDbMessageRecord message = doc.ToMessage();
                     if (duplicateDetection.Contains(message.Id))
                         continue; // Skip duplicate messages
                     ManageDuplicationList();
                     last = message;
+
+                    using var activity = message.StartFetchFromOutboxActivity(shard, "MongoDB");
+                    _logger.LogFetchedFromOutbox(message.Id, message.StreamType, message.StreamId, message.Offset, message.EventType, message.Channel, shard.Value);
 
                     yield return message;
 
@@ -201,7 +205,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
         #endregion //  GetCursorAsync
     }
 
-    #endregion //  GetMessagesAsync
+    #endregion //  GetRecordsFromOutboxAsync
 
     #region GetLastEventAsync
 
@@ -316,8 +320,8 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                     var tasks = shards.Select(async g =>
                     {
                         EvDbShardName shardName = g.Key;
-                        OtelTags tags = OtelTags.Empty.Add("shard", shardName);
-                        using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
+                        OtelTags tags = OtelTags.Empty.Add(TAG_SHARD_NAME, shardName);
+                        using Activity? activity = _trace.StartActivity(tags, ActivityKind.Producer, "EvDb.StoreToOutbox");
                         var outboxDocs = g.Select(m => m.EvDbToBsonDocument(shardName))
                                           .ToArray();
 
@@ -368,7 +372,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                             IClientSessionHandle? session,
                             CancellationToken cancellation)
         {
-            using var activity = _trace.StartActivity("EvDb.StoreEventsAsync");
+            using var activity = _trace.StartActivity("EvDb.StoreEvents");
             if (session == null)
                 await eventsCollection.InsertManyAsync(eventDocs, options, cancellation);
             else
@@ -456,7 +460,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     private void DisposeAction()
     {
-        if(_disposed)
+        if (_disposed)
             return;
         _disposed = true;
 

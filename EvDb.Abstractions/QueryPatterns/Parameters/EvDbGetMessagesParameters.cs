@@ -13,27 +13,19 @@ public readonly record struct EvDbGetMessagesParameters
                                 EvDbContinuousFetchOptions options)
     {
         Channels = filter.Channels?.Any() == true
-                        ? filter.Channels.Select(m => (string)m).ToArray()
-                        : null;
-        _channels = new HashSet<string>(Channels ?? []);
+                        ? filter.Channels.Select(m => m.Value).ToArray()
+                        : [];
         MessageTypes = filter.MessageTypes?.Any() == true
-                        ? filter.MessageTypes.Select(m => (string)m).ToArray()
-                        : null;
-        _messageTypes = new HashSet<string>(MessageTypes ?? []);
+                        ? filter.MessageTypes.Select(m => m.Value).ToArray()
+                        : [];
         SinceDate = filter.Since;
     }
 
     public int BatchSize { get; } = BATCH_SIZE; // Default batch size for fetching messages
 
-    private readonly HashSet<string> _channels;
-    public bool IncludeChannel(EvDbChannelName channel) => _channels.Count == 0 || _channels.Contains(channel.Value, StringComparer.OrdinalIgnoreCase);
+    public string[] Channels { get; }
 
-
-    public string[]? Channels { get; }
-
-    private readonly HashSet<string> _messageTypes;
-    public bool IncludeMessageType(EvDbMessageTypeName messageType) => _messageTypes.Count == 0 || _messageTypes.Contains(messageType.Value, StringComparer.OrdinalIgnoreCase);
-    public string[]? MessageTypes { get; }
+    public string[] MessageTypes { get; }
 
     public DateTimeOffset SinceDate { get; init; }
 

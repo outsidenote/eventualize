@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: Testing
 
 using EvDb.Core;
+using EvDb.Core.Adapters;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -72,7 +73,7 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #region GetMessagesAsync
 
-    IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
+    IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetRecordsFromOutboxAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options,
@@ -81,7 +82,7 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
         throw new NotImplementedException();
     }
 
-    #endregion //  GetMessagesAsync
+    #endregion //  GetFromOutboxAsync
 
     #region StoreStreamAsync
 

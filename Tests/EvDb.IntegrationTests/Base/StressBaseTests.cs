@@ -11,6 +11,8 @@ using Xunit.Abstractions;
 
 namespace EvDb.Core.Tests;
 
+[Trait("Kind", "Integration:stress")]
+[Collection("Stress")]
 public abstract class StressBaseTests : BaseIntegrationTests
 {
     private readonly IEvDbDemoStreamFactory _factory;
@@ -91,10 +93,8 @@ public abstract class StressBaseTests : BaseIntegrationTests
 
     #endregion // Otel
 
-    [Trait("Stress", "Stream")]
     [Theory(Timeout = 30_000)]
     // [Theory]
-    [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
     //[InlineData(10, 1, 2, 2)]
     //[InlineData(100, 10, 10, 5)]
@@ -125,20 +125,11 @@ public abstract class StressBaseTests : BaseIntegrationTests
                         IEvDbDemoStream stream = await _factory.GetAsync(streamId);
                         var tasks = events.Select(async e => await stream.AppendAsync(e));
                         IEvDbEventMeta[] es = await Task.WhenAll(tasks);
-                        for (int q = 0; q < es.Length; q++)
-                        {
-                            var e = es[q];
-                            //Assert.Equal(q, e.StreamCursor.Offset % batchSize);
-                        }
                         Assert.Equal(batchSize, stream?.CountOfPendingEvents);
                         try
                         {
-                            var offset0 = stream!.StoredOffset;
                             StreamStoreAffected affected = await stream!.StoreAsync();
                             Assert.Equal(batchSize, affected.Events);
-                            var offset1 = stream.StoredOffset;
-                            //Assert.Equal(batchSize, offset1 - offset0);
-                            //Assert.Equal(0 ,(offset1 + 1) % batchSize);
 
                             success = true;
                         }
@@ -165,7 +156,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
         int expectedEventsCount = writeCycleCount * batchSize;
         Assert.Equal(writeCycleCount * streamsCount, counter);
         _output.WriteLine($"count: {counter}");
-        _output.WriteLine($"OCC count: {occCounter}");
+        _output.WriteLine($"Published count: {occCounter}");
         for (int i = 0; i < streamsCount; i++)
         {
             var streamId = $"stream-{i}";
@@ -176,9 +167,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
         }
     }
 
-    [Trait("Stress", "BadPractice")]
     [Theory(Timeout = 1_000)]
-    [Trait("Category", "Stress")]
     //[InlineData(10, 1, 1, 2)]
     //[InlineData(10, 1, 2, 2)]
     [InlineData(50, 1, 10, 2)]
@@ -241,7 +230,7 @@ public abstract class StressBaseTests : BaseIntegrationTests
 
         int expectedEventsCount = writeCycleCount * batchSize;
         Assert.Equal(writeCycleCount * streamsCount, counter);
-        _output.WriteLine($"OCC count: {occCounter}");
+        _output.WriteLine($"Published count: {occCounter}");
         for (int i = 0; i < streamsCount; i++)
         {
             var streamId = $"stream-{i}";

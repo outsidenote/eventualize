@@ -339,11 +339,11 @@ public partial class EvDbGenerator : BaseGenerator
                         }
 
                         internal EvDb{{factoryOriginName}}Entry(EvDbRegistrationEntry parent)
-                                                                            : this(((IEvDbRegistrationEntry)parent).Services)
+                                                                            : this(((IEvDbServiceCollectionWrapper)parent).Services)
                         {
                         }
 
-                        IServiceCollection IEvDbRegistrationEntry.Services => _services;
+                        IServiceCollection IEvDbServiceCollectionWrapper.Services => _services;
                     }
                     """);
         context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("DI", $"EvDb{factoryOriginName}Entry"),
@@ -377,13 +377,13 @@ public partial class EvDbGenerator : BaseGenerator
                         }
 
                     	public EvDb{{factoryOriginName}}SnapshotEntry(IEvDbRegistrationContext context)
-                    				: this(context.Context, context.Address, context.Services)
+                    				: this(context.Context, context.Address, ((IEvDbServiceCollectionWrapper)context).Services)
                     	{
                         }
 
                         EvDbStorageContext? IEvDbRegistrationContext.Context => _context;
                         EvDbStreamTypeName IEvDbRegistrationContext.Address => _address;
-                        IServiceCollection IEvDbRegistrationEntry.Services => _services;
+                        IServiceCollection IEvDbServiceCollectionWrapper.Services => _services;
                     }
                     """);
         context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("DI", $"EvDb{factoryOriginName}SnapshotEntry"),
@@ -417,13 +417,13 @@ public partial class EvDbGenerator : BaseGenerator
                         }
 
                     	public EvDb{{factoryOriginName}}SnapshotEntryFor(IEvDbRegistrationContext context)
-                    				: this(context.Context, context.Address, context.Services)
+                    				: this(context.Context, context.Address, ((IEvDbServiceCollectionWrapper)context).Services)
                     	{
                         }
 
                         EvDbStorageContext? IEvDbRegistrationContext.Context => _context;
                         EvDbStreamTypeName IEvDbRegistrationContext.Address => _address;
-                        IServiceCollection IEvDbRegistrationEntry.Services => _services;
+                        IServiceCollection IEvDbServiceCollectionWrapper.Services => _services;
                     }
                     """);
         context.AddSource(typeSymbol.StandardPathIgnoreSymbolName("DI", $"EvDb{factoryOriginName}SnapshotEntryFor"),
@@ -573,11 +573,12 @@ public partial class EvDbGenerator : BaseGenerator
                                     Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
                                 {
                                     IEvDbRegistrationContext entry = source;
+                                    IEvDbServiceCollectionWrapper svcWrp = source;
                                     var viewAdress = new EvDbViewBasicAddress(entry.Address, "{{viewRef.ViewPropName}}");
                                     var ctx = new EvDbSnapshotStoreRegistrationContext(
                                         entry.Context,
                                         viewAdress,
-                                        entry.Services);
+                                        svcWrp.Services);
 
                                     registrationAction(ctx);
 
@@ -607,7 +608,8 @@ public partial class EvDbGenerator : BaseGenerator
                             EvDbStorageContext? context = null)
                         { 
                             IEvDbRegistrationEntry entry = instance;
-                            IServiceCollection services = entry.Services;
+                            IEvDbServiceCollectionWrapper svcWrp = instance;
+                            IServiceCollection services = svcWrp.Services;
                             services.Add{{streamName}}ViewsFactories();
 
                     {{string.Join("", addViewFactories)}}
@@ -645,12 +647,13 @@ public partial class EvDbGenerator : BaseGenerator
                             this EvDb{{factoryOriginName}}SnapshotEntry source,
                             Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
                         {
-                            IEvDbRegistrationContext entry = source;                    
+                            IEvDbRegistrationContext entry = source;         
+                            IEvDbServiceCollectionWrapper svcWrp = source;                    
                             var viewAdress = new EvDbViewBasicAddress(entry.Address, string.Empty);
                             var ctx = new EvDbSnapshotStoreRegistrationContext(
                                 entry.Context,
                                 viewAdress,
-                                entry.Services);
+                                svcWrp.Services);
 
                             registrationAction(ctx);
 

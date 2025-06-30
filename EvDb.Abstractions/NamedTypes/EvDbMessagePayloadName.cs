@@ -215,7 +215,7 @@ public readonly partial struct EvDbMessagePayloadName :
     #region AsSpan
 
     /// <summary>
-    /// Gets the underlying Byte[] as a ReadOnlySpan<byte>.
+    /// <![CDATA[Gets the underlying Byte[] as a ReadOnlySpan<byte>.]]>
     /// </summary>
     /// <returns></returns>
     public ReadOnlySpan<byte> AsSpan()
@@ -489,7 +489,7 @@ public readonly bool IsInitialized() => true;
                                                       Type typeToConvert,
                                                       JsonSerializerOptions options)
         {
-            ImmutableArray<byte> value = JsonSerializer.Deserialize<ImmutableArray<byte>>(ref reader, options);
+            var value = JsonSerializer.Deserialize<byte[]>(ref reader, options);
             return new EvDbMessagePayloadName(value);
         }
 

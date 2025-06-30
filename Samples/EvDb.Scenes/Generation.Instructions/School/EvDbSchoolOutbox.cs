@@ -9,7 +9,7 @@ namespace EvDb.UnitTests;
 [EvDbAttachMessageType<StudentPassedMessage>]
 [EvDbAttachMessageType<StudentFailedMessage>]
 [EvDbOutbox<SchoolStreamFactory, OutboxShards>]
-[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbOutboxSerializationMode.Strict)]
+[EvDbUseOutboxSerialization<AvroSerializer, PrefixSerializer>(EvDbMessageSerializationMode.Strict)]
 public partial class EvDbSchoolOutbox
 {
     protected override Shards[] ChannelToShards(Channels outbox) =>
@@ -38,8 +38,8 @@ public partial class EvDbSchoolOutbox
                                              studentName,
                                              meta.CapturedAt,
                                              payload.Grade);
-            outbox.Append(pass, StudentPassedMessage.Channels.Channel2);
-            outbox.Append(pass, StudentPassedMessage.Channels.Channel3);
+            outbox.Append(pass, StudentPassedMessageChannels.Channel2);
+            outbox.Append(pass, StudentPassedMessageChannels.Channel3);
         }
         else
         {

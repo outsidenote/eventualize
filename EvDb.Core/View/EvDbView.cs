@@ -171,7 +171,7 @@ public abstract class EvDbView : IEvDbViewStore
             return;
         }
         OtelTags tags = Address.ToOtelTagsToOtelTags();
-        using var activity = _trace.StartActivity(tags, "EvDb.View.StoreAsync");
+        using var activity = _trace.StartActivity(tags, "EvDb.View.Store");
         using var duration = _sysMeters.MeasureStoreSnapshotsDuration(tags);
 
         bool saved = await OnSave(cancellation);

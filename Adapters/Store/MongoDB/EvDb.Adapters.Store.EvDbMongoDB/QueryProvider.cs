@@ -155,9 +155,9 @@ public static class QueryProvider
     public static SortDefinition<BsonDocument> SortMessages { get; } =
                                     Builders<BsonDocument>.Sort
                                             .Ascending("_id")
+                                            .Ascending(Fields.Message.Offset)
                                             .Ascending(Fields.Message.Channel)
-                                            .Ascending(Fields.Message.MessageType)
-                                            .Ascending(Fields.Message.Offset);
+                                            .Ascending(Fields.Message.MessageType);
 
     #endregion //  SortMessages
 

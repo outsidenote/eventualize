@@ -1,0 +1,32 @@
+@DemoWebApi_HostAddress = http://127.0.0.1:5295
+
+
+POST {{DemoWebApi_HostAddress}}/Demo/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "Id": 1
+}
+
+### 
+
+POST {{DemoWebApi_HostAddress}}/Demo/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "Id": 2
+}
+
+### 
+
+GET {{DemoWebApi_HostAddress}}/State/1
+Accept: application/json
+
+### 
+
+GET {{DemoWebApi_HostAddress}}/State/2
+Accept: application/json
+
+### 

@@ -6,12 +6,15 @@
 /// </summary>
 public readonly record struct EvDbContinuousFetchOptions
 {
+    private const int MAX_DELAY_SEC = 3;
+
     public static EvDbContinuousFetchOptions CompleteIfEmpty { get; } = new EvDbContinuousFetchOptions { CompleteWhenEmpty = true };
-    public static EvDbContinuousFetchOptions ContinueIfEmpty { get; } = new EvDbContinuousFetchOptions();
+    public static EvDbContinuousFetchOptions ContinueWhenEmpty { get; } = new EvDbContinuousFetchOptions();
 
     public EvDbContinuousFetchOptions()
     {
         DelayWhenEmpty = new DelayStrategy();
+        MaxDelayWhenEmpty = TimeSpan.FromSeconds(MAX_DELAY_SEC);
     }
 
     /// <summary>
@@ -23,4 +26,9 @@ public readonly record struct EvDbContinuousFetchOptions
     /// Delay duration when the fetch operation returns no items (and CompleteWhenEmpty is false).
     /// </summary>
     public DelayStrategy DelayWhenEmpty { get; init; }
+
+    /// <summary>
+    /// Maximum delay duration when the fetch operation returns no items (and CompleteWhenEmpty is false).
+    /// </summary>
+    public TimeSpan MaxDelayWhenEmpty { get; init; } = TimeSpan.FromSeconds(MAX_DELAY_SEC);
 }

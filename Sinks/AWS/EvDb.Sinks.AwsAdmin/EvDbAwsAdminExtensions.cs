@@ -1,0 +1,617 @@
+﻿// Ignore Spelling: sns Aws
+// Ignore Spelling: sqs
+
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
+using Amazon.SQS;
+using Amazon.SQS.Model;
+using EvDb.Core.Adapters;
+using EvDb.Sinks;
+using EvDb.Sinks.AwsAdmin;
+using Microsoft.Extensions.Caching.Memory;
+using System.Globalization;
+using System.Text.Json;
+using EvDb.Core;
+using static EvDb.Sinks.EvDbSinkTelemetry;
+
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
+using ms = Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using EvDb.Sinks.Internals;
+using static EvDb.Core.Internals.OtelConstants;
+
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
+
+#pragma warning disable S101 // Types should be named in PascalCase
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
+
+namespace Microsoft.Extensions;
+
+public static class EvDbAwsAdminExtensions
+{
+    private static readonly SemaphoreSlim _streamLock = new(1, 1);
+    private static readonly SemaphoreSlim _queueLock = new(1, 1);
+    private static readonly IMemoryCache _snsArnCache = new MemoryCache(new MemoryCacheOptions());
+    private static readonly IMemoryCache _sqsArnCache = new MemoryCache(new MemoryCacheOptions());
+    private static readonly TimeSpan SLIDING_CACHE_EXPIRATION = TimeSpan.FromMinutes(5);
+
+    #region GetOrCreateTopicAsync
+
+    #region Overloads
+
+    /// <summary>
+    /// Gets or creates an SNS topic with the specified name.
+    /// </summary>
+    /// <param name="snsClient"></param>
+    /// <param name="topicName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+                                                           EvDbSinkTarget topicName,
+                                                           CancellationToken cancellationToken = default)
+    {
+        return await snsClient.GetOrCreateTopicAsync(topicName, null, cancellationToken);
+    }
+
+    #endregion //  Overloads
+
+    /// <summary>
+    /// Gets or creates an SNS topic with the specified name.
+    /// </summary>
+    /// <param name="snsClient"></param>
+    /// <param name="topicName"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+                                                           EvDbSinkTarget topicName,
+                                                           ms.ILogger? logger = null,
+                                                           CancellationToken cancellationToken = default)
+    {
+
+        if (_snsArnCache.TryGetValue(topicName, out string? cachedTopicArn))
+        {
+            logger?.LogSNSTopicExists(topicName);
+            return cachedTopicArn!;
+        }
+
+        await _streamLock.WaitAsync(6000);
+        try
+        {
+            var listTopicsResponse = await snsClient.ListTopicsAsync(cancellationToken);
+            string? topicArn = listTopicsResponse.Topics switch
+            {
+                null => null,
+                { Count: > 0 } => listTopicsResponse.Topics[0].TopicArn,
+                _ => null
+            };
+
+
+            if (string.IsNullOrEmpty(topicArn))
+            {
+                bool isFifo = topicName.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase);
+                var attributes = new Dictionary<string, string>();
+                string name = topicName.Value;
+                if (isFifo)
+                {
+                    attributes.Add("FifoTopic", "true");
+                    attributes.Add("ContentBasedDeduplication", "true"); // auto deduplication
+                }
+                var options = new CreateTopicRequest
+                {
+                    Name = name,
+                    Attributes = attributes
+                };
+                CreateTopicResponse createTopicResponse = await snsClient.CreateTopicAsync(options, cancellationToken);
+
+                #region Validation
+
+                if (createTopicResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new InvalidOperationException($"Failed to create SNS topic: {name}");
+                }
+
+                #endregion //  Validation
+
+                topicArn = createTopicResponse.TopicArn;
+                logger?.LogSNSTopicCreated(topicName);
+            }
+            else
+            {
+                logger?.LogSNSTopicExists(topicName);
+                Console.WriteLine($"Using existing SNS topic: {topicArn}");
+            }
+
+            _snsArnCache.Set(topicName, topicArn, new MemoryCacheEntryOptions { SlidingExpiration = SLIDING_CACHE_EXPIRATION });
+
+            return topicArn;
+        }
+        finally
+        {
+            _streamLock.Release();
+        }
+    }
+
+    #endregion //  GetOrCreateTopicAsync
+
+    #region GetOrCreateQueueAsync
+
+    #region Overloads
+
+    /// <summary>
+    /// Gets or creates an SQS queue with the specified name and visibility timeout.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="queueName"></param>
+    /// <param name="visibilityTimeout"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<string> GetOrCreateQueueAsync(this AmazonSQSClient sqsClient,
+                                                              EvDbSinkTarget queueName,
+                                                              TimeSpan visibilityTimeout,
+                                                              CancellationToken cancellationToken = default)
+    {
+        return await sqsClient.GetOrCreateQueueAsync(queueName, visibilityTimeout, null, cancellationToken);
+    }
+
+    #endregion //  Overloads
+
+    /// <summary>
+    /// Gets or creates an SQS queue with the specified name and visibility timeout.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="queueName"></param>
+    /// <param name="visibilityTimeout"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<string> GetOrCreateQueueAsync(this AmazonSQSClient sqsClient,
+                                                              EvDbSinkTarget queueName,
+                                                              TimeSpan visibilityTimeout,
+                                                              ms.ILogger? logger = null,
+                                                              CancellationToken cancellationToken = default)
+    {
+        await _queueLock.WaitAsync(6000, cancellationToken);
+        try
+        {
+            var listQueuesResponse = await sqsClient.ListQueuesAsync(new ListQueuesRequest
+            {
+                QueueNamePrefix = queueName
+            },
+            cancellationToken);
+
+            string queueUrl;
+            string? existingQueueUrl = null;
+            if (listQueuesResponse.QueueUrls is not null)
+            {
+                existingQueueUrl = listQueuesResponse.QueueUrls
+                                                        .FirstOrDefault(url => url.EndsWith($"{queueName}",
+                                                                             StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (existingQueueUrl is not null)
+            {
+                queueUrl = existingQueueUrl;
+                logger?.LogSQSQueueExists(queueUrl);
+            }
+            else
+            {
+                bool isFifo = queueName.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase);
+                var attributes = new Dictionary<string, string>();
+                if (isFifo)
+                {
+                    attributes.Add("FifoQueue", "true");
+                    attributes.Add("ContentBasedDeduplication", "true"); // auto deduplication
+                }
+
+                /* TODO: consider
+                 [QueueAttributeName.MessageRetentionPeriod] = (config.MessageRetentionPeriodDays * 24 * 60 * 60).ToString(),
+                [QueueAttributeName.DelaySeconds] = config.DelaySeconds.ToString(),
+                [QueueAttributeName.RedrivePolicy] = $$"""
+                {
+                    "deadLetterTargetArn": "{{dlqAttributes.Attributes["QueueArn"]}}",
+                    "maxReceiveCount": {{config.MaxReceiveCount}}
+                }
+                 */
+
+                string name = queueName.Value;
+                var options = new CreateQueueRequest
+                {
+                    QueueName = name,
+                    Attributes = attributes
+                };
+                CreateQueueResponse createQueueResponse = await sqsClient.CreateQueueAsync(options, cancellationToken);
+
+
+                #region Validation
+
+                if (createQueueResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new InvalidOperationException($"Failed to create SQS queue: {name}");
+                }
+
+                #endregion //  Validation
+
+                queueUrl = createQueueResponse.QueueUrl;
+                await SetQueueVisibilityAsync(sqsClient, visibilityTimeout, queueUrl, cancellationToken);
+
+                logger?.LogSQSQueueCreated(queueUrl);
+            }
+            return queueUrl;
+        }
+        finally
+        {
+            _queueLock.Release();
+        }
+    }
+
+    #endregion //  GetOrCreateQueueAsync
+
+    #region SetQueueVisibilityAsync
+
+    /// <summary>
+    /// Sets the visibility timeout for the specified SQS queue.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="visibilityTimeout"></param>
+    /// <param name="queueUrl"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private static async Task SetQueueVisibilityAsync(this AmazonSQSClient sqsClient,
+                                                      TimeSpan visibilityTimeout,
+                                                      string queueUrl,
+                                                      CancellationToken cancellationToken = default)
+    {
+        string visibilityValue = ((int)visibilityTimeout.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+        await sqsClient.SetQueueAttributesAsync(new SetQueueAttributesRequest
+        {
+            QueueUrl = queueUrl,
+            Attributes = new Dictionary<string, string>
+                                        {
+                                            { QueueAttributeName.VisibilityTimeout, visibilityValue}
+                                        }
+        },
+        cancellationToken);
+    }
+
+    #endregion //  SetQueueVisibilityAsync
+
+    #region GetQueueArnAsync
+
+#pragma warning disable CA1062 // Validate arguments of public methods
+#pragma warning disable CA1054 // URI-like parameters should not be strings
+#pragma warning restore CA1054 // URI-like parameters should not be strings
+#pragma warning disable CA1054 // URI-like parameters should not be strings
+
+    /// <summary>
+    /// Gets the ARN of the specified SQS queue asynchronously.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="queueUrl"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<string> GetQueueARNAsync(this AmazonSQSClient sqsClient,
+                                                      string queueUrl,
+                                                      ms.ILogger? logger = null,
+                                                      CancellationToken cancellationToken = default)
+    {
+        if (_sqsArnCache.TryGetValue(queueUrl, out string? cachedTopicArn))
+        {
+            logger?.LogSQSQueueExists(queueUrl);
+            return cachedTopicArn!;
+        }
+
+        var attrs = await sqsClient.GetQueueAttributesAsync(new GetQueueAttributesRequest
+        {
+            QueueUrl = queueUrl,
+            AttributeNames = new List<string> { "QueueArn" }
+        }, cancellationToken);
+        string arn = attrs.Attributes["QueueArn"];
+        _sqsArnCache.Set(queueUrl, arn, new MemoryCacheEntryOptions { SlidingExpiration = SLIDING_CACHE_EXPIRATION });
+        return arn;
+    }
+#pragma warning restore CA1054 // URI-like parameters should not be strings
+
+    #endregion // GetQueueARNAsync
+
+    #region SetSNSToSQSPolicyAsync
+
+    /// <summary>
+    /// Allow SNS to send to SQS (Policy)
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="topicARN"></param>
+    /// <param name="queueURL"></param>
+    /// <param name="queueARN"></param>
+    /// <param name="principal">
+    /// The AWS principal (account or '*') to allow publishing from SNS to SQS. Defaults to '*', which allows any principal.
+    /// </param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private static async Task SetSNSToSQSPolicyAsync(this AmazonSQSClient sqsClient,
+                                                    string topicARN,
+                                                    string queueURL,
+                                                    string queueARN,
+                                                    string principal = "*",
+                                                    ms.ILogger? logger = null,
+                                                    CancellationToken cancellationToken = default)
+    {
+        string policy = $$"""
+                        {
+                            "Version":"2012-10-17",
+                            "Statement":[{
+                                            "Sid":"AllowSNSPublish",
+                                            "Effect":"Allow",
+                                            "Principal":{"AWS":"{{principal}}"},
+                                            "Action":"sqs:SendMessage",
+                                            "Resource":"{{queueARN}}",
+                                            "Condition":{
+                                                            "ArnEquals":{"aws:SourceArn":"{{topicARN}}"}
+                                                        }
+                                         }]
+                        }
+                        """;
+
+        await sqsClient.SetQueueAttributesAsync(queueURL, new Dictionary<string, string>
+        {
+            { "Policy", policy }
+        }, cancellationToken);
+
+        logger?.LogSQSPolicyAttachedExists(queueURL, principal);
+    }
+#pragma warning restore CA1054 // URI-like parameters should not be strings
+
+    #endregion //  SetSNSToSQSPolicyAsync
+
+    #region AllowSNSToSendToSQSAsync
+#pragma warning disable CA1031 // Do not catch general exception types
+
+    /// <summary>
+    /// Attaches an SQS queue to an SNS topic if not already attached.
+    /// As result the SQS queue will receive messages published to the SNS topic.
+    /// </summary>
+    /// <param name="snsClient"></param>
+    /// <param name="topicARN"></param>
+    /// <param name="queueARN"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private static async Task AttachSQSToSNSAsync(
+                            this AmazonSimpleNotificationServiceClient snsClient,
+                            string topicARN,
+                            string queueARN,
+                            ms.ILogger? logger,
+                            CancellationToken cancellationToken = default)
+    {
+        // Check if subscription exists, if not create it
+        var snsSubscriptions = await snsClient.ListSubscriptionsByTopicAsync(topicARN, cancellationToken);
+
+        bool subscriptionExists = false;
+        foreach (var sub in snsSubscriptions.Subscriptions ?? [])
+        {
+            Console.WriteLine($"  - {sub.Protocol}: {sub.Endpoint}");
+            if (sub.Protocol == "sqs" && sub.Endpoint.Contains(queueARN, StringComparison.OrdinalIgnoreCase))
+            {
+                subscriptionExists = true;
+            }
+        }
+
+        if (!subscriptionExists)
+        {
+            try
+            {
+                var subscribeResponse = await snsClient.SubscribeAsync(new SubscribeRequest
+                {
+                    TopicArn = topicARN,
+                    Protocol = "sqs",
+                    Endpoint = queueARN
+                }, cancellationToken);
+                logger?.LogSQSAttachedToSNSAsync(topicARN, queueARN, subscribeResponse.SubscriptionArn);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogFailToAttachSQSToSNSAsync(topicARN, queueARN, ex);
+            }
+        }
+    }
+
+
+#pragma warning restore CA1031 // Do not catch general exception types
+    #endregion //  AllowSNSToSendToSQSAsync
+
+    #region SubscribeSQSToSNSOptions
+
+    public record SubscribeSQSToSNSOptions
+    {
+        public static readonly SubscribeSQSToSNSOptions Default = new();
+
+        public string Principal { get; set; } = "*";
+        public TimeSpan? SqsVisibilityTimeoutOnCreation { get; set; }
+        public ms.ILogger? Logger { get; set; }
+    }
+
+    #endregion //  SubscribeSQSToSNSOptions
+
+    #region SubscribeSQSToSNSAsync
+
+    public static async Task SubscribeSQSToSNSAsync(
+        this AmazonSimpleNotificationServiceClient snsClient,
+        AmazonSQSClient sqsClient,
+        string topicName,
+        string queueName,
+        CancellationToken cancellationToken = default)
+    {
+        var options = SubscribeSQSToSNSOptions.Default;
+
+        await SubscribeSQSToSNSAsync(
+            snsClient,
+            sqsClient,
+            topicName,
+            queueName,
+            options.Principal,
+            options.SqsVisibilityTimeoutOnCreation,
+            options.Logger,
+            cancellationToken);
+    }
+
+    public static async Task SubscribeSQSToSNSAsync(
+        this AmazonSimpleNotificationServiceClient snsClient,
+        AmazonSQSClient sqsClient,
+        string topicName,
+        string queueName,
+        Action<SubscribeSQSToSNSOptions> optionsBuilder,
+        CancellationToken cancellationToken = default)
+    {
+        var options = SubscribeSQSToSNSOptions.Default;
+        optionsBuilder?.Invoke(options);
+
+        await SubscribeSQSToSNSAsync(
+            snsClient,
+            sqsClient,
+            topicName,
+            queueName,
+            options.Principal,
+            options.SqsVisibilityTimeoutOnCreation,
+            options.Logger,
+            cancellationToken);
+    }
+
+    // Original method (now private)
+    private static async Task SubscribeSQSToSNSAsync(
+        this AmazonSimpleNotificationServiceClient snsClient,
+        AmazonSQSClient sqsClient,
+        string topicName,
+        string queueName,
+        string principal = "*",
+        TimeSpan? sqsVisibilityTimeoutOnCreation = null,
+        ms.ILogger? logger = null,
+        CancellationToken cancellationToken = default)
+    {
+        var topicArn = await snsClient.GetOrCreateTopicAsync(topicName, cancellationToken);
+        TimeSpan visibilityTimeout = sqsVisibilityTimeoutOnCreation ?? TimeSpan.FromMinutes(10);
+        var queueUrl = await sqsClient.GetOrCreateQueueAsync(queueName, visibilityTimeout, cancellationToken: cancellationToken);
+        var queueArn = await sqsClient.GetQueueARNAsync(queueUrl, logger, cancellationToken);
+
+        await sqsClient.SetSNSToSQSPolicyAsync(topicArn,
+                                               queueUrl,
+                                               queueArn,
+                                               principal,
+                                               logger,
+                                               cancellationToken: cancellationToken);
+
+        await snsClient.AttachSQSToSNSAsync(topicArn, queueArn, logger, cancellationToken);
+    }
+
+    #endregion //  SubscribeSQSToSNSAsync
+
+    #region SNSToMessageRecord
+
+    /// <summary>
+    /// Convert message originated via SNS and forwarded to SQS into EvDbMessageRecord.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="serializerOptions"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static EvDbMessageRecord SNSToMessageRecord(this Message message,
+                                                   JsonSerializerOptions? serializerOptions = null)
+    {
+        try
+        {
+            var snsEnvelope = System.Text.Json.JsonSerializer.Deserialize<SnsNotification>(message.Body, serializerOptions);
+            var eventPayload = System.Text.Json.JsonSerializer.Deserialize<EvDbMessageRecord>(snsEnvelope!.Message, serializerOptions);
+            return eventPayload!;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to convert SNS message to EvDbMessageRecord.", ex);
+        }
+    }
+
+    #endregion //  SNSToMessageRecord
+
+    #region SnsNotification
+
+    public sealed record SnsNotification
+    {
+        public required string Type { get; init; }
+        public required string MessageId { get; init; }
+        public required string TopicArn { get; init; }
+        public required string Message { get; init; } // this contains your real message as JSON string
+        public required DateTime Timestamp { get; init; }
+    }
+
+    #endregion //  SnsNotification
+
+    #region ReceiveEvDbMessageRecordsAsync
+
+    #region Overloads
+
+    /// <summary>
+    /// Receives EvDbMessageRecords from the specified SQS queue.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="receiveRequest"></param>
+    /// <param name="messageFormat"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+                                                                    ReceiveMessageRequest receiveRequest,
+                                                                    SQSMessageFormat messageFormat,
+                                                                    ms.ILogger logger,
+                                                                    CancellationToken cancellationToken = default)
+    {
+        return ReceiveEvDbMessageRecordsAsync(sqsClient, receiveRequest, messageFormat, null, logger, cancellationToken);
+    }
+
+    #endregion //  Overloads
+
+    /// <summary>
+    /// Receives EvDbMessageRecords from the specified SQS queue.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="receiveRequest"></param>
+    /// <param name="messageFormat"></param>
+    /// <param name="serializerOptions"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+                                                                    ReceiveMessageRequest receiveRequest,
+                                                                    SQSMessageFormat messageFormat,
+                                                                    JsonSerializerOptions? serializerOptions,
+                                                                    ms.ILogger logger,
+                                                                    [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        ReceiveMessageResponse receiveResponse =
+                            await sqsClient.ReceiveMessageAsync(receiveRequest, cancellationToken);
+        foreach (Message msg in receiveResponse.Messages ?? [])
+        {
+            EvDbMessageRecord message = messageFormat switch
+            {
+                SQSMessageFormat.SNSWrapper => msg.SNSToMessageRecord(serializerOptions),
+                _ => System.Text.Json.JsonSerializer.Deserialize<EvDbMessageRecord>(msg.Body, serializerOptions)
+            };
+
+            var parentContext = message.TelemetryContext.ToTelemetryContext();
+            using Activity? activity = OtelSinkTrace.CreateBuilder("EvDb.ReceivedFromSQS")
+                .WithParent(parentContext, OtelParentRelation.Link)
+                .WithKind(ActivityKind.Consumer)
+                                      .AddTags(message.ToTelemetryTags())
+                                      .AddTag(TAG_SINK_TARGET_NAME, receiveRequest.QueueUrl)
+                                      .AddTag(TAG_SINK_MESSAGE_ID_NAME, msg.MessageId)
+                                      .AddTag(TAG_STORAGE_TYPE_NAME, "SQS")
+                                      .Start();
+            logger.LogReceivedFromSQS(receiveRequest.QueueUrl, msg.MessageId, message.Id, message.EventType, message.StreamId, message.Offset, message.MessageType, message.Channel);
+
+            EvDbSQSMessageRecord item = new EvDbSQSMessageRecord(message, msg);
+            yield return item;
+        }
+    }
+
+    #endregion //  ReceiveEvDbMessageRecordsAsync
+}

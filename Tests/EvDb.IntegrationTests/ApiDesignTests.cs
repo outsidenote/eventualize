@@ -30,11 +30,25 @@ public class ApiDesignTests
                             //{
                             //    c.CreateTopicGroup(x => [x.Topic1, x.Topic2])
                             //            .WithTransformation<TState>()
-                            //            .WithTransformation(x => JsonSerializer.Serialize(x.Payload));
+                            //            .WithTransformation(x => JsonSerializer.Serialize(x.EvDbPayload));
                             //})
                             .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
                             .ForALL(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection-server1"))
                             .ForStudentStats(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection2"));
+        services.AddEvDb()
+                .AddChangeStream(StoreType.MongoDB);
+
+        services.AddEvDb()
+                .AddSink()
+                .ForMessages()
+                .AddShard(EvDbShardName.Default)
+                .AddFilter(EvDbMessageFilter.Create(DateTimeOffset.UtcNow))
+                .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
+                .BuildHostedService()
+                .SendToSQS("app-commands")
+                .SendToSNS("app-internal-messages")
+                .SendToSNS("app-vip-messages");
+
         var sp = services.BuildServiceProvider();
         _factory = sp.GetRequiredService<IEvDbDemoStreamFactory>();
     }

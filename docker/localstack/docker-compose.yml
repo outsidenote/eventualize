@@ -1,0 +1,42 @@
+name: evdb-sample-localstack
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"   # Edge port
+    environment:
+      - SERVICES=sqs,sns
+      - DEBUG=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: awslocal sns list-topics
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  guistack:
+    image: visualvincent/guistack:latest
+    container_name: guistack
+    ports:
+      - "5000:80"
+    environment:
+      - AWS_SNS_ENDPOINT_URL=http://localstack:4566
+      - AWS_SQS_ENDPOINT_URL=http://localstack:4566
+      - AWS_REGION=us-east-1
+    depends_on:
+      - localstack
+    restart: unless-stopped
+
+
+volumes:
+  localstack_data:

@@ -9,7 +9,7 @@ namespace EvDb.Core.Internals;
 public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 {
     private readonly ILogger _logger;
-    private readonly EvDbOutboxSerializationMode _mode;
+    private readonly EvDbMessageSerializationMode _mode;
     private readonly EvDbStream _evDbStream;
     private readonly IEvDbEventMeta _relatedEventMeta;
     private readonly TimeProvider _timeProvider;
@@ -17,7 +17,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 
     protected EvDbOutboxContextBase(
         ILogger logger,
-        EvDbOutboxSerializationMode mode,
+        EvDbMessageSerializationMode mode,
         EvDbStream evDbStream,
         IEvDbEventMeta relatedEventMeta)
     {
@@ -48,7 +48,7 @@ public abstract class EvDbOutboxContextBase : IEvDbOutboxProducerGeneric
 
         if (serializers.Length > 1)
         {
-            if (_mode == EvDbOutboxSerializationMode.Strict)
+            if (_mode == EvDbMessageSerializationMode.Strict)
             {
                 throw new InvalidOperationException($"""
                     EvDb Outbox serialization in strict mode expect 

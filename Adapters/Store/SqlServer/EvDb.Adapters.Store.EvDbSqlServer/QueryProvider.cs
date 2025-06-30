@@ -58,18 +58,18 @@ internal static class QueryProvider
                     {{Fields.Message.StoredAt}} >= {{Parameters.Message.SinceDate}}
                     AND {{Fields.Message.StoredAt}} < DATEADD(MICROSECOND, -1000, SYSDATETIME())
                     AND (
-                        {{Parameters.Message.Channels}} IS NULL 
-                        OR ISJSON({{Parameters.Message.Channels}}) = 0 
-                        OR {{Parameters.Message.Channels}} = '[]'
-                        OR EXISTS (SELECT 1 FROM OPENJSON({{Parameters.Message.Channels}}) WHERE value = {{Fields.Message.Channel}})
+                        ISNULL({{Parameters.Message.Channels}}, '') = ''
+                        OR {{Fields.Message.Channel}} IN {{Parameters.Message.Channels}}
                     )
                     AND (
-                        {{Parameters.Message.MessageTypes}} IS NULL 
-                        OR ISJSON({{Parameters.Message.MessageTypes}}) = 0 
-                        OR {{Parameters.Message.MessageTypes}} = '[]'
-                        OR EXISTS (SELECT 1 FROM OPENJSON({{Parameters.Message.MessageTypes}}) WHERE value = {{Fields.Message.MessageType}})
+                        ISNULL({{Parameters.Message.MessageTypes}}, '') = ''
+                        OR {{Fields.Message.MessageType}} IN {{Parameters.Message.MessageTypes}}
                     )                         
-                ORDER BY {{Fields.Message.StoredAt}} ASC, {{Fields.Message.Channel}} ASC, {{Fields.Message.MessageType}} ASC, {{Fields.Event.Offset}} ASC, {{Fields.Event.Id}} ASC;
+                ORDER BY {{Fields.Message.StoredAt}} ASC, 
+                         {{Fields.Event.Offset}} ASC, 
+                         {{Fields.Message.Channel}} ASC, 
+                         {{Fields.Message.MessageType}} ASC, 
+                         {{Fields.Event.Id}} ASC;
                 """,
             // take a look at https://www.learndapper.com/saving-data/insert
             SaveEvents = $"{tblInitial}InsertEventsBatch_Events",

@@ -14,14 +14,14 @@ internal sealed class EvDbRelationalStorageAdmin : IEvDbStorageAdmin
 {
     private readonly Task<DbConnection> _commandsTask;
     private readonly ILogger _logger;
-    private readonly EvDbMigrationQueryTemplates _scripts;
+    private readonly EvDbAdminQueryTemplates _scripts;
 
     #region Ctor
 
     public EvDbRelationalStorageAdmin(
         ILogger logger,
         IEvDbConnectionFactory factory,
-        EvDbMigrationQueryTemplates scripts)
+        EvDbAdminQueryTemplates scripts)
     {
         _commandsTask = InitAsync();
         async Task<DbConnection> InitAsync()
@@ -59,7 +59,7 @@ internal sealed class EvDbRelationalStorageAdmin : IEvDbStorageAdmin
         await conn.ExecuteAsync(query);
     }
 
-    EvDbMigrationQueryTemplates IEvDbStorageAdmin.Scripts => _scripts;
+    EvDbAdminQueryTemplates IEvDbStorageAdmin.Scripts => _scripts;
 
 
     #endregion // IEvDbStorageAdmin Members

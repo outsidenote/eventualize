@@ -195,14 +195,14 @@ public partial class EvDbOutboxGenerator : BaseGenerator
         var addMessageTypesMulti = multiChannel.Select((info, i) =>
             $$"""
 
-                public void Append({{info.FullTypeName}} payload, {{info.TypeName}}.Channels outbox)
+                public void Append({{info.FullTypeName}} payload, {{info.TypeName}}Channels outbox)
                 {
                     string outboxText = outbox switch
                         {
             {{string.Join(",", info.Channels.Select(t =>
             $$"""
 
-                            {{info.TypeName}}.Channels.{{t.FixNameForClass()}} => "{{t}}"
+                            {{info.TypeName}}Channels.{{t.FixNameForClass()}} => "{{t}}"
             """))}},
                             _ => throw new NotImplementedException()
                         };
@@ -212,7 +212,7 @@ public partial class EvDbOutboxGenerator : BaseGenerator
             {{string.Join(",", info.Channels.Select(t =>
             $$"""
 
-                            {{info.TypeName}}.Channels.{{t.FixNameForClass()}} => {{outboxName}}.Channels.{{t.FixNameForClass()}}
+                            {{info.TypeName}}Channels.{{t.FixNameForClass()}} => {{outboxName}}.Channels.{{t.FixNameForClass()}}
             """))}}   ,
                             _ => throw new NotImplementedException()             
                         };
@@ -238,8 +238,8 @@ public partial class EvDbOutboxGenerator : BaseGenerator
                                         attOfOutboxSerialization?.ConstructorArguments ?? ImmutableArray<TypedConstant>.Empty;
         string mode = attOfOutboxSerializationCtorArgs.FirstOrDefault().Value switch
         {
-            0 => "EvDbOutboxSerializationMode.Permissive",
-            _ => "EvDbOutboxSerializationMode.Strict"
+            0 => "EvDbMessageSerializationMode.Permissive",
+            _ => "EvDbMessageSerializationMode.Strict"
         };
 
         builder.ClearAndAppendHeader(syntax, typeSymbol);

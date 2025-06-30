@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Transactions;
 using static EvDb.Core.Adapters.StoreTelemetry;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Core.Adapters;
 
@@ -23,7 +24,7 @@ public abstract class EvDbRelationalStorageAdapter :
     IEvDbStorageSnapshotAdapter,
     IEvDbRecordParserFactory
 {
-    private readonly static ActivitySource _trace = StoreTelemetry.Trace;
+    private readonly static ActivitySource _trace = StoreTelemetry.StoreTrace;
     protected readonly ILogger _logger;
     private readonly IEvDbConnectionFactory _factory;
     private readonly IImmutableList<IEvDbOutboxTransformer> _transformers;
@@ -313,8 +314,8 @@ public abstract class EvDbRelationalStorageAdapter :
             string query = string.Format(saveToOutboxQuery, shardName);
             EvDbMessageRecord[] items = shard.ToArray();
 
-            OtelTags tags = OtelTags.Empty.Add("shard", shardName);
-            using Activity? activity = _trace.StartActivity(tags, "EvDb.StoreOutboxAsync");
+            OtelTags tags = OtelTags.Empty.Add(TAG_SHARD_NAME, shardName);
+            using Activity? activity = _trace.StartActivity(tags, ActivityKind.Producer, "EvDb.StoreToOutbox");
             int affctedMessages = await OnStoreOutboxMessagesAsync(conn,
                                                                     shardName,
                                                                     query,
@@ -379,9 +380,9 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #endregion //  class EventRecordParser
 
-    #region IEvDbChangeStream.GetMessagesAsync
+    #region IEvDbChangeStream.GetMessageRecordssAsync
 
-    async IAsyncEnumerable<EvDbMessage> IEvDbChangeStream.GetMessagesAsync(
+    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetRecordsFromOutboxAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options,
@@ -393,27 +394,30 @@ public abstract class EvDbRelationalStorageAdapter :
         string query = string.Format(StreamQueries.GetMessages, shard);
         _logger.LogQuery(query);
 
-        var parameters = new EvDbGetMessagesParameters(filter, options ?? EvDbContinuousFetchOptions.ContinueIfEmpty);
+        EvDbGetMessagesParameters parameters = new(filter, options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty);
         using DbConnection conn = await InitAsync();
-        var opts = options ?? EvDbContinuousFetchOptions.ContinueIfEmpty;
+        var opts = options ?? EvDbContinuousFetchOptions.ContinueWhenEmpty;
         int attemptsWhenEmpty = 0;
         TimeSpan delay = opts.DelayWhenEmpty.StartDuration;
         var duplicateDetection = new HashSet<Guid>(parameters.BatchSize);
         while (!cancellation.IsCancellationRequested)
         {
+            // TODO: [bnaya] Use Polly for Timeout exceptions (retry, circuit breaker)
             using DbDataReader reader = await conn.ExecuteReaderAsync(query, parameters);
             var parser = RecordParserFactory.CreateParser(reader);
-            EvDbMessage? last = null;
+            EvDbMessageRecord? last = null;
             int count = 0;
             while (!cancellation.IsCancellationRequested && await reader.ReadAsync(cancellation).FalseWhenCancelAsync())
             {
-                EvDbMessage m = parser.ParseMessage();
+                EvDbMessageRecord m = parser.ParseMessage();
                 if (duplicateDetection.Contains(m.Id))
                     continue; // Skip duplicate messages
                 ManageDuplicationList();
                 last = m;
                 count++;
 
+                using var activity = m.StartFetchFromOutboxActivity(shard, DatabaseType);
+                _logger.LogFetchedFromOutbox(m.Id, m.StreamType, m.StreamId, m.Offset, m.EventType, m.Channel, shard.Value);
                 yield return m;
 
                 #region ManageDuplicationList
@@ -440,7 +444,7 @@ public abstract class EvDbRelationalStorageAdapter :
         }
     }
 
-    #endregion //  IEvDbChangeStream.GetMessagesAsync
+    #endregion //  IEvDbChangeStream.GetRecordsFromOutboxAsync
 
     #region IEvDbStorageStreamAdapter Members
 
@@ -558,7 +562,7 @@ public abstract class EvDbRelationalStorageAdapter :
         async Task<int> StoreEventsAsync()
         {
             int affctedEvents;
-            using (_trace.StartActivity("EvDb.StoreEventsAsync"))
+            using (_trace.StartActivity("EvDb.StoreEvents"))
             {
                 affctedEvents = await OnStoreStreamEventsAsync(conn,
                                                                saveEventsQuery,

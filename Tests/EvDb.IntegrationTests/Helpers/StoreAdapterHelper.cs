@@ -50,7 +50,7 @@ public static class StoreAdapterHelper
     public static IServiceCollection AddChangeStream(
                                         this IEvDbRegistrationEntry registration,
                                         StoreType storeType,
-                                        EvDbStorageContext context)
+                                        EvDbStorageContext? context = null)
     {
         switch (storeType)
         {

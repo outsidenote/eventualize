@@ -1,0 +1,187 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# This workflow will build, test, sign and package a WPF or Windows Forms desktop application
+# built on .NET Core.
+# To learn how to migrate your existing application to .NET Core,
+# refer to https://docs.microsoft.com/en-us/dotnet/desktop-wpf/migration/convert-project-from-net-framework
+#
+# To configure this workflow:
+#
+# 1. Configure environment variables
+# GitHub sets default environment variables for every workflow run.
+# Replace the variables relative to your project in the "env" section below.
+#
+# 2. Signing
+# Generate a signing certificate in the Windows Application
+# Packaging Project or add an existing signing certificate to the project.
+# Next, use PowerShell to encode the .pfx file using Base64 encoding
+# by running the following Powershell script to generate the output string:
+#
+# $pfx_cert = Get-Content '.\SigningCertificate.pfx' -Encoding Byte
+# [System.Convert]::ToBase64String($pfx_cert) | Out-File 'SigningCertificate_Encoded.txt'
+#
+# Open the output file, SigningCertificate_Encoded.txt, and copy the
+# string inside. Then, add the string to the repo as a GitHub secret
+# and name it "Base64_Encoded_Pfx."
+# For more information on how to configure your signing certificate for
+# this workflow, refer to https://github.com/microsoft/github-actions-for-desktop-apps#signing
+#
+# Finally, add the signing certificate password to the repo as a secret and name it "Pfx_Key".
+# See "Build the Windows Application Packaging project" below to see how the secret is used.
+#
+# For more information on GitHub Actions, refer to https://github.com/features/actions
+# For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
+# refer to https://github.com/microsoft/github-actions-for-desktop-apps
+
+name: Verify
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  test:
+
+    strategy:
+      matrix:
+        configuration: [Release]
+
+    runs-on: ubuntu-latest  # For a list of available runner types, refer to
+                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 1
+          SA_PASSWORD: MasadNetunim12!@
+        ports:
+          - 1433:1433
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: MasadNetunim12!@
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+      mongodb:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_DATABASE: evdb
+        options: >-
+          --name mongodb-event-source
+          --health-cmd="echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
+          --health-interval=10s
+          --health-timeout=10s
+          --health-retries=5
+          --health-start-period=40s
+        # command: mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
+      localstack:
+        image: localstack/localstack:latest
+        env:
+          SERVICES: sqs,sns
+          DEBUG: 1
+          DOCKER_HOST: unix:///var/run/docker.sock
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+        ports:
+          - 4566:4566
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Initialize MongoDB Replica Set
+      run: |
+        # Stop the default MongoDB instance
+        docker stop mongodb-event-source
+        
+        # Start MongoDB with replica set configuration
+        docker run -d --name mongodb-replica -p 27017:27017 \
+          -e MONGO_INITDB_DATABASE=evdb \
+          mongo:8 mongod --bind_ip_all --replSet rs0
+        
+        # Wait for MongoDB to become available
+        sleep 10
+        
+        # Initialize the replica set
+        docker exec mongodb-replica mongosh --eval "
+          rs.initiate({
+            _id: 'rs0',
+            members: [
+              { _id: 0, host: 'localhost:27017' }
+            ]
+          })
+        "
+        
+        # Wait for the replica set to initialize
+        sleep 5
+
+    - name: Execute unit tests
+      working-directory: ./Tests/EvDb.UnitTests
+      run: dotnet test --filter Category!=Stress
+
+    - name: Execute Postgres Integration tests
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=Postgres"
+
+    - name: Execute Postgres Integration tests (sink)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=Postgres:sink"
+
+    - name: Execute Postgres Integration tests (stress)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=Postgres:stress"
+
+    - name: Execute Postgres Integration tests (otel)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=Postgres:otel"
+
+    - name: Execute SqlServer Integration tests
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=SqlServer"
+
+    - name: Execute SqlServer Integration tests (sink)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=SqlServer:sink"
+
+    - name: Execute SqlServer Integration tests (stress)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=SqlServer:stress"
+
+    - name: Execute SqlServer Integration tests (otel)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=SqlServer:otel"
+
+    - name: Execute MongoDB Integration tests
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=MongoDB"
+
+    - name: Execute MongoDB Integration tests (sink)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=MongoDB:sink"
+
+    - name: Execute MongoDB Integration tests (stress)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=MongoDB:stress"
+
+    - name: Execute MongoDB Integration tests (otel)
+      working-directory: ./Tests/EvDb.IntegrationTests
+      run: dotnet test --filter "Db=MongoDB:otel"
+
