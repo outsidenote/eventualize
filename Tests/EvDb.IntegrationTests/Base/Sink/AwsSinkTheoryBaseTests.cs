@@ -24,33 +24,28 @@ using Xunit.Abstractions;
 // TODO: [Bnaya 2025-06-30] Use [Theory] instead of the inheritance for Fifo or not and Sink Channel (SNS/SQS: SQSMessageFormat), 
 
 //[Collection("sink")] 
-public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
+public abstract class AwsSinkTheoryBaseTests : BaseIntegrationTests
 {
-    private readonly IEvDbNoViews _stream;
-    protected readonly IConfiguration _configuration;
-    private readonly IEvDbNoViewsFactory _factory;
-    private readonly IEvDbMessagesSinkProcessor _sinkProcessor;
-    private readonly Guid _streamId;
     private readonly EvDbShardName SHARD = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
-    private readonly SQSMessageFormat _messageFormat;
     private static readonly TimeSpan DEFAULT_SQS_VISIBILITY_TIMEOUTON = TimeSpan.FromMinutes(10);
-
-    private readonly string TOPIC_NAME;
-    private readonly string QUEUE_NAME;
 
     #region Ctor
 
-    protected AwsSinkCommonBaseTests(ITestOutputHelper output,
-                                     StoreType storeType,
-                                     SQSMessageFormat messageFormat,
-                                     string topicName,
-                                     string queueName) :
+    protected AwsSinkTheoryBaseTests(ITestOutputHelper output,
+                                     StoreType storeType) :
         base(output, storeType, true)
     {
-        _messageFormat = messageFormat;
-        TOPIC_NAME = topicName;
-        QUEUE_NAME = queueName;
+    }
 
+    #endregion //  Ctor
+
+    #region InitAsync
+
+    private async Task<(IEvDbMessagesSinkProcessor, IEvDbNoViews)> InitAsync(
+                            SQSMessageFormat messageFormat,
+                            string topicName,
+                            string queueName)
+    {
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
 
@@ -60,10 +55,10 @@ public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
         services.AddEvDb()
-                .AddNoViewsFactory(c => c.ChooseStoreAdapter(storeType, TestingStreamStore), StorageContext)
-                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(storeType, TestingStreamStore, AlternativeContext));
+                .AddNoViewsFactory(c => c.ChooseStoreAdapter(_storeType, TestingStreamStore), StorageContext)
+                .DefaultSnapshotConfiguration(c => c.ChooseSnapshotAdapter(_storeType, TestingStreamStore, AlternativeContext));
         services.AddEvDb()
-                .AddChangeStream(storeType, StorageContext);
+                .AddChangeStream(_storeType, StorageContext);
 
         var processorRefistration = services.AddEvDb()
                  .AddSink()
@@ -76,57 +71,42 @@ public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
 
         if (messageFormat == SQSMessageFormat.SNSWrapper)
         {
-            processorRefistration.SendToSNS(TOPIC_NAME);
+            processorRefistration.SendToSNS(topicName);
             services.AddSingleton(AWSProviderFactory.CreateSNSClient());
         }
         else
         {
-            processorRefistration.SendToSQS(QUEUE_NAME);
+            processorRefistration.SendToSQS(queueName);
         }
         services.AddSingleton(AWSProviderFactory.CreateSQSClient());
 
         var sp = services.BuildServiceProvider();
-        _configuration = sp.GetRequiredService<IConfiguration>();
-        _factory = sp.GetRequiredService<IEvDbNoViewsFactory>();
-        _sinkProcessor = sp.GetRequiredService<IEvDbMessagesSinkProcessor>();
-        _streamId = Guid.NewGuid();
-        _stream = _factory.Create(_streamId);
+        var factory = sp.GetRequiredService<IEvDbNoViewsFactory>();
+        var streamId = Guid.NewGuid();
+        IEvDbNoViews stream = factory.Create(streamId);
+        var sinkProcessor = sp.GetRequiredService<IEvDbMessagesSinkProcessor>();
+
+        return (sinkProcessor, stream);
     }
 
-
-    #endregion //  Ctor
-
-    #region SubscribeSQSToSNSWhenNeededAsync
-
-    private async Task SubscribeSQSToSNSWhenNeededAsync(AmazonSQSClient sqsClient, CancellationToken cancellationToken)
-    {
-        var snsClient = AWSProviderFactory.CreateSNSClient();
-        if (_messageFormat == SQSMessageFormat.Raw)
-        {
-            // No need to subscribe SQS to SNS for Raw format
-            await sqsClient.GetOrCreateQueueAsync(QUEUE_NAME, DEFAULT_SQS_VISIBILITY_TIMEOUTON, cancellationToken: cancellationToken);
-            return;
-        }
-
-        await snsClient.SubscribeSQSToSNSAsync(sqsClient, // will create if not exists
-                                               TOPIC_NAME,
-                                               QUEUE_NAME,
-                                               o =>
-                                               {
-                                                   o.Logger = _logger;
-                                                   o.SqsVisibilityTimeoutOnCreation = DEFAULT_SQS_VISIBILITY_TIMEOUTON;
-                                               },
-                                               CancellationToken.None);
-        await Task.Delay(50);
-    }
-
-    #endregion //  SubscribeSQSToSNSWhenNeededAsync
+    #endregion //  InitAsync
 
     #region SinkMessages_Succeed
 
-    [Fact]
-    public virtual async Task SinkMessages_Succeed()
+    [Theory]
+    [InlineData(SQSMessageFormat.SNSWrapper, false)]
+    [InlineData(SQSMessageFormat.SNSWrapper, true)]
+    [InlineData(SQSMessageFormat.Raw, true)]
+    [InlineData(SQSMessageFormat.Raw, false)]
+    public virtual async Task SinkMessages_Succeed(
+                            SQSMessageFormat messageFormat,
+                            bool isFifo)
     {
+        string ext = isFifo ? ".fifo" : "";
+        string TOPIC_NAME = $"SNS_TEST_{Guid.NewGuid():N}{ext}";
+        string QUEUE_NAME = $"SQS_TEST_{Guid.NewGuid():N}{ext}";
+
+        var (sinkProcessor, stream) = await InitAsync(messageFormat, TOPIC_NAME, QUEUE_NAME);
         const int BATCH_SIZE = 30;
         const int CHUNCK_SIZE = 2;
         var cancellationDucraion = Debugger.IsAttached
@@ -138,21 +118,21 @@ public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
         using var cts = new CancellationTokenSource(cancellationDucraion);
         var cancellationToken = cts.Token;
 
-        await SubscribeSQSToSNSWhenNeededAsync(sqsClient, cancellationToken);
+        await SubscribeSQSToSNSWhenNeededAsync(sqsClient, messageFormat, TOPIC_NAME, QUEUE_NAME, cancellationToken);
         int count = BATCH_SIZE * 2;
 
         // sink messages from outbox
-        Task _ = _sinkProcessor.StartMessagesSinkAsync(cancellationToken);
+        Task _ = sinkProcessor.StartMessagesSinkAsync(cancellationToken);
 
         // Start a background task to poll SQS for messages
-        var sqsListeningTask = ListenToSQSAsync(sqsClient, QUEUE_NAME, count, _messageFormat, cancellationToken);
+        var sqsListeningTask = ListenToSQSAsync(sqsClient, QUEUE_NAME, count, messageFormat, cancellationToken);
 
         // produce messages before start listening to the change stream
         #region  await ProcuceStudentReceivedGradeAsync(...)
 
         for (int i = 0; i < count; i += CHUNCK_SIZE)
         {
-            await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
+            await ProcuceStudentReceivedGradeAsync(stream, CHUNCK_SIZE, i);
         }
 
         #endregion //   await ProcuceStudentReceivedGradeAsync(...)
@@ -166,11 +146,22 @@ public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
 
     #endregion //  SinkMessages_Succeed
 
-    #region SinkMessages_Succeed
+    #region SinkMessages_Dataflow_Succeed
 
-    [Fact]
-    public virtual async Task SinkMessages_Dataflow_Succeed()
+    [Theory]
+    [InlineData(SQSMessageFormat.SNSWrapper, false)]
+    [InlineData(SQSMessageFormat.SNSWrapper, true)]
+    [InlineData(SQSMessageFormat.Raw, true)]
+    [InlineData(SQSMessageFormat.Raw, false)]
+    public virtual async Task SinkMessages_Dataflow_Succeed(
+                            SQSMessageFormat messageFormat,
+                            bool isFifo)
     {
+        string ext = isFifo ? ".fifo" : "";
+        string TOPIC_NAME = $"SNS_TEST_{Guid.NewGuid():N}{ext}";
+        string QUEUE_NAME = $"SQS_TEST_{Guid.NewGuid():N}{ext}";
+
+        var (sinkProcessor, stream) = await InitAsync(messageFormat, TOPIC_NAME, QUEUE_NAME);
         const int BATCH_SIZE = 30;
         const int CHUNCK_SIZE = 2;
         var cancellationDucraion = Debugger.IsAttached
@@ -182,21 +173,21 @@ public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
         using var cts = new CancellationTokenSource(cancellationDucraion);
         var cancellationToken = cts.Token;
 
-        await SubscribeSQSToSNSWhenNeededAsync(sqsClient, cancellationToken);
+        await SubscribeSQSToSNSWhenNeededAsync(sqsClient, messageFormat, TOPIC_NAME, QUEUE_NAME, cancellationToken);
         int count = BATCH_SIZE * 2;
 
         // sink messages from outbox
-        Task _ = _sinkProcessor.StartMessagesSinkAsync(cancellationToken);
+        Task _ = sinkProcessor.StartMessagesSinkAsync(cancellationToken);
 
         // Start a background task to poll SQS for messages
-        var sqsListeningTask = ListenToSQSViaDataFlowAsync(sqsClient, QUEUE_NAME, count, _messageFormat, cancellationToken);
+        var sqsListeningTask = ListenToSQSViaDataFlowAsync(sqsClient, QUEUE_NAME, count, messageFormat, cancellationToken);
 
         // produce messages before start listening to the change stream
         #region  await ProcuceStudentReceivedGradeAsync(...)
 
         for (int i = 0; i < count; i += CHUNCK_SIZE)
         {
-            await ProcuceStudentReceivedGradeAsync(CHUNCK_SIZE, i);
+            await ProcuceStudentReceivedGradeAsync(stream, CHUNCK_SIZE, i);
         }
 
         #endregion //   await ProcuceStudentReceivedGradeAsync(...)
@@ -208,12 +199,18 @@ public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
         Assert.Equal(count, messages.Length);
     }
 
-    #endregion //  SinkMessages_Succeed
+    #endregion //  SinkMessages_Dataflow_Succeed
 
     #region SinkMessages_WithTelemetry_Succeed
 
-    [Fact]
-    public virtual async Task SinkMessages_WithTelemetry_Succeed()
+    [Theory]
+    [InlineData(SQSMessageFormat.SNSWrapper, false)]
+    [InlineData(SQSMessageFormat.SNSWrapper, true)]
+    [InlineData(SQSMessageFormat.Raw, true)]
+    [InlineData(SQSMessageFormat.Raw, false)]
+    public virtual async Task SinkMessages_WithTelemetry_Succeed(
+                            SQSMessageFormat messageFormat,
+                            bool isFifo)
     {
         ConcurrentQueue<string> traces = new ConcurrentQueue<string>();
         ActivityListener listener = new()
@@ -242,7 +239,7 @@ public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
         using var activitySource = new ActivitySource("UnitTestSource");
         using var activity = activitySource.StartActivity("TestActivity", ActivityKind.Internal);
 
-        await SinkMessages_Succeed();
+        await SinkMessages_Succeed(messageFormat, isFifo);
         Assert.Contains(traces, m => m.StartsWith("Started: EvDb.PublishTo"));
     }
 
@@ -301,7 +298,7 @@ public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
             receivedSqsMessages.Enqueue(msg);
             // Optionally delete the message after processing
             await sqsClient.DeleteMessageAsync(msg.SQSQueueUrl, msg.SQSReceiptHandle, cancellationToken);
-            int c =  Interlocked.Increment(ref count);
+            int c = Interlocked.Increment(ref count);
             if (c >= limit)
                 await cts.CancelAsync();
         }, new ExecutionDataflowBlockOptions { CancellationToken = cts.Token });
@@ -324,15 +321,48 @@ public abstract class AwsSinkCommonBaseTests : BaseIntegrationTests
 
     #region ProcuceStudentReceivedGradeAsync
 
-    private async Task ProcuceStudentReceivedGradeAsync(int numOfGrades = 3, int seed = 0)
+    private async Task ProcuceStudentReceivedGradeAsync(IEvDbNoViews stream,
+                                                        int numOfGrades = 3,
+                                                        int seed = 0)
     {
         for (int i = 1; i <= numOfGrades; i++)
         {
             var grade = new StudentReceivedGradeEvent(i, 88, i + seed);
-            await _stream.AppendAsync(grade);
+            await stream.AppendAsync(grade);
         }
-        await _stream.StoreAsync();
+        await stream.StoreAsync();
     }
 
     #endregion //  ProcuceStudentReceivedGradeAsync
+
+    #region SubscribeSQSToSNSWhenNeededAsync
+
+    private async Task SubscribeSQSToSNSWhenNeededAsync(
+                        AmazonSQSClient sqsClient,
+                        SQSMessageFormat messageFormat,
+                        string TOPIC_NAME,
+                        string QUEUE_NAME,
+                        CancellationToken cancellationToken)
+    {
+        var snsClient = AWSProviderFactory.CreateSNSClient();
+        if (messageFormat == SQSMessageFormat.Raw)
+        {
+            // No need to subscribe SQS to SNS for Raw format
+            await sqsClient.GetOrCreateQueueAsync(QUEUE_NAME, DEFAULT_SQS_VISIBILITY_TIMEOUTON, cancellationToken: cancellationToken);
+            return;
+        }
+
+        await snsClient.SubscribeSQSToSNSAsync(sqsClient, // will create if not exists
+                                               TOPIC_NAME,
+                                               QUEUE_NAME,
+                                               o =>
+                                               {
+                                                   o.Logger = _logger;
+                                                   o.SqsVisibilityTimeoutOnCreation = DEFAULT_SQS_VISIBILITY_TIMEOUTON;
+                                               },
+                                               CancellationToken.None);
+        await Task.Delay(50);
+    }
+
+    #endregion //  SubscribeSQSToSNSWhenNeededAsync
 }

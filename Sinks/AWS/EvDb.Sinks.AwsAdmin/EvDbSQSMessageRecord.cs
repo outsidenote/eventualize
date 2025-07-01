@@ -5,7 +5,7 @@ using Amazon.SQS.Model;
 
 namespace EvDb.Core.Adapters;
 
-public readonly record struct EvDbSQSMessageRecord(EvDbMessageRecord EvDbMessage, Message SQSMessage)
+public readonly record struct EvDbSQSMessageRecord(string SQSQueueUrl, EvDbMessageRecord EvDbMessage, Message SQSMessage)
 
 {
     #region static implicit operator EvDbMessageRecord(EvDbMessage e) ...
