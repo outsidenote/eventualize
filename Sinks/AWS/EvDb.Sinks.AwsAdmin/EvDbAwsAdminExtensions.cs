@@ -20,6 +20,9 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using EvDb.Sinks.Internals;
 using static EvDb.Core.Internals.OtelConstants;
+using System.Threading.Tasks.Dataflow;
+using System.Threading;
+using Amazon.Runtime.Internal;
 
 #pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 
@@ -80,13 +83,10 @@ public static class EvDbAwsAdminExtensions
         try
         {
             var listTopicsResponse = await snsClient.ListTopicsAsync(cancellationToken);
-            string? topicArn = listTopicsResponse.Topics switch
-            {
-                null => null,
-                { Count: > 0 } => listTopicsResponse.Topics[0].TopicArn,
-                _ => null
-            };
-
+            List<Topic> topics = listTopicsResponse.Topics ?? [];
+            string? topicArn = topics.FirstOrDefault(t => 
+                                        t.TopicArn.EndsWith(topicName, StringComparison.OrdinalIgnoreCase))
+                                         ?.TopicArn;
 
             if (string.IsNullOrEmpty(topicArn))
             {
@@ -554,6 +554,60 @@ public static class EvDbAwsAdminExtensions
     /// Receives EvDbMessageRecords from the specified SQS queue.
     /// </summary>
     /// <param name="sqsClient"></param>
+    /// <param name="block">Dataflow block</param>
+    /// <param name="receiveRequest"></param>
+    /// <param name="messageFormat"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async static Task ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+                                                                    ITargetBlock<EvDbSQSMessageRecord> block,
+                                                                    ReceiveMessageRequest receiveRequest,
+                                                                    SQSMessageFormat messageFormat,
+                                                                    ms.ILogger logger,
+                                                                    CancellationToken cancellationToken = default)
+    {
+        await sqsClient.ReceiveEvDbMessageRecordsAsync(block, receiveRequest, messageFormat, null, logger, cancellationToken);
+    }
+
+    /// <summary>
+    /// Receives EvDbMessageRecords from the specified SQS queue.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="block">Dataflow block</param>
+    /// <param name="receiveRequest"></param>
+    /// <param name="messageFormat"></param>
+    /// <param name="serializerOptions"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async static Task ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+                                                                    ITargetBlock<EvDbSQSMessageRecord> block,
+                                                                    ReceiveMessageRequest receiveRequest,
+                                                                    SQSMessageFormat messageFormat,
+                                                                    JsonSerializerOptions? serializerOptions,
+                                                                    ms.ILogger? logger,
+                                                                    CancellationToken cancellationToken = default)
+    {
+        var stream = sqsClient.ReceiveEvDbMessageRecordsAsync(receiveRequest, messageFormat, serializerOptions, logger, cancellationToken);
+        try
+        {
+            await foreach (var item in stream)
+            {
+                await block.SendAsync(item, cancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // this is fine
+        }
+        block.Complete();
+    }
+
+    /// <summary>
+    /// Receives EvDbMessageRecords from the specified SQS queue.
+    /// </summary>
+    /// <param name="sqsClient"></param>
     /// <param name="receiveRequest"></param>
     /// <param name="messageFormat"></param>
     /// <param name="logger"></param>
@@ -584,34 +638,211 @@ public static class EvDbAwsAdminExtensions
                                                                     ReceiveMessageRequest receiveRequest,
                                                                     SQSMessageFormat messageFormat,
                                                                     JsonSerializerOptions? serializerOptions,
-                                                                    ms.ILogger logger,
+                                                                    ms.ILogger? logger,
                                                                     [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        ReceiveMessageResponse receiveResponse =
-                            await sqsClient.ReceiveMessageAsync(receiveRequest, cancellationToken);
-        foreach (Message msg in receiveResponse.Messages ?? [])
+        while (!cancellationToken.IsCancellationRequested)
         {
-            EvDbMessageRecord message = messageFormat switch
+            ReceiveMessageResponse receiveResponse =
+                            await sqsClient.ReceiveMessageAsync(receiveRequest, cancellationToken);
+            foreach (Message msg in receiveResponse.Messages ?? [])
             {
-                SQSMessageFormat.SNSWrapper => msg.SNSToMessageRecord(serializerOptions),
-                _ => System.Text.Json.JsonSerializer.Deserialize<EvDbMessageRecord>(msg.Body, serializerOptions)
-            };
+                EvDbMessageRecord message = messageFormat switch
+                {
+                    SQSMessageFormat.SNSWrapper => msg.SNSToMessageRecord(serializerOptions),
+                    _ => System.Text.Json.JsonSerializer.Deserialize<EvDbMessageRecord>(msg.Body, serializerOptions)
+                };
 
-            var parentContext = message.TelemetryContext.ToTelemetryContext();
-            using Activity? activity = OtelSinkTrace.CreateBuilder("EvDb.ReceivedFromSQS")
-                .WithParent(parentContext, OtelParentRelation.Link)
-                .WithKind(ActivityKind.Consumer)
-                                      .AddTags(message.ToTelemetryTags())
-                                      .AddTag(TAG_SINK_TARGET_NAME, receiveRequest.QueueUrl)
-                                      .AddTag(TAG_SINK_MESSAGE_ID_NAME, msg.MessageId)
-                                      .AddTag(TAG_STORAGE_TYPE_NAME, "SQS")
-                                      .Start();
-            logger.LogReceivedFromSQS(receiveRequest.QueueUrl, msg.MessageId, message.Id, message.EventType, message.StreamId, message.Offset, message.MessageType, message.Channel);
+                var parentContext = message.TelemetryContext.ToTelemetryContext();
+                using Activity? activity = OtelSinkTrace.CreateBuilder("EvDb.ReceivedFromSQS")
+                    .WithParent(parentContext, OtelParentRelation.Link)
+                    .WithKind(ActivityKind.Consumer)
+                                          .AddTags(message.ToTelemetryTags())
+                                          .AddTag(TAG_SINK_TARGET_NAME, receiveRequest.QueueUrl)
+                                          .AddTag(TAG_SINK_MESSAGE_ID_NAME, msg.MessageId)
+                                          .AddTag(TAG_STORAGE_TYPE_NAME, "SQS")
+                                          .Start();
+                logger?.LogReceivedFromSQS(receiveRequest.QueueUrl, msg.MessageId, message.Id, message.EventType, message.StreamId, message.Offset, message.MessageType, message.Channel);
 
-            EvDbSQSMessageRecord item = new EvDbSQSMessageRecord(message, msg);
-            yield return item;
+                EvDbSQSMessageRecord item = new EvDbSQSMessageRecord(receiveRequest.QueueUrl, message, msg);
+                yield return item;
+            }
         }
     }
 
     #endregion //  ReceiveEvDbMessageRecordsAsync
+
+    #region CreateSQSReceiveBuilder
+
+    /// <summary>
+    /// Create a builder for receiving messages from SQS.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="messageFormat"></param>
+    /// <returns></returns>
+    public static SQSReceiveBuilderInit CreateSQSReceiveBuilder(this AmazonSQSClient sqsClient, SQSMessageFormat messageFormat)
+        => new SQSReceiveBuilderInit(sqsClient, messageFormat);
+
+    #endregion //  CreateSQSReceiveBuilder
+
+    #region SQSReceiveBuilder
+
+    /// <summary>
+    /// Builder for receiving messages from SQS.
+    /// </summary>
+    public readonly record struct SQSReceiveBuilderInit
+    {
+        private readonly AmazonSQSClient _sqsClient;
+        private readonly SQSMessageFormat _messageFormat;
+
+        public SQSReceiveBuilderInit(AmazonSQSClient sqsClient, SQSMessageFormat messageFormat)
+        {
+            _sqsClient = sqsClient;
+            _messageFormat = messageFormat;
+        }
+
+        #region WithRequest
+
+        /// <summary>
+        /// Set the request options for receiving messages from SQS.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public SQSReceiveBuilder WithRequest(ReceiveMessageRequest request)
+        {
+            return new SQSReceiveBuilder(_sqsClient, _messageFormat, request);
+        }
+
+        #endregion //  WithRequest
+
+        #region WithRequestAsync
+
+        #region overloads
+
+        /// <summary>
+        /// Translate the queue name to the SQS receive request.
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<SQSReceiveBuilder> WithRequestAsync(string queueName,
+                                                              CancellationToken cancellationToken = default)
+        {
+            return await WithRequestAsync(queueName, null, cancellationToken);
+        }
+
+        #endregion //  overloads
+
+        /// <summary>
+        /// Translate the queue name to the SQS receive request.
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="options"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<SQSReceiveBuilder> WithRequestAsync(string queueName,
+                                                              Action<ReceiveMessageRequest>? options,
+                                                              CancellationToken cancellationToken = default)
+        {
+            var queueUrlResponse = await _sqsClient.GetQueueUrlAsync(queueName, cancellationToken);
+            var queueUrl = queueUrlResponse.QueueUrl;
+            var receiveRequest = new ReceiveMessageRequest
+            {
+                QueueUrl = queueUrl,
+                MaxNumberOfMessages = 10,
+                WaitTimeSeconds = 1
+            };
+            options?.Invoke(receiveRequest);
+            return new SQSReceiveBuilder(_sqsClient, _messageFormat, receiveRequest);
+        }
+
+        #endregion //  WithRequestAsync
+    }
+
+    #endregion //  SQSReceiveBuilderInit
+
+    #region SQSReceiveBuilder
+
+    /// <summary>
+    /// Builder for receiving messages from SQS.
+    /// </summary>
+    public readonly record struct SQSReceiveBuilder
+    {
+        public SQSReceiveBuilder(AmazonSQSClient sqsClient,
+                                     SQSMessageFormat messageFormat,
+                                     ReceiveMessageRequest request)
+        {
+            SqsClient = sqsClient;
+            MessageFormat = messageFormat;
+            Request = request;
+        }
+
+
+        public AmazonSQSClient SqsClient { get; init; }
+
+        public ReceiveMessageRequest Request { get; init; }
+
+        public SQSMessageFormat MessageFormat { get; init; }
+
+        public JsonSerializerOptions? SerializerOptions { get; init; }
+
+        public ms.ILogger? Logger { get; init; }
+
+        public ITargetBlock<EvDbSQSMessageRecord>? TargetBlock { get; init; }
+
+        #region WithLogger
+
+        /// <summary>
+        /// Attach a logger
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <returns></returns>
+        public SQSReceiveBuilder WithLogger(ms.ILogger logger)
+        {
+            return this with { Logger = logger };
+        }
+
+        #endregion //  WithLogger
+
+        #region WithSerializerOptions
+
+        /// <summary>
+        /// Attach serialization options
+        /// </summary>
+        /// <param name="serializerOptions"></param>
+        /// <returns></returns>
+        public SQSReceiveBuilder WithSerializerOptions(JsonSerializerOptions serializerOptions)
+        {
+            return this with { SerializerOptions = serializerOptions };
+        }
+
+        #endregion //  WithSerializerOptions
+
+        #region BuildAsync
+
+        public IAsyncEnumerable<EvDbSQSMessageRecord> StartAsync(CancellationToken cancellationToken)
+        {
+            var stream = SqsClient.ReceiveEvDbMessageRecordsAsync(
+                                                           Request,
+                                                           MessageFormat,
+                                                           SerializerOptions,
+                                                           Logger,
+                                                           cancellationToken);
+            return stream;
+        }
+
+        public async Task StartAsync(ITargetBlock<EvDbSQSMessageRecord> targetBlock, CancellationToken cancellationToken)
+        {
+            await SqsClient.ReceiveEvDbMessageRecordsAsync(targetBlock,
+                                                           Request,
+                                                           MessageFormat,
+                                                           SerializerOptions,
+                                                           Logger,
+                                                           cancellationToken);
+        }
+
+        #endregion //  BuildAsync
+    }
+
+    #endregion //  SQSReceiveBuilder
 }

@@ -5,9 +5,9 @@ using Xunit.Abstractions;
 
 [Trait("Kind", "Integration:sink")]
 [Trait("DB", "MongoDB:sink")]
-public class AwsSinkMongoDBFifoTests : AwsSinkFifoBaseTests
+public class AwsSinkMongoDBTheoryTests : AwsSinkTheoryBaseTests
 {
-    public AwsSinkMongoDBFifoTests(ITestOutputHelper output) :
+    public AwsSinkMongoDBTheoryTests(ITestOutputHelper output) :
         base(output, StoreType.MongoDB)
     {
     }
