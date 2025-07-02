@@ -10,6 +10,7 @@ using EvDb.Scenes;
 using EvDb.Sinks;
 using EvDb.UnitTests;
 using FakeItEasy;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,10 @@ public abstract class AwsSinkTheoryBaseTests : BaseIntegrationTests
 {
     private readonly EvDbShardName SHARD = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
     private static readonly TimeSpan DEFAULT_SQS_VISIBILITY_TIMEOUTON = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan CANCELLATION_DUCRAION = Debugger.IsAttached
+                                ? TimeSpan.FromMinutes(10)
+                                : TimeSpan.FromSeconds(10);
+    private readonly Guid ID = Guid.NewGuid();
 
     #region Ctor
 
@@ -94,8 +99,8 @@ public abstract class AwsSinkTheoryBaseTests : BaseIntegrationTests
     #region SinkMessages_Succeed
 
     [Theory]
-    [InlineData(SQSMessageFormat.SNSWrapper, false)]
     [InlineData(SQSMessageFormat.SNSWrapper, true)]
+    [InlineData(SQSMessageFormat.SNSWrapper, false)]
     [InlineData(SQSMessageFormat.Raw, true)]
     [InlineData(SQSMessageFormat.Raw, false)]
     public virtual async Task SinkMessages_Succeed(
@@ -103,19 +108,16 @@ public abstract class AwsSinkTheoryBaseTests : BaseIntegrationTests
                             bool isFifo)
     {
         string ext = isFifo ? ".fifo" : "";
-        string TOPIC_NAME = $"SNS_TEST_{Guid.NewGuid():N}{ext}";
-        string QUEUE_NAME = $"SQS_TEST_{Guid.NewGuid():N}{ext}";
+        string TOPIC_NAME = $"SNS_TEST_{ID:N}{ext}";
+        string QUEUE_NAME = $"SQS_TEST_{ID:N}{ext}";
 
         var (sinkProcessor, stream) = await InitAsync(messageFormat, TOPIC_NAME, QUEUE_NAME);
         const int BATCH_SIZE = 30;
         const int CHUNCK_SIZE = 2;
-        var cancellationDucraion = Debugger.IsAttached
-                                        ? TimeSpan.FromMinutes(10)
-                                        : TimeSpan.FromSeconds(30);
 
         AmazonSQSClient sqsClient = AWSProviderFactory.CreateSQSClient();
 
-        using var cts = new CancellationTokenSource(cancellationDucraion);
+        using var cts = new CancellationTokenSource(CANCELLATION_DUCRAION);
         var cancellationToken = cts.Token;
 
         await SubscribeSQSToSNSWhenNeededAsync(sqsClient, messageFormat, TOPIC_NAME, QUEUE_NAME, cancellationToken);
@@ -158,19 +160,16 @@ public abstract class AwsSinkTheoryBaseTests : BaseIntegrationTests
                             bool isFifo)
     {
         string ext = isFifo ? ".fifo" : "";
-        string TOPIC_NAME = $"SNS_TEST_{Guid.NewGuid():N}{ext}";
-        string QUEUE_NAME = $"SQS_TEST_{Guid.NewGuid():N}{ext}";
+        string TOPIC_NAME = $"SNS_TEST_{ID:N}{ext}";
+        string QUEUE_NAME = $"SQS_TEST_{ID:N}{ext}";
 
         var (sinkProcessor, stream) = await InitAsync(messageFormat, TOPIC_NAME, QUEUE_NAME);
         const int BATCH_SIZE = 30;
         const int CHUNCK_SIZE = 2;
-        var cancellationDucraion = Debugger.IsAttached
-                                        ? TimeSpan.FromMinutes(10)
-                                        : TimeSpan.FromSeconds(30);
 
         AmazonSQSClient sqsClient = AWSProviderFactory.CreateSQSClient();
 
-        using var cts = new CancellationTokenSource(cancellationDucraion);
+        using var cts = new CancellationTokenSource(CANCELLATION_DUCRAION);
         var cancellationToken = cts.Token;
 
         await SubscribeSQSToSNSWhenNeededAsync(sqsClient, messageFormat, TOPIC_NAME, QUEUE_NAME, cancellationToken);

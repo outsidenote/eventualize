@@ -83,13 +83,10 @@ public static class EvDbAwsAdminExtensions
         try
         {
             var listTopicsResponse = await snsClient.ListTopicsAsync(cancellationToken);
-            string? topicArn = listTopicsResponse.Topics switch
-            {
-                null => null,
-                { Count: > 0 } => listTopicsResponse.Topics[0].TopicArn,
-                _ => null
-            };
-
+            List<Topic> topics = listTopicsResponse.Topics ?? [];
+            string? topicArn = topics.FirstOrDefault(t => 
+                                        t.TopicArn.EndsWith(topicName, StringComparison.OrdinalIgnoreCase))
+                                         ?.TopicArn;
 
             if (string.IsNullOrEmpty(topicArn))
             {
