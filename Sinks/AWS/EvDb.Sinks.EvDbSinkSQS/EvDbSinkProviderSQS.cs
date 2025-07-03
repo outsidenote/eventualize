@@ -7,8 +7,8 @@ using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
 using System.Text.Json;
-using static EvDb.Sinks.EvDbSinkTelemetry;
 using static EvDb.Core.Internals.OtelConstants;
+using static EvDb.Sinks.EvDbSinkTelemetry;
 
 #pragma warning disable S101 // Types should be named in PascalCase
 
@@ -83,7 +83,7 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
             MessageAttributes = messageAttributes,
         };
 
-        if(target.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase))
+        if (target.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase))
         {
             // For FIFO queues, we need to set MessageGroupId and MessageDeduplicationId
             request.MessageGroupId = message.GetAddress().ToString();

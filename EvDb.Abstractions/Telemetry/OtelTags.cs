@@ -35,7 +35,7 @@ public readonly record struct OtelTags : IEnumerable<KeyValuePair<string, object
         {
             result = result.Add(tag);
         }
-       
+
         return this with { Tags = result };
     }
 

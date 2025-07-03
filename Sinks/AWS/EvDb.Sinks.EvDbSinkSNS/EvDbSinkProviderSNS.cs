@@ -8,8 +8,8 @@ using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
 using System.Text.Json;
-using static EvDb.Sinks.EvDbSinkTelemetry;
 using static EvDb.Core.Internals.OtelConstants;
+using static EvDb.Sinks.EvDbSinkTelemetry;
 
 #pragma warning disable S101 // Types should be named in PascalCase
 

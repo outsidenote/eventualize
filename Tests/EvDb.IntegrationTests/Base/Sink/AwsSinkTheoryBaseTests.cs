@@ -4,15 +4,12 @@ namespace EvDb.Core.Tests;
 
 using Amazon.SQS;
 using Cocona;
-using Docker.DotNet.Models;
 using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.Sinks;
 using EvDb.UnitTests;
 using FakeItEasy;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;

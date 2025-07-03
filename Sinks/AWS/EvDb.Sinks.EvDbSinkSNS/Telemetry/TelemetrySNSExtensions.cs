@@ -5,7 +5,7 @@ using static EvDb.Sinks.EvDbSinkTelemetry;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class TelemetryCoreExtensions
+public static class TelemetrySNSExtensions
 {
     public static TracerProviderBuilder AddEvDbSinkSNSInstrumentation(this TracerProviderBuilder builder)
     {

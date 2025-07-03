@@ -21,8 +21,6 @@ using System.Runtime.CompilerServices;
 using EvDb.Sinks.Internals;
 using static EvDb.Core.Internals.OtelConstants;
 using System.Threading.Tasks.Dataflow;
-using System.Threading;
-using Amazon.Runtime.Internal;
 
 #pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 
@@ -84,7 +82,7 @@ public static class EvDbAwsAdminExtensions
         {
             var listTopicsResponse = await snsClient.ListTopicsAsync(cancellationToken);
             List<Topic> topics = listTopicsResponse.Topics ?? [];
-            string? topicArn = topics.FirstOrDefault(t => 
+            string? topicArn = topics.FirstOrDefault(t =>
                                         t.TopicArn.EndsWith(topicName, StringComparison.OrdinalIgnoreCase))
                                          ?.TopicArn;
 
