@@ -3,6 +3,7 @@ using EvDb.Core.Adapters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using static EvDb.Sinks.EvDbSinkTelemetry;
 
 namespace EvDb.Sinks.Processing;
 
@@ -38,20 +39,19 @@ internal class EvDbMessagesSinkProcessor : IEvDbMessagesSinkProcessor
 
         _logger.LogStartListening(_bag);
         var messages = _changeStream.GetRecordsFromOutboxAsync(_bag.Shard, _bag.Filter, _bag.Options, cancellationToken);
-        await foreach (EvDbMessageRecord message in messages)
+        await foreach (ActivityBag<EvDbMessageRecord> bag in messages)
         {
+            bag.SetAsCurrentActivity();
+            EvDbMessageRecord message = bag.Value;
+
             if (cancellationToken.IsCancellationRequested)
                 break;
 
-            if (Debugger.IsAttached)
-            {
-                foreach (var p in _sinkProviders)
-                {
-                    await p.PublishMessageToSinkAsync(message, cancellationToken);
-                }
-            }
-            else
-                await Task.WhenAll(_sinkProviders.Select(p => p.PublishMessageToSinkAsync(message, cancellationToken)));
+            ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
+            using Activity? activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToSinks")
+                                                    .WithParent(parentContext, OtelParentRelation.Link)
+                                                    .Start();
+            await Task.WhenAll(_sinkProviders.Select(p => p.PublishMessageToSinkAsync(message, cancellationToken)));
         }
     }
 }

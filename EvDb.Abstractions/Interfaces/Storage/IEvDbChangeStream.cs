@@ -13,7 +13,7 @@ public interface IEvDbChangeStream
     /// <param name="options">Options for the continuous fetch.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns>Stream of messages</returns>
-    IAsyncEnumerable<EvDbMessage> GetFromOutboxAsync(
+    IAsyncEnumerable<ActivityBag<EvDbMessage>> GetFromOutboxAsync(
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
                                 CancellationToken cancellation = default) => this.GetFromOutboxAsync(EvDbShardName.Default, filter, options, cancellation);
@@ -25,15 +25,15 @@ public interface IEvDbChangeStream
     /// <param name="options">Options for the continuous fetch.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns>Stream of messages</returns>
-    async IAsyncEnumerable<EvDbMessage> GetFromOutboxAsync(
+    async IAsyncEnumerable<ActivityBag<EvDbMessage>> GetFromOutboxAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
                                 [EnumeratorCancellation] CancellationToken cancellation = default)
     {
-        await foreach (EvDbMessageRecord record in this.GetRecordsFromOutboxAsync(shard, filter, options, cancellation))
+        await foreach (ActivityBag<EvDbMessageRecord> record in this.GetRecordsFromOutboxAsync(shard, filter, options, cancellation))
         {
-            EvDbMessage message = record;
+            ActivityBag<EvDbMessage> message = new (record.Activity, record.Value);
             yield return message;
         }
     }
@@ -45,7 +45,7 @@ public interface IEvDbChangeStream
     /// <param name="options">Options for the continuous fetch.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns>Stream of messages</returns>
-    IAsyncEnumerable<EvDbMessageRecord> GetRecordsFromOutboxAsync(
+    IAsyncEnumerable<ActivityBag<EvDbMessageRecord>> GetRecordsFromOutboxAsync(
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
                                 CancellationToken cancellation = default) => this.GetRecordsFromOutboxAsync(EvDbShardName.Default, filter, options, cancellation);
@@ -57,7 +57,7 @@ public interface IEvDbChangeStream
     /// <param name="options">Options for the continuous fetch.</param>
     /// <param name="cancellation">The cancellation.</param>
     /// <returns>Stream of messages</returns>
-    IAsyncEnumerable<EvDbMessageRecord> GetRecordsFromOutboxAsync(
+    IAsyncEnumerable<ActivityBag<EvDbMessageRecord>> GetRecordsFromOutboxAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
@@ -74,7 +74,7 @@ public interface IEvDbChangeStream
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     Task SubscribeToMessageAsync(
-                                ITargetBlock<EvDbMessage> handler,
+                                ITargetBlock<ActivityBag<EvDbMessage>> handler,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
                                 CancellationToken cancellation = default) => this.SubscribeToMessageAsync(handler, EvDbShardName.Default, filter, options, cancellation);
@@ -90,15 +90,15 @@ public interface IEvDbChangeStream
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     async Task SubscribeToMessageAsync(
-                                ITargetBlock<EvDbMessage> handler,
+                                ITargetBlock<ActivityBag<EvDbMessage>> handler,
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
                                 CancellationToken cancellation = default)
     {
         IEvDbChangeStream self = this;
-        IAsyncEnumerable<EvDbMessage> stream = self.GetFromOutboxAsync(shard, filter, options, cancellation);
-        await foreach (EvDbMessage m in stream)
+        IAsyncEnumerable<ActivityBag<EvDbMessage>> stream = self.GetFromOutboxAsync(shard, filter, options, cancellation);
+        await foreach (ActivityBag<EvDbMessage> m in stream)
         {
             #region Validation
 
@@ -127,7 +127,7 @@ public interface IEvDbChangeStream
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     Task SubscribeToMessageRecordsAsync(
-                                ITargetBlock<EvDbMessageRecord> handler,
+                                ITargetBlock<ActivityBag<EvDbMessageRecord>> handler,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
                                 CancellationToken cancellation = default) => this.SubscribeToMessageRecordsAsync(handler, EvDbShardName.Default, filter, options, cancellation);
@@ -143,15 +143,15 @@ public interface IEvDbChangeStream
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     async Task SubscribeToMessageRecordsAsync(
-                                ITargetBlock<EvDbMessageRecord> handler,
+                                ITargetBlock<ActivityBag<EvDbMessageRecord>> handler,
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options = null,
                                 CancellationToken cancellation = default)
     {
         IEvDbChangeStream self = this;
-        IAsyncEnumerable<EvDbMessageRecord> stream = self.GetRecordsFromOutboxAsync(shard, filter, options, cancellation);
-        await foreach (EvDbMessageRecord m in stream)
+        IAsyncEnumerable<ActivityBag<EvDbMessageRecord>> stream = self.GetRecordsFromOutboxAsync(shard, filter, options, cancellation);
+        await foreach (ActivityBag<EvDbMessageRecord> m in stream)
         {
             #region Validation
 

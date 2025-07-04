@@ -78,11 +78,11 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
         await Task.Delay(50); // Change stream ignore last ms
 
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
-        IAsyncEnumerable<EvDbMessage> messages =
+        IAsyncEnumerable<ActivityBag<EvDbMessage>> messages =
                         _changeStream.GetFromOutboxAsync(shard, startAt, defaultEventsOptions, cancellationToken);
 
         long lastOffset = 0;
-        await foreach (var message in messages)
+        await foreach (EvDbMessage message in messages)
         {
             long messageOffset = message.StreamCursor.Offset;
             Assert.Equal(lastOffset, messageOffset - 1);
@@ -143,10 +143,10 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
         EvDbMessageFilter filter = EvDbMessageFilter.Create(startAt)
                                                     .AddChannel(AvgMessage.Channels.DEFAULT);
-        IAsyncEnumerable<EvDbMessage> messages =
+        IAsyncEnumerable<ActivityBag<EvDbMessage>> messages =
                         _changeStream.GetFromOutboxAsync(shard, filter, defaultEventsOptions, cancellationToken);
 
-        await foreach (var message in messages)
+        await foreach (EvDbMessage message in messages)
         {
             if (message.MessageType == AvgMessage.PAYLOAD_TYPE)
             {
@@ -192,10 +192,10 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
         EvDbMessageFilter filter = EvDbMessageFilter.Create(startAt)
                                                     .AddMessageType(AvgMessage.PAYLOAD_TYPE);
-        IAsyncEnumerable<EvDbMessage> messages =
+        IAsyncEnumerable<ActivityBag<EvDbMessage>> messages =
                         _changeStream.GetFromOutboxAsync(shard, filter, defaultEventsOptions, cancellationToken);
 
-        await foreach (var message in messages)
+        await foreach (EvDbMessage message in messages)
         {
             if (message.MessageType == AvgMessage.PAYLOAD_TYPE)
             {
@@ -240,11 +240,11 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
         await Task.Delay(50); // Change stream ignore last ms
 
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
-        IAsyncEnumerable<EvDbMessageRecord> messages =
+        IAsyncEnumerable<ActivityBag<EvDbMessageRecord>> messages =
                         _changeStream.GetRecordsFromOutboxAsync(shard, startAt, defaultEventsOptions, cancellationToken);
 
         long lastOffset = 0;
-        await foreach (var message in messages)
+        await foreach (EvDbMessageRecord message in messages)
         {
             long messageOffset = message.Offset;
             Assert.Equal(lastOffset, messageOffset - 1);
@@ -308,7 +308,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
         int total = count + FUTURE_COUNT;
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
         long processingCounter = 0;
-        var actionblock = new ActionBlock<EvDbMessage>(async message =>
+        var actionblock = new ActionBlock<ActivityBag<EvDbMessage>>(async message =>
         {
             var processed = Interlocked.Increment(ref processingCounter);
 
@@ -364,7 +364,7 @@ public abstract class ChangeStreamBaseTests : BaseIntegrationTests
         int total = count + FUTURE_COUNT;
         EvDbShardName shard = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
         long processingCounter = 0;
-        var actionblock = new ActionBlock<EvDbMessageRecord>(async message =>
+        var actionblock = new ActionBlock<ActivityBag<EvDbMessageRecord>>(async message =>
         {
             var processed = Interlocked.Increment(ref processingCounter);
 

@@ -54,6 +54,7 @@ internal static class OtelExtensions
                         .AddEvDbStoreInstrumentation()
                         .AddEvDbSinkSNSInstrumentation()
                         .AddEvDbSinkSQSInstrumentation()
+                        .AddEvDbSinkKafkaInstrumentation()
                         //.AddSqlClientInstrumentation(o =>
                         //{
                         //    o.SetDbStatementForText = true;
@@ -71,6 +72,7 @@ internal static class OtelExtensions
                                 .AddEvDbStoreInstrumentation()
                                 .AddEvDbSinkSNSInstrumentation()
                                 .AddEvDbSinkSQSInstrumentation()
+                                .AddEvDbSinkKafkaInstrumentation()
                                 .AddHttpClientInstrumentation()
                                 //.AddProcessInstrumentation()
                                 //.AddRuntimeInstrumentation()

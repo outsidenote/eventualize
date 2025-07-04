@@ -382,7 +382,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
     #region IEvDbChangeStream.GetMessageRecordssAsync
 
-    async IAsyncEnumerable<EvDbMessageRecord> IEvDbChangeStream.GetRecordsFromOutboxAsync(
+    async IAsyncEnumerable<ActivityBag<EvDbMessageRecord>> IEvDbChangeStream.GetRecordsFromOutboxAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options,
@@ -418,7 +418,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
                 using var activity = m.StartFetchFromOutboxActivity(shard, DatabaseType);
                 _logger.LogFetchedFromOutbox(m.Id, m.StreamType, m.StreamId, m.Offset, m.EventType, m.Channel, shard.Value);
-                yield return m;
+                yield return new (activity, m);
 
                 #region ManageDuplicationList
 

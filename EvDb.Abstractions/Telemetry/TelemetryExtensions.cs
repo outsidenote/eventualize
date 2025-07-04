@@ -186,7 +186,8 @@ public static class TelemetryExtensions
 
         public Activity? Start()
         {
-            var activity = ParentRelation switch
+
+            Activity? activity = ParentRelation switch
             {
                 OtelParentRelation.Child => ActivitySource.StartActivity(Name, Kind, Parent),
                 _ => ActivitySource.StartActivity(Kind, name: Name, links: new[] { new ActivityLink(Parent) })

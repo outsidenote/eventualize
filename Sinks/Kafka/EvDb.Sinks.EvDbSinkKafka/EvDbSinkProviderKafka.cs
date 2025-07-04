@@ -38,7 +38,7 @@ internal class EvDbSinkProviderKafka : IEvDbMessagesSinkPublishProvider
         // Set up tracing context
         ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
         using var activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToKafka")
-            .WithParent(parentContext)
+            .WithParent(parentContext, OtelParentRelation.Link)
             .WithKind(ActivityKind.Producer)
             .AddTags(message.ToTelemetryTags())
             .AddTag(TAG_SINK_TARGET_NAME, target)
