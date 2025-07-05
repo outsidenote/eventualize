@@ -7,9 +7,9 @@ using Xunit.Abstractions;
 
 [Trait("Kind", "Integration:sink")]
 [Trait("DB", "SqlServer:sink")]
-public class AwsSinkSqlServerTheoryTests : AwsSinkTheoryBaseTests
+public class KafkaSinkSqlServerTests : KafkaSinkBaseTests
 {
-    public AwsSinkSqlServerTheoryTests(ITestOutputHelper output) :
+    public KafkaSinkSqlServerTests(ITestOutputHelper output) :
         base(output, StoreType.SqlServer)
     {
     }

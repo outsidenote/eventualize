@@ -60,7 +60,9 @@ internal class EvDbSinkProviderKafka : IEvDbMessagesSinkPublishProvider
         };
 
         // Inject OTEL trace context into Kafka headers
-        var propagationContext = new PropagationContext(activity.Context, Baggage.Current);
+        var propagationContext = new PropagationContext(
+                                           activity?.Context ?? default,
+                                           Baggage.Create());
         Propagator.Inject(propagationContext, kafkaMsg.Headers, InjectKafkaHeader);
 
         static void InjectKafkaHeader(Headers headers, string key, string value)
@@ -70,19 +72,19 @@ internal class EvDbSinkProviderKafka : IEvDbMessagesSinkPublishProvider
         }
 
         // Send the message
-        DeliveryResult<string, string> result;
+        DeliveryResult<string, string> response;
         try
         {
-            result = await _producer.ProduceAsync(target.Value, kafkaMsg, cancellationToken);
+            response = await _producer.ProduceAsync(target.Value, kafkaMsg, cancellationToken);
+
+            _logger.LogPublished(target, message.Id, response.Message.Key, response.Status.ToString(), response.Offset.Value);
         }
         catch (ProduceException<string, string> ex)
         {
-            _logger.LogError(ex, "Failed to publish to Kafka topic {Topic}: {Error}", target, ex.Error);
+            _logger.LogPublishedError(target, ex);
             throw;
         }
 
-        _logger.LogInformation("Published message {MessageId} to Kafka topic {Topic} at offset {Offset}",
-            message.Id, target, result.Offset);
     }
 
     IEvDbTargetedMessagesSinkPublish IEvDbMessagesSinkPublishProvider.Create(EvDbSinkTarget target)

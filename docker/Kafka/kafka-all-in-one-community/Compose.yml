@@ -147,6 +147,56 @@ services:
       KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
     restart: unless-stopped # on-failure
 
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.30.0
+    container_name: kafdrop
+    depends_on:
+      - kafka
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:29092"
+      JVM_OPTS: "-Xms32M -Xmx64M"
+    restart: unless-stopped
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    restart: unless-stopped
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: kafka-exporter
+    ports:
+      - "9308:9308"
+    command:
+      - "--kafka.server=kafka:29092"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
 
   kafka-topics-generator:
     image: confluentinc/cp-kafka:7.5.1
@@ -156,9 +206,6 @@ services:
     command: |
       bash -c "
       sleep 5s
-      kafka-topics --create --topic=ping --partitions 1 --if-not-exists --bootstrap-server=kafka:29092 
-      kafka-topics --create --topic=pong --partitions 1 --if-not-exists --bootstrap-server=kafka:29092 
       kafka-topics --create --topic=playground --partitions 1 --if-not-exists --bootstrap-server=kafka:29092 
-      kafka-topics --create --topic=demo-stream --partitions 1 --if-not-exists --bootstrap-server=kafka:29092 
       "
 

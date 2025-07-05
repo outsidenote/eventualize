@@ -52,6 +52,7 @@
 		<ProjectReference Include="..\..\Sinks\AWS\EvDb.Sinks.AwsAdmin\EvDb.Sinks.AwsAdmin.csproj" />
 		<ProjectReference Include="..\..\Sinks\AWS\EvDb.Sinks.EvDbSinkSNS\EvDb.Sinks.EvDbSinkSNS.csproj" />
 		<ProjectReference Include="..\..\Sinks\AWS\EvDb.Sinks.EvDbSinkSQS\EvDb.Sinks.EvDbSinkSQS.csproj" />
+		<ProjectReference Include="..\..\Sinks\Kafka\EvDb.Sinks.EvDbSinkKafka\EvDb.Sinks.EvDbSinkKafka.csproj" />
 		<ProjectReference Include="..\EvDb.TestsHelper\EvDb.TestsHelper.csproj" />
 	</ItemGroup>
 
