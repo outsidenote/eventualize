@@ -3,7 +3,7 @@
 public enum OtelParentRelation
 {
     /// <summary>
-    /// Direct child of the parent span.
+    /// Direct child of the parent span, unless having no current activity.
     /// </summary>
     Child,
     /// <summary>

@@ -71,7 +71,7 @@ public abstract class ChangeStreamStressBaseTests : BaseIntegrationTests
         var startAt = DateTimeOffset.UtcNow.AddMinutes(-1);
 
 
-        IAsyncEnumerable<EvDbMessage> messages =
+        IAsyncEnumerable<ActivityBag<EvDbMessage>> messages =
                 _changeStream.GetFromOutboxAsync(shard, startAt, defaultEventsOptions, cancellationToken);
 
         var block = new ActionBlock<int>(async i =>
@@ -87,7 +87,7 @@ public abstract class ChangeStreamStressBaseTests : BaseIntegrationTests
         block.Complete();
 
         int count = 0;
-        await foreach (var message in messages)
+        await foreach (EvDbMessage message in messages)
         {
             count++;
             Assert.Equal(count, message.StreamCursor.Offset);

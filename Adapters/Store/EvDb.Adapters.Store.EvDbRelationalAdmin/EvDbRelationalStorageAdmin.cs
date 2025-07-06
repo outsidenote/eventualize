@@ -70,14 +70,28 @@ internal sealed class EvDbRelationalStorageAdmin : IEvDbStorageAdmin
     {
         GC.SuppressFinalize(this);
         IDisposable commands = _commandsTask.Result;
-        commands.Dispose();
+        try
+        {
+            commands.Dispose();
+        }
+        catch
+        {
+            _logger.LogError("Failed to dispose EvDbRelationalStorageAdmin commands connection.");
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
         var commands = await _commandsTask;
-        await commands.DisposeAsync();
+        try
+        {
+               await commands.DisposeAsync();
+        }
+        catch
+        {
+            _logger.LogError("Failed to dispose-async EvDbRelationalStorageAdmin commands connection.");
+        }
     }
 
     ~EvDbRelationalStorageAdmin()

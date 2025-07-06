@@ -10,11 +10,11 @@
 		<ProjectReference Include="..\..\EvDb.Sinks.Processing\EvDb.Sinks.Processing.csproj" />
 	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\..\..\docs\README.md" Link="README.md">
-      <PackagePath>\</PackagePath>
-      <Pack>True</Pack>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\..\docs\README.md" Link="README.md">
+			<PackagePath>\</PackagePath>
+			<Pack>True</Pack>
+		</None>
+	</ItemGroup>
 
 </Project>

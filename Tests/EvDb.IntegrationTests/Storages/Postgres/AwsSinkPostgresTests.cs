@@ -5,9 +5,9 @@ using Xunit.Abstractions;
 
 [Trait("Kind", "Integration:sink")]
 [Trait("DB", "Postgres:sink")]
-public class AwsSinkPostgresTheoryTests : AwsSinkTheoryBaseTests
+public class AwsSinkPostgresTests : AwsSinkBaseTests
 {
-    public AwsSinkPostgresTheoryTests(ITestOutputHelper output) :
+    public AwsSinkPostgresTests(ITestOutputHelper output) :
         base(output, StoreType.Postgres)
     {
     }

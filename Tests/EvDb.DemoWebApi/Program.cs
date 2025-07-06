@@ -1,3 +1,4 @@
+using Confluent.Kafka;
 using EvDb.Core;
 using EvDb.Demo;
 using EvDb.DemoWebApi;
@@ -28,6 +29,25 @@ services.UseSqlServerChangeStream();
 // Sink
 services.AddSingleton(AWSProviderFactory.CreateSQSClient());
 services.AddSingleton(AWSProviderFactory.CreateSNSClient());
+
+
+#region Kafka
+
+services.AddSingleton<IProducer<string, string>>(sp =>
+    {
+        var config = new ProducerConfig
+        {
+            BootstrapServers = "localhost:9092"
+        };
+
+        var producer = new ProducerBuilder<string, string>(config)
+            //.SetValueSerializer(new EvDbMessageSerializer())
+            .Build();
+        return producer;
+    });
+
+#endregion //  Kafka
+
 services.AddEvDb()
         .AddSink()
         .ForMessages()
@@ -36,7 +56,8 @@ services.AddEvDb()
                                         .AddChannel(CommentsMessage.Channels.Comments))
             .AddOptions(EvDbContinuousFetchOptions.ContinueWhenEmpty)
             .BuildHostedService(CreateEnvironmentAsync)
-            .SendToSNS(TOPIC_NAME);
+            .SendToSNS(TOPIC_NAME)
+            .SendToKafka(TOPIC_NAME);
 
 services.AddSingleton<State>();
 services.AddHostedService<SinkJob>();

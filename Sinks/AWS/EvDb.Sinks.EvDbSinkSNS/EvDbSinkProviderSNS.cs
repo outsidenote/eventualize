@@ -8,8 +8,8 @@ using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
 using System.Text.Json;
-using static EvDb.Sinks.EvDbSinkTelemetry;
 using static EvDb.Core.Internals.OtelConstants;
+using static EvDb.Sinks.EvDbSinkTelemetry;
 
 #pragma warning disable S101 // Types should be named in PascalCase
 
@@ -38,14 +38,14 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
     {
         ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
         using var activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToSNS")
-                                      .WithParent(parentContext)
+                                      .WithParent(parentContext, OtelParentRelation.Link)
                                       .WithKind(ActivityKind.Producer)
                                       .AddTags(message.ToTelemetryTags())
                                       .AddTag(TAG_SINK_TARGET_NAME, target)
-                                      .AddTag(TAG_STORAGE_TYPE_NAME, "SNS")
+                                      .AddTag(TAG_STORAGE_TYPE_NAME, "SNS") // TODO: [bnaya 2025-07-03move to base class with sink-type as abstract
                                       .Start();
 
-        _meters.IncrementPublish(target);
+        _meters.IncrementPublish(target); // TODO: [bnaya 2025-07-03] make it general with tag of the sink-type
 
         string json = JsonSerializer.Serialize(message, serializerOptions);
         string topicArn = await _client.GetOrCreateTopicAsync(target, _logger, cancellationToken);

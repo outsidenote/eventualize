@@ -4,15 +4,12 @@ namespace EvDb.Core.Tests;
 
 using Amazon.SQS;
 using Cocona;
-using Docker.DotNet.Models;
 using EvDb.Core.Adapters;
 using EvDb.Scenes;
 using EvDb.Sinks;
 using EvDb.UnitTests;
 using FakeItEasy;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
@@ -22,10 +19,10 @@ using System.Threading;
 using System.Threading.Tasks.Dataflow;
 using Xunit.Abstractions;
 
-// TODO: [Bnaya 2025-06-30] Use [Theory] instead of the inheritance for Fifo or not and Sink Channel (SNS/SQS: SQSMessageFormat), 
 
+[Trait("Sink", "AWS")]
 //[Collection("sink")] 
-public abstract class AwsSinkTheoryBaseTests : BaseIntegrationTests
+public abstract class AwsSinkBaseTests : BaseIntegrationTests
 {
     private readonly EvDbShardName SHARD = EvDbNoViewsOutbox.DEFAULT_SHARD_NAME;
     private static readonly TimeSpan DEFAULT_SQS_VISIBILITY_TIMEOUTON = TimeSpan.FromMinutes(10);
@@ -36,7 +33,7 @@ public abstract class AwsSinkTheoryBaseTests : BaseIntegrationTests
 
     #region Ctor
 
-    protected AwsSinkTheoryBaseTests(ITestOutputHelper output,
+    protected AwsSinkBaseTests(ITestOutputHelper output,
                                      StoreType storeType) :
         base(output, storeType, true)
     {

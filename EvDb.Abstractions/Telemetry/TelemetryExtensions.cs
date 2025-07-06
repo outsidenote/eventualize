@@ -1,5 +1,4 @@
 ﻿using EvDb.Core.Adapters;
-using EvDb.Core.Internals;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
@@ -162,8 +161,8 @@ public static class TelemetryExtensions
         public ActivityKind Kind { get; init; } = ActivityKind.Internal;
 
         public ActivityContext Parent { get; init; } = Activity.Current?.Context ?? default;
-        public OtelParentRelation ParentRelation { get; init; } 
-        
+        public OtelParentRelation ParentRelation { get; init; }
+
 
         public ActivityBuilder WithParent(ActivityContext parent, OtelParentRelation relation = OtelParentRelation.Child)
         {
@@ -187,12 +186,13 @@ public static class TelemetryExtensions
 
         public Activity? Start()
         {
-            var activity =  ParentRelation switch
+
+            Activity? activity = ParentRelation switch
             {
                 OtelParentRelation.Child => ActivitySource.StartActivity(Name, Kind, Parent),
                 _ => ActivitySource.StartActivity(Kind, name: Name, links: new[] { new ActivityLink(Parent) })
             };
-            
+
             if (activity != null)
             {
                 foreach (var tag in Tags)
