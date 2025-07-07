@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy Nuget and Version Increment
 
 # doc:               https://docs.github.com/en/actions
 # variables:         https://docs.github.com/en/actions/learn-github-actions/environment-variables

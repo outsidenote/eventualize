@@ -128,9 +128,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Adapters.Store.EvDbTes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{33857C97-409B-4B7B-B3A6-F3404AD39410}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\dotnet-nuget.yml = .github\workflows\dotnet-nuget.yml
-		.github\workflows\dotnet-version.yml = .github\workflows\dotnet-version.yml
 		.github\workflows\pages.yml = .github\workflows\pages.yml
+		.github\workflows\dotnet-tests.yml = .github\workflows\dotnet-tests.yml
+		.github\workflows\dotnet-version-deployment.yml = .github\workflows\dotnet-version-deployment.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sinks", "Sinks", "{7F718183-E2B2-41F6-89CE-0C8FEBCFEDC6}"
@@ -170,6 +170,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kafka-all-in-one-community", "kafka-all-in-one-community", "{D1B3888A-65CD-4370-BC8D-25B6C190F62B}"
 	ProjectSection(SolutionItems) = preProject
 		docker\Kafka\kafka-all-in-one-community\Compose.yml = docker\Kafka\kafka-all-in-one-community\Compose.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kafka-connect-loaclstack", "kafka-connect-loaclstack", "{2D20C491-C7CA-4489-8BD0-D8301AD373FA}"
+	ProjectSection(SolutionItems) = preProject
+		docker\kafka-connect-loaclstack\Compose.yml = docker\kafka-connect-loaclstack\Compose.yml
+		docker\kafka-connect-loaclstack\prometheus.yml = docker\kafka-connect-loaclstack\prometheus.yml
 	EndProjectSection
 EndProject
 Global
@@ -946,6 +952,7 @@ Global
 		{B1A26EB1-30D2-4072-ACEE-0F23B71D23D1} = {2A577C3E-B32E-427B-9475-7F09E61B1644}
 		{04E686C1-DFA8-492A-9545-D12F817A3042} = {470EB5B5-2EA7-402F-BD7F-A9A49911C29E}
 		{D1B3888A-65CD-4370-BC8D-25B6C190F62B} = {04E686C1-DFA8-492A-9545-D12F817A3042}
+		{2D20C491-C7CA-4489-8BD0-D8301AD373FA} = {470EB5B5-2EA7-402F-BD7F-A9A49911C29E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CF849979-7A01-419B-A9C7-8EA947DCD0C2}
