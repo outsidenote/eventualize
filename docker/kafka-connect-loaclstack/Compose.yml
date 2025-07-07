@@ -31,13 +31,18 @@ services:
     image: confluentinc/cp-zookeeper:7.5.0
     hostname: zookeeper
     container_name: zookeeper
+    ports:
+      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 10
+      ZOOKEEPER_SYNC_LIMIT: 5
     healthcheck:
-      test: ["CMD", "zkServer.sh", "status"]
+      test: ["CMD", "bash", "-c", "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/2181' && echo 'ZooKeeper is running'"]
       interval: 10s
-      retries: 5
+      retries: 10
+      timeout: 10s
     restart: unless-stopped
 
   kafka:
@@ -45,7 +50,8 @@ services:
     hostname: kafka
     container_name: kafka
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -55,7 +61,8 @@ services:
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "kafka:9092"]
       interval: 10s
-      retries: 5
+      retries: 8
+      timeout: 10s
     ports:
       - "9092:9092"
     restart: unless-stopped
@@ -103,8 +110,10 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - kafka
-      - schema-registry
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
@@ -120,20 +129,23 @@ services:
   kafka-exporter:
     image: danielqsj/kafka-exporter:latest
     container_name: kafka-exporter
+    depends_on:
+      kafka:
+        condition: service_healthy
     command:
       - "--kafka.server=kafka:9092"
+      - "--log.level=info"
     ports:
       - "9308:9308"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9308/metrics"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9308/metrics"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.50.1
     container_name: prometheus
     depends_on:
       kafka-exporter:
@@ -142,8 +154,12 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d' # Add this line
+      - '--storage.tsdb.retention.size=1GB' # Add this line (or remove if you only want time-based)
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9090/-/ready"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/ready"]
       interval: 10s
       retries: 5
     restart: unless-stopped
@@ -156,8 +172,10 @@ services:
         condition: service_healthy
     ports:
       - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/login"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/login"]
       interval: 10s
       retries: 5
     restart: unless-stopped
@@ -167,9 +185,12 @@ services:
     hostname: kafka-connect
     container_name: kafka-connect
     depends_on:
-      - kafka
-      - schema-registry
-      - localstack
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
     environment:
       CONNECT_BOOTSTRAP_SERVERS: kafka:9092
       CONNECT_REST_PORT: 8083
@@ -196,7 +217,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083/connectors"]
       interval: 10s
-      retries: 5
+      retries: 8
     volumes:
       - ./kafka-connect-plugins/sqs:/usr/share/java/kafka-connect-sqs
     restart: unless-stopped
@@ -205,14 +226,18 @@ services:
     image: confluentinc/cp-kafka:7.5.1
     container_name: kafka-topics-generator
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     entrypoint:
       - bash
       - -c
       - |
-        cub kafka-ready -b kafka:9092 1 20
+        echo "Waiting for Kafka to be ready..."
+        cub kafka-ready -b kafka:9092 1 30
+        echo "Creating topics..."
         kafka-topics --create --topic EvDb-Demo-Tests-Topic --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 || true
         kafka-topics --create --topic playground --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 || true
+        echo "Topics created successfully"
         tail -f /dev/null
     restart: unless-stopped
 
@@ -232,16 +257,21 @@ services:
         export AWS_SECRET_ACCESS_KEY=test
         export AWS_DEFAULT_REGION=us-east-1
 
+        echo "Waiting for LocalStack to be ready..."
         until aws sqs list-queues --endpoint-url=http://localstack:4566; do sleep 3; done
         echo "✅ LocalStack ready"
 
+        echo "Creating SQS queue..."
         aws sqs create-queue \
           --queue-name EvDb-Demo-Tests-Queue \
           --endpoint-url=http://localstack:4566 || true
+        echo "✅ SQS queue created"
 
+        echo "Waiting for Kafka Connect to be ready..."
         until curl -s http://kafka-connect:8083/connectors; do sleep 3; done
         echo "✅ Kafka Connect ready"
 
+        echo "Registering SQS sink connector..."
         curl -X PUT http://kafka-connect:8083/connectors/evdb-sqs-sink/config \
           -H "Content-Type: application/json" \
           -d '{
