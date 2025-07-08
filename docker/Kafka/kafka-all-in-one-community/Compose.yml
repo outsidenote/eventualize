@@ -1,6 +1,16 @@
-name: evdb-kafka
+﻿name: evdb-kafka-localstack
 
 services:
+  guistack:
+    image: visualvincent/guistack:latest
+    container_name: guistack
+    depends_on:
+      localstack:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     hostname: zookeeper
@@ -10,14 +20,27 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    restart: unless-stopped # on-failure
+      ZOOKEEPER_INIT_LIMIT: 10
+      ZOOKEEPER_SYNC_LIMIT: 5
+    healthcheck:
+      test: ["CMD", "bash", "-c", "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/2181' && echo 'ZooKeeper is running'"]
+      interval: 10s
+      retries: 10
+      timeout: 10s
+    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     hostname: kafka
     container_name: kafka
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "kafka:9092"]
+      interval: 10s
+      retries: 8
+      timeout: 10s
     ports:
       - "29092:29092"
       - "9092:9092"
@@ -33,49 +56,44 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
-    restart: unless-stopped # on-failure
+    restart: unless-stopped
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.5.0
     hostname: schema-registry
     container_name: schema-registry
     depends_on:
-      - kafka
-    ports:
-      - "8081:8081"
+      kafka:
+        condition: service_healthy
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
-    restart: unless-stopped # on-failure
-
-
-  rest-proxy:
-    image: confluentinc/cp-kafka-rest:7.5.0
-    depends_on:
-      - kafka
-      - schema-registry
     ports:
-      - 8082:8082
-    hostname: rest-proxy
-    container_name: rest-proxy
-    environment:
-      KAFKA_REST_HOST_NAME: rest-proxy
-      KAFKA_REST_BOOTSTRAP_SERVERS: 'kafka:29092'
-      KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
-      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
-    restart: unless-stopped # on-failure
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/subjects"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
 
   kafdrop:
     image: obsidiandynamics/kafdrop:3.30.0
     container_name: kafdrop
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKERCONNECT: kafka:29092
+      JVM_OPTS: "-Xms32m -Xmx64m"
     ports:
       - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: "kafka:29092"
-      JVM_OPTS: "-Xms32M -Xmx64M"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 10s
+      retries: 5
     restart: unless-stopped
 
   kafka-ui:
@@ -84,47 +102,91 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
     environment:
-      - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
-      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: kafka-connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/clusters"]
+      interval: 10s
+      retries: 5
     restart: unless-stopped
 
   kafka-exporter:
     image: danielqsj/kafka-exporter:latest
     container_name: kafka-exporter
-    ports:
-      - "9308:9308"
+    depends_on:
+      kafka:
+        condition: service_healthy
     command:
       - "--kafka.server=kafka:29092"
+      - "--log.level=info"
+    ports:
+      - "9308:9308"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9308/metrics"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.50.1
     container_name: prometheus
+    depends_on:
+      kafka-exporter:
+        condition: service_healthy
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d' # Add this line
+      - '--storage.tsdb.retention.size=1GB' # Add this line (or remove if you only want time-based)
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/ready"]
+      interval: 10s
+      retries: 5
     restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
     ports:
-      - "3000:3000"
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/login"]
+      interval: 10s
+      retries: 5
     restart: unless-stopped
 
   kafka-topics-generator:
     image: confluentinc/cp-kafka:7.5.1
     container_name: kafka-topics-generator
     depends_on:
-      - kafka
-    command: |
-      bash -c "
-      sleep 5s
-      kafka-topics --create --topic=playground --partitions 1 --if-not-exists --bootstrap-server=kafka:29092 
-      kafka-topics --create --topic=EvDb-Demo-Tests-Topic --partitions 1 --if-not-exists --bootstrap-server=kafka:29092 
-      "
-
+      kafka:
+        condition: service_healthy
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo "Waiting for Kafka to be ready..."
+        cub kafka-ready -b kafka:29092 1 30
+        echo "Creating topics..."
+        kafka-topics --create --topic EvDb-Demo-Tests-Topic --bootstrap-server kafka:29092 --partitions 1 --replication-factor 1 || true
+        kafka-topics --create --topic playground --bootstrap-server kafka:29092 --partitions 1 --replication-factor 1 || true
+        echo "Topics created successfully"
+        tail -f /dev/null
+    restart: unless-stopped
