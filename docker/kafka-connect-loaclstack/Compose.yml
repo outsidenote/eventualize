@@ -52,19 +52,26 @@ services:
     depends_on:
       zookeeper:
         condition: service_healthy
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "kafka:9092"]
       interval: 10s
       retries: 8
       timeout: 10s
     ports:
+      - "29092:29092"
       - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
     restart: unless-stopped
 
   schema-registry:
@@ -76,7 +83,8 @@ services:
         condition: service_healthy
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
     ports:
       - "8081:8081"
     healthcheck:
@@ -94,7 +102,7 @@ services:
       schema-registry:
         condition: service_healthy
     environment:
-      KAFKA_BROKERCONNECT: kafka:9092
+      KAFKA_BROKERCONNECT: kafka:29092
       JVM_OPTS: "-Xms32m -Xmx64m"
     ports:
       - "9000:9000"
@@ -116,7 +124,7 @@ services:
         condition: service_healthy
     environment:
       KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: kafka-connect
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
@@ -133,7 +141,7 @@ services:
       kafka:
         condition: service_healthy
     command:
-      - "--kafka.server=kafka:9092"
+      - "--kafka.server=kafka:29092"
       - "--log.level=info"
     ports:
       - "9308:9308"
@@ -192,7 +200,7 @@ services:
       localstack:
         condition: service_healthy
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_BOOTSTRAP_SERVERS: kafka:29092
       CONNECT_REST_PORT: 8083
       CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
       CONNECT_REST_ADVERTISED_PORT: 8083
@@ -233,10 +241,10 @@ services:
       - -c
       - |
         echo "Waiting for Kafka to be ready..."
-        cub kafka-ready -b kafka:9092 1 30
+        cub kafka-ready -b kafka:29092 1 30
         echo "Creating topics..."
-        kafka-topics --create --topic EvDb-Demo-Tests-Topic --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 || true
-        kafka-topics --create --topic playground --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 || true
+        kafka-topics --create --topic EvDb-Demo-Tests-Topic --bootstrap-server kafka:29092 --partitions 1 --replication-factor 1 || true
+        kafka-topics --create --topic playground --bootstrap-server kafka:29092 --partitions 1 --replication-factor 1 || true
         echo "Topics created successfully"
         tail -f /dev/null
     restart: unless-stopped
@@ -275,7 +283,7 @@ services:
         curl -X PUT http://kafka-connect:8083/connectors/evdb-sqs-sink/config \
           -H "Content-Type: application/json" \
           -d '{
-            "connector.class":"io.confluent.connect.sqs.SqsSinkConnector",
+            "connector.class": "org.apache.camel.kafkaconnector.awssqs.CamelAwssqsSinkConnector",
             "tasks.max":"1",
             "topics":"EvDb-Demo-Tests-Topic",
             "aws.region":"us-east-1",
