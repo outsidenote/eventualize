@@ -38,3 +38,4 @@ and supports rebuilding state by replaying events.
 - CQRS-based architectures  
 - Event-driven microservices  
 - Evolving schemas with minimal disruption
+
