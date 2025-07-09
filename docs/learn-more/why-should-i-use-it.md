@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Why Should I Use It?
 nav_order: 1
 parent: Learn More
+title: Why Should I Use It?
 ---
 
 # Why Should I Use It?
@@ -43,7 +43,6 @@ Total amount of points:
 
 <img src="../images/totalpoints-folding-example.png" width="900"/>
 
-
 Average points per earning:
 
 <img src="../images/avgpoints-folding-example.png" width="900"/>
@@ -53,7 +52,7 @@ It's that easy.
 Each pink circle that you saw above is a folding logic, and each box after that node is the resulting state.
 
 At this point, you probably have some questions.
-Like: 
+Like:
 'What happens when there are many events that need to be scanned? Wouldn't that take too long and hurt performance?'
 'What if the events are stored in the wrong order?'
 and many more.
@@ -62,3 +61,6 @@ There are several mechanisms that need to be put in place in order for event sou
 The next sections should give you a pretty good understanding on how it all works.
 
 So let's go to the next section!
+
+- [What is event sourcing](what_is_event_sourcing.md)
+- [Quick Start](../quick-start.md)
