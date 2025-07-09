@@ -1,3 +1,11 @@
+---
+layout: default
+title: Outbox Pattern
+nav_order: 3
+parent: Main Mechanisms
+grand_parent: Learn More
+---
+
 # Outbox Pattern 
 
 ## Overview
