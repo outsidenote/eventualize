@@ -1,0 +1,290 @@
+﻿name: evdb-kafka-localstack
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    healthcheck:
+      test: ["CMD", "awslocal", "sqs", "list-queues"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  guistack:
+    image: visualvincent/guistack:latest
+    container_name: guistack
+    depends_on:
+      localstack:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 10
+      ZOOKEEPER_SYNC_LIMIT: 5
+    healthcheck:
+      test: ["CMD", "bash", "-c", "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/2181' && echo 'ZooKeeper is running'"]
+      interval: 10s
+      retries: 10
+      timeout: 10s
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "kafka:9092"]
+      interval: 10s
+      retries: 8
+      timeout: 10s
+    ports:
+      - "9092:9092"
+    restart: unless-stopped
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/subjects"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.30.0
+    container_name: kafdrop
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9092
+      JVM_OPTS: "-Xms32m -Xmx64m"
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: kafka-connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/clusters"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: kafka-exporter
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command:
+      - "--kafka.server=kafka:9092"
+      - "--log.level=info"
+    ports:
+      - "9308:9308"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9308/metrics"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: prometheus
+    depends_on:
+      kafka-exporter:
+        condition: service_healthy
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d' # Add this line
+      - '--storage.tsdb.retention.size=1GB' # Add this line (or remove if you only want time-based)
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/ready"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/login"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.5.0
+    hostname: kafka-connect
+    container_name: kafka-connect
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_ADVERTISED_PORT: 8083
+      CONNECT_GROUP_ID: "connect-group"
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-config
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: connect-status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/java/kafka-connect-sqs
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_REGION: us-east-1
+    ports:
+      - "8083:8083"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/connectors"]
+      interval: 10s
+      retries: 8
+    volumes:
+      - ./kafka-connect-plugins/sqs:/usr/share/java/kafka-connect-sqs
+    restart: unless-stopped
+
+  kafka-topics-generator:
+    image: confluentinc/cp-kafka:7.5.1
+    container_name: kafka-topics-generator
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo "Waiting for Kafka to be ready..."
+        cub kafka-ready -b kafka:9092 1 30
+        echo "Creating topics..."
+        kafka-topics --create --topic EvDb-Demo-Tests-Topic --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 || true
+        kafka-topics --create --topic playground --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 || true
+        echo "Topics created successfully"
+        tail -f /dev/null
+    restart: unless-stopped
+
+  init:
+    image: localstack/localstack:latest
+    container_name: init
+    depends_on:
+      localstack:
+        condition: service_healthy
+      kafka-connect:
+        condition: service_healthy
+    entrypoint:
+      - bash
+      - -c
+      - |
+        export AWS_ACCESS_KEY_ID=test
+        export AWS_SECRET_ACCESS_KEY=test
+        export AWS_DEFAULT_REGION=us-east-1
+
+        echo "Waiting for LocalStack to be ready..."
+        until aws sqs list-queues --endpoint-url=http://localstack:4566; do sleep 3; done
+        echo "✅ LocalStack ready"
+
+        echo "Creating SQS queue..."
+        aws sqs create-queue \
+          --queue-name EvDb-Demo-Tests-Queue \
+          --endpoint-url=http://localstack:4566 || true
+        echo "✅ SQS queue created"
+
+        echo "Waiting for Kafka Connect to be ready..."
+        until curl -s http://kafka-connect:8083/connectors; do sleep 3; done
+        echo "✅ Kafka Connect ready"
+
+        echo "Registering SQS sink connector..."
+        curl -X PUT http://kafka-connect:8083/connectors/evdb-sqs-sink/config \
+          -H "Content-Type: application/json" \
+          -d '{
+            "connector.class":"io.confluent.connect.sqs.SqsSinkConnector",
+            "tasks.max":"1",
+            "topics":"EvDb-Demo-Tests-Topic",
+            "aws.region":"us-east-1",
+            "aws.access.key.id":"test",
+            "aws.secret.access.key":"test",
+            "sqs.url":"http://localstack:4566/000000000000/EvDb-Demo-Tests-Queue",
+            "key.converter":"org.apache.kafka.connect.storage.StringConverter",
+            "value.converter":"org.apache.kafka.connect.storage.StringConverter"
+          }'
+        echo "✅ Connector registered"
+        tail -f /dev/null
+    restart: unless-stopped
