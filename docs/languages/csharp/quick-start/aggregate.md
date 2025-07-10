@@ -49,13 +49,11 @@ The view will define the folding logic of the state.
 
 ### Add Reference
 
-- Add NuGet reference to [`EvDb.Abstractions`](https://www.nuget.org/packages/EvDb.Abstractions)
+- Add NuGet reference to [`EvDb.Core`](https://www.nuget.org/packages/EvDb.Core)
 
-  ````bash
-  dotnet add package EvDb.Abstractions
+  ```bash
+  dotnet add package EvDb.Core
   ```
-
-  ````
 
 - Add Project reference to `EvDbQuickStart.Funds.Abstractions`
   The view need to be aware of the state.
@@ -66,3 +64,43 @@ The view will define the folding logic of the state.
 ### Add the View logic
 
 - Add `BalanceView.cs`
+
+```cs
+using EvDb.Core;
+using EvDbQuickStart.Funds.Abstractions;
+using EvDbQuickStart.Funds.Events;
+
+namespace EvDbQuickStart.Funds.Views;
+
+[EvDbViewType<Balance, IAccountFundsEvents>("balance")]
+public partial class BalanceView
+{
+    /// <summary>
+    /// The initial state of the view.
+    /// </summary>
+    protected override Balance DefaultState { get; } = new Balance(0);
+
+    protected override Balance Apply(Balance state, DepositedEvent payload, IEvDbEventMeta meta)
+    {
+        return state with { Funds = state.Funds + payload.Amount };
+    }
+
+    protected override Balance Apply(Balance state, WithdrawnEvent payload, IEvDbEventMeta meta)
+    {
+        return state with { Funds = state.Funds - payload.Amount };
+    }
+}
+```
+
+> ⚠ don't fotget the `partial` keyword.
+
+Validation: Go to definition (F12) to see the generated code:
+![alt text](/images/BalanceView.png){ width=700 }
+
+### Recap
+
+The view is where the state building happens in reaction to events.
+
+---
+
+Put it all togather, continue to set up a [stream factory](stream-factory).

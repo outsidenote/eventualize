@@ -43,7 +43,7 @@ has_children: false
    // DepositedEvent.cs
    using EvDb.Core;
 
-   namespace EvDbQuickStart.Funds.Events.Types;
+   namespace EvDbQuickStart.Funds.Events;
 
    [EvDbDefineEventPayload("deposited")]
    public readonly partial record struct DepositedEvent
@@ -93,7 +93,6 @@ has_children: false
    ```cs
    using EvDb.Core;
    using EvDbQuickStart.Funds.Events;
-   using EvDbQuickStart.Funds.Events.Types;
 
    namespace EvDbQuickStart.Funds;
 
