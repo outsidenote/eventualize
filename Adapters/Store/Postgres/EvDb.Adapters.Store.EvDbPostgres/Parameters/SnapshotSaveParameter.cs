@@ -11,7 +11,7 @@ internal readonly record struct SnapshotSaveParameter(
                     long Offset,
                     byte[] State)
 {
-    public SnapshotSaveParameter(EvDbViewAddress viewAddress, EvDbStoredSnapshot storedSnapshot)
+    public SnapshotSaveParameter(EvDbViewAddress viewAddress, EvDbStoredSnapshotResult storedSnapshot)
         : this(
               Guid.NewGuid(),
               viewAddress.StreamType,

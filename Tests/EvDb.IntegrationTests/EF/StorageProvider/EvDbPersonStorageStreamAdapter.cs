@@ -19,8 +19,8 @@ public class EvDbPersonStorageStreamAdapter : EvDbTypedStorageStreamAdapter
 
     protected override bool CanHandle<TState>(EvDbViewAddress address) => typeof(TState) == typeof(Person);
 
-    async protected override Task<EvDbStoredSnapshotBase> OnGetSnapshotAsync(EvDbViewAddress viewAddress,
-                                                                       EvDbStoredSnapshot metadata,
+    async protected override Task<EvDbStoredSnapshotResultBase> OnGetSnapshotAsync(EvDbViewAddress viewAddress,
+                                                                       EvDbStoredSnapshotResult metadata,
                                                                        CancellationToken cancellation)
     {
         int personId = JsonSerializer.Deserialize<int>(metadata.State);
@@ -30,7 +30,7 @@ public class EvDbPersonStorageStreamAdapter : EvDbTypedStorageStreamAdapter
                                     .FirstOrDefaultAsync(p => p.Id == personId);
 
         Person person = entity == null ? new Person() : entity.FromEntity();
-        var result = new EvDbStoredSnapshot<Person>(metadata.Offset, person);
+        var result = new EvDbStoredSnapshotResult<Person>(metadata.Offset, metadata.StoredAt, person);
         return result;
     }
 

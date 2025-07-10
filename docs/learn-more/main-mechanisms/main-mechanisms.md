@@ -12,3 +12,4 @@ This section describes the main mechanisms that are good to be familiar with in 
 
 - [Optimistic Concurrency](occ.md)
 - [Snaoshots](snapshots.md)
+- [Outbox Pattern](ourbox-pattern.md)

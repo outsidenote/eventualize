@@ -32,9 +32,9 @@ public abstract class EvDbTypedStorageStreamAdapter :
     /// <param name="metadata"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
-    protected abstract Task<EvDbStoredSnapshotBase> OnGetSnapshotAsync(
+    protected abstract Task<EvDbStoredSnapshotResultBase> OnGetSnapshotAsync(
                                         EvDbViewAddress viewAddress,
-                                        EvDbStoredSnapshot metadata,
+                                        EvDbStoredSnapshotResult metadata,
                                         CancellationToken cancellation);
 
     /// <summary>
@@ -80,13 +80,13 @@ public abstract class EvDbTypedStorageStreamAdapter :
         return CanHandle<TState>(viewAddress);
     }
 
-    async Task<EvDbStoredSnapshotBase> IEvDbTypedStorageSnapshotAdapter.GetSnapshotAsync(
+    async Task<EvDbStoredSnapshotResultBase> IEvDbTypedStorageSnapshotAdapter.GetSnapshotAsync(
         EvDbViewAddress viewAddress,
         CancellationToken cancellation)
     {
-        EvDbStoredSnapshot meta = await _adapter.GetSnapshotAsync(viewAddress, cancellation);
+        EvDbStoredSnapshotResult meta = await _adapter.GetSnapshotAsync(viewAddress, cancellation);
         if (meta.Offset == 0)
-            return EvDbStoredSnapshotBase.None;
+            return EvDbStoredSnapshotResultBase.None;
         var snapshot = await OnGetSnapshotAsync(viewAddress, meta, cancellation);
         return snapshot;
     }

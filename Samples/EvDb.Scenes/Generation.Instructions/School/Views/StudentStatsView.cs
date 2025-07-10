@@ -8,7 +8,7 @@ internal partial class StudentStatsView
 {
     protected override StudentStatsState DefaultState { get; } = StudentStatsState.Empty;
 
-    public override int MinEventsBetweenSnapshots => 5;
+    public override bool ShouldStoreSnapshot(long offsetGapFromLastSave, TimeSpan durationSinceLastSave) => offsetGapFromLastSave > 5;
 
     #region Apply
 

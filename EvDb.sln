@@ -128,9 +128,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Adapters.Store.EvDbTes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{33857C97-409B-4B7B-B3A6-F3404AD39410}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\pages.yml = .github\workflows\pages.yml
 		.github\workflows\dotnet-tests.yml = .github\workflows\dotnet-tests.yml
 		.github\workflows\dotnet-version-deployment.yml = .github\workflows\dotnet-version-deployment.yml
+		.github\workflows\pages.yml = .github\workflows\pages.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sinks", "Sinks", "{7F718183-E2B2-41F6-89CE-0C8FEBCFEDC6}"
@@ -157,7 +157,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.DemoWebApi", "Tests\Ev
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvDb.Sinks.EvDbSinkMassTransit", "Sinks\EvDb.Sinks.EvDbSinkMassTransit\EvDb.Sinks.EvDbSinkMassTransit.csproj", "{2583BC91-84BA-443D-9694-D2243E179F7D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{D296B7BF-7277-4029-A22E-EE13031479E7}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{D296B7BF-7277-4029-A22E-EE13031479E7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kafka", "Kafka", "{EA35924D-FC67-4B5B-8468-1846F199E115}"
 EndProject

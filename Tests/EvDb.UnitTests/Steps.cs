@@ -222,7 +222,7 @@ internal static class Steps
     {
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.Ignored, A<CancellationToken>.Ignored))
-            .ReturnsLazily(() => Task.FromResult(new EvDbStoredSnapshot(0, Array.Empty<byte>())));
+            .ReturnsLazily(() => Task.FromResult(EvDbStoredSnapshotResult.Empty));
 
         return input;
     }
@@ -266,7 +266,7 @@ internal static class Steps
     {
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == StudentStatsView.ViewName), A<CancellationToken>.Ignored))
-            .ReturnsLazily<EvDbStoredSnapshot>(() =>
+            .ReturnsLazily<EvDbStoredSnapshotResult>(() =>
                 {
                     long offset = getSnapshotOffset(StudentStatsView.ViewName);
                     var snapshot = CreateStudentStatsSnapshot(offset, input.Factory.Options);
@@ -275,7 +275,7 @@ internal static class Steps
 
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == StatsView.ViewName), A<CancellationToken>.Ignored))
-            .ReturnsLazily<EvDbStoredSnapshot>(() =>
+            .ReturnsLazily<EvDbStoredSnapshotResult>(() =>
                 {
                     long offset = getSnapshotOffset(StatsView.ViewName);
                     var snapshot = CreateStatsSnapshot(offset, input.Factory.Options);
@@ -284,7 +284,7 @@ internal static class Steps
 
         A.CallTo(() => storageAdapter.GetSnapshotAsync(
                     A<EvDbViewAddress>.That.Matches(a => a.ViewName == MinEventIntervalSecondsView.ViewName), A<CancellationToken>.Ignored))
-            .ReturnsLazily<EvDbStoredSnapshot>(() =>
+            .ReturnsLazily<EvDbStoredSnapshotResult>(() =>
                 {
                     long offset = getSnapshotOffset(MinEventIntervalSecondsView.ViewName);
                     var snapshot = CreateStatsSnapshot(offset, input.Factory.Options);
@@ -298,15 +298,15 @@ internal static class Steps
 
     #region CreateStudentStatsSnapshot
 
-    public static EvDbStoredSnapshot CreateStudentStatsSnapshot(long offset, JsonSerializerOptions? options)
+    public static EvDbStoredSnapshotResult CreateStudentStatsSnapshot(long offset, JsonSerializerOptions? options)
     {
         var student = CreateStudentEntity();
         var stat = new StudentStats(student.Id, student.Name, 70, 20);
 
         STATE_TYPE state = new STATE_TYPE() { Students = [stat] };
         byte[] json = JsonSerializer.SerializeToUtf8Bytes(state, options);
-        EvDbStoredSnapshot snp =
-            new EvDbStoredSnapshot(offset, json);
+        EvDbStoredSnapshotResult snp =
+            new EvDbStoredSnapshotResult(offset, null , json);
         return snp;
     }
 
@@ -314,13 +314,13 @@ internal static class Steps
 
     #region CreateStatsSnapshot
 
-    public static EvDbStoredSnapshot CreateStatsSnapshot(long offset, JsonSerializerOptions? options)
+    public static EvDbStoredSnapshotResult CreateStatsSnapshot(long offset, JsonSerializerOptions? options)
     {
         var state = new Stats(200, 100);
 
         byte[] json = JsonSerializer.SerializeToUtf8Bytes(state, options);
-        EvDbStoredSnapshot snp =
-            new EvDbStoredSnapshot(offset, json);
+        EvDbStoredSnapshotResult snp =
+            new EvDbStoredSnapshotResult(offset, null, json);
         return snp;
     }
 

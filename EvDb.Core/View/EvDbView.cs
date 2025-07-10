@@ -12,12 +12,12 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     protected EvDbView(
         EvDbViewAddress address,
-        EvDbStoredSnapshot snapshot,
+        EvDbStoredSnapshotResult snapshot,
         IEvDbStorageSnapshotAdapter storageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options) :
-        base(address, storageAdapter, timeProvider, logger, options, snapshot.Offset)
+        base(address, storageAdapter, timeProvider, logger, options, snapshot.StoredAt, snapshot.Offset)
     {
         if (snapshot.Offset == 0)
             State = DefaultState;
@@ -29,12 +29,12 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     protected EvDbView(
         EvDbViewAddress address,
-        EvDbStoredSnapshot<TState> snapshot,
+        EvDbStoredSnapshotResult<TState> snapshot,
         IEvDbTypedStorageSnapshotAdapter typedStorageAdapter,
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options) :
-        base(address, null, timeProvider, logger, options, snapshot.Offset)
+        base(address, null, timeProvider, logger, options, snapshot.StoredAt, snapshot.Offset)
     {
         if (snapshot.Offset == 0)
             State = DefaultState;
@@ -46,7 +46,9 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     #endregion //  Ctor
 
-    protected override async Task<bool> OnSave(CancellationToken cancellation)
+    #region OnCustomSave
+
+    protected override async Task<bool> OnCustomSave(CancellationToken cancellation)
     {
         if (_typedStorageAdapter == null || !_typedStorageAdapter.CanHandle<TState>(Address))
             return false;
@@ -60,6 +62,8 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
         await _typedStorageAdapter.StoreSnapshotAsync(snapshotData, cancellation);
         return true;
     }
+
+    #endregion //  OnCustomSave
 
     protected abstract TState DefaultState { get; }
 
@@ -86,7 +90,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
         {
         }
 
-        Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation)
+        Task<EvDbStoredSnapshotResult> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(EvDbViewAddress viewAddress, CancellationToken cancellation)
         {
             throw new NotImplementedException();
         }
@@ -118,12 +122,14 @@ public abstract class EvDbView : IEvDbViewStore
         TimeProvider timeProvider,
         ILogger logger,
         JsonSerializerOptions? options,
+        DateTimeOffset? storedAt,
         long storedOffset = 0)
     {
         _storageAdapter = storageAdapter;
         TimeProvider = timeProvider;
         _logger = logger;
         _options = options;
+        StoredAt = storedAt ?? DateTimeOffset.MinValue;
         StoreOffset = storedOffset;
         MemoryOffset = storedOffset;
         Address = address;
@@ -131,50 +137,68 @@ public abstract class EvDbView : IEvDbViewStore
 
     #endregion // Ctor
 
+    /// <summary>
+    /// Gets the unique address associated with the database view.
+    /// </summary>
     public EvDbViewAddress Address { get; }
 
+    /// <summary>
+    /// Gets the <see cref="TimeProvider"/> instance used to retrieve the current time.
+    /// </summary>
     public TimeProvider TimeProvider { get; }
 
+    /// <summary>
+    /// The date and time when the item was stored or `DateTimeOffset.MinValue` when never been saved.
+    /// </summary>
+    public DateTimeOffset StoredAt { get; private set; }
+
+    /// <summary>
+    /// The last unsaved event offset (in the memory).
+    /// </summary>
     public long MemoryOffset { get; private set; }
 
+    /// <summary>
+    /// The last persisted event offset.
+    /// </summary>
     public long StoreOffset { get; set; }
-
-    public virtual int MinEventsBetweenSnapshots => 0;
 
     #region ShouldStoreSnapshot
 
-    public bool ShouldStoreSnapshot
-    {
-        get
-        {
-            long numEventsSinceLatestSnapshot = StoreOffset == 0
-                ? MemoryOffset
-                : MemoryOffset - StoreOffset;
-            bool result = numEventsSinceLatestSnapshot > MinEventsBetweenSnapshots;
-            return result;
-        }
-    }
+    public virtual bool ShouldStoreSnapshot(long offsetGapFromLastSave, TimeSpan durationSinceLastSave) => true;
 
     #endregion // ShouldStoreSnapshot
 
     public abstract EvDbStoredSnapshotData GetSnapshotData();
 
-    protected abstract Task<bool> OnSave(CancellationToken cancellation);
+    /// <summary>
+    /// Enable manual save of the snapshot.
+    /// </summary>
+    /// <param name="cancellation"></param>
+    /// <returns>
+    /// false: will use the default snapshot adapter to operate the save.
+    /// true: assumed the snapshot was saved by the alternative implementation.
+    /// </returns>
+    protected abstract Task<bool> OnCustomSave(CancellationToken cancellation);
 
     #region SaveAsync
 
     async Task IEvDbViewStore.SaveAsync(CancellationToken cancellation)
     {
-        if (!this.ShouldStoreSnapshot)
+        long numEventsSinceLatestSnapshot = StoreOffset == 0
+                                                 ? MemoryOffset
+                                                 : MemoryOffset - StoreOffset;
+        TimeSpan durationSinceLatestSnapshot = TimeProvider.GetUtcNow() - StoredAt;
+        if (!this.ShouldStoreSnapshot(numEventsSinceLatestSnapshot, durationSinceLatestSnapshot))
         {
             await Task.FromResult(true);
             return;
         }
+
         OtelTags tags = Address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.View.Store");
         using var duration = _sysMeters.MeasureStoreSnapshotsDuration(tags);
 
-        bool saved = await OnSave(cancellation);
+        bool saved = await OnCustomSave(cancellation);
         if (!saved)
         {
             if (_storageAdapter == null)
@@ -185,6 +209,7 @@ public abstract class EvDbView : IEvDbViewStore
         _sysMeters.SnapshotStored.Add(1, tags);
 
         StoreOffset = MemoryOffset;
+        StoredAt = TimeProvider.GetUtcNow();
     }
 
     #endregion //  StoreAsync

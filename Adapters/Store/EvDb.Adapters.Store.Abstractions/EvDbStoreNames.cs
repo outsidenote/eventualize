@@ -56,6 +56,7 @@ public static class EvDbStoreNames
             public static readonly string Offset = toSnakeCase(Projection.Snapshot.Offset);
             public static readonly string StoreOffset = toSnakeCase(Projection.Snapshot.StoreOffset);
             public static readonly string State = toSnakeCase(Projection.Snapshot.State);
+            public static readonly string StoredAt = toSnakeCase(Projection.Snapshot.StoredAt);
             public static readonly string Id = toSnakeCase(Projection.Snapshot.Id);
         }
 
@@ -179,6 +180,7 @@ public static class EvDbStoreNames
             public static readonly string Offset = nameof(EvDbStoredSnapshotData.Offset);
             public static readonly string StoreOffset = nameof(EvDbStoredSnapshotData.StoreOffset);
             public static readonly string State = nameof(EvDbStoredSnapshotData.State);
+            public static readonly string StoredAt = nameof(EvDbStoredSnapshotData.StoredAt);
         }
 
         #endregion //  Snapshot

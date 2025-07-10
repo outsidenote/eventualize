@@ -8,7 +8,7 @@ internal partial class StatsView
 {
     protected override Stats DefaultState { get; } = new Stats(0, 0);
 
-    public override int MinEventsBetweenSnapshots => 4;
+    public override bool ShouldStoreSnapshot(long offsetGapFromLastSave, TimeSpan durationSinceLastSave) => offsetGapFromLastSave > 4;
 
     #region Apply
 

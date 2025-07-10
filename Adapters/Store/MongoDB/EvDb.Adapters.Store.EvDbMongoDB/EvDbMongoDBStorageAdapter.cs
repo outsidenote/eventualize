@@ -392,7 +392,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
     /// <summary>
     /// Retrieves a stored snapshot for the specified view address.
     /// </summary>
-    async Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(
+    async Task<EvDbStoredSnapshotResult> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(
                                                 EvDbViewAddress viewAddress,
                                                 CancellationToken cancellation)
     {
@@ -406,7 +406,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                                     .Project(QueryProvider.ProjectionSnapshots)
                                     .FirstOrDefaultAsync(cancellation);
         if (document == null)
-            return EvDbStoredSnapshot.Empty;
+            return EvDbStoredSnapshotResult.Empty;
 
         var snapshot = document.ToSnapshotInfo();
         return snapshot;

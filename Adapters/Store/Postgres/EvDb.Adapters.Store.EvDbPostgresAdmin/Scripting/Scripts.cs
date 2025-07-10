@@ -64,7 +64,7 @@ internal static class Scripts
                 {Fields.Event.TelemetryContext} JSON NULL,
                 {Fields.Event.CapturedBy} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Event.CapturedAt} TIMESTAMPTZ NOT NULL,
-                stored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                {Fields.Event.StoredAt} TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
                 {Fields.Event.Payload} JSON NOT NULL,
     
                 PRIMARY KEY (
@@ -86,7 +86,7 @@ internal static class Scripts
             );
             CREATE INDEX ix_event_stored_at_{unique:N}
             ON {tblInitial}events (
-                    stored_at 
+                    {Fields.Event.StoredAt} 
             );
             
             """;
@@ -112,7 +112,7 @@ internal static class Scripts
                 {Fields.Message.TelemetryContext} BYTEA NULL,
                 {Fields.Message.CapturedBy} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Message.CapturedAt} TIMESTAMPTZ NOT NULL,
-                stored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                {Fields.Message.StoredAt} TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
                 {Fields.Message.Payload} BYTEA NOT NULL CHECK (octet_length({Fields.Message.Payload}) > 0 AND octet_length({Fields.Message.Payload}) <= 4000),
             
                 PRIMARY KEY (
@@ -161,7 +161,7 @@ internal static class Scripts
                 {Fields.Snapshot.ViewName} VARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 "{Fields.Snapshot.Offset}" BIGINT NOT NULL,
                 {Fields.Snapshot.State} JSON NOT NULL,
-                stored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                {Fields.Snapshot.StoredAt} TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
     
                 PRIMARY KEY (
                     {Fields.Snapshot.StreamType},  
@@ -177,7 +177,8 @@ internal static class Scripts
             ON {tblInitial}snapshot (
                 {Fields.Snapshot.StreamType}, 
                 {Fields.Snapshot.StreamId},
-                {Fields.Snapshot.ViewName}, stored_at);
+                {Fields.Snapshot.ViewName}, 
+                {Fields.Snapshot.StoredAt});
             """;
 
         #endregion
