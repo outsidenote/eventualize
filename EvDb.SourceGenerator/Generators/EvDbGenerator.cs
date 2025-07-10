@@ -195,8 +195,14 @@ public partial class EvDbGenerator : BaseGenerator
         #region Views Encapsulation
 
         var propsColInterface = viewsInfo.Select((p, i) =>
-                                        $$"""
+                                                $$"""
                                                     public {{p.ViewStateTypeFullName}} {{p.ViewPropName}} => _view{{p.ViewPropName}}.State;
+
+                                                """);
+
+        var propsViewMeta = viewsInfo.Select((p, i) =>
+                                                $$"""
+                                                        public IEvDbView {{p.ViewPropName}} => _parent._view{{p.ViewPropName}};
 
                                                 """);
 
@@ -231,11 +237,27 @@ public partial class EvDbGenerator : BaseGenerator
                             _views = views;
                     {{string.Join("", viewsCtor2Props)}}
                         }
-                    {{string.Join("", propsColInterface)}}                    
+                    {{string.Join("", propsColInterface)}}  
+                    
+                        /// <summary>
+                        /// Return an enumerable of the views metadata.
+                        /// ⚠ the returned structure is immutable, therefore it be fetched again when changed (each time you append an event).
+                        /// </summary>
                         public IEnumerable<IEvDbView> ToMetadata()
                         {
                     {{string.Join("", viewsYield)}}
                             yield break;
+                        }
+
+                        /// <summary>
+                        /// Return a typed structure of the views metadata.
+                        /// ⚠ the returned structure is immutable, therefore it be fetched again when changed (each time you append an event).
+                        /// </summary>
+                        public ViewsMeta ToTypedMetadata() => new ViewsMeta(this);
+
+                        public sealed class ViewsMeta({{streamName}}Views _parent)
+                        {
+                    {{string.Join("", propsViewMeta)}}
                         }
                     }
                     """);
@@ -498,9 +520,9 @@ public partial class EvDbGenerator : BaseGenerator
                         {
                             if(_typedStorageAdapter != null && _typedStorageAdapter.CanHandle<{{viewRef.ViewStateTypeFullName}}>(viewAddress))
                             {
-                                EvDbStoredSnapshotBase snapData = await  _typedStorageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
+                                EvDbStoredSnapshotResultBase snapData = await  _typedStorageAdapter.GetSnapshotAsync(viewAddress, cancellationToken);
                               
-                                if(snapData == EvDbStoredSnapshotBase.None)
+                                if(snapData == EvDbStoredSnapshotResultBase.None)
                                 {
                                     return new {{viewRef.ViewTypeName}}(
                                                 viewAddress,
@@ -510,7 +532,7 @@ public partial class EvDbGenerator : BaseGenerator
                                                 options);
                                 }
 
-                                var typedSnapshot = (EvDbStoredSnapshot<{{viewRef.ViewStateTypeFullName}}>)snapData;
+                                var typedSnapshot = (EvDbStoredSnapshotResult<{{viewRef.ViewStateTypeFullName}}>)snapData;
                                 
                                 return new {{viewRef.ViewTypeName}}(
                                                 viewAddress,
@@ -520,7 +542,7 @@ public partial class EvDbGenerator : BaseGenerator
                                                 typedSnapshot,
                                                 options);
                             }                    
-                            EvDbStoredSnapshot snapshot = await _storageAdapter!.GetSnapshotAsync(viewAddress, cancellationToken);
+                            EvDbStoredSnapshotResult snapshot = await _storageAdapter!.GetSnapshotAsync(viewAddress, cancellationToken);
                             return new {{viewRef.ViewTypeName}}(
                                                 viewAddress,
                                                 _storageAdapter, 
@@ -701,9 +723,18 @@ public partial class EvDbGenerator : BaseGenerator
                 streamName = $"{streamName}1";
         }
 
-        string factoryName = factoryOriginName.StartsWith("EvDb", StringComparison.OrdinalIgnoreCase)
+        string factoryName;
+        if (customStreamName == null)
+        {
+            factoryName = factoryOriginName.StartsWith("EvDb", StringComparison.OrdinalIgnoreCase)
             ? factoryOriginName
             : $"EvDb{factoryOriginName}";
+        }
+        else 
+        {
+            factoryName = $"{customStreamName}Factory";
+        }
+
         string streamInterface = $"I{streamName}";
         string factoryInterface = $"I{factoryName}";
 

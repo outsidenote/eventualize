@@ -6,8 +6,9 @@ parent: Learn More
 ---
 
 # Streams
+
 Events that are captured, stored in **Streams**.
-A Stream holds in once place events that belong to the same entity.
+A Stream holds in once place, events that belong to the same entity.
 A Stream uses an underlying transactional database of your choice (e.g. SQL Server) to store its events.
 In order to easily locate a Stream, it has a **Stream Type** and a **Stream Id**.
 The combination of both needs to be unique across the system.

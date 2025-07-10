@@ -200,7 +200,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
 
     #region OnGetSnapshotAsync
 
-    protected async override Task<EvDbStoredSnapshot> OnGetSnapshotAsync(
+    protected async override Task<EvDbStoredSnapshotResult> OnGetSnapshotAsync(
                                                             EvDbViewAddress viewAddress,
                                                             DbConnection conn,
                                                             string query,
@@ -214,12 +214,17 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         NpgsqlDataReader reader =
             await command.ExecuteReaderAsync(CommandBehavior.SingleRow, cancellation);
         if (!await reader.ReadAsync())
-            return EvDbStoredSnapshot.Empty;
+            return EvDbStoredSnapshotResult.Empty;
 
-        var stateIndex = reader.GetOrdinal(nameof(EvDbStoredSnapshot.State));
-        var offset = reader.GetInt64(reader.GetOrdinal(nameof(EvDbStoredSnapshot.Offset)));
+        var stateIndex = reader.GetOrdinal(nameof(EvDbStoredSnapshotResult.State));
+        var offsetIndex = reader.GetOrdinal(nameof(EvDbStoredSnapshotResult.Offset));
+        var storedAtIndex = reader.GetOrdinal(nameof(EvDbStoredSnapshotResult.StoredAt));
+        var offset = reader.GetInt64(offsetIndex);
         var state = Encoding.UTF8.GetBytes(reader.GetString(stateIndex));
-        var record = new EvDbStoredSnapshot(offset, state);
+        DateTimeOffset? storedAt = await reader.IsDBNullAsync(storedAtIndex)
+                                            ? null
+                                            : await reader.GetFieldValueAsync<DateTimeOffset>(storedAtIndex);
+        var record = new EvDbStoredSnapshotResult(offset, storedAt, state);
         return record;
 
     }

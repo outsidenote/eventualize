@@ -13,6 +13,11 @@ public abstract partial record EvDbStoredSnapshotDataBase(
             long Offset,
             long StoreOffset)
 {
+    /// <summary>
+    /// The time when it persist into the storage
+    /// </summary>
+    public DateTimeOffset? StoredAt { get; init; }
+
     #region Casting Overloads
 
     public static implicit operator EvDbStreamAddress(EvDbStoredSnapshotDataBase instance)
@@ -82,7 +87,7 @@ public partial record EvDbStoredSnapshotData(
             string ViewName,
             long Offset,
             long StoreOffset,
-            byte[] State) : EvDbStoredSnapshotDataBase(Id, StreamType, StreamId, ViewName, Offset, StoreOffset)
+            byte[] State) : EvDbStoredSnapshotDataBase(Id, StreamType, StreamId, ViewName, Offset, StoreOffset) 
 {
     public EvDbStoredSnapshotData(
             EvDbViewAddress address,
@@ -95,7 +100,7 @@ public partial record EvDbStoredSnapshotData(
 
     #region IsEquals, ==, !=
 
-    private bool IsEquals(EvDbStoredSnapshot snapshot)
+    private bool IsEquals(EvDbStoredSnapshotResult snapshot)
     {
         if (this.Offset != snapshot.Offset)
             return false;
@@ -105,12 +110,12 @@ public partial record EvDbStoredSnapshotData(
         return true;
     }
 
-    public static bool operator ==(EvDbStoredSnapshotData left, EvDbStoredSnapshot right)
+    public static bool operator ==(EvDbStoredSnapshotData left, EvDbStoredSnapshotResult right)
     {
         return left.IsEquals(right);
     }
 
-    public static bool operator !=(EvDbStoredSnapshotData left, EvDbStoredSnapshot right)
+    public static bool operator !=(EvDbStoredSnapshotData left, EvDbStoredSnapshotResult right)
     {
         return !left.IsEquals(right);
     }
@@ -149,9 +154,9 @@ public partial record EvDbStoredSnapshotData(
 
     #region Casting Overloads
 
-    public static implicit operator EvDbStoredSnapshot(EvDbStoredSnapshotData instance)
+    public static implicit operator EvDbStoredSnapshotResult(EvDbStoredSnapshotData instance)
     {
-        return new EvDbStoredSnapshot(instance.Offset, instance.State);
+        return new EvDbStoredSnapshotResult(instance.Offset, instance.StoredAt, instance.State);
     }
 
     #endregion // Casting Overloads
@@ -179,7 +184,7 @@ public partial record EvDbStoredSnapshotData<TState>(
 
     #region IsEquals, ==, !=
 
-    private bool IsEquals(EvDbStoredSnapshot snapshot)
+    private bool IsEquals(EvDbStoredSnapshotResult snapshot)
     {
         if (Offset != snapshot.Offset)
             return false;
@@ -189,12 +194,12 @@ public partial record EvDbStoredSnapshotData<TState>(
         return true;
     }
 
-    public static bool operator ==(EvDbStoredSnapshotData<TState> left, EvDbStoredSnapshot right)
+    public static bool operator ==(EvDbStoredSnapshotData<TState> left, EvDbStoredSnapshotResult right)
     {
         return left.IsEquals(right);
     }
 
-    public static bool operator !=(EvDbStoredSnapshotData<TState> left, EvDbStoredSnapshot right)
+    public static bool operator !=(EvDbStoredSnapshotData<TState> left, EvDbStoredSnapshotResult right)
     {
         return !left.IsEquals(right);
     }

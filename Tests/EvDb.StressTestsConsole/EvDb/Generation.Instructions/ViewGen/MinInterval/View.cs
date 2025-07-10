@@ -8,7 +8,7 @@ internal partial class View
     private DateTimeOffset? _lastEventTime;
 
     protected override double DefaultState => -1;
-    public override int MinEventsBetweenSnapshots => 5;
+    public override bool ShouldStoreSnapshot(long offsetGapFromLastSave, TimeSpan durationSinceLastSave) => offsetGapFromLastSave > 5;
 
     #region override ...
 

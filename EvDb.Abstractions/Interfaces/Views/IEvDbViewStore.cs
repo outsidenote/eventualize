@@ -7,8 +7,12 @@ public interface IEvDbViewStore : IEvDbView
 {
     /// <summary>
     /// Indication whether the snapshot should be saved.
+    /// It can be used to control the snapshot saving logic.
+    /// For example, minimal offset or time since last save, reaction to specific event like completion that must be persist.
     /// </summary>
-    bool ShouldStoreSnapshot { get; }
+    /// <param name="durationSinceLastSave"></param>
+    /// <param name="offsetGapFromLastSave"></param>
+    bool ShouldStoreSnapshot(long offsetGapFromLastSave, TimeSpan durationSinceLastSave);
 
     /// <summary>
     /// Apply event into the view/aggregate.

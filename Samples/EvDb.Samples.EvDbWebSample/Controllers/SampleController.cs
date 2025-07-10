@@ -8,11 +8,11 @@ namespace EvDb.Samples.EvDbWebSample.Controllers;
 public class SampleController : ControllerBase
 {
     private readonly ILogger<SampleController> _logger;
-    private readonly IEvDbIssueStreamFactory _factory;
+    private readonly IProblemsFactory _factory;
 
     public SampleController(
         ILogger<SampleController> logger,
-        IEvDbIssueStreamFactory factory)
+        IProblemsFactory factory)
     {
         _logger = logger;
         _factory = factory;

@@ -212,17 +212,17 @@ public abstract class EvDbRelationalStorageAdapter :
     /// <param name="query">The query.</param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
-    protected virtual async Task<EvDbStoredSnapshot> OnGetSnapshotAsync(
+    protected virtual async Task<EvDbStoredSnapshotResult> OnGetSnapshotAsync(
         EvDbViewAddress viewAddress,
         DbConnection conn,
         string query,
         CancellationToken cancellation)
     {
-        EvDbStoredSnapshot? result =
-                       await conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshot>(
+        EvDbStoredSnapshotResult? result =
+                       await conn.QuerySingleOrDefaultAsync<EvDbStoredSnapshotResult>(
                                                 query,
                                                 viewAddress);
-        return result ?? EvDbStoredSnapshot.Empty;
+        return result ?? EvDbStoredSnapshotResult.Empty;
     }
 
     #endregion //  OnGetSnapshotAsync
@@ -609,7 +609,7 @@ public abstract class EvDbRelationalStorageAdapter :
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     /// <exception cref="System.NotImplementedException"></exception>
-    async Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(
+    async Task<EvDbStoredSnapshotResult> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(
         EvDbViewAddress viewAddress,
         CancellationToken cancellation)
     {
@@ -618,7 +618,7 @@ public abstract class EvDbRelationalStorageAdapter :
         string query = SnapshotQueries.GetSnapshot;
         _logger.LogQuery(query);
 
-        EvDbStoredSnapshot snapshot = await ExecuteSafe(conn => OnGetSnapshotAsync(viewAddress, conn, query, cancellation));
+        EvDbStoredSnapshotResult snapshot = await ExecuteSafe(conn => OnGetSnapshotAsync(viewAddress, conn, query, cancellation));
         return snapshot;
     }
 

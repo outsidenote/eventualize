@@ -222,9 +222,12 @@ public static class EvDbBsonDocumentExtensions
 
     #region ToSnapshotInfo
 
-    public static EvDbStoredSnapshot ToSnapshotInfo(this BsonDocument doc)
+    public static EvDbStoredSnapshotResult ToSnapshotInfo(this BsonDocument doc)
     {
         var storeOffset = doc.GetValue(Snapshot.Offset).ToInt64();
+        DateTimeOffset? storedAt = doc.TryGetValue(Snapshot.StoredAt, out var storedAtValue) && storedAtValue != BsonNull.Value
+            ? storedAtValue.ToNullableUniversalTime()
+            : null;
 
         string json = "null";
         if (doc.TryGetValue(Snapshot.State, out BsonValue value))
@@ -243,7 +246,7 @@ public static class EvDbBsonDocumentExtensions
 
         byte[] state = Encoding.UTF8.GetBytes(json);
 
-        return new EvDbStoredSnapshot(storeOffset, state);
+        return new EvDbStoredSnapshotResult(storeOffset, storedAt, state);
     }
 
     #endregion //  ToSnapshotInfo

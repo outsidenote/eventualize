@@ -8,7 +8,7 @@ namespace EvDb.IntegrationTests.EF.Views;
 public partial class PersonUntypedView
 {
     protected override Person DefaultState { get; } = new Person() { Emails = Array.Empty<Email>() };
-    public override int MinEventsBetweenSnapshots => 3;
+    public override bool ShouldStoreSnapshot(long offsetGapFromLastSave, TimeSpan durationSinceLastSave) => offsetGapFromLastSave > 3;
 
 
     protected override Person Apply(Person state, PersonAddressChanged payload, IEvDbEventMeta meta)

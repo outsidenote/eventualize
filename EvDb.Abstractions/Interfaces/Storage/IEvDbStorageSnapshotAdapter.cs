@@ -9,7 +9,7 @@ public interface IEvDbStorageSnapshotAdapter
     /// <param name="cancellation">The cancellation.</param>
     /// <returns></returns>
     /// <exception cref="System.NotImplementedException"></exception>
-    Task<EvDbStoredSnapshot> GetSnapshotAsync(
+    Task<EvDbStoredSnapshotResult> GetSnapshotAsync(
                                 EvDbViewAddress viewAddress,
                                 CancellationToken cancellation = default);
 

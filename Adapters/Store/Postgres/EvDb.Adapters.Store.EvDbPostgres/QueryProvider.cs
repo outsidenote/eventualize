@@ -142,6 +142,7 @@ internal static class QueryProvider
         {
             GetSnapshot = $"""
                 SELECT {Fields.Snapshot.State} as {Projection.Snapshot.State}, 
+                       {Fields.Snapshot.StoredAt} as {Projection.Snapshot.StoredAt},
                         "{Fields.Snapshot.Offset}" as {Projection.Snapshot.Offset}
                 FROM {tabInitial}snapshot
                 WHERE {Fields.Snapshot.StreamType} = {Parameters.Snapshot.StreamType}

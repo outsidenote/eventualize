@@ -136,19 +136,20 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
     /// <summary>
     /// Retrieves a stored snapshot for the specified view address.
     /// </summary>
-    async Task<EvDbStoredSnapshot> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(
+    async Task<EvDbStoredSnapshotResult> IEvDbStorageSnapshotAdapter.GetSnapshotAsync(
                                                 EvDbViewAddress viewAddress,
                                                 CancellationToken cancellation)
     {
         if (cancellation.IsCancellationRequested)
-            return EvDbStoredSnapshot.Empty;
+            return EvDbStoredSnapshotResult.Empty;
         await Task.Yield(); // Simulate async operation
 
         if (!_snapshotStorage.Store.TryGetValue(viewAddress, out IImmutableList<EvDbStoredSnapshotData>? storedSnapshot))
-            return EvDbStoredSnapshot.Empty;
+            return EvDbStoredSnapshotResult.Empty;
         var last = storedSnapshot[^1];
-        EvDbStoredSnapshot result = new EvDbStoredSnapshot(
+        EvDbStoredSnapshotResult result = new (
             last.Offset,
+            last.StoredAt,
             last.State);
         return result;
     }

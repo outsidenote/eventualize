@@ -186,6 +186,7 @@ public static class QueryProvider
     public static ProjectionDefinition<BsonDocument> ProjectionSnapshots { get; } =
                                     Builders<BsonDocument>.Projection
                                             .Include(Fields.Snapshot.Offset)
+                                            .Include(Fields.Snapshot.StoredAt)
                                             .Include(Fields.Snapshot.State);
 
     #endregion //  ProjectionSnapshots

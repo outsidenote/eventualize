@@ -130,7 +130,7 @@ internal static class Sctipts
                 {Fields.Event.EventType} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Event.CapturedBy} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Event.CapturedAt} datetimeoffset NOT NULL,
-                stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
+                {Fields.Event.StoredAt} datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
                 {Fields.Event.TelemetryContext} VARBINARY(2000) NULL,
                 {Fields.Event.Payload} VARBINARY(4000) NOT NULL,
     
@@ -154,7 +154,7 @@ internal static class Sctipts
 
             -- Index for getting records with a specific value in column event_type and a value of captured_at within a given time range, sorted by captured_at
             CREATE INDEX IX_event_stored_at_{tblInitialWithoutSchema}
-            ON  {tblInitial}events (stored_at)
+            ON  {tblInitial}events ({Fields.Event.StoredAt})
             WITH (ONLINE = ON);
 
             """;
@@ -202,7 +202,7 @@ internal static class Sctipts
                 {Fields.Message.SerializeType} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Message.CapturedBy} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Message.CapturedAt} datetimeoffset NOT NULL,
-                stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
+                {Fields.Message.StoredAt} datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
                 {Fields.Message.TelemetryContext} VARBINARY(2000) NULL,
                 {Fields.Message.Payload} VARBINARY(4000) NOT NULL,
             
@@ -286,7 +286,7 @@ internal static class Sctipts
                 {Fields.Snapshot.ViewName} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Snapshot.Offset} BIGINT NOT NULL,
                 {Fields.Snapshot.State} VARBINARY(8000) NOT NULL,
-                stored_at datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
+                {Fields.Snapshot.StoredAt} datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
     
                 CONSTRAINT PK_{tblInitialWithoutSchema}snapshot PRIMARY KEY (
                             {Fields.Snapshot.StreamType},  
@@ -304,7 +304,8 @@ internal static class Sctipts
             ON {tblInitial}snapshot (
                 {Fields.Snapshot.StreamType}, 
                 {Fields.Snapshot.StreamId},
-                {Fields.Snapshot.ViewName}, stored_at)
+                {Fields.Snapshot.ViewName}, 
+                {Fields.Snapshot.StoredAt})
             WITH (ONLINE = ON);
 
             ALTER DATABASE {db} 
