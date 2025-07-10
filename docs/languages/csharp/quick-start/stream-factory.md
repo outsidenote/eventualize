@@ -46,4 +46,4 @@ That's all you're ready to go 🚀.
 
 - Continue with a Service
 - Continue with Integration Tests
-- Set up local environment (databases)
+- [How to Set up local environment (databases)](docker-compose-dbs)
