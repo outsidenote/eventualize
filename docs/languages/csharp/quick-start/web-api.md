@@ -56,28 +56,7 @@ Remove the `WeatherForecast` endpoint and entity.
 ### Register the factory
 
 - Add `using EvDb.Core;`
-
-1
-1
-1
-1
-1
-1
-1
-1
-1
-
-1
-1
-1
-1
-1
-1
-1
-
-1
-1
-1
+-
 
 ---
 
