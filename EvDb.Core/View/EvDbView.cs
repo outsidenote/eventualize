@@ -68,8 +68,6 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     #endregion //  OnCustomSave
 
-    #endregion //  OnCustomSave
-
     protected abstract TState DefaultState { get; }
 
     public TState State { get; protected set; }
