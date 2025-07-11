@@ -50,6 +50,7 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
 #if TYPED_STORAGE_ADAPTER
    protected override async Task<bool> OnCustomSave(CancellationToken cancellation)
+
     {
         if (_typedStorageAdapter == null || !_typedStorageAdapter.CanHandle<TState>(Address))
             return false;
@@ -64,6 +65,8 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
         return true;
     }
 #endif
+
+    #endregion //  OnCustomSave
 
     #endregion //  OnCustomSave
 
@@ -172,6 +175,7 @@ public abstract class EvDbView : IEvDbViewStore
 
     public abstract EvDbStoredSnapshotData GetSnapshotData();
 
+
     #region OnCustomSave
 
 #if TYPED_STORAGE_ADAPTER
@@ -184,6 +188,7 @@ public abstract class EvDbView : IEvDbViewStore
     /// true: assumed the snapshot was saved by the alternative implementation.
     /// </returns>
     protected abstract Task<bool> OnCustomSave(CancellationToken cancellation);
+    
 #endif
 
     #endregion //  OnCustomSave
@@ -218,6 +223,7 @@ public abstract class EvDbView : IEvDbViewStore
         StoredAt = TimeProvider.GetUtcNow();
 
         async Task StoreSnapshotAsync()
+
         {
             if (_storageAdapter == null)
                 throw new MissingFieldException(nameof(_storageAdapter));

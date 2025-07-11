@@ -49,6 +49,7 @@ The view will define the folding logic of the state.
 
 ### Add Reference
 
+
 - Add NuGet reference to [`EvDb.Core`](https://www.nuget.org/packages/EvDb.Core)
 
   ```bash
@@ -101,6 +102,3 @@ Validation: Go to definition (F12) to see the generated code:
 
 The view is where the state building happens in reaction to events.
 
----
-
-Put it all togather, continue to set up a [stream factory](stream-factory).
