@@ -574,13 +574,15 @@ public partial class EvDbGenerator : BaseGenerator
                                 /// </summary>
                                 /// <param name="entry"></param>
                                 /// <param name="registrationAction">The registration action.</param>
+                                /// <param name="context">The context can differentiate the naming of the table/collection prefix</param>                      
                                 /// <returns></returns>
                                 public static EvDb{{factoryOriginName}}SnapshotEntryFor For{{viewRef.ViewPropName}}(
                                     this EvDb{{factoryOriginName}}SnapshotEntry entry,
-                                    Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
+                                    Action<EvDbSnapshotStoreRegistrationContext> registrationAction,
+                                    EvDbStorageContext? context = null)
                                 {
                                     EvDb{{factoryOriginName}}SnapshotEntryFor e = new EvDb{{factoryOriginName}}SnapshotEntryFor(entry);
-                                    return e.For{{viewRef.ViewPropName}}(registrationAction);
+                                    return e.For{{viewRef.ViewPropName}}(registrationAction, context);
                                 }
 
 
@@ -589,16 +591,18 @@ public partial class EvDbGenerator : BaseGenerator
                                 /// </summary>
                                 /// <param name="source"></param>
                                 /// <param name="registrationAction">The registration action.</param>
+                                /// <param name="context">The context can differentiate the naming of the table/collection prefix</param>                      
                                 /// <returns></returns>
                                 public static EvDb{{factoryOriginName}}SnapshotEntryFor For{{viewRef.ViewPropName}}(
                                     this EvDb{{factoryOriginName}}SnapshotEntryFor source,
-                                    Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
+                                    Action<EvDbSnapshotStoreRegistrationContext> registrationAction,
+                                    EvDbStorageContext? context = null)
                                 {
                                     IEvDbRegistrationContext entry = source;
                                     IEvDbServiceCollectionWrapper svcWrp = source;
                                     var viewAdress = new EvDbViewBasicAddress(entry.Address, "{{viewRef.ViewPropName}}");
                                     var ctx = new EvDbSnapshotStoreRegistrationContext(
-                                        entry.Context,
+                                        context ?? entry.Context,
                                         viewAdress,
                                         svcWrp.Services);
 
@@ -664,16 +668,18 @@ public partial class EvDbGenerator : BaseGenerator
                         /// </summary>
                         /// <param name="source"></param>
                         /// <param name="registrationAction">The registration action.</param>
+                        /// <param name="context">The context can differentiate the naming of the table/collection prefix</param>
                         /// <returns></returns>
                         public static EvDb{{factoryOriginName}}SnapshotEntryFor DefaultSnapshotConfiguration(
                             this EvDb{{factoryOriginName}}SnapshotEntry source,
-                            Action<EvDbSnapshotStoreRegistrationContext> registrationAction)
+                            Action<EvDbSnapshotStoreRegistrationContext> registrationAction,
+                            EvDbStorageContext? context = null)
                         {
                             IEvDbRegistrationContext entry = source;         
                             IEvDbServiceCollectionWrapper svcWrp = source;                    
                             var viewAdress = new EvDbViewBasicAddress(entry.Address, string.Empty);
                             var ctx = new EvDbSnapshotStoreRegistrationContext(
-                                entry.Context,
+                                context ?? entry.Context,
                                 viewAdress,
                                 svcWrp.Services);
 

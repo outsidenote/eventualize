@@ -48,7 +48,9 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     #region OnCustomSave
 
-    protected override async Task<bool> OnCustomSave(CancellationToken cancellation)
+#if TYPED_STORAGE_ADAPTER
+   protected override async Task<bool> OnCustomSave(CancellationToken cancellation)
+
     {
         if (_typedStorageAdapter == null || !_typedStorageAdapter.CanHandle<TState>(Address))
             return false;
@@ -62,12 +64,15 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
         await _typedStorageAdapter.StoreSnapshotAsync(snapshotData, cancellation);
         return true;
     }
+#endif
 
     #endregion //  OnCustomSave
 
     protected abstract TState DefaultState { get; }
 
     public TState State { get; protected set; }
+
+    #region GetSnapshotData
 
     /// <summary>
     /// Prepare the snapshot serialized data.
@@ -79,6 +84,8 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
         var snapshot = new EvDbStoredSnapshotData(Address, MemoryOffset, StoreOffset, state);
         return snapshot;
     }
+
+    #endregion //  GetSnapshotData
 
     #region NonStorageSnapshotAdapter
 
@@ -170,6 +177,10 @@ public abstract class EvDbView : IEvDbViewStore
 
     public abstract EvDbStoredSnapshotData GetSnapshotData();
 
+
+    #region OnCustomSave
+
+#if TYPED_STORAGE_ADAPTER
     /// <summary>
     /// Enable manual save of the snapshot.
     /// </summary>
@@ -179,6 +190,10 @@ public abstract class EvDbView : IEvDbViewStore
     /// true: assumed the snapshot was saved by the alternative implementation.
     /// </returns>
     protected abstract Task<bool> OnCustomSave(CancellationToken cancellation);
+    
+#endif
+
+    #endregion //  OnCustomSave
 
     #region SaveAsync
 
@@ -198,18 +213,40 @@ public abstract class EvDbView : IEvDbViewStore
         using var activity = _trace.StartActivity(tags, "EvDb.View.Store");
         using var duration = _sysMeters.MeasureStoreSnapshotsDuration(tags);
 
-        bool saved = await OnCustomSave(cancellation);
-        if (!saved)
-        {
-            if (_storageAdapter == null)
-                throw new NullReferenceException(nameof(_storageAdapter));
-            EvDbStoredSnapshotData data = GetSnapshotData();
-            await _storageAdapter.StoreSnapshotAsync(data, cancellation);
-        }
+#if TYPED_STORAGE_ADAPTER
+        await TypedStoreSnapshotAsync();
+#else
+        await StoreSnapshotAsync();
+#endif // TYPED_STORAGE_ADAPTER
+
         _sysMeters.SnapshotStored.Add(1, tags);
 
         StoreOffset = MemoryOffset;
         StoredAt = TimeProvider.GetUtcNow();
+
+        async Task StoreSnapshotAsync()
+
+        {
+            if (_storageAdapter == null)
+                throw new MissingFieldException(nameof(_storageAdapter));
+            EvDbStoredSnapshotData data = GetSnapshotData();
+            await _storageAdapter.StoreSnapshotAsync(data, cancellation);
+        }
+
+        #region Task TypedStoreSnapshotAsync(){...}
+
+#if TYPED_STORAGE_ADAPTER
+        async Task TypedStoreSnapshotAsync()
+        {
+            bool saved = await OnCustomSave(cancellation);
+            if (!saved)
+            {
+                await StoreSnapshotAsync();
+            }
+        }
+#endif // TYPED_STORAGE_ADAPTER
+
+        #endregion //  Task TypedStoreSnapshotAsync(){...}
     }
 
     #endregion //  StoreAsync

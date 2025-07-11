@@ -1,4 +1,5 @@
 ﻿// Ignore Spelling: Sql
+#if TYPED_STORAGE_ADAPTER
 
 namespace EvDb.Core.Tests;
 
@@ -94,3 +95,4 @@ public class SqlServerEfSimpleTests : StreamEfBaseTests
         await base.DisposeAsync();
     }
 }
+#endif // TYPED_STORAGE_ADAPTER

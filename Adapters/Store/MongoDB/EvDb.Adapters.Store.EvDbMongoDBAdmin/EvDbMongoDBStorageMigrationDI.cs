@@ -38,7 +38,7 @@ public static class EvDbMongoDBStorageMigrationDI
     public static IServiceCollection AddEvDbMongoDBStoreAdmin(
             this IServiceCollection services,
             EvDbStorageContext? context = null,
-            string connectionStringOrKey = "EvDbPostgresConnection",
+            string connectionStringOrKey = "EvDbMongoDBConnection",
             params EvDbShardName[] shardNames)
     {
         services.AddSingleton<IEvDbStorageAdminScripting, MongoStorageScripting>();

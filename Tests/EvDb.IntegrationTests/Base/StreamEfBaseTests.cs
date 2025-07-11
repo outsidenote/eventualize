@@ -1,5 +1,7 @@
 ﻿// Ignore Spelling: Sql
 
+#if TYPED_STORAGE_ADAPTER
+
 namespace EvDb.Core.Tests;
 
 using Cocona;
@@ -478,3 +480,4 @@ public abstract class StreamEfBaseTests : BaseIntegrationTests
         #endregion //  Validation
     }
 }
+#endif // TYPED_STORAGE_ADAPTER
