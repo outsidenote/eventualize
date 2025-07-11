@@ -36,7 +36,10 @@ has_children: false
    namespace EvDbQuickStart.Funds.Events;
 
    [EvDbDefineEventPayload("withdrawn")]
-   public readonly partial record struct WithdrawnEvent(double Amount); // Primary Ctor syntax
+   public readonly partial record struct WithdrawnEvent(double Amount) // Primary Ctor syntax
+   {
+       public string? Attribution { get; init; }
+   }
    ```
 
    ```cs
@@ -50,6 +53,7 @@ has_children: false
    {
        // Traditiional syntax
        public required double Amount { get; init; }
+       public string? Attribution { get; init; }
    }
    ```
 
@@ -77,8 +81,6 @@ has_children: false
        public static string PAYLOAD_TYPE => "withdrawn";
        [System.Text.Json.Serialization.JsonIgnore]
        string IEvDbPayload.PayloadType => PAYLOAD_TYPE;
-
-
    }
    ```
 
