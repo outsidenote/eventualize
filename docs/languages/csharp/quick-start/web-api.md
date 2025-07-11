@@ -25,25 +25,19 @@ One storage layer for the stream, and another for the snapshots (optimized persi
 
 Choose Store Adapter
 
-[MongoDB](#mongodb) • [PostgreSQL](#postgres) • [SQL Server](#sql-server)
-
----
-
-#### MongoDB
+- MongoDB
 
 ```bash
 dotnet add package EvDb.Adapters.Store.EvDbMongoDB
 ```
 
----
-
-#### Postgres
+- Postgres
 
 ```bash
 dotnet add package EvDb.Adapters.Store.EvDbMongoDB
 ```
 
-#### Sql-Server
+- Sql-Server
 
 ```bash
 dotnet add package EvDb.Adapters.Store.EvDbMongoDB
@@ -53,10 +47,62 @@ dotnet add package EvDb.Adapters.Store.EvDbMongoDB
 
 Remove the `WeatherForecast` endpoint and entity.
 
+### appsetting
+
+Add connection string to appsetting.
+
+- MongoDB
+
+```json
+{
+  "Logging": {...}
+  },
+  "ConnectionStrings": {
+    "EvDbMongoDBConnection": "mongodb://localhost:27017"
+  }
+}
+```
+
+- Postgres
+
+```json
+{
+  "Logging": {...}
+  },
+  "ConnectionStrings": {
+    "EvDbPostgresConnection": "Host=127.0.0.1;Port=5432;Database=test_db;User Id=test_user;Password=MasadNetunim12!@;Pooling=true;Minimum Pool Size=5;Maximum Pool Size=100;"
+  }
+}
+```
+
+- Sql-Server
+
+```json
+{
+  "Logging": {...}
+  },
+  "ConnectionStrings": {
+    "EvDbSqlServerConnection": "Data Source=127.0.0.1;User ID=sa;Password=MasadNetunim12!@;Initial Catalog=master;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;Connect Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true;"
+  }
+}
+```
+
 ### Register the factory
 
+#### Using
+
 - Add `using EvDb.Core;`
--
+
+### Register Dependency Injection
+
+- MongoDB
+
+```cs
+var context = EvDbStorageContext.CreateWithEnvironment("tests", "evdb-quick-start", schema: "default");
+builder.Services.AddEvDb()
+                .AddFundsFactory(o => o.UseMongoDBStoreForEvDbStream(), context)
+                .DefaultSnapshotConfiguration(o => o.UseMongoDBForEvDbSnapshot());
+```
 
 ---
 
