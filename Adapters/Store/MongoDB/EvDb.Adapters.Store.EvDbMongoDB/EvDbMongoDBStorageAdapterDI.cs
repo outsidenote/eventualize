@@ -212,79 +212,79 @@ public static class EvDbMongoDBStorageAdapterDI
 
     #endregion //  UseMongoDBForEvDbSnapshot
 
-    #region UseTypedMongoDBForEvDbSnapshot
+    #region // UseTypedMongoDBForEvDbSnapshot
 
-    /// <summary>
-    /// Uses the typed SQL server adapter for EvDb snapshot.
-    /// </summary>
-    /// <typeparam name="T">The Typed snapshot adapter factory</typeparam>
-    /// <param name="instance">The instance.</param>
-    /// <param name="filter">Filter strategy of what payload it can handle.</param>
-    public static void UseTypedMongoDBForEvDbSnapshot<T>(
-            this EvDbSnapshotStoreRegistrationContext instance,
-            Predicate<EvDbViewAddress> filter)
-        where T : class, IEvDbTypedSnapshotStorageAdapterFactory
-    {
-        instance.UseTypedMongoDBForEvDbSnapshot<T>(DEFAULT_CONNECTION_STRING_KEY, filter);
-    }
+    ///// <summary>
+    ///// Uses the typed SQL server adapter for EvDb snapshot.
+    ///// </summary>
+    ///// <typeparam name="T">The Typed snapshot adapter factory</typeparam>
+    ///// <param name="instance">The instance.</param>
+    ///// <param name="filter">Filter strategy of what payload it can handle.</param>
+    //public static void UseTypedMongoDBForEvDbSnapshot<T>(
+    //        this EvDbSnapshotStoreRegistrationContext instance,
+    //        Predicate<EvDbViewAddress> filter)
+    //    where T : class, IEvDbTypedSnapshotStorageAdapterFactory
+    //{
+    //    instance.UseTypedMongoDBForEvDbSnapshot<T>(DEFAULT_CONNECTION_STRING_KEY, filter);
+    //}
 
 
-    /// <summary>
-    /// Uses the typed SQL server adapter for EvDb snapshot.
-    /// </summary>
-    /// <typeparam name="T">The Typed snapshot adapter factory</typeparam>
-    /// <param name="instance">The instance.</param>
-    /// <param name="connectionStringOrConfigurationKey">
-    /// Connection string or configuration key of it.
-    /// </param>
-    /// <param name="filter">Filter strategy of what payload it can handle.</param>
-    public static void UseTypedMongoDBForEvDbSnapshot<T>(
-            this EvDbSnapshotStoreRegistrationContext instance,
-            string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
-            Predicate<EvDbViewAddress>? filter = null)
-        where T : class, IEvDbTypedSnapshotStorageAdapterFactory
-    {
-        IServiceCollection services = instance.Services;
-        EvDbViewBasicAddress key = instance.Address;
+    ///// <summary>
+    ///// Uses the typed SQL server adapter for EvDb snapshot.
+    ///// </summary>
+    ///// <typeparam name="T">The Typed snapshot adapter factory</typeparam>
+    ///// <param name="instance">The instance.</param>
+    ///// <param name="connectionStringOrConfigurationKey">
+    ///// Connection string or configuration key of it.
+    ///// </param>
+    ///// <param name="filter">Filter strategy of what payload it can handle.</param>
+    //public static void UseTypedMongoDBForEvDbSnapshot<T>(
+    //        this EvDbSnapshotStoreRegistrationContext instance,
+    //        string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY,
+    //        Predicate<EvDbViewAddress>? filter = null)
+    //    where T : class, IEvDbTypedSnapshotStorageAdapterFactory
+    //{
+    //    IServiceCollection services = instance.Services;
+    //    EvDbViewBasicAddress key = instance.Address;
 
-        var context = instance.Context;
-        string fullKey = $"{key}.for-typed-decorator.postgres";
+    //    var context = instance.Context;
+    //    string fullKey = $"{key}.for-typed-decorator.postgres";
 
-        services.AddKeyedSingleton<IEvDbTypedSnapshotStorageAdapterFactory, T>(fullKey);
+    //    services.AddKeyedSingleton<IEvDbTypedSnapshotStorageAdapterFactory, T>(fullKey);
 
-        services.AddKeyedSingleton<IEvDbStorageSnapshotAdapter>(
-            fullKey,
+    //    services.AddKeyedSingleton<IEvDbStorageSnapshotAdapter>(
+    //        fullKey,
 
-            (sp, _) =>
-            {
-                var ctx = sp.GetEvDbStorageContextFallback(context);
+    //        (sp, _) =>
+    //        {
+    //            var ctx = sp.GetEvDbStorageContextFallback(context);
 
-                #region IEvDbConnectionFactory connectionFactory = ...
+    //            #region IEvDbConnectionFactory connectionFactory = ...
 
-                IConfiguration? configuration = sp.GetService<IConfiguration>();
-                string connectionString = configuration?.GetConnectionString(connectionStringOrConfigurationKey) ?? connectionStringOrConfigurationKey;
+    //            IConfiguration? configuration = sp.GetService<IConfiguration>();
+    //            string connectionString = configuration?.GetConnectionString(connectionStringOrConfigurationKey) ?? connectionStringOrConfigurationKey;
 
-                #endregion // IEvDbConnectionFactory connectionFactory = ...
+    //            #endregion // IEvDbConnectionFactory connectionFactory = ...
 
-                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<T>();
-                IEvDbStorageSnapshotAdapter adapter = EvDbMongoDBStorageAdapterFactory.CreateSnapshotAdapter(logger, connectionString, ctx);
-                return adapter;
-            });
+    //            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+    //            var logger = loggerFactory.CreateLogger<T>();
+    //            IEvDbStorageSnapshotAdapter adapter = EvDbMongoDBStorageAdapterFactory.CreateSnapshotAdapter(logger, connectionString, ctx);
+    //            return adapter;
+    //        });
 
-        services.AddKeyedSingleton<IEvDbTypedStorageSnapshotAdapter>(
-            key.ToString(),
+    //    services.AddKeyedSingleton<IEvDbTypedStorageSnapshotAdapter>(
+    //        key.ToString(),
 
-            (sp, _) =>
-            {
-                IEvDbStorageSnapshotAdapter adapter =
-                            sp.GetRequiredKeyedService<IEvDbStorageSnapshotAdapter>(fullKey);
-                IEvDbTypedSnapshotStorageAdapterFactory factory =
-                            sp.GetRequiredKeyedService<IEvDbTypedSnapshotStorageAdapterFactory>(fullKey);
-                var result = factory.Create(adapter, filter);
-                return result;
-            });
-    }
+    //        (sp, _) =>
+    //        {
+    //            IEvDbStorageSnapshotAdapter adapter =
+    //                        sp.GetRequiredKeyedService<IEvDbStorageSnapshotAdapter>(fullKey);
+    //            IEvDbTypedSnapshotStorageAdapterFactory factory =
+    //                        sp.GetRequiredKeyedService<IEvDbTypedSnapshotStorageAdapterFactory>(fullKey);
+    //            var result = factory.Create(adapter, filter);
+    //            return result;
+    //        });
+    //}
 
     #endregion //  UseTypedMongoDBForEvDbSnapshot
 }

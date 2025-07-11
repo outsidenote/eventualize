@@ -44,6 +44,6 @@ That's all you're ready to go 🚀.
 
 ---
 
-- Continue with a Service
-- Continue with Integration Tests
+- [Continue with a Service (Web API)](web-api)
+- [Continue with Integration Tests](tests)
 - [How to Set up local environment (databases)](docker-compose-dbs)
