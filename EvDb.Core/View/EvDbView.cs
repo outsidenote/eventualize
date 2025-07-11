@@ -72,6 +72,8 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 
     public TState State { get; protected set; }
 
+    #region GetSnapshotData
+
     /// <summary>
     /// Prepare the snapshot serialized data.
     /// </summary>
@@ -82,6 +84,8 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
         var snapshot = new EvDbStoredSnapshotData(Address, MemoryOffset, StoreOffset, state);
         return snapshot;
     }
+
+    #endregion //  GetSnapshotData
 
     #region NonStorageSnapshotAdapter
 
