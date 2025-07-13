@@ -11,7 +11,6 @@
 			- 4.0.0: Message got TelemetryContext instead of TraceId and SpanId
 			- 4.0.1: Domain and Partition become Address
 			- 4.0.2: Type of the event, message, TelemetryContext payload changed from byte[]
-			- 5.0.0: SNS/SQS Sinks connectors to outbox 
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
