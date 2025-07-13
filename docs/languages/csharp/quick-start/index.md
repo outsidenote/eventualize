@@ -9,8 +9,11 @@ has_children: true
 
 # Quick Start
 
-In this Quick start we're going to build a simplify banking balance flow of deposit and withdrawal operations what will results with a balance on the customer's account.
+In this quick start, we'll build a simplified banking flow that supports **deposit** and **withdrawal** operations, resulting in a real-time **account balance** for the customer.
 
-The customer will be able to see his balance, and his transactions.
+The customer will be able to:
 
-Continue to [Get Started](events)
+- View their **current balance**
+- See a list of their **transaction history**
+
+👉 Ready to dive in? Continue to [events](events)

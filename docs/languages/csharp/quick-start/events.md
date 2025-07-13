@@ -36,7 +36,10 @@ has_children: false
    namespace EvDbQuickStart.Funds.Events;
 
    [EvDbDefineEventPayload("withdrawn")]
-   public readonly partial record struct WithdrawnEvent(double Amount); // Primary Ctor syntax
+   public readonly partial record struct WithdrawnEvent(double Amount) // Primary Ctor syntax
+   {
+       public string? Attribution { get; init; }
+   }
    ```
 
    ```cs
@@ -50,15 +53,25 @@ has_children: false
    {
        // Traditiional syntax
        public required double Amount { get; init; }
+       public string? Attribution { get; init; }
    }
    ```
 
-   EvDb will use the attribute's parameter as the event type within the storage.
-   It doesn't use the class/record name for it because it's might be changed during refactoring (the event type should be stable).
+EvDb uses the value provided in the attribute parameter as the **event type identifier** in storage.  
+It intentionally avoids relying on the class or record name, as those can change during refactoring—while the event type should remain stable over time.
 
-   > Best practice is to use readonly stuct for events (because it's immutable and GC friendly).
-   > Yet you can replace `readonly partial record struct` with a `partial record`, `partial class` or `partial struct` if you will.
-   > Note: the syntax doesn't matters, you can use traditional syntax or primary ctor, whatever you feel comftable with.
+> ✅ **Best Practice**: Use `readonly struct` for events.  
+> This ensures immutability and is more GC-friendly.
+
+However, you're free to use other types such as:
+
+- `readonly partial record struct`
+- `partial record`
+- `partial class`
+- `partial struct`
+
+> 💡 The syntax style is flexible—use traditional syntax or primary constructors based on your preference.  
+> What matters is the structure and stability of the event type, not the syntax used to define it.
 
 3. Build the solution
 4. Make sure you're on the right path
@@ -77,8 +90,6 @@ has_children: false
        public static string PAYLOAD_TYPE => "withdrawn";
        [System.Text.Json.Serialization.JsonIgnore]
        string IEvDbPayload.PayloadType => PAYLOAD_TYPE;
-
-
    }
    ```
 
@@ -124,3 +135,4 @@ has_children: false
    - 🚀 EvDB is trying to take the boilerblate away
 
 Continue to [Aggregate (Views)](aggregate)
+Continue to [Outbox (messaging)](outbox)

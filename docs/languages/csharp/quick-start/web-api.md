@@ -34,13 +34,13 @@ dotnet add package EvDb.Adapters.Store.EvDbMongoDB
 - Postgres
 
 ```bash
-dotnet add package EvDb.Adapters.Store.EvDbMongoDB
+dotnet add package EvDb.Adapters.Store.EvDbPostgres
 ```
 
 - Sql-Server
 
 ```bash
-dotnet add package EvDb.Adapters.Store.EvDbMongoDB
+dotnet add package EvDb.Adapters.Store.EvDbSqlServer
 ```
 
 ### CLean up
@@ -104,7 +104,77 @@ builder.Services.AddEvDb()
                 .DefaultSnapshotConfiguration(o => o.UseMongoDBForEvDbSnapshot());
 ```
 
+- Postgres
+
+```cs
+var context = EvDbStorageContext.CreateWithEnvironment("tests", "evdb-quick-start", schema: "public");
+builder.Services.AddEvDb()
+                .AddFundsFactory(o => o.UsePostgresStoreForEvDbStream(), context)
+                .DefaultSnapshotConfiguration(o => o.UsePostgresForEvDbSnapshot());
+```
+
+- Sql-server
+
+```cs
+var context = EvDbStorageContext.CreateWithEnvironment("master", "evdb-quick-start", schema: "dbo");
+builder.Services.AddEvDb()
+                .AddFundsFactory(o => o.UseSqlServerStoreForEvDbStream(), context)
+                .DefaultSnapshotConfiguration(o => o.UseSqlServerForEvDbSnapshot());
+```
+
+#### Create Request object
+
+```cs
+namespace EvDbQuickStart.Funds.WebAPI;
+
+public enum OperationType
+{
+    Deposit,
+    Withdraw
+}
+
+public record FunRequest(OperationType Operation, Guid AccountId, int Amount)
+{
+    public string? Attribution { get; init; }
+}
+```
+
+### Add Endpoint
+
+```cs
+app.MapGet("/quick-start/{accountId}", async (IEvDbFundsFactory factory, int accountId) =>
+{
+    IEvDbFunds stream = await factory.GetAsync(accountId);
+    var balance = stream.Views.Balance;
+    return balance;
+})
+.WithOpenApi();
+
+app.MapPost("/quick-start/", async (IEvDbFundsFactory factory, FunRequest request) =>
+{
+    // Consider to move this logic to a service layer
+    IEvDbFunds stream = await factory.GetAsync(request.AccountId);
+    if(request.Operation == OperationType.Deposit)
+    {
+        var deposit = new DepositedEvent { Amount = request.Amount, Attribution = request.Attribution };
+        await stream.AppendAsync(deposit);
+    }
+    else if(request.Operation == OperationType.Withdraw)
+    {
+        var deposit = new WithdrawnEvent(request.Amount){ Attribution = request.Attribution };
+        await stream.AppendAsync(deposit);
+    }
+    await stream.StoreAsync();
+    var balance = stream.Views.Balance;
+    return balance;
+})
+.WithOpenApi();
+```
+
+Set up the environment, [create database](create-database) and you're ready to go.
+
 ---
 
+- [Create database](create-database)
 - [Continue with Integration Tests](tests)
 - [How to Set up local environment (databases)](docker-compose-dbs)

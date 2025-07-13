@@ -29,7 +29,6 @@ public abstract class StreamSimpleBaseTests : BaseIntegrationTests
         _configuration = sp.GetRequiredService<IConfiguration>();
         IEvDbSchoolStreamFactory factory = sp.GetRequiredService<IEvDbSchoolStreamFactory>();
         _stream = factory.Create(streamId);
-
     }
 
     [Fact]
