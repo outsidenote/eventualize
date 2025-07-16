@@ -1,4 +1,5 @@
 ﻿using EvDb.Core.Adapters;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
@@ -161,12 +162,20 @@ public static class TelemetryExtensions
         public ActivityKind Kind { get; init; } = ActivityKind.Internal;
 
         public ActivityContext Parent { get; init; } = Activity.Current?.Context ?? default;
+
+        public ImmutableArray<ActivityContext> Links { get; init; } = ImmutableArray<ActivityContext>.Empty;
+
         public OtelParentRelation ParentRelation { get; init; }
 
 
         public ActivityBuilder WithParent(ActivityContext parent, OtelParentRelation relation = OtelParentRelation.Child)
         {
             return this with { Parent = parent, ParentRelation = relation };
+        }
+
+        public ActivityBuilder WithLink(ActivityContext linkTo)
+        {
+            return this with { Links = Links.Add(linkTo) };
         }
 
         public ActivityBuilder WithKind(ActivityKind kind)
@@ -186,12 +195,16 @@ public static class TelemetryExtensions
 
         public Activity? Start()
         {
-
             Activity? activity = ParentRelation switch
             {
                 OtelParentRelation.Child => ActivitySource.StartActivity(Name, Kind, Parent),
                 _ => ActivitySource.StartActivity(Kind, name: Name, links: new[] { new ActivityLink(Parent) })
             };
+
+            foreach (var link in Links)
+            {
+                activity?.AddLink( new ActivityLink(link));
+            }
 
             if (activity != null)
             {
