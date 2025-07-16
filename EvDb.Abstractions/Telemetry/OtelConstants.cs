@@ -2,6 +2,7 @@
 
 public static class OtelConstants
 {
+    public const string TAG_MODULE = "evdb.module";
     public const string TAG_STREAM_TYPE = "evdb.stream-type";
     public const string TAG_STREAM_ID = "evdb.stream-id";
     public const string TAG_VIEW_NAME = "evdb.view-name";

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using static EvDb.Sinks.EvDbSinkTelemetry;
+using static EvDb.Core.Internals.OtelConstants;
 
 namespace EvDb.Sinks.Processing;
 
@@ -42,6 +43,7 @@ internal class EvDbMessagesSinkProcessor : IEvDbMessagesSinkProcessor
         await foreach (ActivityBag<EvDbMessageRecord> bag in messages)
         {
             bag.SetAsCurrentActivity();
+            Activity.Current?.AddTag(TAG_MODULE, "sink");
             EvDbMessageRecord message = bag.Value;
 
             if (cancellationToken.IsCancellationRequested)
