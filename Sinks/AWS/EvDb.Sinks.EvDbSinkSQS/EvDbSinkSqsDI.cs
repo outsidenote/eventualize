@@ -25,7 +25,7 @@ public static class EvDbSinkSQSDI
     {
         var services = registration.Services;
 
-        services.AddSingleton<IEvDbSinkSQSMeters, EvDbSinkSQSMeters>();
+        services.TryAddSingleton<IEvDbSinkSQSMeters, EvDbSinkSQSMeters>();
 
         services.TryAddKeyedSingleton<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY, (sp, _) =>
         {
@@ -45,4 +45,50 @@ public static class EvDbSinkSQSDI
 
         return registration;
     }
+
+#if APPROVED
+
+    /// <summary>
+    /// Add SQS sink for a specific queue name (if not exists) 
+    /// The queue name is used as a key to retrieve the sink.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="queueName"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddKeyedSQSPublishProvider(this IServiceCollection services, string queueName)
+    {
+        return services.AddKeyedSQSPublishProvider(queueName, queueName);
+    }
+
+    /// <summary>
+    /// Add SQS sink for a specific queue name (if not exists) 
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="key">The registration key</param>
+    /// <param name="queueName"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddKeyedSQSPublishProvider<TKey>(this IServiceCollection services, TKey key, string queueName)
+    {
+        services.TryAddSingleton<IEvDbSinkSQSMeters, EvDbSinkSQSMeters>();
+
+        services.TryAddKeyedSingleton<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY, (sp, _) =>
+        {
+            var logFactory = sp.GetRequiredService<ILoggerFactory>();
+            var logger = logFactory.CreateLogger<EvDbSinkProviderSQS>();
+            var client = sp.GetRequiredService<AmazonSQSClient>();
+
+            return new EvDbSinkProviderSQS(logger, client, EvDbSinkSQSMeters.Default);
+        });
+
+        services.AddKeyedSingleton(key, (sp, _) =>
+        {
+            var sink = sp.GetRequiredKeyedService<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY);
+            IEvDbTargetedMessagesSinkPublish result = sink.Create(queueName);
+            return result;
+        });
+
+        return services;
+    }
+
+#endif // APPROVED
 }

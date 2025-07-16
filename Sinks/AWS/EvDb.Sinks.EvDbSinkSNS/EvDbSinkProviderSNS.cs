@@ -2,6 +2,7 @@
 using Amazon.SimpleNotificationService.Model;
 using EvDb.Core;
 using EvDb.Core.Adapters;
+using EvDb.Sinks.Internals;
 using Microsoft.Extensions;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
@@ -31,7 +32,7 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
         _meters = meters;
     }
 
-    async Task IEvDbMessagesSinkPublishProvider.PublishMessageToSinkAsync(EvDbSinkTarget target,
+    private async Task PublishMessageToSinkAsync(EvDbSinkTarget target,
                                                                           EvDbMessageRecord message,
                                                                           JsonSerializerOptions? serializerOptions,
                                                                           CancellationToken cancellationToken)
@@ -94,10 +95,10 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
 
     private sealed class SpecializedTarget : IEvDbTargetedMessagesSinkPublish
     {
-        private readonly IEvDbMessagesSinkPublishProvider _provider;
+        private readonly EvDbSinkProviderSNS _provider;
         private readonly EvDbSinkTarget _target;
 
-        public SpecializedTarget(IEvDbMessagesSinkPublishProvider provider, EvDbSinkTarget target)
+        public SpecializedTarget(EvDbSinkProviderSNS provider, EvDbSinkTarget target)
         {
             _provider = provider;
             _target = target;
@@ -106,9 +107,10 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
         string IEvDbTargetedMessagesSinkPublish.Kind { get; } = "SNS";
 
         async Task IEvDbTargetedMessagesSinkPublish.PublishMessageToSinkAsync(EvDbMessage message,
+                                                                        JsonSerializerOptions? serializerOptions,
                                                                         CancellationToken cancellationToken)
         {
-            await _provider.PublishMessageToSinkAsync(_target, message, cancellationToken);
+            await _provider.PublishMessageToSinkAsync(_target, message, serializerOptions, cancellationToken);
         }
     }
 }

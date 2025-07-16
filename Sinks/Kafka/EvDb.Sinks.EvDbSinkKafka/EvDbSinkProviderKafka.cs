@@ -2,6 +2,7 @@
 using Confluent.Kafka;
 using EvDb.Core;
 using EvDb.Core.Adapters;
+using EvDb.Sinks.Internals;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
@@ -29,11 +30,10 @@ internal class EvDbSinkProviderKafka : IEvDbMessagesSinkPublishProvider
         _meters = meters;
     }
 
-    async Task IEvDbMessagesSinkPublishProvider.PublishMessageToSinkAsync(
-        EvDbSinkTarget target,
-        EvDbMessageRecord message,
-        JsonSerializerOptions? serializerOptions,
-        CancellationToken cancellationToken)
+    private async Task PublishMessageToSinkAsync(EvDbSinkTarget target,
+                                                 EvDbMessageRecord message,
+                                                 JsonSerializerOptions? serializerOptions,
+                                                 CancellationToken cancellationToken)
     {
         // Set up tracing context
         ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
@@ -92,11 +92,11 @@ internal class EvDbSinkProviderKafka : IEvDbMessagesSinkPublishProvider
 
     private sealed class SpecializedTarget : IEvDbTargetedMessagesSinkPublish
     {
-        private readonly IEvDbMessagesSinkPublishProvider _provider;
+        private readonly EvDbSinkProviderKafka _provider;
         private readonly EvDbSinkTarget _target;
 
         public SpecializedTarget(
-            IEvDbMessagesSinkPublishProvider provider,
+            EvDbSinkProviderKafka provider,
             EvDbSinkTarget target)
         {
             _provider = provider;
@@ -105,9 +105,11 @@ internal class EvDbSinkProviderKafka : IEvDbMessagesSinkPublishProvider
 
         public string Kind { get; } = "Kafka";
 
-        public async Task PublishMessageToSinkAsync(EvDbMessage message, CancellationToken cancellationToken)
+        async Task IEvDbTargetedMessagesSinkPublish.PublishMessageToSinkAsync(EvDbMessage message,
+                                                    JsonSerializerOptions? serializerOptions,
+                                                    CancellationToken cancellationToken)
         {
-            await _provider.PublishMessageToSinkAsync(_target, message, cancellationToken);
+            await _provider.PublishMessageToSinkAsync(_target, message, serializerOptions, cancellationToken);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using EvDb.Core;
+using System.Text.Json;
 
 namespace EvDb.Sinks;
 
@@ -18,5 +19,17 @@ public interface IEvDbTargetedMessagesSinkPublish
     /// <param name="message">the payload</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task PublishMessageToSinkAsync(EvDbMessage message, CancellationToken cancellationToken = default);
+    Task PublishMessageToSinkAsync(EvDbMessage message, CancellationToken cancellationToken = default) => 
+                                    PublishMessageToSinkAsync(message, null, cancellationToken);
+
+    /// <summary>
+    /// Publishes a message to the specified sink and specific target (topic/queue).
+    /// </summary>
+    /// <param name="message">the payload</param>
+    /// <param name="serializerOptions"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task PublishMessageToSinkAsync(EvDbMessage message,
+                                   JsonSerializerOptions? serializerOptions,
+                                   CancellationToken cancellationToken = default);
 }
