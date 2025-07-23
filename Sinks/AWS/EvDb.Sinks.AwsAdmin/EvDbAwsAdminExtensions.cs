@@ -145,7 +145,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="visibilityTimeout"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateQueueAsync(this AmazonSQSClient sqsClient,
+    public static async Task<string> GetOrCreateQueueAsync(this IAmazonSQS sqsClient,
                                                               EvDbSinkTarget queueName,
                                                               TimeSpan visibilityTimeout,
                                                               CancellationToken cancellationToken = default)
@@ -164,7 +164,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateQueueAsync(this AmazonSQSClient sqsClient,
+    public static async Task<string> GetOrCreateQueueAsync(this IAmazonSQS sqsClient,
                                                               EvDbSinkTarget queueName,
                                                               TimeSpan visibilityTimeout,
                                                               ms.ILogger? logger = null,
@@ -256,7 +256,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="queueUrl"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private static async Task SetQueueVisibilityAsync(this AmazonSQSClient sqsClient,
+    private static async Task SetQueueVisibilityAsync(this IAmazonSQS sqsClient,
                                                       TimeSpan visibilityTimeout,
                                                       string queueUrl,
                                                       CancellationToken cancellationToken = default)
@@ -290,7 +290,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetQueueARNAsync(this AmazonSQSClient sqsClient,
+    public static async Task<string> GetQueueARNAsync(this IAmazonSQS sqsClient,
                                                       string queueUrl,
                                                       ms.ILogger? logger = null,
                                                       CancellationToken cancellationToken = default)
@@ -329,7 +329,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private static async Task SetSNSToSQSPolicyAsync(this AmazonSQSClient sqsClient,
+    private static async Task SetSNSToSQSPolicyAsync(this IAmazonSQS sqsClient,
                                                     string topicARN,
                                                     string queueURL,
                                                     string queueARN,
@@ -437,7 +437,7 @@ public static class EvDbAwsAdminExtensions
 
     public static async Task SubscribeSQSToSNSAsync(
         this AmazonSimpleNotificationServiceClient snsClient,
-        AmazonSQSClient sqsClient,
+        IAmazonSQS sqsClient,
         string topicName,
         string queueName,
         CancellationToken cancellationToken = default)
@@ -457,7 +457,7 @@ public static class EvDbAwsAdminExtensions
 
     public static async Task SubscribeSQSToSNSAsync(
         this AmazonSimpleNotificationServiceClient snsClient,
-        AmazonSQSClient sqsClient,
+        IAmazonSQS sqsClient,
         string topicName,
         string queueName,
         Action<SubscribeSQSToSNSOptions> optionsBuilder,
@@ -480,7 +480,7 @@ public static class EvDbAwsAdminExtensions
     // Original method (now private)
     private static async Task SubscribeSQSToSNSAsync(
         this AmazonSimpleNotificationServiceClient snsClient,
-        AmazonSQSClient sqsClient,
+        IAmazonSQS sqsClient,
         string topicName,
         string queueName,
         string principal = "*",
@@ -558,7 +558,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async static Task ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+    public async static Task ReceiveEvDbMessageRecordsAsync(this IAmazonSQS sqsClient,
                                                                     ITargetBlock<EvDbSQSMessageRecord> block,
                                                                     ReceiveMessageRequest receiveRequest,
                                                                     SQSMessageFormat messageFormat,
@@ -579,7 +579,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async static Task ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+    public async static Task ReceiveEvDbMessageRecordsAsync(this IAmazonSQS sqsClient,
                                                                     ITargetBlock<EvDbSQSMessageRecord> block,
                                                                     ReceiveMessageRequest receiveRequest,
                                                                     SQSMessageFormat messageFormat,
@@ -611,7 +611,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+    public static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this IAmazonSQS sqsClient,
                                                                     ReceiveMessageRequest receiveRequest,
                                                                     SQSMessageFormat messageFormat,
                                                                     ms.ILogger logger,
@@ -632,7 +632,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+    public async static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this IAmazonSQS sqsClient,
                                                                     ReceiveMessageRequest receiveRequest,
                                                                     SQSMessageFormat messageFormat,
                                                                     JsonSerializerOptions? serializerOptions,
@@ -678,7 +678,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="sqsClient"></param>
     /// <param name="messageFormat"></param>
     /// <returns></returns>
-    public static SQSReceiveBuilderInit CreateSQSReceiveBuilder(this AmazonSQSClient sqsClient, SQSMessageFormat messageFormat)
+    public static SQSReceiveBuilderInit CreateSQSReceiveBuilder(this IAmazonSQS sqsClient, SQSMessageFormat messageFormat)
         => new SQSReceiveBuilderInit(sqsClient, messageFormat);
 
     #endregion //  CreateSQSReceiveBuilder
@@ -690,10 +690,10 @@ public static class EvDbAwsAdminExtensions
     /// </summary>
     public readonly record struct SQSReceiveBuilderInit
     {
-        private readonly AmazonSQSClient _sqsClient;
+        private readonly IAmazonSQS _sqsClient;
         private readonly SQSMessageFormat _messageFormat;
 
-        public SQSReceiveBuilderInit(AmazonSQSClient sqsClient, SQSMessageFormat messageFormat)
+        public SQSReceiveBuilderInit(IAmazonSQS sqsClient, SQSMessageFormat messageFormat)
         {
             _sqsClient = sqsClient;
             _messageFormat = messageFormat;
@@ -766,7 +766,7 @@ public static class EvDbAwsAdminExtensions
     /// </summary>
     public readonly record struct SQSReceiveBuilder
     {
-        public SQSReceiveBuilder(AmazonSQSClient sqsClient,
+        public SQSReceiveBuilder(IAmazonSQS sqsClient,
                                      SQSMessageFormat messageFormat,
                                      ReceiveMessageRequest request)
         {
@@ -776,7 +776,7 @@ public static class EvDbAwsAdminExtensions
         }
 
 
-        public AmazonSQSClient SqsClient { get; init; }
+        public IAmazonSQS SqsClient { get; init; }
 
         public ReceiveMessageRequest Request { get; init; }
 
