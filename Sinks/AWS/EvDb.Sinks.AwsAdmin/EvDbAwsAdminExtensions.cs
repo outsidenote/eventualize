@@ -173,24 +173,10 @@ public static class EvDbAwsAdminExtensions
         await _queueLock.WaitAsync(6000, cancellationToken);
         try
         {
-            var listQueuesResponse = await sqsClient.ListQueuesAsync(new ListQueuesRequest
-            {
-                QueueNamePrefix = queueName
-            },
-            cancellationToken);
+            string? queueUrl = await sqsClient.TryGetQueueAsync(queueName, visibilityTimeout, logger, cancellationToken);
 
-            string queueUrl;
-            string? existingQueueUrl = null;
-            if (listQueuesResponse.QueueUrls is not null)
+            if (queueUrl is not null)
             {
-                existingQueueUrl = listQueuesResponse.QueueUrls
-                                                        .FirstOrDefault(url => url.EndsWith($"{queueName}",
-                                                                             StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (existingQueueUrl is not null)
-            {
-                queueUrl = existingQueueUrl;
                 logger?.LogSQSQueueExists(queueUrl);
             }
             else
@@ -283,36 +269,54 @@ public static class EvDbAwsAdminExtensions
                                                               ms.ILogger? logger = null,
                                                               CancellationToken cancellationToken = default)
     {
-        await _queueLock.WaitAsync(6000, cancellationToken);
-        try
-        {
-            var listQueuesResponse = await sqsClient.ListQueuesAsync(new ListQueuesRequest
-            {
-                QueueNamePrefix = queueName
-            },
-            cancellationToken);
+        string? queueUrl = await sqsClient.TryGetQueueAsync(queueName, visibilityTimeout, logger, cancellationToken);
 
-            string queueUrl;
-            string? existingQueueUrl = null;
-            if (listQueuesResponse.QueueUrls is not null)
-            {
-                existingQueueUrl = listQueuesResponse.QueueUrls
-                                                        .FirstOrDefault(url => url.EndsWith($"{queueName}",
-                                                                             StringComparison.OrdinalIgnoreCase));
-            }
+        if (queueUrl is null)
+            throw new InvalidOperationException($"SQS queue: {queueName} not found");
 
-            if (existingQueueUrl is null)
-                throw new InvalidOperationException($"SQS queue: {queueName} not found");
-
-            queueUrl = existingQueueUrl;
-            logger?.LogSQSQueueExists(queueUrl);
-            return queueUrl;
-        }
-        finally
-        {
-            _queueLock.Release();
-        }
+        logger?.LogSQSQueueExists(queueUrl);
+        return queueUrl;
     }
+
+
+    /// <summary>
+    /// Gets or creates an SQS queue with the specified name and visibility timeout.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="queueName"></param>
+    /// <param name="visibilityTimeout"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private static async Task<string?> TryGetQueueAsync(this IAmazonSQS sqsClient,
+                                                              EvDbSinkTarget queueName,
+                                                              TimeSpan visibilityTimeout,
+                                                              ms.ILogger? logger = null,
+                                                              CancellationToken cancellationToken = default)
+    {
+        var listQueuesResponse = await sqsClient.ListQueuesAsync(new ListQueuesRequest
+        {
+            QueueNamePrefix = queueName
+        },
+        cancellationToken);
+
+        string queueUrl;
+        string? existingQueueUrl = null;
+        if (listQueuesResponse.QueueUrls is not null)
+        {
+            existingQueueUrl = listQueuesResponse.QueueUrls
+                                                    .FirstOrDefault(url => url.EndsWith($"{queueName}",
+                                                                         StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (existingQueueUrl is null)
+            return null;
+
+        queueUrl = existingQueueUrl;
+        logger?.LogSQSQueueExists(queueUrl);
+        return queueUrl;
+    }
+
 
     #endregion //  GetQueueAsync
 
