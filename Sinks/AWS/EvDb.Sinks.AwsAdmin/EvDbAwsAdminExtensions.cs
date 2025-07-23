@@ -246,6 +246,76 @@ public static class EvDbAwsAdminExtensions
 
     #endregion //  GetOrCreateQueueAsync
 
+    #region GetQueueAsync
+
+    #region Overloads
+
+    /// <summary>
+    /// Gets or creates an SQS queue with the specified name and visibility timeout.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="queueName"></param>
+    /// <param name="visibilityTimeout"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<string> GetQueueAsync(this IAmazonSQS sqsClient,
+                                                              EvDbSinkTarget queueName,
+                                                              TimeSpan visibilityTimeout,
+                                                              CancellationToken cancellationToken = default)
+    {
+        return await sqsClient.GetQueueAsync(queueName, visibilityTimeout, null, cancellationToken);
+    }
+
+    #endregion //  Overloads
+
+    /// <summary>
+    /// Gets or creates an SQS queue with the specified name and visibility timeout.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="queueName"></param>
+    /// <param name="visibilityTimeout"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<string> GetQueueAsync(this IAmazonSQS sqsClient,
+                                                              EvDbSinkTarget queueName,
+                                                              TimeSpan visibilityTimeout,
+                                                              ms.ILogger? logger = null,
+                                                              CancellationToken cancellationToken = default)
+    {
+        await _queueLock.WaitAsync(6000, cancellationToken);
+        try
+        {
+            var listQueuesResponse = await sqsClient.ListQueuesAsync(new ListQueuesRequest
+            {
+                QueueNamePrefix = queueName
+            },
+            cancellationToken);
+
+            string queueUrl;
+            string? existingQueueUrl = null;
+            if (listQueuesResponse.QueueUrls is not null)
+            {
+                existingQueueUrl = listQueuesResponse.QueueUrls
+                                                        .FirstOrDefault(url => url.EndsWith($"{queueName}",
+                                                                             StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (existingQueueUrl is null)
+                throw new InvalidOperationException($"SQS queue: {queueName} not found");
+
+            queueUrl = existingQueueUrl;
+            logger?.LogSQSQueueExists(queueUrl);
+            return queueUrl;
+        }
+        finally
+        {
+            _queueLock.Release();
+        }
+    }
+
+    #endregion //  GetQueueAsync
+
     #region SetQueueVisibilityAsync
 
     /// <summary>
