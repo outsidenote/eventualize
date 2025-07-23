@@ -145,7 +145,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="visibilityTimeout"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateQueueAsync(this AmazonSQSClient sqsClient,
+    public static async Task<string> GetOrCreateQueueAsync(this IAmazonSQS sqsClient,
                                                               EvDbSinkTarget queueName,
                                                               TimeSpan visibilityTimeout,
                                                               CancellationToken cancellationToken = default)
@@ -164,7 +164,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateQueueAsync(this AmazonSQSClient sqsClient,
+    public static async Task<string> GetOrCreateQueueAsync(this IAmazonSQS sqsClient,
                                                               EvDbSinkTarget queueName,
                                                               TimeSpan visibilityTimeout,
                                                               ms.ILogger? logger = null,
@@ -173,24 +173,10 @@ public static class EvDbAwsAdminExtensions
         await _queueLock.WaitAsync(6000, cancellationToken);
         try
         {
-            var listQueuesResponse = await sqsClient.ListQueuesAsync(new ListQueuesRequest
-            {
-                QueueNamePrefix = queueName
-            },
-            cancellationToken);
+            string? queueUrl = await sqsClient.TryGetQueueAsync(queueName, visibilityTimeout, logger, cancellationToken);
 
-            string queueUrl;
-            string? existingQueueUrl = null;
-            if (listQueuesResponse.QueueUrls is not null)
+            if (queueUrl is not null)
             {
-                existingQueueUrl = listQueuesResponse.QueueUrls
-                                                        .FirstOrDefault(url => url.EndsWith($"{queueName}",
-                                                                             StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (existingQueueUrl is not null)
-            {
-                queueUrl = existingQueueUrl;
                 logger?.LogSQSQueueExists(queueUrl);
             }
             else
@@ -246,6 +232,94 @@ public static class EvDbAwsAdminExtensions
 
     #endregion //  GetOrCreateQueueAsync
 
+    #region GetQueueAsync
+
+    #region Overloads
+
+    /// <summary>
+    /// Gets or creates an SQS queue with the specified name and visibility timeout.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="queueName"></param>
+    /// <param name="visibilityTimeout"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<string> GetQueueAsync(this IAmazonSQS sqsClient,
+                                                              EvDbSinkTarget queueName,
+                                                              TimeSpan visibilityTimeout,
+                                                              CancellationToken cancellationToken = default)
+    {
+        return await sqsClient.GetQueueAsync(queueName, visibilityTimeout, null, cancellationToken);
+    }
+
+    #endregion //  Overloads
+
+    /// <summary>
+    /// Gets or creates an SQS queue with the specified name and visibility timeout.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="queueName"></param>
+    /// <param name="visibilityTimeout"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<string> GetQueueAsync(this IAmazonSQS sqsClient,
+                                                              EvDbSinkTarget queueName,
+                                                              TimeSpan visibilityTimeout,
+                                                              ms.ILogger? logger = null,
+                                                              CancellationToken cancellationToken = default)
+    {
+        string? queueUrl = await sqsClient.TryGetQueueAsync(queueName, visibilityTimeout, logger, cancellationToken);
+
+        if (queueUrl is null)
+            throw new InvalidOperationException($"SQS queue: {queueName} not found");
+
+        logger?.LogSQSQueueExists(queueUrl);
+        return queueUrl;
+    }
+
+
+    /// <summary>
+    /// Gets or creates an SQS queue with the specified name and visibility timeout.
+    /// </summary>
+    /// <param name="sqsClient"></param>
+    /// <param name="queueName"></param>
+    /// <param name="visibilityTimeout"></param>
+    /// <param name="logger"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private static async Task<string?> TryGetQueueAsync(this IAmazonSQS sqsClient,
+                                                              EvDbSinkTarget queueName,
+                                                              TimeSpan visibilityTimeout,
+                                                              ms.ILogger? logger = null,
+                                                              CancellationToken cancellationToken = default)
+    {
+        var listQueuesResponse = await sqsClient.ListQueuesAsync(new ListQueuesRequest
+        {
+            QueueNamePrefix = queueName
+        },
+        cancellationToken);
+
+        string queueUrl;
+        string? existingQueueUrl = null;
+        if (listQueuesResponse.QueueUrls is not null)
+        {
+            existingQueueUrl = listQueuesResponse.QueueUrls
+                                                    .FirstOrDefault(url => url.EndsWith($"{queueName}",
+                                                                         StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (existingQueueUrl is null)
+            return null;
+
+        queueUrl = existingQueueUrl;
+        logger?.LogSQSQueueExists(queueUrl);
+        return queueUrl;
+    }
+
+
+    #endregion //  GetQueueAsync
+
     #region SetQueueVisibilityAsync
 
     /// <summary>
@@ -256,7 +330,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="queueUrl"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private static async Task SetQueueVisibilityAsync(this AmazonSQSClient sqsClient,
+    private static async Task SetQueueVisibilityAsync(this IAmazonSQS sqsClient,
                                                       TimeSpan visibilityTimeout,
                                                       string queueUrl,
                                                       CancellationToken cancellationToken = default)
@@ -290,7 +364,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetQueueARNAsync(this AmazonSQSClient sqsClient,
+    public static async Task<string> GetQueueARNAsync(this IAmazonSQS sqsClient,
                                                       string queueUrl,
                                                       ms.ILogger? logger = null,
                                                       CancellationToken cancellationToken = default)
@@ -329,7 +403,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private static async Task SetSNSToSQSPolicyAsync(this AmazonSQSClient sqsClient,
+    private static async Task SetSNSToSQSPolicyAsync(this IAmazonSQS sqsClient,
                                                     string topicARN,
                                                     string queueURL,
                                                     string queueARN,
@@ -437,7 +511,7 @@ public static class EvDbAwsAdminExtensions
 
     public static async Task SubscribeSQSToSNSAsync(
         this AmazonSimpleNotificationServiceClient snsClient,
-        AmazonSQSClient sqsClient,
+        IAmazonSQS sqsClient,
         string topicName,
         string queueName,
         CancellationToken cancellationToken = default)
@@ -457,7 +531,7 @@ public static class EvDbAwsAdminExtensions
 
     public static async Task SubscribeSQSToSNSAsync(
         this AmazonSimpleNotificationServiceClient snsClient,
-        AmazonSQSClient sqsClient,
+        IAmazonSQS sqsClient,
         string topicName,
         string queueName,
         Action<SubscribeSQSToSNSOptions> optionsBuilder,
@@ -480,7 +554,7 @@ public static class EvDbAwsAdminExtensions
     // Original method (now private)
     private static async Task SubscribeSQSToSNSAsync(
         this AmazonSimpleNotificationServiceClient snsClient,
-        AmazonSQSClient sqsClient,
+        IAmazonSQS sqsClient,
         string topicName,
         string queueName,
         string principal = "*",
@@ -558,7 +632,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async static Task ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+    public async static Task ReceiveEvDbMessageRecordsAsync(this IAmazonSQS sqsClient,
                                                                     ITargetBlock<EvDbSQSMessageRecord> block,
                                                                     ReceiveMessageRequest receiveRequest,
                                                                     SQSMessageFormat messageFormat,
@@ -579,7 +653,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async static Task ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+    public async static Task ReceiveEvDbMessageRecordsAsync(this IAmazonSQS sqsClient,
                                                                     ITargetBlock<EvDbSQSMessageRecord> block,
                                                                     ReceiveMessageRequest receiveRequest,
                                                                     SQSMessageFormat messageFormat,
@@ -611,7 +685,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+    public static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this IAmazonSQS sqsClient,
                                                                     ReceiveMessageRequest receiveRequest,
                                                                     SQSMessageFormat messageFormat,
                                                                     ms.ILogger logger,
@@ -632,7 +706,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this AmazonSQSClient sqsClient,
+    public async static IAsyncEnumerable<EvDbSQSMessageRecord> ReceiveEvDbMessageRecordsAsync(this IAmazonSQS sqsClient,
                                                                     ReceiveMessageRequest receiveRequest,
                                                                     SQSMessageFormat messageFormat,
                                                                     JsonSerializerOptions? serializerOptions,
@@ -678,7 +752,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="sqsClient"></param>
     /// <param name="messageFormat"></param>
     /// <returns></returns>
-    public static SQSReceiveBuilderInit CreateSQSReceiveBuilder(this AmazonSQSClient sqsClient, SQSMessageFormat messageFormat)
+    public static SQSReceiveBuilderInit CreateSQSReceiveBuilder(this IAmazonSQS sqsClient, SQSMessageFormat messageFormat)
         => new SQSReceiveBuilderInit(sqsClient, messageFormat);
 
     #endregion //  CreateSQSReceiveBuilder
@@ -690,10 +764,10 @@ public static class EvDbAwsAdminExtensions
     /// </summary>
     public readonly record struct SQSReceiveBuilderInit
     {
-        private readonly AmazonSQSClient _sqsClient;
+        private readonly IAmazonSQS _sqsClient;
         private readonly SQSMessageFormat _messageFormat;
 
-        public SQSReceiveBuilderInit(AmazonSQSClient sqsClient, SQSMessageFormat messageFormat)
+        public SQSReceiveBuilderInit(IAmazonSQS sqsClient, SQSMessageFormat messageFormat)
         {
             _sqsClient = sqsClient;
             _messageFormat = messageFormat;
@@ -766,7 +840,7 @@ public static class EvDbAwsAdminExtensions
     /// </summary>
     public readonly record struct SQSReceiveBuilder
     {
-        public SQSReceiveBuilder(AmazonSQSClient sqsClient,
+        public SQSReceiveBuilder(IAmazonSQS sqsClient,
                                      SQSMessageFormat messageFormat,
                                      ReceiveMessageRequest request)
         {
@@ -776,7 +850,7 @@ public static class EvDbAwsAdminExtensions
         }
 
 
-        public AmazonSQSClient SqsClient { get; init; }
+        public IAmazonSQS SqsClient { get; init; }
 
         public ReceiveMessageRequest Request { get; init; }
 
