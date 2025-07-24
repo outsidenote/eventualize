@@ -12,7 +12,6 @@ using EvDb.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Xunit.Abstractions;
@@ -191,7 +190,7 @@ public abstract class KafkaSinkBaseTests : BaseIntegrationTests
 
             using var consumer = new ConsumerBuilder<string, string>(kafkaConfig).Build();
             consumer.Subscribe(topic);
-            
+
             try
             {
                 while (received.Count < limit && !cancellationToken.IsCancellationRequested)

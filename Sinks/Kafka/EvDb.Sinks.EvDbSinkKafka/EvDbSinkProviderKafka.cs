@@ -2,7 +2,6 @@
 using Confluent.Kafka;
 using EvDb.Core;
 using EvDb.Core.Adapters;
-using EvDb.Sinks.Internals;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
@@ -74,7 +73,7 @@ internal class EvDbSinkProviderKafka : IEvDbMessagesSinkPublishProvider
         // Send the message
         DeliveryResult<string, string> response;
         try
-        {           
+        {
             response = await _producer.ProduceAsync(target.Value, kafkaMsg, cancellationToken);
 
             _logger.LogPublished(target, message.Id, response.Message.Key, response.Status.ToString(), response.Offset.Value);

@@ -3,8 +3,8 @@ using EvDb.Core.Adapters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using static EvDb.Sinks.EvDbSinkTelemetry;
 using static EvDb.Core.Internals.OtelConstants;
+using static EvDb.Sinks.EvDbSinkTelemetry;
 
 namespace EvDb.Sinks.Processing;
 

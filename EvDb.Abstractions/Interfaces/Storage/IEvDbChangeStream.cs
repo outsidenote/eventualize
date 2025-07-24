@@ -33,7 +33,7 @@ public interface IEvDbChangeStream
     {
         await foreach (ActivityBag<EvDbMessageRecord> record in this.GetRecordsFromOutboxAsync(shard, filter, options, cancellation))
         {
-            ActivityBag<EvDbMessage> message = new (record.Activity, record.Value);
+            ActivityBag<EvDbMessage> message = new(record.Activity, record.Value);
             yield return message;
         }
     }

@@ -86,7 +86,7 @@ internal sealed class EvDbRelationalStorageAdmin : IEvDbStorageAdmin
         var commands = await _commandsTask;
         try
         {
-               await commands.DisposeAsync();
+            await commands.DisposeAsync();
         }
         catch
         {

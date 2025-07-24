@@ -203,7 +203,7 @@ public static class TelemetryExtensions
 
             foreach (var link in Links)
             {
-                activity?.AddLink( new ActivityLink(link));
+                activity?.AddLink(new ActivityLink(link));
             }
 
             if (activity != null)
