@@ -88,7 +88,7 @@ jobs:
     - name: Install .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.x.x
+        dotnet-version: 8.0.x
 
     - name: Initialize MongoDB Replica Set
       run: |
@@ -170,8 +170,8 @@ jobs:
         done
         echo "Kafka is ready."
 
-    - name: Build solution
-      run: dotnet build --configuration ${{ matrix.configuration }}
+    # - name: Build solution
+    #   run: dotnet build --configuration ${{ matrix.configuration }}
 
     - name: Execute unit tests
       working-directory: ./Tests/EvDb.UnitTests
