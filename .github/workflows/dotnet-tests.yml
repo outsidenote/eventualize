@@ -90,6 +90,9 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: Build solution
+      run: dotnet build --configuration ${{ matrix.configuration }}
+
     - name: Initialize MongoDB Replica Set
       run: |
         # Stop the default MongoDB instance
