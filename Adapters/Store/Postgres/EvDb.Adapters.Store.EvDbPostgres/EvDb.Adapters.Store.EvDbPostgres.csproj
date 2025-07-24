@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
-		<PackageReference Include="Npgsql" Version="9.0.3" />
-		<PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.3" />
+		<PackageReference Include="Npgsql" Version="[9.0.3,10.0.0)" />
+		<PackageReference Include="Npgsql.OpenTelemetry" Version="[9.0.3,10.0.0)" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\EvDb.Adapters.Store.EvDbRelational\EvDb.Adapters.Store.EvDbRelational.csproj" />

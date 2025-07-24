@@ -11,30 +11,30 @@
 
 	<ItemGroup>
 		<Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
-		<!--<PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />-->
-		<PackageReference Include="Cocona" Version="2.2.0" />
-		<PackageReference Include="FakeItEasy" Version="8.3.0" />
-		<PackageReference Include="FakeItEasy.Analyzer.CSharp" Version="6.1.1">
+		<!--<PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="[9.0.0,)" />-->
+		<PackageReference Include="Cocona" Version="[2.2.0,)" />
+		<PackageReference Include="FakeItEasy" Version="[8.3.0,)" />
+		<PackageReference Include="FakeItEasy.Analyzer.CSharp" Version="[6.1.1,)">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.7" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.7" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
-		<PackageReference Include="Riok.Mapperly" Version="4.2.1" />
-		<PackageReference Include="System.Linq.Async" Version="6.0.3" />
-		<PackageReference Include="Testcontainers.MongoDb" Version="4.6.0" />
-		<PackageReference Include="Testcontainers.MsSql" Version="4.6.0" />
-		<PackageReference Include="Testcontainers.PostgreSql" Version="4.6.0" />
-		<PackageReference Include="xunit" Version="2.9.3" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.3">
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="[9.0.4,)" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="[9.0.7,10.0.0)" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="[9.0.7,10.0.0)" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="[9.0.7,10.0.0)" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="[17.14.1,)" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="[1.12.0,)" />
+		<PackageReference Include="Riok.Mapperly" Version="[4.2.1,)" />
+		<PackageReference Include="System.Linq.Async" Version="[6.0.3,)" />
+		<PackageReference Include="Testcontainers.MongoDb" Version="[4.6.0,)" />
+		<PackageReference Include="Testcontainers.MsSql" Version="[4.6.0,)" />
+		<PackageReference Include="Testcontainers.PostgreSql" Version="[4.6.0,)" />
+		<PackageReference Include="xunit" Version="[2.9.3,)" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="[3.1.3,)">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="coverlet.collector" Version="6.0.4">
+		<PackageReference Include="coverlet.collector" Version="[6.0.4,)">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
@@ -64,15 +64,15 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
-		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
-		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
-		<PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="0.5.0-beta.7" />
-		<PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.9.0-beta.1" />
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="[1.12.0,)" />
+		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="[1.12.0,)" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="[1.12.0,)" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="[0.5.0-beta.7,)" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="[1.9.0-beta.1,)" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="[8.0.0,)" />
 	</ItemGroup>
 
 </Project>
