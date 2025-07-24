@@ -36,7 +36,7 @@ public static class StoreTelemetryExtensions
     {
         ActivityContext telemetryContext = message.TelemetryContext.ToTelemetryContext();
         var activity = StoreTrace.StartActivity(ActivityKind.Consumer,
-                                    name: "EvDb.ReadOutboxItem",
+                                    name: "EvDb.Consume.Outbox",
                                     links: new[] { new ActivityLink(telemetryContext) },
                                     tags: message.ToTelemetryTags(shard)
                                                  .Add(TAG_STORAGE_TYPE_NAME, databaseType));
