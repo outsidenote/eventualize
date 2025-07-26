@@ -88,10 +88,10 @@ jobs:
     - name: Install .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x
 
     - name: Build solution
-      run: dotnet build EvDb.sln --configuration ${{ matrix.configuration }}
+      run: dotnet build -c ${{ matrix.configuration }}
 
     - name: Initialize MongoDB Replica Set
       run: |
@@ -175,7 +175,7 @@ jobs:
 
     - name: Execute unit tests
       working-directory: ./Tests/EvDb.UnitTests
-      run: dotnet test --filter Category!=Stress --no-build
+      run: dotnet test --filter Category!=Stress --no-build --no-restore 
 
     - name: Execute Postgres Integration tests
       working-directory: ./Tests/EvDb.IntegrationTests
