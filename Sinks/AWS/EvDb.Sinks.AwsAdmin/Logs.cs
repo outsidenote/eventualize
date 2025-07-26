@@ -39,4 +39,14 @@ internal static partial class Logs
     [LoggerMessage(LogLevel.Debug, "ReceivedFromSQS | EvDB: Id:{evDbId} StreamType:{streamType}, StreamId:{streamId}, Offset:{offset}, MessageType:{messageType}, Channel:{channel} | SQS: Queue:{queue}, MessageId: {sqsId}")]
     public static partial void LogReceivedFromSQS(this ILogger logger, string queue, string sqsId, Guid evDbId, string streamType, string streamId, long offset, string messageType, string channel);
 
+    [LoggerMessage(LogLevel.Debug, """
+                    SNS topic [{topicName}] created successfully.
+                    """)]
+    public static partial void LogSNSTopicCreated(this ILogger logger,
+                                                  string topicName);
+    [LoggerMessage(LogLevel.Debug, """
+                    SNS topic [{topicName}] exist.
+                    """)]
+    public static partial void LogSNSTopicExists(this ILogger logger,
+                                                  string topicName);
 }

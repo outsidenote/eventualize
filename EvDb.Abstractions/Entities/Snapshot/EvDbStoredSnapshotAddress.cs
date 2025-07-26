@@ -87,7 +87,7 @@ public partial record EvDbStoredSnapshotData(
             string ViewName,
             long Offset,
             long StoreOffset,
-            byte[] State) : EvDbStoredSnapshotDataBase(Id, StreamType, StreamId, ViewName, Offset, StoreOffset) 
+            byte[] State) : EvDbStoredSnapshotDataBase(Id, StreamType, StreamId, ViewName, Offset, StoreOffset)
 {
     public EvDbStoredSnapshotData(
             EvDbViewAddress address,

@@ -160,7 +160,7 @@ internal sealed class EvDbMongoDBStorageAdapter : IEvDbStorageStreamAdapter, IEv
                     using var activity = message.StartFetchFromOutboxActivity(shard, "MongoDB");
                     _logger.LogFetchedFromOutbox(message.Id, message.StreamType, message.StreamId, message.Offset, message.EventType, message.Channel, shard.Value);
 
-                    yield return new (activity, message);
+                    yield return new(activity, message);
 
                     #region ManageDuplicationList
 

@@ -54,4 +54,3 @@ public readonly record struct OtelTags : IEnumerable<KeyValuePair<string, object
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-    

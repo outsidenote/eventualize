@@ -14,7 +14,7 @@ services.AddEvDbSqlServerStoreAdmin();
 services.AddEvDb()
         .AddDemoStreamFactory(c => c.UseSqlServerStoreForEvDbStream())
         .DefaultSnapshotConfiguration(c => c.UseMongoDBForEvDbSnapshot(),
-                                    EvDbStorageContext.CreateWithEnvironment("tests",schema: "default"));
+                                    EvDbStorageContext.CreateWithEnvironment("tests", schema: "default"));
 builder.AddOtel();
 services.AddSingleton(Channel.CreateUnbounded<DemoOptions>());
 

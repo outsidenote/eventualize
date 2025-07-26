@@ -10,7 +10,7 @@ public static class TelemetryKafkaExtensions
     public static TracerProviderBuilder AddEvDbSinkKafkaInstrumentation(this TracerProviderBuilder builder)
     {
         builder.AddSource(OtelSinkTrace.Name)
-               .AddSource("Confluent.Kafka.Extensions.Diagnostics"); 
+               .AddSource("Confluent.Kafka.Extensions.Diagnostics");
         return builder;
     }
 

@@ -18,7 +18,6 @@ using static EvDb.Sinks.EvDbSinkTelemetry;
 using ms = Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using EvDb.Sinks.Internals;
 using static EvDb.Core.Internals.OtelConstants;
 using System.Threading.Tasks.Dataflow;
 

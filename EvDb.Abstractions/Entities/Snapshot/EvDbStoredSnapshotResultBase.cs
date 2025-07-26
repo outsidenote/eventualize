@@ -14,7 +14,7 @@ public partial record EvDbStoredSnapshotResultBase
         StoredAt = storedAt;
     }
 
-    public static readonly EvDbStoredSnapshotResultBase None = new (0, null);
+    public static readonly EvDbStoredSnapshotResultBase None = new(0, null);
 
     public long Offset { get; init; }
     public DateTimeOffset? StoredAt { get; init; }

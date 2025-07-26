@@ -736,7 +736,7 @@ public partial class EvDbGenerator : BaseGenerator
             ? factoryOriginName
             : $"EvDb{factoryOriginName}";
         }
-        else 
+        else
         {
             factoryName = $"{customStreamName}Factory";
         }

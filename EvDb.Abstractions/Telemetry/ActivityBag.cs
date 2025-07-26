@@ -1,5 +1,4 @@
-﻿using EvDb.Core.Adapters;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace EvDb.Core;
 
@@ -15,8 +14,8 @@ public readonly record struct ActivityBag<T>(Activity? Activity, T Value)
     public static implicit operator T?(ActivityBag<T> source) => source.Value;
 
     public void SetAsCurrentActivity()
-    { 
-        if(Activity is not null)
+    {
+        if (Activity is not null)
         {
             Activity.Current = Activity;
         }

@@ -73,7 +73,7 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
 
     #region GetMessagesAsync
 
-    IAsyncEnumerable<ActivityBag<EvDbMessageRecord> > IEvDbChangeStream.GetRecordsFromOutboxAsync(
+    IAsyncEnumerable<ActivityBag<EvDbMessageRecord>> IEvDbChangeStream.GetRecordsFromOutboxAsync(
                                 EvDbShardName shard,
                                 EvDbMessageFilter filter,
                                 EvDbContinuousFetchOptions? options,
@@ -147,7 +147,7 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (!_snapshotStorage.Store.TryGetValue(viewAddress, out IImmutableList<EvDbStoredSnapshotData>? storedSnapshot))
             return EvDbStoredSnapshotResult.Empty;
         var last = storedSnapshot[^1];
-        EvDbStoredSnapshotResult result = new (
+        EvDbStoredSnapshotResult result = new(
             last.Offset,
             last.StoredAt,
             last.State);

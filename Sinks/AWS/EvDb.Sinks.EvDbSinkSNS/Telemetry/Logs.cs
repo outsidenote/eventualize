@@ -14,4 +14,10 @@ internal static partial class Logs
                     """)]
     public static partial void LogSNSTopicExists(this ILogger logger,
                                                   string topicName);
+
+    [LoggerMessage(LogLevel.Debug, """
+                    SNS topic [{topicName}] created successfully.
+                    """)]
+    public static partial void LogSNSTopicCreated(this ILogger logger,
+                                              string topicName);
 }

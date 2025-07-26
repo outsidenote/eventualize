@@ -418,7 +418,7 @@ public abstract class EvDbRelationalStorageAdapter :
 
                 using var activity = m.StartFetchFromOutboxActivity(shard, DatabaseType);
                 _logger.LogFetchedFromOutbox(m.Id, m.StreamType, m.StreamId, m.Offset, m.EventType, m.Channel, shard.Value);
-                yield return new (activity, m);
+                yield return new(activity, m);
 
                 #region ManageDuplicationList
 

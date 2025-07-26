@@ -14,9 +14,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-		<PackageReference Include="MongoDB.Driver" Version="3.2.0" />
+		<PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+		<PackageReference Include="MongoDB.Driver" Version="3.4.1" />
 		<PackageReference Include="xunit.assert" Version="2.9.3" />
 	</ItemGroup>
 </Project>

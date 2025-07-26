@@ -46,7 +46,7 @@
 //        builder.Logging.ClearProviders();
 //        builder.Logging.AddProvider(new XUnitLoggerProvider(_output));
 //        builder.Logging.SetMinimumLevel(LogLevel.Debug);
-       
+
 //        #region Kafka
 
 //        services.AddSingleton<IProducer<string, string>>(sp =>
@@ -86,7 +86,7 @@
 //        var cancellationToken = cts.Token;
 
 //        // TBD: Should it be EvDbMessage centric
-       
+
 //        // sink messages from outbox
 //        Task _ = publisher.PublishMessageToSinkAsync( /*message?*/,cancellationToken);
 //        ConsumerConfig kafkaConfig = GetKafkaConfig(TOPIC_NAME);
@@ -129,7 +129,7 @@
 
 //            using var consumer = new ConsumerBuilder<string, string>(kafkaConfig).Build();
 //            consumer.Subscribe(topic);
-            
+
 //            try
 //            {
 //                while (received.Count < limit && !cancellationToken.IsCancellationRequested)

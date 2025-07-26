@@ -2,7 +2,6 @@
 
 namespace EvDb.Core.Tests;
 
-using EvDb.Core.Adapters;
 using Xunit.Abstractions;
 
 [Trait("Kind", "Integration")]

@@ -4,7 +4,7 @@
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using EvDb.Sinks;
-using EvDb.Sinks.Internals;
+using EvDb.Sinks.EvDbSinkSNS;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 

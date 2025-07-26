@@ -306,7 +306,7 @@ internal static class Steps
         STATE_TYPE state = new STATE_TYPE() { Students = [stat] };
         byte[] json = JsonSerializer.SerializeToUtf8Bytes(state, options);
         EvDbStoredSnapshotResult snp =
-            new EvDbStoredSnapshotResult(offset, null , json);
+            new EvDbStoredSnapshotResult(offset, null, json);
         return snp;
     }
 
