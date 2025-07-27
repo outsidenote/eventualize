@@ -93,6 +93,10 @@ jobs:
     - name: Build solution
       run: dotnet build -c ${{ matrix.configuration }}
 
+    - name: Execute unit tests
+      # working-directory: ./Tests/EvDb.UnitTests
+      run: dotnet test Tests\EvDb.UnitTests\EvDb.UnitTests.csproj --filter Category!=Stress --no-build --no-restore 
+
     - name: Initialize MongoDB Replica Set
       run: |
         # Stop the default MongoDB instance
@@ -172,10 +176,6 @@ jobs:
           sleep 2
         done
         echo "Kafka is ready."
-
-    - name: Execute unit tests
-      # working-directory: ./Tests/EvDb.UnitTests
-      run: dotnet test Tests\EvDb.UnitTests\EvDb.UnitTests.csproj --filter Category!=Stress --no-build --no-restore 
 
     - name: Execute Postgres Integration tests
       # working-directory: ./Tests/EvDb.IntegrationTests
