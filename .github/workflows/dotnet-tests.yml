@@ -95,7 +95,7 @@ jobs:
 
     - name: Execute unit tests
       # working-directory: ./Tests/EvDb.UnitTests
-      run: dotnet test ./Tests/EvDb.UnitTests/EvDb.UnitTests.csproj --filter Category!=Stress --no-build --no-restore 
+      run: dotnet test ./Tests/EvDb.UnitTests --filter Category!=Stress --no-build --no-restore 
 
     - name: Initialize MongoDB Replica Set
       run: |
