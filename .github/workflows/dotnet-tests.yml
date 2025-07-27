@@ -93,7 +93,7 @@ jobs:
     - name: Run Unit Tests
       run: |
         dotnet build -c ${{ matrix.configuration }}
-        dotnet test ./Tests/EvDb.UnitTests/EvDb.UnitTests.csproj --filter "Category!=Stress" --no-build
+        dotnet test ./Tests/EvDb.UnitTests/EvDb.UnitTests.csproj -c ${{ matrix.configuration }} --filter "Category!=Stress" --no-build
 
 #    - name: Initialize MongoDB Replica Set
 #      run: |
