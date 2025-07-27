@@ -15,68 +15,65 @@ jobs:
     runs-on: ubuntu-latest  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
-    services:
-      mssql:
-        image: mcr.microsoft.com/mssql/server:2022-latest
-        env:
-          ACCEPT_EULA: 1
-          SA_PASSWORD: MasadNetunim12!@
-        ports:
-          - 1433:1433
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: MasadNetunim12!@
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-      mongodb:
-        image: mongo:8
-        ports:
-          - 27017:27017
-        env:
-          MONGO_INITDB_DATABASE: evdb
-        options: >-
-          --name mongodb-event-source
-          --health-cmd="echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
-          --health-interval=10s
-          --health-timeout=10s
-          --health-retries=5
-          --health-start-period=40s
-        # command: mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
-      localstack:
-        image: localstack/localstack:latest
-        env:
-          SERVICES: sqs,sns
-          DEBUG: 1
-          DOCKER_HOST: unix:///var/run/docker.sock
-          AWS_ACCESS_KEY_ID: test
-          AWS_SECRET_ACCESS_KEY: test
-          AWS_DEFAULT_REGION: us-east-1
-        ports:
-          - 4566:4566
-          
-      # Kafka service - will be started after initialization in a step
-      kafka:
-        image: confluentinc/cp-kafka:7.5.0
-        ports:
-          - "9092:9092"
-        env:
-          KAFKA_NODE_ID: 1
-          KAFKA_PROCESS_ROLES: broker,controller # Key difference for KRaft
-          KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-          KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
-          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-          KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-          KAFKA_CONTROLLER_LISTENER_NAMES: PLAINTEXT
-          KAFKA_LOG_DIRS: /var/lib/kafka/data # Use a persistent path for Kafka data
-          KAFKA_METADATA_LOG_DIR: /var/lib/kafka/metadata # Use a persistent path for Kafka metadata
-          KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-          KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-          KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-          # KAFKA_CLUSTER_ID will be set by the initialization step          
+    # services:
+    #   mssql:
+    #     image: mcr.microsoft.com/mssql/server:2022-latest
+    #     env:
+    #       ACCEPT_EULA: 1
+    #       SA_PASSWORD: MasadNetunim12!@
+    #     ports:
+    #       - 1433:1433
+    #   postgres:
+    #     image: postgres:15
+    #     env:
+    #       POSTGRES_USER: test_user
+    #       POSTGRES_PASSWORD: MasadNetunim12!@
+    #       POSTGRES_DB: test_db
+    #     ports:
+    #       - 5432:5432
+    #   mongodb:
+    #     image: mongo:8
+    #     ports:
+    #       - 27017:27017
+    #     env:
+    #       MONGO_INITDB_DATABASE: evdb
+    #     options: >-
+    #       --name mongodb-event-source
+    #       --health-cmd="echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
+    #       --health-interval=10s
+    #       --health-timeout=10s
+    #       --health-retries=5
+    #       --health-start-period=40s
+    #   localstack:
+    #     image: localstack/localstack:latest
+    #     env:
+    #       SERVICES: sqs,sns
+    #       DEBUG: 1
+    #       DOCKER_HOST: unix:///var/run/docker.sock
+    #       AWS_ACCESS_KEY_ID: test
+    #       AWS_SECRET_ACCESS_KEY: test
+    #       AWS_DEFAULT_REGION: us-east-1
+    #     ports:
+    #       - 4566:4566
+    #       
+    #   kafka:
+    #     image: confluentinc/cp-kafka:7.5.0
+    #     ports:
+    #       - "9092:9092"
+    #     env:
+    #       KAFKA_NODE_ID: 1
+    #       KAFKA_PROCESS_ROLES: broker,controller # Key difference for KRaft
+    #       KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+    #       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+    #       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+    #       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+    #       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    #       KAFKA_CONTROLLER_LISTENER_NAMES: PLAINTEXT
+    #       KAFKA_LOG_DIRS: /var/lib/kafka/data # Use a persistent path for Kafka data
+    #       KAFKA_METADATA_LOG_DIR: /var/lib/kafka/metadata # Use a persistent path for Kafka metadata
+    #       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    #       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    #       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
     steps:
     - name: Checkout
@@ -90,137 +87,140 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
-    - name: Build solution
-      run: dotnet build -c ${{ matrix.configuration }}
+    # - name: Build solution
+    #   run: dotnet build -c ${{ matrix.configuration }}
 
     - name: Run Unit Tests
-      run: dotnet test ./Tests/EvDb.UnitTests/EvDb.UnitTests.csproj --filter "Category!=Stress" --no-build
-
-    - name: Initialize MongoDB Replica Set
       run: |
-        # Stop the default MongoDB instance
-        docker stop mongodb-event-source
-        
-        # Start MongoDB with replica set configuration
-        docker run -d --name mongodb-replica -p 27017:27017 \
-          -e MONGO_INITDB_DATABASE=evdb \
-          mongo:8 mongod --bind_ip_all --replSet rs0
-        
-        # Wait for MongoDB to become available
-        sleep 10
-        
-        # Initialize the replica set
-        docker exec mongodb-replica mongosh --eval "
-          rs.initiate({
-            _id: 'rs0',
-            members: [
-              { _id: 0, host: 'localhost:27017' }
-            ]
-          })
-        "
-        
-        # Wait for the replica set to initialize
-        sleep 5
+        dotnet build -c ${{ matrix.configuration }}
+        dotnet test ./Tests/EvDb.UnitTests/EvDb.UnitTests.csproj --filter "Category!=Stress" --no-build
 
-    - name: Initialize Kafka KRaft Storage
-      run: |
-        # Generate a random cluster ID
-        KAFKA_CLUSTER_ID=$(docker run --rm confluentinc/cp-kafka:7.5.0 kafka-storage random-uuid)
-        echo "Generated KRaft Cluster ID: $KAFKA_CLUSTER_ID"
-
-        # Format Kafka storage using a temporary container to access kafka-storage tool
-        # We mount the same volume paths that the 'kafka' service will use
-        docker run --rm \
-          -v /var/lib/kafka/data:/var/lib/kafka/data \
-          -v /var/lib/kafka/metadata:/var/lib/kafka/metadata \
-          confluentinc/cp-kafka:7.5.0 kafka-storage format \
-          -t "$KAFKA_CLUSTER_ID" \
-          -c /etc/kafka/kraft/server.properties \
-          --ignore-formatted
-        echo "Kafka KRaft storage formatted."
-      env:
-        # These are usually available by default, but explicitly setting for clarity
-        DOCKER_HOST: unix:///var/run/docker.sock
-
-    - name: Wait for Services to be Ready
-      run: |
-        echo "Waiting for SQL Server to be ready..."
-        for i in $(seq 1 60); do
-          docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P MasadNetunim12!@ -Q "SELECT 1" > /dev/null 2>&1 && break
-          echo "SQL Server not ready yet... ($i/60)"
-          sleep 2
-        done
-        echo "SQL Server is ready."
-
-        echo "Waiting for Postgres to be ready..."
-        for i in $(seq 1 30); do
-          docker exec postgres pg_isready -U test_user -d test_db > /dev/null 2>&1 && break
-          echo "Postgres not ready yet... ($i/30)"
-          sleep 2
-        done
-        echo "Postgres is ready."
-
-        echo "Waiting for LocalStack to be ready..."
-        for i in $(seq 1 30); do
-          curl -s http://localhost:4566/health > /dev/null 2>&1 && break
-          echo "LocalStack not ready yet... ($i/30)"
-          sleep 2
-        done
-        echo "LocalStack is ready."
-
-        echo "Waiting for Kafka to be ready..."
-        for i in $(seq 1 60); do
-          docker run --network container:kafka --rm confluentinc/cp-kafka:7.5.0 kafka-topics --bootstrap-server localhost:29092 --list > /dev/null 2>&1 && break
-          echo "Kafka not ready yet... ($i/60)"
-          sleep 2
-        done
-        echo "Kafka is ready."
-
-    - name: Execute Postgres Integration tests
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres" --no-build --no-restore
-
-    - name: Execute Postgres Integration tests (sink)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres:sink" --no-build --no-restore
-
-    - name: Execute Postgres Integration tests (stress)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres:stress" --no-build --no-restore
-
-    - name: Execute Postgres Integration tests (otel)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres:otel" --no-build --no-restore
-
-    - name: Execute SqlServer Integration tests
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer" --no-build --no-restore
-
-    - name: Execute SqlServer Integration tests (sink)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer:sink" --no-build --no-restore
-
-    - name: Execute SqlServer Integration tests (stress)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer:stress" --no-build --no-restore
-
-    - name: Execute SqlServer Integration tests (otel)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer:otel" --no-build --no-restore
-
-    - name: Execute MongoDB Integration tests
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB" --no-build --no-restore
-
-    - name: Execute MongoDB Integration tests (sink)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB:sink" --no-build --no-restore
-
-    - name: Execute MongoDB Integration tests (stress)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB:stress" --no-build --no-restore
-
-    - name: Execute MongoDB Integration tests (otel)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB:otel" --no-build --no-restore
-
+#    - name: Initialize MongoDB Replica Set
+#      run: |
+#        # Stop the default MongoDB instance
+#        docker stop mongodb-event-source
+#        
+#        # Start MongoDB with replica set configuration
+#        docker run -d --name mongodb-replica -p 27017:27017 \
+#          -e MONGO_INITDB_DATABASE=evdb \
+#          mongo:8 mongod --bind_ip_all --replSet rs0
+#        
+#        # Wait for MongoDB to become available
+#        sleep 10
+#        
+#        # Initialize the replica set
+#        docker exec mongodb-replica mongosh --eval "
+#          rs.initiate({
+#            _id: 'rs0',
+#            members: [
+#              { _id: 0, host: 'localhost:27017' }
+#            ]
+#          })
+#        "
+#        
+#        # Wait for the replica set to initialize
+#        sleep 5
+#
+#    - name: Initialize Kafka KRaft Storage
+#      run: |
+#        # Generate a random cluster ID
+#        KAFKA_CLUSTER_ID=$(docker run --rm confluentinc/cp-kafka:7.5.0 kafka-storage random-uuid)
+#        echo "Generated KRaft Cluster ID: $KAFKA_CLUSTER_ID"
+#
+#        # Format Kafka storage using a temporary container to access kafka-storage tool
+#        # We mount the same volume paths that the 'kafka' service will use
+#        docker run --rm \
+#          -v /var/lib/kafka/data:/var/lib/kafka/data \
+#          -v /var/lib/kafka/metadata:/var/lib/kafka/metadata \
+#          confluentinc/cp-kafka:7.5.0 kafka-storage format \
+#          -t "$KAFKA_CLUSTER_ID" \
+#          -c /etc/kafka/kraft/server.properties \
+#          --ignore-formatted
+#        echo "Kafka KRaft storage formatted."
+#      env:
+#        # These are usually available by default, but explicitly setting for clarity
+#        DOCKER_HOST: unix:///var/run/docker.sock
+#
+#    - name: Wait for Services to be Ready
+#      run: |
+#        echo "Waiting for SQL Server to be ready..."
+#        for i in $(seq 1 60); do
+#          docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P MasadNetunim12!@ -Q "SELECT 1" > /dev/null 2>&1 && break
+#          echo "SQL Server not ready yet... ($i/60)"
+#          sleep 2
+#        done
+#        echo "SQL Server is ready."
+#
+#        echo "Waiting for Postgres to be ready..."
+#        for i in $(seq 1 30); do
+#          docker exec postgres pg_isready -U test_user -d test_db > /dev/null 2>&1 && break
+#          echo "Postgres not ready yet... ($i/30)"
+#          sleep 2
+#        done
+#        echo "Postgres is ready."
+#
+#        echo "Waiting for LocalStack to be ready..."
+#        for i in $(seq 1 30); do
+#          curl -s http://localhost:4566/health > /dev/null 2>&1 && break
+#          echo "LocalStack not ready yet... ($i/30)"
+#          sleep 2
+#        done
+#        echo "LocalStack is ready."
+#
+#        echo "Waiting for Kafka to be ready..."
+#        for i in $(seq 1 60); do
+#          docker run --network container:kafka --rm confluentinc/cp-kafka:7.5.0 kafka-topics --bootstrap-server localhost:29092 --list > /dev/null 2>&1 && break
+#          echo "Kafka not ready yet... ($i/60)"
+#          sleep 2
+#        done
+#        echo "Kafka is ready."
+#
+#    - name: Execute Postgres Integration tests
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres" --no-build --no-restore
+#
+#    - name: Execute Postgres Integration tests (sink)
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres:sink" --no-build --no-restore
+#
+#    - name: Execute Postgres Integration tests (stress)
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres:stress" --no-build --no-restore
+#
+#    - name: Execute Postgres Integration tests (otel)
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres:otel" --no-build --no-restore
+#
+#    - name: Execute SqlServer Integration tests
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer" --no-build --no-restore
+#
+#    - name: Execute SqlServer Integration tests (sink)
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer:sink" --no-build --no-restore
+#
+#    - name: Execute SqlServer Integration tests (stress)
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer:stress" --no-build --no-restore
+#
+#    - name: Execute SqlServer Integration tests (otel)
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer:otel" --no-build --no-restore
+#
+#    - name: Execute MongoDB Integration tests
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB" --no-build --no-restore
+#
+#    - name: Execute MongoDB Integration tests (sink)
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB:sink" --no-build --no-restore
+#
+#    - name: Execute MongoDB Integration tests (stress)
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB:stress" --no-build --no-restore
+#
+#    - name: Execute MongoDB Integration tests (otel)
+#      # working-directory: ./Tests/EvDb.IntegrationTests
+#      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB:otel" --no-build --no-restore
+#
+#
