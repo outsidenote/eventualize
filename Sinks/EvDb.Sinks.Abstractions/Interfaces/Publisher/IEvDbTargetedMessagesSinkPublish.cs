@@ -19,7 +19,7 @@ public interface IEvDbTargetedMessagesSinkPublish
     /// <param name="message">the payload</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task PublishMessageToSinkAsync(EvDbMessage message, CancellationToken cancellationToken = default) => 
+    Task PublishMessageToSinkAsync(EvDbMessage message, CancellationToken cancellationToken = default) =>
                                     PublishMessageToSinkAsync(message, null, cancellationToken);
 
     /// <summary>

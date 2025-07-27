@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
-		<PackageReference Include="AWSSDK.SimpleNotificationService" Version="[4.0.0.5,5.0.0.0)" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="[9.0.0,10.0.0)" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[9.0.0,10.0.0)" />
+		<PackageReference Include="AWSSDK.SimpleNotificationService" Version="[4.0.0.14,5.0.0)" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="[9.0.7,10.0.0)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[9.0.7,10.0.0)" />
 	</ItemGroup>
 
 	<ItemGroup>

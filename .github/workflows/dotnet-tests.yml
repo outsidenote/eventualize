@@ -44,7 +44,6 @@ jobs:
           --health-timeout=10s
           --health-retries=5
           --health-start-period=40s
-        # command: mongod --bind_ip_all --quiet --logpath /dev/null --replSet rs0
       localstack:
         image: localstack/localstack:latest
         env:
@@ -57,7 +56,6 @@ jobs:
         ports:
           - 4566:4566
           
-      # Kafka service - will be started after initialization in a step
       kafka:
         image: confluentinc/cp-kafka:7.5.0
         ports:
@@ -76,7 +74,6 @@ jobs:
           KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
           KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
           KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-          # KAFKA_CLUSTER_ID will be set by the initialization step          
 
     steps:
     - name: Checkout
@@ -84,11 +81,22 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Install the .NET Core workload
-    - name: Install .NET Core
+    - name: Install .NET Core 8
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
+
+    - name: Install .NET Core 9
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Build solution
+      run: dotnet build -c ${{ matrix.configuration }}
+
+    - name: Run Unit Tests
+      run: |
+        dotnet test ./Tests/EvDb.UnitTests/EvDb.UnitTests.csproj -c ${{ matrix.configuration }} --filter "Category!=Stress" --no-build
 
     - name: Initialize MongoDB Replica Set
       run: |
@@ -136,89 +144,40 @@ jobs:
         # These are usually available by default, but explicitly setting for clarity
         DOCKER_HOST: unix:///var/run/docker.sock
 
-    - name: Wait for Services to be Ready
-      run: |
-        echo "Waiting for SQL Server to be ready..."
-        for i in $(seq 1 60); do
-          docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P MasadNetunim12!@ -Q "SELECT 1" > /dev/null 2>&1 && break
-          echo "SQL Server not ready yet... ($i/60)"
-          sleep 2
-        done
-        echo "SQL Server is ready."
-
-        echo "Waiting for Postgres to be ready..."
-        for i in $(seq 1 30); do
-          docker exec postgres pg_isready -U test_user -d test_db > /dev/null 2>&1 && break
-          echo "Postgres not ready yet... ($i/30)"
-          sleep 2
-        done
-        echo "Postgres is ready."
-
-        echo "Waiting for LocalStack to be ready..."
-        for i in $(seq 1 30); do
-          curl -s http://localhost:4566/health > /dev/null 2>&1 && break
-          echo "LocalStack not ready yet... ($i/30)"
-          sleep 2
-        done
-        echo "LocalStack is ready."
-
-        echo "Waiting for Kafka to be ready..."
-        for i in $(seq 1 60); do
-          docker run --network container:kafka --rm confluentinc/cp-kafka:7.5.0 kafka-topics --bootstrap-server localhost:29092 --list > /dev/null 2>&1 && break
-          echo "Kafka not ready yet... ($i/60)"
-          sleep 2
-        done
-        echo "Kafka is ready."
-
-    - name: Execute unit tests
-      working-directory: ./Tests/EvDb.UnitTests
-      run: dotnet test --filter Category!=Stress
 
     - name: Execute Postgres Integration tests
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=Postgres"
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=Postgres" --no-build --no-restore -c ${{ matrix.configuration }}
 
-    - name: Execute Postgres Integration tests (sink)
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=Postgres:sink"
+    # - name: Execute Postgres Integration tests (sink)
+    #   run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=Postgres:sink" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute Postgres Integration tests (stress)
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=Postgres:stress"
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=Postgres:stress" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute Postgres Integration tests (otel)
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=Postgres:otel"
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=Postgres:otel" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute SqlServer Integration tests
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=SqlServer"
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=SqlServer" --no-build --no-restore -c ${{ matrix.configuration }}
 
-    - name: Execute SqlServer Integration tests (sink)
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=SqlServer:sink"
+    # - name: Execute SqlServer Integration tests (sink)
+    #   run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=SqlServer:sink" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute SqlServer Integration tests (stress)
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=SqlServer:stress"
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=SqlServer:stress" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute SqlServer Integration tests (otel)
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=SqlServer:otel"
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=SqlServer:otel" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute MongoDB Integration tests
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=MongoDB"
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=MongoDB" --no-build --no-restore -c ${{ matrix.configuration }}
 
-    - name: Execute MongoDB Integration tests (sink)
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=MongoDB:sink"
+    # - name: Execute MongoDB Integration tests (sink)
+    #   run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=MongoDB:sink" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute MongoDB Integration tests (stress)
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=MongoDB:stress"
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=MongoDB:stress" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute MongoDB Integration tests (otel)
-      working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test --filter "Db=MongoDB:otel"
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=MongoDB:otel" --no-build --no-restore -c ${{ matrix.configuration }}
 

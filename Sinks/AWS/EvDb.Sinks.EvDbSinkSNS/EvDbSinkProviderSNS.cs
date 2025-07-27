@@ -2,7 +2,6 @@
 using Amazon.SimpleNotificationService.Model;
 using EvDb.Core;
 using EvDb.Core.Adapters;
-using EvDb.Sinks.Internals;
 using Microsoft.Extensions;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;

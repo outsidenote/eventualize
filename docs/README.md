@@ -37,3 +37,9 @@ If you are interested to learn more about how you can do this, please visit the 
 ## License
 
 MIT License
+
+## Flexable References
+
+Regex Replace
+•	Find what: Version="([0-8])\.([^"]+)"
+•	Replace with: Version="[$1.$2,)"
