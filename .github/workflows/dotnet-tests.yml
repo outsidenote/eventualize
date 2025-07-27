@@ -95,7 +95,7 @@ jobs:
 
     - name: Execute unit tests
       # working-directory: ./Tests/EvDb.UnitTests
-      run: dotnet test Tests\EvDb.UnitTests\EvDb.UnitTests.csproj --filter Category!=Stress --no-build --no-restore 
+      run: dotnet test .Tests/EvDb.UnitTests/EvDb.UnitTests.csproj --filter Category!=Stress --no-build --no-restore 
 
     - name: Initialize MongoDB Replica Set
       run: |
@@ -179,49 +179,49 @@ jobs:
 
     - name: Execute Postgres Integration tests
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=Postgres" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres" --no-build --no-restore
 
     - name: Execute Postgres Integration tests (sink)
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=Postgres:sink" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres:sink" --no-build --no-restore
 
     - name: Execute Postgres Integration tests (stress)
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=Postgres:stress" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres:stress" --no-build --no-restore
 
     - name: Execute Postgres Integration tests (otel)
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=Postgres:otel" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=Postgres:otel" --no-build --no-restore
 
     - name: Execute SqlServer Integration tests
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=SqlServer" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer" --no-build --no-restore
 
     - name: Execute SqlServer Integration tests (sink)
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=SqlServer:sink" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer:sink" --no-build --no-restore
 
     - name: Execute SqlServer Integration tests (stress)
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=SqlServer:stress" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer:stress" --no-build --no-restore
 
     - name: Execute SqlServer Integration tests (otel)
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=SqlServer:otel" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=SqlServer:otel" --no-build --no-restore
 
     - name: Execute MongoDB Integration tests
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=MongoDB" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB" --no-build --no-restore
 
     - name: Execute MongoDB Integration tests (sink)
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=MongoDB:sink" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB:sink" --no-build --no-restore
 
     - name: Execute MongoDB Integration tests (stress)
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=MongoDB:stress" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB:stress" --no-build --no-restore
 
     - name: Execute MongoDB Integration tests (otel)
       # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test Tests\EvDb.IntegrationTests\EvDb.IntegrationTests.csproj --filter "Db=MongoDB:otel" --no-build --no-restore
+      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "Db=MongoDB:otel" --no-build --no-restore
 
