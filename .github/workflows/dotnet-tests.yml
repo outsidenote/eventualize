@@ -93,9 +93,8 @@ jobs:
     - name: Build solution
       run: dotnet build -c ${{ matrix.configuration }}
 
-    - name: Execute unit tests
-      # working-directory: ./Tests/EvDb.UnitTests
-      run: dotnet test ./Tests/EvDb.UnitTests --filter Category!=Stress --no-build --no-restore 
+    - name: Run Unit Tests
+      run: dotnet test ./Tests/EvDb.UnitTests/EvDb.UnitTests.csproj --filter "Category!=Stress" --no-build
 
     - name: Initialize MongoDB Replica Set
       run: |
