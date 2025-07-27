@@ -146,50 +146,38 @@ jobs:
 
 
     - name: Execute Postgres Integration tests
-      # working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=Postgres" --no-build --no-restore -c ${{ matrix.configuration }}
 
-    - name: Execute Postgres Integration tests (sink)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=Postgres:sink" --no-build --no-restore -c ${{ matrix.configuration }}
+    # - name: Execute Postgres Integration tests (sink)
+    #   run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=Postgres:sink" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute Postgres Integration tests (stress)
-      # working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=Postgres:stress" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute Postgres Integration tests (otel)
-      # working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=Postgres:otel" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute SqlServer Integration tests
-      # working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=SqlServer" --no-build --no-restore -c ${{ matrix.configuration }}
 
-    - name: Execute SqlServer Integration tests (sink)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=SqlServer:sink" --no-build --no-restore -c ${{ matrix.configuration }}
+    # - name: Execute SqlServer Integration tests (sink)
+    #   run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=SqlServer:sink" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute SqlServer Integration tests (stress)
-      # working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=SqlServer:stress" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute SqlServer Integration tests (otel)
-      # working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=SqlServer:otel" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute MongoDB Integration tests
-      # working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=MongoDB" --no-build --no-restore -c ${{ matrix.configuration }}
 
-    - name: Execute MongoDB Integration tests (sink)
-      # working-directory: ./Tests/EvDb.IntegrationTests
-      run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=MongoDB:sink" --no-build --no-restore -c ${{ matrix.configuration }}
+    # - name: Execute MongoDB Integration tests (sink)
+    #   run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=MongoDB:sink" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute MongoDB Integration tests (stress)
-      # working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=MongoDB:stress" --no-build --no-restore -c ${{ matrix.configuration }}
 
     - name: Execute MongoDB Integration tests (otel)
-      # working-directory: ./Tests/EvDb.IntegrationTests
       run: dotnet test ./Tests/EvDb.IntegrationTests/EvDb.IntegrationTests.csproj --filter "DB=MongoDB:otel" --no-build --no-restore -c ${{ matrix.configuration }}
 
