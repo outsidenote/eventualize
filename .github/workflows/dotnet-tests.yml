@@ -81,18 +81,21 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Install the .NET Core workload
-    - name: Install .NET Core
+    - name: Install .NET Core 8
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
 
-    # - name: Build solution
-    #   run: dotnet build -c ${{ matrix.configuration }}
+    - name: Install .NET Core 9
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Build solution
+      run: dotnet build -c ${{ matrix.configuration }}
 
     - name: Run Unit Tests
       run: |
-        dotnet build -c ${{ matrix.configuration }}
         dotnet test ./Tests/EvDb.UnitTests/EvDb.UnitTests.csproj -c ${{ matrix.configuration }} --filter "Category!=Stress" --no-build
 
 #    - name: Initialize MongoDB Replica Set
