@@ -349,3 +349,4 @@ dist
 .DS_Store
 /Tests/EvDb.StressTestsWebApi/appsettings.Development.json
 /docker/localstack/localstack/
+/global.json
