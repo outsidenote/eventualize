@@ -86,10 +86,10 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Install .NET Core 9
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 9.0.x
+    # - name: Install .NET Core 9
+    #   uses: actions/setup-dotnet@v3
+    #   with:
+    #     dotnet-version: 9.0.x
 
     - name: Build solution
       run: dotnet build -c ${{ matrix.configuration }}
