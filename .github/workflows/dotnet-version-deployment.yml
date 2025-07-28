@@ -65,10 +65,15 @@ jobs:
           push_options: "--no-verify"
           tagging_message: "v${{join(steps.*.outputs.version)}}"  
   
-      - name: Setup .NET
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x  
+  
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x  
   
       - name: .NET Restore dependencies
         run: dotnet restore /property:Configuration=Release 
