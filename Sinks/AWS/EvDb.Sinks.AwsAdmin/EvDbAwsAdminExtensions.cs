@@ -166,7 +166,7 @@ public static class EvDbAwsAdminExtensions
     public static async Task<string> GetOrCreateQueueAsync(this IAmazonSQS sqsClient,
                                                               EvDbSinkTarget queueName,
                                                               TimeSpan visibilityTimeout,
-                                                              ms.ILogger? logger = null,
+                                                              ms.ILogger? logger,
                                                               CancellationToken cancellationToken = default)
     {
         await _queueLock.WaitAsync(6000, cancellationToken);
