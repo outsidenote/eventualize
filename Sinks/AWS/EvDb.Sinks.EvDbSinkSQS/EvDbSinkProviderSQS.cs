@@ -35,7 +35,7 @@ internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
                                                                           JsonSerializerOptions? serializerOptions,
                                                                           CancellationToken cancellationToken)
     {
-        ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
+        ActivityContext parentContext = message.TraceParent.ToTelemetryContext();
         using var activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToSQS")
                                       .WithParent(parentContext)
                                       .WithKind(ActivityKind.Producer)

@@ -10,11 +10,11 @@ public static class EqualityHelpers
         Activity? expected)
     {
         messageRecord.TelemetryContext.AssertJsonEquals(
-            expected?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty);
+            expected?.SerializeTelemetryContext() ?? EvDbOtelTraceParent.Empty);
     }
     public static void AssertTelemetryContextEquals(
         this EvDbMessageRecord messageRecord,
-        EvDbTelemetryContextName expected)
+        EvDbOtelTraceParent expected)
     {
         messageRecord.TelemetryContext.AssertJsonEquals(expected);
     }
@@ -28,15 +28,15 @@ public static class EqualityHelpers
 
     public static void AssertTelemetryContextEquals(
         this Activity? activity,
-        EvDbTelemetryContextName expected)
+        EvDbOtelTraceParent expected)
     {
-        EvDbTelemetryContextName value = activity?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty;
+        EvDbOtelTraceParent value = activity?.SerializeTelemetryContext() ?? EvDbOtelTraceParent.Empty;
         value.AssertJsonEquals(expected);
     }
 
     public static void AssertJsonEquals(
-        this EvDbTelemetryContextName otelContext,
-        EvDbTelemetryContextName expected)
+        this EvDbOtelTraceParent otelContext,
+        EvDbOtelTraceParent expected)
     {
         bool isEquals = otelContext.JsonEquals(expected);
         Assert.True(isEquals, "OTEL Equality");

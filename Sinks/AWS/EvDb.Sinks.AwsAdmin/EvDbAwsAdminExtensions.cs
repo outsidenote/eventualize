@@ -724,7 +724,7 @@ public static class EvDbAwsAdminExtensions
                     _ => System.Text.Json.JsonSerializer.Deserialize<EvDbMessageRecord>(msg.Body, serializerOptions)
                 };
 
-                var parentContext = message.TelemetryContext.ToTelemetryContext();
+                var parentContext = message.TraceParent.ToTelemetryContext();
                 using Activity? activity = OtelSinkTrace.CreateBuilder("EvDb.ReceivedFromSQS")
                     .WithParent(parentContext, OtelParentRelation.Link)
                     .WithKind(ActivityKind.Consumer)

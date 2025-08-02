@@ -42,10 +42,10 @@ public struct EvDbEventRecord
     /// </summary>
     public DateTimeOffset CapturedAt { get; init; }
     /// <summary>
-    /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
+    /// The Trace Parent (Open Telemetry) propagated context at the persistent time.
     /// The value will be null if the Trace is null when persisting the record or before persistent.
     /// </summary>
-    public EvDbTelemetryContextName TelemetryContext { get; init; }
+    public EvDbOtelTraceParent TraceParent { get; init; }
 
     /// <summary>
     /// The time when it persist into the storage
@@ -67,7 +67,7 @@ public struct EvDbEventRecord
                     StreamCursor,
                     entity.Payload)
         {
-            TelemetryContext = entity.TelemetryContext,
+            TraceParent = entity.TraceParent,
             StoredAt = entity.StoredAt,
         };
     }
@@ -84,7 +84,7 @@ public struct EvDbEventRecord
             Payload = e.Payload,
             CapturedBy = e.CapturedBy,
             CapturedAt = e.CapturedAt,
-            TelemetryContext = e.TelemetryContext
+            TraceParent = e.TraceParent
         };
     }
 

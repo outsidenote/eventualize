@@ -94,10 +94,10 @@ internal sealed class EvDbTestingStorageAdapter : IEvDbStorageStreamAdapter, IEv
         if (events.Count == 0)
             return StreamStoreAffected.Empty;
 
-        EvDbTelemetryContextName otel = Activity.Current?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty;
-        events = events.Select(e => e with { TelemetryContext = otel })
+        EvDbOtelTraceParent otel = Activity.Current?.SerializeTelemetryContext() ?? EvDbOtelTraceParent.Empty;
+        events = events.Select(e => e with { TraceParent = otel })
                        .ToImmutableList();
-        messages = messages.Select(e => e with { TelemetryContext = otel })
+        messages = messages.Select(e => e with { TraceParent = otel })
                        .ToImmutableList();
         EvDbEvent firstEvent = events.FirstOrDefault();
         EvDbStreamCursor cursor = firstEvent.StreamCursor;

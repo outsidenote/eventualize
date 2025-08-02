@@ -45,7 +45,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         string[] eventTypes = new string[records.Length];
         DateTimeOffset[] capturedAts = new DateTimeOffset[records.Length];
         string[] capturedBys = new string[records.Length];
-        List<byte[]?> otelContexts = new();
+        List<string?> traceParent = new();
         List<byte[]> payloads = new();
 
         var otelContext = Activity.Current?.SerializeTelemetryContext();
@@ -59,7 +59,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
             eventTypes[i] = record.EventType;
             capturedBys[i] = record.CapturedBy;
             capturedAts[i] = record.CapturedAt;
-            otelContexts.Add(otelContext);
+            traceParent.Add(otelContext);
             payloads.Add(record.Payload);
         }
 
@@ -76,7 +76,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         command.Parameters.AddWithValue(Parameters.Event.EventType, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
         command.Parameters.AddWithValue(Parameters.Event.CapturedAt, NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
         command.Parameters.AddWithValue(Parameters.Event.CapturedBy, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
-        command.Parameters.AddWithValue(Parameters.Event.TelemetryContext, NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, otelContexts);
+        command.Parameters.AddWithValue(Parameters.Event.TelemetryContext, NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, traceParent);
         command.Parameters.AddWithValue(Parameters.Event.Payload, NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, payloads);
 
         #endregion //  Setup Parameters
@@ -124,7 +124,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         string[] serializationTypes = new string[records.Length];
         DateTimeOffset[] capturedAts = new DateTimeOffset[records.Length];
         string[] capturedBys = new string[records.Length];
-        List<byte[]?> otelContexts = new();
+        List<string?> traceParent = new();
         List<byte[]> payloads = new();
         for (int i = 0; i < records.Length; i++)
         {
@@ -139,7 +139,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
             messageTypes[i] = record.MessageType;
             serializationTypes[i] = record.SerializeType;
             channels[i] = record.Channel;
-            otelContexts.Add(otelContext);
+            traceParent.Add(otelContext);
             payloads.Add(record.Payload);
         }
 
@@ -159,7 +159,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         command.Parameters.AddWithValue(Parameters.Message.EventType, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
         command.Parameters.AddWithValue(Parameters.Message.CapturedAt, NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
         command.Parameters.AddWithValue(Parameters.Message.CapturedBy, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
-        command.Parameters.AddWithValue(Parameters.Message.TelemetryContext, NpgsqlTypes.NpgsqlDbType.Bytea | NpgsqlTypes.NpgsqlDbType.Array, otelContexts);
+        command.Parameters.AddWithValue(Parameters.Message.TraceParent, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, traceParent);
         command.Parameters.AddWithValue("@Payload", NpgsqlTypes.NpgsqlDbType.Bytea | NpgsqlTypes.NpgsqlDbType.Array, payloads);
 
         #endregion // Setup Parameters

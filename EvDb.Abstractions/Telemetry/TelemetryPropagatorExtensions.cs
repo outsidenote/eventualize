@@ -18,10 +18,10 @@ public static class TelemetryPropagatorExtensions
     /// <param name="activity"></param>
     /// <param name="propagator"></param>
     /// <returns></returns>
-    public static EvDbTelemetryContextName SerializeTelemetryContext(this Activity activity, TextMapPropagator? propagator = null)
+    public static EvDbOtelTraceParent SerializeTelemetryContext(this Activity activity, TextMapPropagator? propagator = null)
     {
         if (activity.Context == default)
-            return EvDbTelemetryContextName.Empty;
+            return EvDbOtelTraceParent.Empty;
 
         propagator = propagator ?? Propagator;
 
@@ -51,7 +51,7 @@ public static class TelemetryPropagatorExtensions
 
         // Return the written data as a byte array
         var span = bufferWriter.WrittenSpan;
-        var result = EvDbTelemetryContextName.FromSpan(span);
+        var result = EvDbOtelTraceParent.FromSpan(span);
         return result;
     }
 
@@ -60,35 +60,22 @@ public static class TelemetryPropagatorExtensions
     #region ToTelemetryContext
 
     /// <summary>
-    /// Extract EvDbTelemetryContextName into OTEL context
+    /// Extract EvDbOtelTraceParent into OTEL context
     /// </summary>
     /// <param name="contextData"></param>
     /// <param name="propagator"></param>
     /// <returns></returns>
-    public static ActivityContext ToTelemetryContext(this EvDbTelemetryContextName contextData, TextMapPropagator? propagator = null)
+    public static ActivityContext ToTelemetryContext(this EvDbOtelTraceParent contextData, TextMapPropagator? propagator = null)
     {
-        if (contextData == EvDbTelemetryContextName.Empty || contextData.Length == 0)
+        if (contextData == EvDbOtelTraceParent.Empty || string.IsNullOrEmpty(contextData))
             return default;
 
-        propagator = propagator ?? Propagator;
-
-        // Use a local function for the extraction delegate to improve readability and performance
-        static IEnumerable<string>? ExtractValue(JsonElement carrier, string key)
-        {
-            // Fast path check
-            if (!carrier.TryGetProperty(key, out var prop) || prop.ValueKind != JsonValueKind.String)
-                return null;
-
-            string? value = prop.GetString();
-            return string.IsNullOrEmpty(value) ? null : new[] { value };
-        }
-
-        var json = contextData.ToJson();
-
-        // Extract the propagation context with the optimized delegate
-        var propagationContext = propagator.Extract(default, json, ExtractValue);
-
-        return propagationContext.ActivityContext;
+        return ActivityContext.TryParse(
+            contextData,
+            null, // No trace state
+            out ActivityContext activityContext) ? 
+            activityContext : 
+            default;
     }
 
     #endregion //  ToTelemetryContex

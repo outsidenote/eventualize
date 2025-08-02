@@ -3,7 +3,7 @@
 namespace EvDb.Core.Adapters;
 
 /// <summary>
-/// Dapper Mappers for EvDbTelemetryContextName.
+/// Dapper Mappers for EvDbOtelTraceParent.
 /// </summary>
 internal static class DapperMappers
 {

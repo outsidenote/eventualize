@@ -36,7 +36,7 @@ internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
                                                                           JsonSerializerOptions? serializerOptions,
                                                                           CancellationToken cancellationToken)
     {
-        ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
+        ActivityContext parentContext = message.TraceParent.ToTelemetryContext();
         using var activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToSNS")
                                       .WithParent(parentContext, OtelParentRelation.Link)
                                       .WithKind(ActivityKind.Producer)

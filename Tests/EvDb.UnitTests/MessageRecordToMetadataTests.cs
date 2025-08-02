@@ -55,7 +55,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
             Payload = Encoding.UTF8.GetBytes("TestPayload"),
             CapturedBy = "TestCapturedBy",
             CapturedAt = DateTimeOffset.UtcNow,
-            TelemetryContext = activity?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty
+            TraceParent = activity?.SerializeTelemetryContext() ?? EvDbOtelTraceParent.Empty
         };
 
         IEvDbEventMeta meta = messageRecord.GetMetadata();
@@ -88,7 +88,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
             Payload = Encoding.UTF8.GetBytes("TestPayload"),
             CapturedBy = "TestCapturedBy",
             CapturedAt = DateTimeOffset.UtcNow,
-            TelemetryContext = activity?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty
+            TraceParent = activity?.SerializeTelemetryContext() ?? EvDbOtelTraceParent.Empty
         };
 
         var doc = messageRecord.EvDbToBsonDocument("shard");
@@ -143,7 +143,7 @@ public sealed class MessageRecordToMetadataTests : IDisposable
         Assert.Equal(messageRecord.CapturedBy, meta.CapturedBy);
         Assert.NotNull(messageRecord.StoredAt);
 
-        EvDbTelemetryContextName currentOtelBuffer = Activity.Current?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty;
+        EvDbOtelTraceParent currentOtelBuffer = Activity.Current?.SerializeTelemetryContext() ?? EvDbOtelTraceParent.Empty;
         meta.AssertTelemetryContextEquals(currentOtelBuffer);
     }
 

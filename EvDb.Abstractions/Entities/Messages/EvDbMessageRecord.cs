@@ -62,10 +62,10 @@ public struct EvDbMessageRecord
     public DateTimeOffset CapturedAt { get; init; }
 
     /// <summary>
-    /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
+    /// The Trace Parent (Open Telemetry) propagated context at the persistent time.
     /// The value will be null if the Trace is null when persisting the record or before persistent.
     /// </summary>
-    public EvDbTelemetryContextName TelemetryContext { get; init; }
+    public EvDbOtelTraceParent TraceParent { get; init; }
 
     /// <summary>
     /// The time when it persist into the storage
@@ -89,7 +89,7 @@ public struct EvDbMessageRecord
             Payload = m.Payload,
             CapturedBy = m.CapturedBy,
             CapturedAt = m.CapturedAt,
-            TelemetryContext = m.TelemetryContext
+            TraceParent = m.TraceParent
         };
         return result;
     }
@@ -108,7 +108,7 @@ public struct EvDbMessageRecord
             Payload = m.Payload,
             CapturedBy = m.CapturedBy,
             CapturedAt = m.CapturedAt,
-            TelemetryContext = m.TelemetryContext,
+            TraceParent = m.TraceParent,
             StoredAt = m.StoredAt
         };
         return result;
@@ -134,7 +134,7 @@ public struct EvDbMessageRecord
                                          StoredAt,
                                          CapturedBy)
         {
-            TelemetryContext = TelemetryContext
+            TraceParent = TraceParent
         };
         return result;
     }
@@ -155,7 +155,7 @@ public struct EvDbMessageRecord
         /// Json format of the Trace (Open Telemetry) propagated context at the persistent time.
         /// The value will be null if the Trace is null when persisting the record or before persistent.
         /// </summary>
-        public EvDbTelemetryContextName TelemetryContext { get; init; }
+        public EvDbOtelTraceParent TraceParent { get; init; }
     }
 
     #endregion //  readonly record EvDbMessageMeta struct(...): IEvDbMessageMeta
