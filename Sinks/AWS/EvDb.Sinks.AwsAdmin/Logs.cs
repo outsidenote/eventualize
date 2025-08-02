@@ -49,4 +49,11 @@ internal static partial class Logs
                     """)]
     public static partial void LogSNSTopicExists(this ILogger logger,
                                                   string topicName);
+
+    [LoggerMessage(LogLevel.Error, """
+                    Lacking 'sns:CreateTopic' permission. Failed to create or get topic '{TopicName}'.
+                    """)]
+    public static partial void LogFailSNSNoCreateTopicPermissionAsync(this ILogger logger,
+                                                            string TopicName,
+                                                            Exception exception);
 }
