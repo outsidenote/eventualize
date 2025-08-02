@@ -27,8 +27,8 @@ internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandl
     {
         switch (value)
         {
-            case byte[] byteArray:
-                return EvDbOtelTraceParent.FromArray(byteArray);
+            case string v:
+                return EvDbOtelTraceParent.From(v);
             default:
                 throw new DataException($"Cannot convert {value.GetType()} to EvDbOtelTraceParent");
         }

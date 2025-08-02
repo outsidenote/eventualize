@@ -76,7 +76,7 @@ internal class EvDbPostgresStorageAdapter : EvDbRelationalStorageAdapter,
         command.Parameters.AddWithValue(Parameters.Event.EventType, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, eventTypes);
         command.Parameters.AddWithValue(Parameters.Event.CapturedAt, NpgsqlTypes.NpgsqlDbType.TimestampTz | NpgsqlTypes.NpgsqlDbType.Array, capturedAts);
         command.Parameters.AddWithValue(Parameters.Event.CapturedBy, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, capturedBys);
-        command.Parameters.AddWithValue(Parameters.Event.TelemetryContext, NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, traceParent);
+        command.Parameters.AddWithValue(Parameters.Event.TraceParent, NpgsqlTypes.NpgsqlDbType.Varchar | NpgsqlTypes.NpgsqlDbType.Array, traceParent);
         command.Parameters.AddWithValue(Parameters.Event.Payload, NpgsqlTypes.NpgsqlDbType.Json | NpgsqlTypes.NpgsqlDbType.Array, payloads);
 
         #endregion //  Setup Parameters

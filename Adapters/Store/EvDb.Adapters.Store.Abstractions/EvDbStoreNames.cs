@@ -79,7 +79,7 @@ public static class EvDbStoreNames
             public static readonly string Payload = toParamName(Projection.Event.Payload);
             public static readonly string CapturedAt = toParamName(Projection.Event.CapturedAt);
             public static readonly string CapturedBy = toParamName(Projection.Event.CapturedBy);
-            public static readonly string TelemetryContext = toParamName(Projection.Event.TraceParent);
+            public static readonly string TraceParent = toParamName(Projection.Event.TraceParent);
             public static readonly string BatchSize = toParamName(nameof(EvDbGetEventsParameters.BatchSize));
             public static readonly string SinceOffset = toParamName(nameof(EvDbGetEventsParameters.SinceOffset));
         }

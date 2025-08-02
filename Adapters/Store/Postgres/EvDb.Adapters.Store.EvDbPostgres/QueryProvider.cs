@@ -98,7 +98,7 @@ internal static class QueryProvider
                     UNNEST({{Parameters.Event.CapturedAt}}), 
                     NOW() AT TIME ZONE 'UTC', 
                     UNNEST({{Parameters.Event.CapturedBy}}), 
-                    UNNEST({{Parameters.Event.TelemetryContext}}), 
+                    UNNEST({{Parameters.Event.TraceParent}}), 
                     UNNEST({{Parameters.Event.Payload}})
             """,
             SaveToOutbox = $$"""
