@@ -18,7 +18,7 @@ public static class AWSProviderFactory
         {
             ServiceURL = AWS_ENDPOINT,
             //AuthenticationRegion = REGION
-            UseHttp = true
+            UseHttp = true // UseHttp is required for LocalStack 
         };
         return new AmazonSimpleNotificationServiceClient(CREDENTIALS, config);
     }
@@ -33,7 +33,7 @@ public static class AWSProviderFactory
         {
             ServiceURL = AWS_ENDPOINT,
             // AuthenticationRegion = REGION
-            UseHttp = true
+            UseHttp = true // UseHttp is required for LocalStack 
         };
         return new AmazonSQSClient(CREDENTIALS, config);
     }
