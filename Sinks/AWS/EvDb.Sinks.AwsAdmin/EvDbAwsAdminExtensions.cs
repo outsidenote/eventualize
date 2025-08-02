@@ -76,20 +76,22 @@ public static class EvDbAwsAdminExtensions
             return cachedTopicArn!;
         }
 
-        await _streamLock.WaitAsync(6000);
+        await _streamLock.WaitAsync(6000, cancellationToken);
         try
         {
-            var listTopicsResponse = await snsClient.ListTopicsAsync(cancellationToken);
-            List<Topic> topics = listTopicsResponse.Topics ?? [];
-            string? topicArn = topics.FirstOrDefault(t =>
-                                        t.TopicArn.EndsWith(topicName, StringComparison.OrdinalIgnoreCase))
-                                         ?.TopicArn;
-
-            if (string.IsNullOrEmpty(topicArn))
+            // Double-check the cache to prevent a race condition.
+            if (_snsArnCache.TryGetValue(topicName, out cachedTopicArn))
             {
-                bool isFifo = topicName.Value.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase);
+                logger?.LogSNSTopicExists(topicName);
+                return cachedTopicArn!;
+            }
+
+            string name = topicName.Value;
+            string? topicArn = null;
+            try
+            {
+                bool isFifo = name.EndsWith(".fifo", StringComparison.OrdinalIgnoreCase);
                 var attributes = new Dictionary<string, string>();
-                string name = topicName.Value;
                 if (isFifo)
                 {
                     attributes.Add("FifoTopic", "true");
@@ -100,13 +102,14 @@ public static class EvDbAwsAdminExtensions
                     Name = name,
                     Attributes = attributes
                 };
+
                 CreateTopicResponse createTopicResponse = await snsClient.CreateTopicAsync(options, cancellationToken);
 
                 #region Validation
 
                 if (createTopicResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
                 {
-                    throw new InvalidOperationException($"Failed to create SNS topic: {name}");
+                    throw new InvalidOperationException($"Failed to create or get SNS topic: {name}");
                 }
 
                 #endregion //  Validation
@@ -114,13 +117,17 @@ public static class EvDbAwsAdminExtensions
                 topicArn = createTopicResponse.TopicArn;
                 logger?.LogSNSTopicCreated(topicName);
             }
-            else
+            catch (Amazon.SimpleNotificationService.Model.AuthorizationErrorException ex)
             {
-                logger?.LogSNSTopicExists(topicName);
-                Console.WriteLine($"Using existing SNS topic: {topicArn}");
+                logger?.LogFailSNSNoCreateTopicPermissionAsync(name, ex);
+                throw;
             }
 
-            _snsArnCache.Set(topicName, topicArn, new MemoryCacheEntryOptions { SlidingExpiration = SLIDING_CACHE_EXPIRATION });
+
+            if (!string.IsNullOrEmpty(topicArn))
+            {
+                _snsArnCache.Set(topicName, topicArn, new MemoryCacheEntryOptions { SlidingExpiration = SLIDING_CACHE_EXPIRATION });
+            }
 
             return topicArn;
         }
