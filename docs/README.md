@@ -43,3 +43,13 @@ MIT License
 Regex Replace
 •	Find what: Version="([0-8])\.([^"]+)"
 •	Replace with: Version="[$1.$2,)"
+
+## Cloud Events
+
+- [Cloud Events](https://cloudevents.io/)
+- [Cloud Events Attributes](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#required-attributes)
+- 
+
+### Http
+
+- [Http Cloud Event](https://github.com/cloudevents/spec/blob/main/cloudevents/bindings/http-protocol-binding.md)
