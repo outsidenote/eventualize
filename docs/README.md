@@ -67,13 +67,13 @@ Regex Replace
 
 | Cloud Event     | EvDbCloudEventEnvalope | EvDB Message Record   | Sample Value                                        |
 | --------------- | ---------------------- | --------------------- | --------------------------------------------------- |
-| ⁕ 1.0           |                        | specversion           |                                                     |
+| ⁕ specversion   |                        |                       | 1.0                                                 |
 | ⁕ source        | Source                 |                       | comp-name.com/domain/crew/app                       |
 | ⁕ id            |                        | Id                    |                                                     |
 | ⁕ type          |                        | MessageType           | payment_succeded.v1                                 |
 | time            |                        | CapturedAt            |                                                     |
 | datacontenttype |                        | SerializeType         | application/json                                    |
-| dataschema      | ScemaUri               | MessageType?          | https://schemamanager.comp-name/payment_succeded.v1 |
+| dataschema      | DataSchemaUri          | MessageType?          | https://schemamanager.comp-name/payment_succeded.v1 |
 | partitionkey    |                        | StreamType / StreamId |                                                     |
 | evdbchannel     |                        | Channel               |                                                     |
 | traceparent     |                        | TraceParent           |                                                     |

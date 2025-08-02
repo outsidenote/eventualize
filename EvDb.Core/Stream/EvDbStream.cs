@@ -42,13 +42,15 @@ public abstract class EvDbStream :
         IImmutableList<IEvDbViewStore> views,
         IEvDbStorageStreamAdapter storageAdapter,
         string streamId,
-        long lastStoredOffset)
+        long lastStoredOffset,
+        EvDbCloudEventContext? cloudEvent)
     {
         _logger = logger;
         _views = views;
         _storageAdapter = storageAdapter;
         StreamAddress = new EvDbStreamAddress(streamConfiguration.StreamType, streamId);
         StoredOffset = lastStoredOffset;
+        CloudEvent = cloudEvent;
         Options = streamConfiguration.Options;
         TimeProvider = streamConfiguration.TimeProvider ?? TimeProvider.System;
     }
@@ -200,6 +202,7 @@ public abstract class EvDbStream :
     #region LastStoredOffset
 
     public long StoredOffset { get; protected set; }
+    public EvDbCloudEventContext? CloudEvent { get; }
 
     #endregion // StoredOffset
 

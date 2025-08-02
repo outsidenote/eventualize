@@ -99,7 +99,7 @@ public static class EvDbSqlServerStorageAdapterDI
     /// <param name="connectionStringOrConfigurationKey"></param>
     public static void UseSqlServerChangeStream(
             this IServiceCollection services,
-            EvDbStorageContext context,
+            EvDbStorageContext? context,
             string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         services.AddSingleton((sp) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));

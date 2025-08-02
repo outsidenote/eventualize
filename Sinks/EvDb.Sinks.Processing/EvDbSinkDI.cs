@@ -159,7 +159,6 @@ public static class EvDbSinkDI
 
         IServiceCollection IEvDbServiceCollectionWrapper.Services => _services;
         string IEvDbSinkRegistration.Id => _id;
-
     }
 
     #endregion //  SinkRegistration

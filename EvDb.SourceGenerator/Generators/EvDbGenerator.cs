@@ -148,8 +148,9 @@ public partial class EvDbGenerator : BaseGenerator
                         public {{factoryOriginName}}(
                                 [FromKeyedServices("{{streamType}}")]IEvDbStorageStreamAdapter storageAdapter,                    
                     {{string.Join("", viewFactoriesCtorInjection)}}       
-                                ILogger<{{streamName}}> logger,
-                                TimeProvider? timeProvider = null) : base(logger, storageAdapter, timeProvider ?? TimeProvider.System)
+                                ILogger<{{streamName}}> logger,                    
+                                [FromKeyedServices("{{streamType}}")]EvDbCloudEventContext? cloudEventContext = null,
+                                TimeProvider? timeProvider = null) : base(logger, storageAdapter, cloudEventContext, timeProvider ?? TimeProvider.System)
                         {
                             ViewFactories = new IEvDbViewFactory[] 
                             {{{string.Join(",", viewFactoriesYield)}}       
@@ -171,7 +172,8 @@ public partial class EvDbGenerator : BaseGenerator
                         protected override {{streamName}} OnCreate(
                                 string streamId,
                                 IImmutableList<IEvDbViewStore> views,
-                                long lastStoredEventOffset)
+                                long lastStoredEventOffset,
+                                EvDbCloudEventContext? cloudEvent)
                         {
                             {{streamName}} stream =
                                 new(
@@ -180,7 +182,8 @@ public partial class EvDbGenerator : BaseGenerator
                                     views,
                                     _storageAdapter,
                                     streamId,
-                                    lastStoredEventOffset);
+                                    lastStoredEventOffset,
+                                    cloudEvent);
                     
                             return stream;
                         }
@@ -319,8 +322,9 @@ public partial class EvDbGenerator : BaseGenerator
                             IImmutableList<IEvDbViewStore> views,
                             IEvDbStorageStreamAdapter storageAdapter,
                             string streamId,
-                            long lastStoredOffset) : 
-                                base(logger, stramConfiguration, views, storageAdapter, streamId, lastStoredOffset)
+                            long lastStoredOffset,
+                            EvDbCloudEventContext? cloudEvent) : 
+                                base(logger, stramConfiguration, views, storageAdapter, streamId, lastStoredOffset, cloudEvent)
                         {
                             Views = new {{streamName}}Views(views);
                             {{setOutbox}}
@@ -633,7 +637,7 @@ public partial class EvDbGenerator : BaseGenerator
                             Action<EvDbStreamStoreRegistrationContext> registrationAction,
                             EvDbStorageContext? context = null)
                         { 
-                            IEvDbRegistrationEntry entry = instance;
+                            IEvDbStreamRegistrationEntry entry = instance;
                             IEvDbServiceCollectionWrapper svcWrp = instance;
                             IServiceCollection services = svcWrp.Services;
                             services.Add{{streamName}}ViewsFactories();
@@ -641,6 +645,8 @@ public partial class EvDbGenerator : BaseGenerator
                     {{string.Join("", addViewFactories)}}
 
                             services.Add{{lifetime}}<I{{factoryName}},{{factoryOriginName}}>();     
+                            if(entry.CloudEventContext != null)
+                                services.AddKeyed{{lifetime}}("{{streamType}}", entry.CloudEventContext);     
                         
                             var storageContext = new EvDbStreamStoreRegistrationContext(context,
                                 "{{streamType}}",

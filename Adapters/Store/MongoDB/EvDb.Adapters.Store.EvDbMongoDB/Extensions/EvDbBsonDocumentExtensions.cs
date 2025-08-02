@@ -109,7 +109,7 @@ public static class EvDbBsonDocumentExtensions
         var payload = payloadDoc.NormalizePayload(serializeType);
 
         var traceParentValue = doc.GetValue(Message.TraceParent);
-        EvDbOtelTraceParent traceParent = traceParentValue.IsBsonDocument
+        EvDbOtelTraceParent traceParent = traceParentValue.IsBsonNull
                                     ? EvDbOtelTraceParent.Empty
                                     : traceParentValue.AsString;
         var result = new EvDbMessageRecord
