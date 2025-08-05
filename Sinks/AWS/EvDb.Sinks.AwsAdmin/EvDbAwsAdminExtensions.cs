@@ -47,7 +47,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="topicName"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+    public static async Task<string> GetOrCreateTopicAsync(this IAmazonSimpleNotificationService snsClient,
                                                            EvDbSinkTarget topicName,
                                                            CancellationToken cancellationToken = default)
     {
@@ -64,7 +64,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+    public static async Task<string> GetOrCreateTopicAsync(this IAmazonSimpleNotificationService snsClient,
                                                            EvDbSinkTarget topicName,
                                                            ms.ILogger? logger = null,
                                                            CancellationToken cancellationToken = default)
