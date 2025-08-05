@@ -28,7 +28,7 @@ internal static class EvDbSNSExtensions
     /// <param name="topicName"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+    public static async Task<string> GetOrCreateTopicAsync(this IAmazonSimpleNotificationService snsClient,
                                                            EvDbSinkTarget topicName,
                                                            CancellationToken cancellationToken = default)
     {
@@ -45,7 +45,7 @@ internal static class EvDbSNSExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+    public static async Task<string> GetOrCreateTopicAsync(this IAmazonSimpleNotificationService snsClient,
                                                            EvDbSinkTarget topicName,
                                                            ILogger? logger = null,
                                                            CancellationToken cancellationToken = default)

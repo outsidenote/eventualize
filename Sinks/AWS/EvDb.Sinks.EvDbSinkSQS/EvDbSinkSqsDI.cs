@@ -24,7 +24,7 @@ public static class EvDbSinkSQSDI
     /// <returns></returns>
     public static IEvDbSinkRegistration SendToSQS(
                             this IEvDbSinkRegistration registration,
-                            AmazonSQSClient client,
+                            IAmazonSQS client,
                             string queueName)
     {
         var services = registration.Services;

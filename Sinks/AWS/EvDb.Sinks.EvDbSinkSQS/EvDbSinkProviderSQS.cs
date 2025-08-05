@@ -17,12 +17,12 @@ namespace EvDb.Sinks.EvDbSinkSQS;
 internal class EvDbSinkProviderSQS : IEvDbMessagesSinkPublishProvider
 {
     private readonly ILogger<EvDbSinkProviderSQS> _logger;
-    private readonly AmazonSQSClient _client;
+    private readonly IAmazonSQS _client;
     private readonly IEvDbSinkSQSMeters _meters;
     private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
     public EvDbSinkProviderSQS(ILogger<EvDbSinkProviderSQS> logger,
-                               AmazonSQSClient client,
+                               IAmazonSQS client,
                                IEvDbSinkSQSMeters meters)
     {
         _logger = logger;

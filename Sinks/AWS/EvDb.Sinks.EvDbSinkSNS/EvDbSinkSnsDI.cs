@@ -14,7 +14,7 @@ public static class EvDbSinkSNSDI
     private const string PROVIDER_KEY = "SNS";
 
     public static IEvDbSinkRegistration SendToSNS(this IEvDbSinkRegistration registration,
-                                                  AmazonSimpleNotificationServiceClient client,
+                                                  IAmazonSimpleNotificationService client,
                                                   EvDbSinkTarget topicName)
     {
         var services = registration.Services;
