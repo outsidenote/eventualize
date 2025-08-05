@@ -19,6 +19,40 @@ public static class EvDbSinkSQSDI
     /// Add SQS sink for a specific queue name (if not exists)
     /// </summary>
     /// <param name="registration"></param>
+    /// <param name="client"
+    /// <param name="queueName"></param>
+    /// <returns></returns>
+    public static IEvDbSinkRegistration SendToSQS(
+                            this IEvDbSinkRegistration registration,
+                            AmazonSQSClient client,
+                            string queueName)
+    {
+        var services = registration.Services;
+
+        services.TryAddSingleton<IEvDbSinkSQSMeters, EvDbSinkSQSMeters>();
+
+        services.TryAddKeyedSingleton<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY, (sp, _) =>
+        {
+            var logFactory = sp.GetRequiredService<ILoggerFactory>();
+            var logger = logFactory.CreateLogger<EvDbSinkProviderSQS>();
+
+            return new EvDbSinkProviderSQS(logger, client, EvDbSinkSQSMeters.Default);
+        });
+
+        services.AddKeyedSingleton(registration.Id, (sp, key) =>
+        {
+            var sink = sp.GetRequiredKeyedService<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY);
+            IEvDbTargetedMessagesSinkPublish result = sink.Create(queueName);
+            return result;
+        });
+
+        return registration;
+    }
+
+    /// <summary>
+    /// Add SQS sink for a specific queue name (if not exists)
+    /// </summary>
+    /// <param name="registration"></param>
     /// <param name="queueName"></param>
     /// <returns></returns>
     public static IEvDbSinkRegistration SendToSQS(this IEvDbSinkRegistration registration, string queueName)
