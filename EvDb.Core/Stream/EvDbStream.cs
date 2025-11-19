@@ -17,8 +17,8 @@ public abstract class EvDbStream :
     IEvDbStreamStore,
     IEvDbStreamStoreData
 {
-    private readonly static ActivitySource _trace = Telemetry.Trace;
-    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
+    private readonly static ActivitySource _trace = EvDbTelemetryInternal.Trace;
+    private readonly static IEvDbSysMeters _sysMeters = EvDbTelemetryInternal.SysMeters;
     private readonly AsyncLock _sync = new AsyncLock();
 
     protected readonly ILogger _logger;
@@ -139,7 +139,7 @@ public abstract class EvDbStream :
         using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
         using var activity = _trace.StartActivity(tags, "EvDb.Store");
 
-        #endregion //  Telemetry
+        #endregion //  EvDbTelemetryInternal
 
         using var @lock = await _sync.AcquireAsync();
         var events = _pendingEvents;
@@ -162,7 +162,7 @@ public abstract class EvDbStream :
                 _sysMeters.MessagesStored.Add(outboxAffected.Value, tgs);
             }
 
-            #endregion //  Telemetry
+            #endregion //  EvDbTelemetryInternal
 
             EvDbEvent ev = events[^1];
             StoredOffset = ev.StreamCursor.Offset;

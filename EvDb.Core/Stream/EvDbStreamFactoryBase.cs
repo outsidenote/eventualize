@@ -12,8 +12,8 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 {
     protected readonly ILogger _logger;
     protected readonly IEvDbStorageStreamAdapter _storageAdapter;
-    private readonly static ActivitySource _trace = Telemetry.Trace;
-    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
+    private readonly static ActivitySource _trace = EvDbTelemetryInternal.Trace;
+    private readonly static IEvDbSysMeters _sysMeters = EvDbTelemetryInternal.SysMeters;
 
     protected readonly EvDbCloudEventContext? _cloudEvent;
 

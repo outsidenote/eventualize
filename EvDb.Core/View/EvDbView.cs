@@ -114,8 +114,8 @@ public abstract class EvDbView<TState> : EvDbView, IEvDbViewStore<TState>
 [DebuggerDisplay("Offset:[MemoryOffset:{MemoryOffset}], ShouldStore:[{ShouldStoreSnapshot}]")]
 public abstract class EvDbView : IEvDbViewStore
 {
-    private readonly static ActivitySource _trace = Telemetry.Trace;
-    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
+    private readonly static ActivitySource _trace = EvDbTelemetryInternal.Trace;
+    private readonly static IEvDbSysMeters _sysMeters = EvDbTelemetryInternal.SysMeters;
 
     private readonly IEvDbStorageSnapshotAdapter? _storageAdapter;
     protected readonly JsonSerializerOptions? _options;

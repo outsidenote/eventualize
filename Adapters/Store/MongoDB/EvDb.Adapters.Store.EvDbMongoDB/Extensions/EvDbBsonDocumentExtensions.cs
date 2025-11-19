@@ -148,7 +148,7 @@ public static class EvDbBsonDocumentExtensions
         var storedAt = doc.ExtractStoredAt();
         var channel = doc.GetValue(Message.Channel).AsString;
         var serializeType = doc.GetValue(Message.SerializeType).AsString;
-        var meaageType = doc.GetValue(Message.MessageType).AsString;
+        var messageType = doc.GetValue(Message.MessageType).AsString;
 
         var otelBson = doc.GetValue(Message.TraceParent);
         byte[]? otelContext = null;
@@ -172,7 +172,7 @@ public static class EvDbBsonDocumentExtensions
             StreamCursor = cursor,
             EventType = eventType,
             Channel = channel,
-            MessageType = meaageType,
+            MessageType = messageType,
             SerializeType = serializeType,
             CapturedAt = capturedAt,
             CapturedBy = capturedBy,

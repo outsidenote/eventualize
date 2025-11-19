@@ -7,7 +7,7 @@ public static class TelemetryCoreExtensions
 {
     public static TracerProviderBuilder AddEvDbInstrumentation(this TracerProviderBuilder builder)
     {
-        builder.AddSource(Telemetry.TraceName);
+        builder.AddSource(EvDbTelemetryInternal.TraceName);
         return builder;
     }
 
