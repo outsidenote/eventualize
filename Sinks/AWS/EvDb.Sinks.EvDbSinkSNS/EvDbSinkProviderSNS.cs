@@ -2,7 +2,7 @@
 using Amazon.SimpleNotificationService.Model;
 using EvDb.Core;
 using EvDb.Core.Adapters;
-using Microsoft.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
@@ -18,12 +18,12 @@ namespace EvDb.Sinks.EvDbSinkSNS;
 internal class EvDbSinkProviderSNS : IEvDbMessagesSinkPublishProvider
 {
     private readonly ILogger<EvDbSinkProviderSNS> _logger;
-    private readonly AmazonSimpleNotificationServiceClient _client;
+    private readonly IAmazonSimpleNotificationService _client;
     private readonly IEvDbSinkSNSMeters _meters;
     private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
     public EvDbSinkProviderSNS(ILogger<EvDbSinkProviderSNS> logger,
-                               AmazonSimpleNotificationServiceClient client,
+                               IAmazonSimpleNotificationService client,
                                IEvDbSinkSNSMeters meters)
     {
         _logger = logger;

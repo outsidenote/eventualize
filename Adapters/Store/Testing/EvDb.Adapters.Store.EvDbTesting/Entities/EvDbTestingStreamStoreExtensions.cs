@@ -1,8 +1,7 @@
 ﻿using EvDb.Core;
 using EvDb.Core.Adapters;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Extensions;
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbTestingStreamStoreExtensions
 {

@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: sns Aws
 // Ignore Spelling: sqs
+#pragma warning disable S101 // Types should be named in PascalCase
 
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
@@ -8,9 +9,9 @@ using EvDb.Sinks.EvDbSinkSNS;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Extensions;
+namespace Microsoft.Extensions.DependencyInjection;
 
-internal static class EvDbSNDExtensions
+internal static class EvDbSNSExtensions
 {
     private static readonly SemaphoreSlim _streamLock = new(1, 1);
     private static readonly TimeSpan SLIDING_CACHE_EXPIRATION = TimeSpan.FromMinutes(5);
@@ -27,7 +28,7 @@ internal static class EvDbSNDExtensions
     /// <param name="topicName"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+    public static async Task<string> GetOrCreateTopicAsync(this IAmazonSimpleNotificationService snsClient,
                                                            EvDbSinkTarget topicName,
                                                            CancellationToken cancellationToken = default)
     {
@@ -44,7 +45,7 @@ internal static class EvDbSNDExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+    public static async Task<string> GetOrCreateTopicAsync(this IAmazonSimpleNotificationService snsClient,
                                                            EvDbSinkTarget topicName,
                                                            ILogger? logger = null,
                                                            CancellationToken cancellationToken = default)

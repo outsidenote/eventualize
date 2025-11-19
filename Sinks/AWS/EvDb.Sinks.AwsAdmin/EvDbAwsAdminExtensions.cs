@@ -26,7 +26,7 @@ using System.Threading.Tasks.Dataflow;
 #pragma warning disable S101 // Types should be named in PascalCase
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
 
-namespace Microsoft.Extensions;
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class EvDbAwsAdminExtensions
 {
@@ -47,7 +47,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="topicName"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+    public static async Task<string> GetOrCreateTopicAsync(this IAmazonSimpleNotificationService snsClient,
                                                            EvDbSinkTarget topicName,
                                                            CancellationToken cancellationToken = default)
     {
@@ -64,7 +64,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<string> GetOrCreateTopicAsync(this AmazonSimpleNotificationServiceClient snsClient,
+    public static async Task<string> GetOrCreateTopicAsync(this IAmazonSimpleNotificationService snsClient,
                                                            EvDbSinkTarget topicName,
                                                            ms.ILogger? logger = null,
                                                            CancellationToken cancellationToken = default)

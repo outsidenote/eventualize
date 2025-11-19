@@ -13,6 +13,32 @@ public static class EvDbSinkSNSDI
 {
     private const string PROVIDER_KEY = "SNS";
 
+    public static IEvDbSinkRegistration SendToSNS(this IEvDbSinkRegistration registration,
+                                                  IAmazonSimpleNotificationService client,
+                                                  EvDbSinkTarget topicName)
+    {
+        var services = registration.Services;
+
+        services.TryAddSingleton<IEvDbSinkSNSMeters, EvDbSinkSNSMeters>();
+
+        services.TryAddKeyedSingleton<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY, (sp, _) =>
+        {
+            var logFactory = sp.GetRequiredService<ILoggerFactory>();
+            var logger = logFactory.CreateLogger<EvDbSinkProviderSNS>();
+
+            return new EvDbSinkProviderSNS(logger, client, EvDbSinkSNSMeters.Default);
+        });
+
+        services.AddKeyedSingleton(registration.Id, (sp, key) =>
+        {
+            var sink = sp.GetRequiredKeyedService<IEvDbMessagesSinkPublishProvider>(PROVIDER_KEY);
+            IEvDbTargetedMessagesSinkPublish result = sink.Create(topicName);
+            return result;
+        });
+
+        return registration;
+    }
+
     public static IEvDbSinkRegistration SendToSNS(this IEvDbSinkRegistration registration, EvDbSinkTarget topicName)
     {
         var services = registration.Services;
