@@ -51,7 +51,7 @@ public class SinkJob : BackgroundService
         var sqsClient = AWSProviderFactory.CreateSQSClient();
         var snsClient = AWSProviderFactory.CreateSNSClient();
 
-        await snsClient.SubscribeSQSToSNSAsync(sqsClient, // will create if not exists
+        await snsClient.SubscribeQueueToTopicAsync(sqsClient, // will create if not exists
                                        TOPIC_NAME,
                                        QUEUE_NAME,
                                        o =>

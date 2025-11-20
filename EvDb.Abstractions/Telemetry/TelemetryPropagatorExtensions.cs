@@ -18,41 +18,24 @@ public static class TelemetryPropagatorExtensions
     /// <param name="activity"></param>
     /// <param name="propagator"></param>
     /// <returns></returns>
-    public static EvDbTelemetryContextName SerializeTelemetryContext(this Activity activity, TextMapPropagator? propagator = null)
+    public static EvDbOtelTraceParent SerializeTelemetryContext(this Activity activity, TextMapPropagator? propagator = null)
     {
         if (activity.Context == default)
-            return EvDbTelemetryContextName.Empty;
+            return EvDbOtelTraceParent.Empty;
 
-        propagator = propagator ?? Propagator;
+        if (activity.Context.TraceId == default)
+            return EvDbOtelTraceParent.Empty;
+        if (activity.Context.SpanId == default)
+            return EvDbOtelTraceParent.Empty;
 
-        // Use ArrayBufferWriter from System.Buffers for better memory efficiency
-        ArrayBufferWriter<byte> bufferWriter = new();
-        using var writer = new Utf8JsonWriter(bufferWriter);
+        string flags = activity.Context.TraceFlags.HasFlag(ActivityTraceFlags.Recorded) ? "01" : "00";
+        string trace = activity.Context.TraceId.ToHexString();
+        string span = activity.Context.SpanId.ToHexString();
 
-        Baggage baggage = Baggage.Current;
-        if (activity.Baggage.Any())
-        {
-            Dictionary<string, string> baggageItems = activity.Baggage
-                                                        .Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value ?? string.Empty))
-                                                        .ToDictionary();
-            baggage = Baggage.Create(baggageItems);
-        }
-
-        writer.WriteStartObject();
-
-        // Inject context directly
-        propagator.Inject(
-            new PropagationContext(activity.Context, baggage),
-            writer,
-            (w, key, value) => w.WriteString(key, value));
-
-        writer.WriteEndObject();
-        writer.Flush();
-
-        // Return the written data as a byte array
-        var span = bufferWriter.WrittenSpan;
-        var result = EvDbTelemetryContextName.FromSpan(span);
-        return result;
+        // 00-<trace-id>-<span-id>-<trace-flags> 
+        // flags: 0x01 = sampled, 0x00 = not sampled
+        EvDbOtelTraceParent traceParent = $"00-{trace}-{span}-{flags}";
+        return traceParent;
     }
 
     #endregion //  SerializeTelemetryContext
@@ -60,35 +43,22 @@ public static class TelemetryPropagatorExtensions
     #region ToTelemetryContext
 
     /// <summary>
-    /// Extract EvDbTelemetryContextName into OTEL context
+    /// Extract EvDbOtelTraceParent into OTEL context
     /// </summary>
-    /// <param name="contextData"></param>
+    /// <param name="traceParent"></param>
     /// <param name="propagator"></param>
     /// <returns></returns>
-    public static ActivityContext ToTelemetryContext(this EvDbTelemetryContextName contextData, TextMapPropagator? propagator = null)
+    public static ActivityContext ToTelemetryContext(this EvDbOtelTraceParent traceParent, TextMapPropagator? propagator = null)
     {
-        if (contextData == EvDbTelemetryContextName.Empty || contextData.Length == 0)
+        if (traceParent == EvDbOtelTraceParent.Empty || string.IsNullOrEmpty(traceParent))
             return default;
 
-        propagator = propagator ?? Propagator;
-
-        // Use a local function for the extraction delegate to improve readability and performance
-        static IEnumerable<string>? ExtractValue(JsonElement carrier, string key)
-        {
-            // Fast path check
-            if (!carrier.TryGetProperty(key, out var prop) || prop.ValueKind != JsonValueKind.String)
-                return null;
-
-            string? value = prop.GetString();
-            return string.IsNullOrEmpty(value) ? null : new[] { value };
-        }
-
-        var json = contextData.ToJson();
-
-        // Extract the propagation context with the optimized delegate
-        var propagationContext = propagator.Extract(default, json, ExtractValue);
-
-        return propagationContext.ActivityContext;
+        return ActivityContext.TryParse(
+            traceParent,
+            null, // No trace state
+            out ActivityContext activityContext) ? 
+            activityContext : 
+            default;
     }
 
     #endregion //  ToTelemetryContex

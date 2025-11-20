@@ -113,7 +113,7 @@ public static class EvDbMongoDBStorageAdapterDI
     /// <param name="connectionStringOrConfigurationKey"></param>
     public static void UseMongoDBChangeStream(
             this IServiceCollection services,
-            EvDbStorageContext context,
+            EvDbStorageContext? context,
             string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         services.AddSingleton((sp) => ChangeStreamFactory(sp, context, connectionStringOrConfigurationKey));

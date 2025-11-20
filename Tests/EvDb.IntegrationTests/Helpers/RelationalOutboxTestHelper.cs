@@ -34,7 +34,7 @@ internal static class RelationalOutboxTestHelper
                     {{Fields.Message.SerializeType}} as {{Projection.Message.SerializeType}},
                     {{Fields.Message.CapturedAt}} as {{Projection.Message.CapturedAt}},
                     {{Fields.Message.CapturedBy}} as {{Projection.Message.CapturedBy}},
-                    {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
+                    {{Fields.Message.TraceParent}} as {{Projection.Message.TraceParent}},
                     {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
                 FROM 
                     {{storageContext.Id}}{0} 

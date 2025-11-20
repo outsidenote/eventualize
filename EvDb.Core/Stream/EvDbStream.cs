@@ -17,8 +17,8 @@ public abstract class EvDbStream :
     IEvDbStreamStore,
     IEvDbStreamStoreData
 {
-    private readonly static ActivitySource _trace = Telemetry.Trace;
-    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
+    private readonly static ActivitySource _trace = EvDbTelemetryInternal.Trace;
+    private readonly static IEvDbSysMeters _sysMeters = EvDbTelemetryInternal.SysMeters;
     private readonly AsyncLock _sync = new AsyncLock();
 
     protected readonly ILogger _logger;
@@ -42,13 +42,15 @@ public abstract class EvDbStream :
         IImmutableList<IEvDbViewStore> views,
         IEvDbStorageStreamAdapter storageAdapter,
         string streamId,
-        long lastStoredOffset)
+        long lastStoredOffset,
+        EvDbCloudEventContext? cloudEvent)
     {
         _logger = logger;
         _views = views;
         _storageAdapter = storageAdapter;
         StreamAddress = new EvDbStreamAddress(streamConfiguration.StreamType, streamId);
         StoredOffset = lastStoredOffset;
+        CloudEvent = cloudEvent;
         Options = streamConfiguration.Options;
         TimeProvider = streamConfiguration.TimeProvider ?? TimeProvider.System;
     }
@@ -137,7 +139,7 @@ public abstract class EvDbStream :
         using var duration = _sysMeters.MeasureStoreEventsDuration(tags);
         using var activity = _trace.StartActivity(tags, "EvDb.Store");
 
-        #endregion //  Telemetry
+        #endregion //  EvDbTelemetryInternal
 
         using var @lock = await _sync.AcquireAsync();
         var events = _pendingEvents;
@@ -160,7 +162,7 @@ public abstract class EvDbStream :
                 _sysMeters.MessagesStored.Add(outboxAffected.Value, tgs);
             }
 
-            #endregion //  Telemetry
+            #endregion //  EvDbTelemetryInternal
 
             EvDbEvent ev = events[^1];
             StoredOffset = ev.StreamCursor.Offset;
@@ -200,6 +202,7 @@ public abstract class EvDbStream :
     #region LastStoredOffset
 
     public long StoredOffset { get; protected set; }
+    public EvDbCloudEventContext? CloudEvent { get; }
 
     #endregion // StoredOffset
 

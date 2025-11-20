@@ -12,19 +12,23 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
 {
     protected readonly ILogger _logger;
     protected readonly IEvDbStorageStreamAdapter _storageAdapter;
-    private readonly static ActivitySource _trace = Telemetry.Trace;
-    private readonly static IEvDbSysMeters _sysMeters = Telemetry.SysMeters;
+    private readonly static ActivitySource _trace = EvDbTelemetryInternal.Trace;
+    private readonly static IEvDbSysMeters _sysMeters = EvDbTelemetryInternal.SysMeters;
+
+    protected readonly EvDbCloudEventContext? _cloudEvent;
 
     #region Ctor
 
     protected EvDbStreamFactoryBase(
         ILogger logger,
         IEvDbStorageStreamAdapter storageAdapter,
+        EvDbCloudEventContext? evDbCloudEvent,
         TimeProvider? timeProvider = null)
     {
         TimeProvider = timeProvider ?? TimeProvider.System;
         _logger = logger;
         _storageAdapter = storageAdapter;
+        _cloudEvent = evDbCloudEvent;
     }
 
     #endregion // Ctor
@@ -50,7 +54,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         OtelTags tags = address.ToOtelTagsToOtelTags();
         using var activity = _trace.StartActivity(tags, "EvDb.Factory.Create");
 
-        var result = OnCreate(id, views, 0);
+        var result = OnCreate(id, views, 0, _cloudEvent);
         return result;
     }
 
@@ -89,7 +93,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
         if (views.Length == 0)
         {
             long lastOffset = await _storageAdapter.GetLastOffsetAsync(address, cancellationToken);
-            stream = OnCreate(id, ImmutableList<IEvDbViewStore>.Empty, lastOffset);
+            stream = OnCreate(id, ImmutableList<IEvDbViewStore>.Empty, lastOffset, _cloudEvent);
         }
         else
         {
@@ -110,7 +114,7 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
                 }
                 streamOffset = e.StreamCursor.Offset;
             }
-            stream = OnCreate(id, immutableViews, streamOffset);
+            stream = OnCreate(id, immutableViews, streamOffset, _cloudEvent);
         }
 
         return stream;
@@ -123,7 +127,8 @@ public abstract class EvDbStreamFactoryBase<T> : IEvDbStreamFactory<T>
     protected abstract T OnCreate(
         string streamId,
         IImmutableList<IEvDbViewStore> views,
-        long lastStoredEventOffset);
+        long lastStoredEventOffset,
+        EvDbCloudEventContext? cloudEvent);
 
     #endregion // OnCreateAsync
 

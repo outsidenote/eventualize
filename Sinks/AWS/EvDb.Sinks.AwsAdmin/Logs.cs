@@ -31,7 +31,7 @@ internal static partial class Logs
     [LoggerMessage(LogLevel.Error, """
                     Fail to attach SQS queue [{queueARN}] to SNS topic [{topicARN}].
                     """)]
-    public static partial void LogFailToAttachSQSToSNSAsync(this ILogger logger,
+    public static partial void LogFailToAttachQueueToTopicAsync(this ILogger logger,
                                                         string topicARN,
                                                         string queueARN,
                                                         Exception exception);

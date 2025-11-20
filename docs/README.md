@@ -28,11 +28,9 @@ If you want to learn more, go to [Learn More](https://eventualizedb.comlearn-mor
 You can contribute to this project in many ways (not just coding)!
 If you are interested to learn more about how you can do this, please visit the [Contribution](https://eventualizedb.comcontribution) page.
 
-
 ## Sharding setup
 
 - [Clode](https://claude.ai/share/076cd430-53ea-4149-9ffb-549331451dc4)
-
 
 ## License
 
@@ -41,5 +39,50 @@ MIT License
 ## Flexable References
 
 Regex Replace
-�	Find what: Version="([0-8])\.([^"]+)"
-�	Replace with: Version="[$1.$2,)"
+� Find what: Version="([0-8])\.([^"]+)"
+� Replace with: Version="[$1.$2,)"
+
+## Cloud Events
+
+- [Cloud Events](https://cloudevents.io/)
+- [Cloud Events Attributes](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#required-attributes)
+
+### Mapping
+
+```json
+{
+  "specversion": "1.0",
+  "source": "comp-name.com/domain/crew/app",
+  "id": " 49b4e376-8601-5df9-aa94-b953e4e5b0fa",
+  "type": "com.comp-name.payment_succeded.v1",
+  "time": " 2025-07-13T14:30:45+02:00",
+  "datacontenttype": "application/json",
+  "dataref": "http://s3.comp-name.com/here/it/is.json",
+  "dataschema": "https://schemamanager/{type}",
+  "traceparent": "00-{trace-id}-{span-id}-01",
+  "sequence": 1,
+  "partitionkey": "data.payee_id" // a dot-notation to a specific field in the dataschema. Set to "id" for no partioning/grouping.
+}
+```
+
+| Cloud Event     | EvDbCloudEventEnvalope | EvDB Message Record   | Sample Value                                        |
+| --------------- | ---------------------- | --------------------- | --------------------------------------------------- |
+| ⁕ specversion   |                        |                       | 1.0                                                 |
+| ⁕ source        | Source                 |                       | comp-name.com/domain/crew/app                       |
+| ⁕ id            |                        | Id                    |                                                     |
+| ⁕ type          |                        | MessageType           | payment_succeded.v1                                 |
+| time            |                        | CapturedAt            |                                                     |
+| datacontenttype |                        | SerializeType         | application/json                                    |
+| dataschema      | DataSchemaUri          | MessageType?          | https://schemamanager.comp-name/payment_succeded.v1 |
+| partitionkey    |                        | StreamType / StreamId |                                                     |
+| evdbchannel     |                        | Channel               |                                                     |
+| traceparent     |                        | TraceParent           |                                                     |
+| evdbeventtype   |                        | EventType             |                                                     |
+| evdboffset      |                        | Offset                |                                                     |
+| data            |                        | payload               |                                                     |
+| dataref         |                        |                       |                                                     |
+
+### Binding
+
+- [Http Cloud Events](https://github.com/cloudevents/spec/blob/main/cloudevents/bindings/http-protocol-binding.md)
+- [Kafka Cloud Events](https://github.com/cloudevents/spec/blob/main/cloudevents/bindings/kafka-protocol-binding.md)

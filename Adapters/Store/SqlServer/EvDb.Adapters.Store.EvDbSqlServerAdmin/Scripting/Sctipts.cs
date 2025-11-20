@@ -73,7 +73,7 @@ internal static class Sctipts
                 {{Fields.Event.EventType}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{Fields.Event.CapturedBy}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{Fields.Event.CapturedAt}} datetimeoffset NOT NULL,
-                {{Fields.Event.TelemetryContext}} VARBINARY(2000) NULL,
+                {{Fields.Event.TraceParent}} CHAR(55) NULL,
                 {{Fields.Event.Payload}} VARBINARY(4000) NOT NULL
             );
         """;
@@ -98,7 +98,7 @@ internal static class Sctipts
                         {Fields.Event.EventType},
                         {Fields.Event.CapturedBy},
                         {Fields.Event.CapturedAt},
-                        {Fields.Event.TelemetryContext},
+                        {Fields.Event.TraceParent},
                         {Fields.Event.Payload}
                     )
                     SELECT  {Fields.Event.Id},
@@ -108,7 +108,7 @@ internal static class Sctipts
                             {Fields.Event.EventType},
                             {Fields.Event.CapturedBy},
                             {Fields.Event.CapturedAt},
-                            {Fields.Event.TelemetryContext},
+                            {Fields.Event.TraceParent},
                             {Fields.Event.Payload}
                         FROM @Records
                 END;
@@ -131,7 +131,7 @@ internal static class Sctipts
                 {Fields.Event.CapturedBy} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Event.CapturedAt} datetimeoffset NOT NULL,
                 {Fields.Event.StoredAt} datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
-                {Fields.Event.TelemetryContext} VARBINARY(2000) NULL,
+                {Fields.Event.TraceParent} CHAR(55) NULL,
                 {Fields.Event.Payload} VARBINARY(4000) NOT NULL,
     
                 CONSTRAINT PK_{tblInitialWithoutSchema}event PRIMARY KEY (
@@ -177,7 +177,7 @@ internal static class Sctipts
                 {{Fields.Message.SerializeType}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{Fields.Message.CapturedBy}} NVARCHAR({{DEFAULT_TEXT_LIMIT}}) NOT NULL,
                 {{Fields.Message.CapturedAt}} datetimeoffset NOT NULL,
-                {{Fields.Message.TelemetryContext}} VARBINARY(2000) NULL,
+                {{Fields.Message.TraceParent}} CHAR(55) NULL,
                 {{Fields.Message.Payload}} VARBINARY(4000) NOT NULL
             );
         """;
@@ -203,7 +203,7 @@ internal static class Sctipts
                 {Fields.Message.CapturedBy} NVARCHAR({DEFAULT_TEXT_LIMIT}) NOT NULL,
                 {Fields.Message.CapturedAt} datetimeoffset NOT NULL,
                 {Fields.Message.StoredAt} datetimeoffset DEFAULT SYSDATETIMEOFFSET() NOT NULL,
-                {Fields.Message.TelemetryContext} VARBINARY(2000) NULL,
+                {Fields.Message.TraceParent} CHAR(55) NULL,
                 {Fields.Message.Payload} VARBINARY(4000) NOT NULL,
             
                 CONSTRAINT PK_{tblInitialWithoutSchema}{t} PRIMARY KEY (
@@ -252,7 +252,7 @@ internal static class Sctipts
                         {Fields.Message.SerializeType},
                         {Fields.Message.CapturedBy},
                         {Fields.Message.CapturedAt},
-                        {Fields.Message.TelemetryContext},
+                        {Fields.Message.TraceParent},
                         {Fields.Message.Payload}
                     )
                     SELECT  {Fields.Message.Id},
@@ -265,7 +265,7 @@ internal static class Sctipts
                             {Fields.Message.SerializeType},
                             {Fields.Message.CapturedBy},
                             {Fields.Message.CapturedAt},
-                            {Fields.Message.TelemetryContext},
+                            {Fields.Message.TraceParent},
                             {Fields.Message.Payload}
                         FROM @{t}Records
                 END;

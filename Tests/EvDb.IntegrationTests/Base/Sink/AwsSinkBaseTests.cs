@@ -116,7 +116,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         using var cts = new CancellationTokenSource(CANCELLATION_DUCRAION);
         var cancellationToken = cts.Token;
 
-        await SubscribeSQSToSNSWhenNeededAsync(sqsClient, messageFormat, TOPIC_NAME, QUEUE_NAME, cancellationToken);
+        await SubscribeQueueToTopicWhenNeededAsync(sqsClient, messageFormat, TOPIC_NAME, QUEUE_NAME, cancellationToken);
         int count = BATCH_SIZE * 2;
 
         // sink messages from outbox
@@ -168,7 +168,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         using var cts = new CancellationTokenSource(CANCELLATION_DUCRAION);
         var cancellationToken = cts.Token;
 
-        await SubscribeSQSToSNSWhenNeededAsync(sqsClient, messageFormat, TOPIC_NAME, QUEUE_NAME, cancellationToken);
+        await SubscribeQueueToTopicWhenNeededAsync(sqsClient, messageFormat, TOPIC_NAME, QUEUE_NAME, cancellationToken);
         int count = BATCH_SIZE * 2;
 
         // sink messages from outbox
@@ -330,9 +330,9 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
 
     #endregion //  ProcuceStudentReceivedGradeAsync
 
-    #region SubscribeSQSToSNSWhenNeededAsync
+    #region SubscribeQueueToTopicWhenNeededAsync
 
-    private async Task SubscribeSQSToSNSWhenNeededAsync(
+    private async Task SubscribeQueueToTopicWhenNeededAsync(
                         AmazonSQSClient sqsClient,
                         SQSMessageFormat messageFormat,
                         string TOPIC_NAME,
@@ -347,7 +347,7 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
             return;
         }
 
-        await snsClient.SubscribeSQSToSNSAsync(sqsClient, // will create if not exists
+        await snsClient.SubscribeQueueToTopicAsync(sqsClient, // will create if not exists
                                                TOPIC_NAME,
                                                QUEUE_NAME,
                                                o =>
@@ -359,5 +359,5 @@ public abstract class AwsSinkBaseTests : BaseIntegrationTests
         await Task.Delay(50);
     }
 
-    #endregion //  SubscribeSQSToSNSWhenNeededAsync
+    #endregion //  SubscribeQueueToTopicWhenNeededAsync
 }

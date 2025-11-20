@@ -100,7 +100,7 @@ public static class EvDbPostgresStorageAdapterDI
     /// <param name="connectionStringOrConfigurationKey"></param>
     public static void UsePostgresChangeStream(
             this IServiceCollection services,
-            EvDbStorageContext context,
+            EvDbStorageContext? context,
             string connectionStringOrConfigurationKey = DEFAULT_CONNECTION_STRING_KEY)
     {
         services.AddSingleton(

@@ -35,7 +35,7 @@ internal class EvDbSinkProviderKafka : IEvDbMessagesSinkPublishProvider
                                                  CancellationToken cancellationToken)
     {
         // Set up tracing context
-        ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
+        ActivityContext parentContext = message.TraceParent.ToTelemetryContext();
         using var activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToKafka")
             .WithParent(parentContext, OtelParentRelation.Link)
             .WithKind(ActivityKind.Producer)

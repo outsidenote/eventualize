@@ -18,7 +18,7 @@ public static class EvDbStoreNames
             public static readonly string Payload = toSnakeCase(Projection.Event.Payload);
             public static readonly string CapturedAt = toSnakeCase(Projection.Event.CapturedAt);
             public static readonly string CapturedBy = toSnakeCase(Projection.Event.CapturedBy);
-            public static readonly string TelemetryContext = toSnakeCase(Projection.Event.TelemetryContext);
+            public static readonly string TraceParent = toSnakeCase(Projection.Event.TraceParent);
             public static readonly string StoredAt = toSnakeCase(Projection.Event.StoredAt);
         }
 
@@ -40,7 +40,7 @@ public static class EvDbStoreNames
             public static readonly string CapturedAt = toSnakeCase(Projection.Message.CapturedAt);
             public static readonly string CapturedBy = toSnakeCase(Projection.Message.CapturedBy);
             public static readonly string SerializeType = toSnakeCase(Projection.Message.SerializeType);
-            public static readonly string TelemetryContext = toSnakeCase(Projection.Message.TelemetryContext);
+            public static readonly string TraceParent = toSnakeCase(Projection.Message.TraceParent);
             public static readonly string StoredAt = toSnakeCase(Projection.Message.StoredAt);
         }
 
@@ -79,7 +79,7 @@ public static class EvDbStoreNames
             public static readonly string Payload = toParamName(Projection.Event.Payload);
             public static readonly string CapturedAt = toParamName(Projection.Event.CapturedAt);
             public static readonly string CapturedBy = toParamName(Projection.Event.CapturedBy);
-            public static readonly string TelemetryContext = toParamName(Projection.Event.TelemetryContext);
+            public static readonly string TraceParent = toParamName(Projection.Event.TraceParent);
             public static readonly string BatchSize = toParamName(nameof(EvDbGetEventsParameters.BatchSize));
             public static readonly string SinceOffset = toParamName(nameof(EvDbGetEventsParameters.SinceOffset));
         }
@@ -104,7 +104,7 @@ public static class EvDbStoreNames
             public static readonly string CapturedAt = toParamName(Projection.Message.CapturedAt);
             public static readonly string CapturedBy = toParamName(Projection.Message.CapturedBy);
             public static readonly string SerializeType = toParamName(Projection.Message.SerializeType);
-            public static readonly string TelemetryContext = toParamName(Projection.Message.TelemetryContext);
+            public static readonly string TraceParent = toParamName(Projection.Message.TraceParent);
             public static readonly string BatchSize = toParamName(nameof(EvDbGetMessagesParameters.BatchSize));
             public static readonly string SinceDate = toParamName(nameof(EvDbGetMessagesParameters.SinceDate));
         }
@@ -141,7 +141,7 @@ public static class EvDbStoreNames
             public static readonly string Payload = nameof(EvDbEventRecord.Payload);
             public static readonly string CapturedAt = nameof(EvDbEventRecord.CapturedAt);
             public static readonly string CapturedBy = nameof(EvDbEventRecord.CapturedBy);
-            public static readonly string TelemetryContext = nameof(EvDbEventRecord.TelemetryContext);
+            public static readonly string TraceParent = nameof(EvDbEventRecord.TraceParent);
             public static readonly string StoredAt = nameof(EvDbEventRecord.StoredAt);
         }
 
@@ -163,7 +163,7 @@ public static class EvDbStoreNames
             public static readonly string CapturedAt = nameof(EvDbMessageRecord.CapturedAt);
             public static readonly string CapturedBy = nameof(EvDbMessageRecord.CapturedBy);
             public static readonly string SerializeType = nameof(EvDbMessageRecord.SerializeType);
-            public static readonly string TelemetryContext = nameof(EvDbEventRecord.TelemetryContext);
+            public static readonly string TraceParent = nameof(EvDbEventRecord.TraceParent);
             public static readonly string StoredAt = nameof(EvDbEventRecord.StoredAt);
         }
 

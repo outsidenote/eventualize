@@ -31,7 +31,7 @@ internal static class QueryProvider
                     {Fields.Event.EventType} as {Projection.Event.EventType},
                     {Fields.Event.CapturedAt} as {Projection.Event.CapturedAt},
                     {Fields.Event.CapturedBy} as {Projection.Event.CapturedBy},
-                    {Fields.Event.TelemetryContext} as {Projection.Event.TelemetryContext},
+                    {Fields.Event.TraceParent} as {Projection.Event.TraceParent},
                     {Fields.Event.Payload} as {Projection.Event.Payload}                  
                 FROM {tblInitial}events WITH (READCOMMITTEDLOCK)
                 WHERE {Fields.Event.StreamType} = {Parameters.Event.StreamType}
@@ -51,7 +51,7 @@ internal static class QueryProvider
                     {{Fields.Message.CapturedBy}} as {{Projection.Message.CapturedBy}},
                     {{Fields.Message.Channel}} as {{Projection.Message.Channel}},
                     {{Fields.Message.SerializeType}} as {{Projection.Message.SerializeType}},
-                    {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
+                    {{Fields.Message.TraceParent}} as {{Projection.Message.TraceParent}},
                     {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
                 FROM {{tblInitial}}{0} WITH (READCOMMITTEDLOCK)                
                 WHERE 

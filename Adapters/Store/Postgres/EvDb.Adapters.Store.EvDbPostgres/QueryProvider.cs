@@ -58,7 +58,7 @@ internal static class QueryProvider
                     {{Fields.Message.CapturedBy}} as {{Projection.Message.CapturedBy}},
                     {{Fields.Message.Channel}} as {{Projection.Message.Channel}},
                     {{Fields.Message.SerializeType}} as {{Projection.Message.SerializeType}},
-                    {{Fields.Message.TelemetryContext}} as {{Projection.Message.TelemetryContext}},
+                    {{Fields.Message.TraceParent}} as {{Projection.Message.TraceParent}},
                     {{Fields.Message.Payload}} as {{Projection.Message.Payload}}                  
                 FROM {{tblInitial}}{0}
                 WHERE 
@@ -87,7 +87,7 @@ internal static class QueryProvider
                     {{Fields.Event.CapturedAt}}, 
                     {{Fields.Event.StoredAt}}, 
                     {{Fields.Event.CapturedBy}}, 
-                    {{Fields.Event.TelemetryContext}}, 
+                    {{Fields.Event.TraceParent}}, 
                     {{Fields.Event.Payload}})
                 SELECT 
                     UNNEST({{Parameters.Event.Id}}), 
@@ -98,7 +98,7 @@ internal static class QueryProvider
                     UNNEST({{Parameters.Event.CapturedAt}}), 
                     NOW() AT TIME ZONE 'UTC', 
                     UNNEST({{Parameters.Event.CapturedBy}}), 
-                    UNNEST({{Parameters.Event.TelemetryContext}}), 
+                    UNNEST({{Parameters.Event.TraceParent}}), 
                     UNNEST({{Parameters.Event.Payload}})
             """,
             SaveToOutbox = $$"""
@@ -114,7 +114,7 @@ internal static class QueryProvider
                     {{Fields.Message.CapturedBy}}, 
                     {{Fields.Message.CapturedAt}}, 
                     {{Fields.Message.StoredAt}}, 
-                    {{Fields.Message.TelemetryContext}}, 
+                    {{Fields.Message.TraceParent}}, 
                     {{Fields.Message.Payload}})
                 SELECT 
                     UNNEST({{Parameters.Message.Id}}), 
@@ -128,7 +128,7 @@ internal static class QueryProvider
                     UNNEST({{Parameters.Message.CapturedBy}}), 
                     UNNEST({{Parameters.Message.CapturedAt}}), 
                     NOW() AT TIME ZONE 'UTC', 
-                    UNNEST({{Parameters.Message.TelemetryContext}}), 
+                    UNNEST({{Parameters.Message.TraceParent}}), 
                     UNNEST({{Parameters.Message.Payload}})
             """
         };

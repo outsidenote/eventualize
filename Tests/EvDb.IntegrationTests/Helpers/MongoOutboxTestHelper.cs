@@ -44,7 +44,7 @@ internal static class MongoOutboxTestHelper
             .Include(Fields.Message.SerializeType)
             .Include(Fields.Message.CapturedAt)
             .Include(Fields.Message.CapturedBy)
-            .Include(Fields.Message.TelemetryContext)
+            .Include(Fields.Message.TraceParent)
             .Include(Fields.Message.Payload);
 
         var sort = Builders<BsonDocument>.Sort

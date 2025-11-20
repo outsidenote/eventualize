@@ -2,7 +2,7 @@
 
 namespace EvDb.Core.Adapters;
 
-internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandler<EvDbTelemetryContextName>
+internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandler<EvDbOtelTraceParent>
 {
 
     #region Ctor
@@ -18,19 +18,19 @@ internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandl
     #region Parse
 
     /// <summary>
-    /// Parse the value from the database into an EvDbTelemetryContextName instance.
+    /// Parse the value from the database into an EvDbOtelTraceParent instance.
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
     /// <exception cref="DataException"></exception>
-    public override EvDbTelemetryContextName Parse(object value)
+    public override EvDbOtelTraceParent Parse(object value)
     {
         switch (value)
         {
-            case byte[] byteArray:
-                return EvDbTelemetryContextName.FromArray(byteArray);
+            case string v:
+                return EvDbOtelTraceParent.From(v);
             default:
-                throw new DataException($"Cannot convert {value.GetType()} to EvDbTelemetryContextName");
+                throw new DataException($"Cannot convert {value.GetType()} to EvDbOtelTraceParent");
         }
     }
 
@@ -39,13 +39,13 @@ internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandl
     #region SetValue
 
     /// <summary>
-    /// Set the value of the parameter to the EvDbTelemetryContextName instance.
+    /// Set the value of the parameter to the EvDbOtelTraceParent instance.
     /// </summary>
     /// <param name="parameter"></param>
     /// <param name="value"></param>
-    public override void SetValue(IDbDataParameter parameter, EvDbTelemetryContextName value)
+    public override void SetValue(IDbDataParameter parameter, EvDbOtelTraceParent value)
     {
-        if (!value.IsInitialized() || value.Length == 0)
+        if (!value.IsInitialized() || value.IsEmpty)
         {
             parameter.Value = DBNull.Value;
             parameter.DbType = DbType.Binary;
@@ -53,11 +53,9 @@ internal class EvDbTelemetryContextNameDapperMapper : Dapper.SqlMapper.TypeHandl
             return;
         }
 
-        IEvDbPayloadRawData raw = value;
-        var bytes = raw.RawValue;
-        parameter.Value = bytes;
-        parameter.DbType = DbType.Binary;
-        parameter.Size = bytes.Length;
+        parameter.Value = (string?)value;
+        parameter.DbType = DbType.String;
+        parameter.Size = 55;
     }
 
     #endregion //  SetValue

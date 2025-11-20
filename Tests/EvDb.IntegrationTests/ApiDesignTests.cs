@@ -19,19 +19,13 @@ public class ApiDesignTests
         var builder = CoconaApp.CreateBuilder();
         var services = builder.Services;
 
-        services.AddEvDb() // return IEvDbBuilder that will be used as the hook for the generated extensions method
+        services.AddEvDb("my-domain.com", "schema-registry.my-domain.com") // return IEvDbBuilder that will be used as the hook for the generated extensions method
                            // return IEvDbSchoolBuilder that will be used as the hook for the generated extensions method
                         .AddSchoolStreamFactory(
                                 c => c.UseSqlServerStoreForEvDbStream(Enumerable.Empty<IEvDbOutboxTransformer>()),
                                 EvDbStorageContext.CreateWithEnvironment("master"))
                         .AddOutbox(tg => tg.CreateShard("TestGroup", EvDbSchoolOutbox.Channels.Channel1, EvDbSchoolOutbox.Channels.Channel2))
                         .AddOutbox(tg => tg.CreateShard("TestGroup2", EvDbSchoolOutbox.Channels.Channel1, EvDbSchoolOutbox.Channels.Channel3))
-                            //.Topics(c =>
-                            //{
-                            //    c.CreateTopicGroup(x => [x.Topic1, x.Topic2])
-                            //            .WithTransformation<TState>()
-                            //            .WithTransformation(x => JsonSerializer.Serialize(x.EvDbPayload));
-                            //})
                             .DefaultSnapshotConfiguration(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection"))
                             .ForALL(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection-server1"))
                             .ForStudentStats(c => c.UseSqlServerForEvDbSnapshot("EvDbSqlServerConnection2"));

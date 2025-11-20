@@ -110,11 +110,11 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             new SqlMetaData(Event.EventType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Event.CapturedBy, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Event.CapturedAt, SqlDbType.DateTimeOffset),
-            new SqlMetaData(Event.TelemetryContext, SqlDbType.VarBinary, 2000),
+            new SqlMetaData(Event.TraceParent, SqlDbType.Char, 55),
             new SqlMetaData(Event.Payload, SqlDbType.VarBinary, 4000)
         };
 
-        EvDbTelemetryContextName otelContext = Activity.Current?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty;
+        EvDbOtelTraceParent traceParent = Activity.Current?.SerializeTelemetryContext() ?? EvDbOtelTraceParent.Empty;
 
         // Populate the TVP
         foreach (var ev in events)
@@ -130,13 +130,11 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             record.SetString(5, ev.CapturedBy);
             record.SetDateTimeOffset(6, ev.CapturedAt);
 
-            if (otelContext.Length == 0)
+            if (traceParent.IsEmpty)
                 record.SetDBNull(7);
             else
-            {
-                IEvDbPayloadRawData otelRaw = otelContext;
-                record.SetBytes(7, 0, otelRaw.RawValue, 0, otelContext.Length);
-            }
+                record.SetString(7, traceParent);
+
             IEvDbPayloadRawData payloadRaw = ev.Payload;
             record.SetBytes(8, 0, payloadRaw.RawValue, 0, ev.Payload.Length);
 
@@ -166,11 +164,11 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             new SqlMetaData(Message.SerializeType, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Message.CapturedBy, SqlDbType.NVarChar, DEFAULT_TEXT_LIMIT),
             new SqlMetaData(Message.CapturedAt, SqlDbType.DateTimeOffset),
-            new SqlMetaData(Message.TelemetryContext, SqlDbType.VarBinary, 2000),
+            new SqlMetaData(Message.TraceParent, SqlDbType.Char, 55),
             new SqlMetaData(Message.Payload, SqlDbType.VarBinary, 4000)
         };
 
-        var otelContext = Activity.Current?.SerializeTelemetryContext() ?? EvDbTelemetryContextName.Empty;
+        var traceParent = Activity.Current?.SerializeTelemetryContext() ?? EvDbOtelTraceParent.Empty;
 
         // Populate the TVP
         foreach (var message in messages)
@@ -190,12 +188,11 @@ internal class EvDbSqlServerStorageAdapter : EvDbRelationalStorageAdapter
             record.SetString(8, message.CapturedBy);
             record.SetDateTimeOffset(9, message.CapturedAt);
 
-            if (otelContext == EvDbTelemetryContextName.Empty)
+            if (traceParent.IsEmpty)
                 record.SetDBNull(10);
             else
             {
-                IEvDbPayloadRawData otelRaw = otelContext;
-                record.SetBytes(10, 0, otelRaw.RawValue, 0, otelContext.Length);
+                record.SetString(10, traceParent);
             }
             IEvDbPayloadRawData payloadRaw = message.Payload;
             record.SetBytes(11, 0, payloadRaw.RawValue, 0, message.Payload.Length);

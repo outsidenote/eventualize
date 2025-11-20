@@ -1,8 +1,10 @@
-﻿using System.Diagnostics;
+﻿// Ignore Spelling: Sys
+
+using System.Diagnostics;
 
 namespace EvDb.Core;
 
-internal static class Telemetry
+internal static class EvDbTelemetryInternal
 {
     public const string TraceName = "EvDb";
 

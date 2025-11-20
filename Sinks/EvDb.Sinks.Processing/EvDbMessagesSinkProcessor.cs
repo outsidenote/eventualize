@@ -49,7 +49,7 @@ internal class EvDbMessagesSinkProcessor : IEvDbMessagesSinkProcessor
             if (cancellationToken.IsCancellationRequested)
                 break;
 
-            ActivityContext parentContext = message.TelemetryContext.ToTelemetryContext();
+            ActivityContext parentContext = message.TraceParent.ToTelemetryContext();
             using Activity? activity = OtelSinkTrace.CreateBuilder("EvDb.PublishToSinks")
                                                     .WithParent(parentContext, OtelParentRelation.Link)
                                                     .Start();
