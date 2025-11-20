@@ -11,12 +11,13 @@
 			- 4.0.0: Message got TelemetryContext instead of TraceId and SpanId
 			- 4.0.1: Domain and Partition become Address
 			- 4.0.2: Type of the event, message, TelemetryContext payload changed from byte[]
+			- 5.0.0: SubscribeSQSToSNSAsync renamed to SubscribeQueueToTopicAsync and TraceParent hold TraceId and SpanId as string
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<!-- <PackageId>EvDb</PackageId> -->
-		<Version>4.0.24</Version>
+		<Version>5.0.0</Version>
 		<!--<PackageVersion>3.0.41</PackageVersion>-->
 		<Authors>Roma Bronstein</Authors>
 		<Company>EvDbDB.com</Company>

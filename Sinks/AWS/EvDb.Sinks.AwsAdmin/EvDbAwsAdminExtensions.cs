@@ -457,7 +457,7 @@ public static class EvDbAwsAdminExtensions
     /// <param name="logger"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private static async Task AttachSQSToSNSAsync(
+    private static async Task AttachQueueToTopicAsync(
                             this AmazonSimpleNotificationServiceClient snsClient,
                             string topicARN,
                             string queueARN,
@@ -491,7 +491,7 @@ public static class EvDbAwsAdminExtensions
             }
             catch (Exception ex)
             {
-                logger?.LogFailToAttachSQSToSNSAsync(topicARN, queueARN, ex);
+                logger?.LogFailToAttachQueueToTopicAsync(topicARN, queueARN, ex);
             }
         }
     }
@@ -500,31 +500,31 @@ public static class EvDbAwsAdminExtensions
 #pragma warning restore CA1031 // Do not catch general exception types
     #endregion //  AllowSNSToSendToSQSAsync
 
-    #region SubscribeSQSToSNSOptions
+    #region SubscribeQueueToTopicOptions
 
-    public record SubscribeSQSToSNSOptions
+    public record SubscribeQueueToTopicOptions
     {
-        public static readonly SubscribeSQSToSNSOptions Default = new();
+        public static readonly SubscribeQueueToTopicOptions Default = new();
 
         public string Principal { get; set; } = "*";
         public TimeSpan? SqsVisibilityTimeoutOnCreation { get; set; }
         public ms.ILogger? Logger { get; set; }
     }
 
-    #endregion //  SubscribeSQSToSNSOptions
+    #endregion //  SubscribeQueueToTopicOptions
 
-    #region SubscribeSQSToSNSAsync
+    #region SubscribeQueueToTopicAsync
 
-    public static async Task SubscribeSQSToSNSAsync(
+    public static async Task SubscribeQueueToTopicAsync(
         this AmazonSimpleNotificationServiceClient snsClient,
         IAmazonSQS sqsClient,
         string topicName,
         string queueName,
         CancellationToken cancellationToken = default)
     {
-        var options = SubscribeSQSToSNSOptions.Default;
+        var options = SubscribeQueueToTopicOptions.Default;
 
-        await SubscribeSQSToSNSAsync(
+        await SubscribeQueueToTopicAsync(
             snsClient,
             sqsClient,
             topicName,
@@ -535,18 +535,18 @@ public static class EvDbAwsAdminExtensions
             cancellationToken);
     }
 
-    public static async Task SubscribeSQSToSNSAsync(
+    public static async Task SubscribeQueueToTopicAsync(
         this AmazonSimpleNotificationServiceClient snsClient,
         IAmazonSQS sqsClient,
         string topicName,
         string queueName,
-        Action<SubscribeSQSToSNSOptions> optionsBuilder,
+        Action<SubscribeQueueToTopicOptions> optionsBuilder,
         CancellationToken cancellationToken = default)
     {
-        var options = SubscribeSQSToSNSOptions.Default;
+        var options = SubscribeQueueToTopicOptions.Default;
         optionsBuilder?.Invoke(options);
 
-        await SubscribeSQSToSNSAsync(
+        await SubscribeQueueToTopicAsync(
             snsClient,
             sqsClient,
             topicName,
@@ -558,7 +558,7 @@ public static class EvDbAwsAdminExtensions
     }
 
     // Original method (now private)
-    private static async Task SubscribeSQSToSNSAsync(
+    private static async Task SubscribeQueueToTopicAsync(
         this AmazonSimpleNotificationServiceClient snsClient,
         IAmazonSQS sqsClient,
         string topicName,
@@ -580,10 +580,10 @@ public static class EvDbAwsAdminExtensions
                                                logger,
                                                cancellationToken: cancellationToken);
 
-        await snsClient.AttachSQSToSNSAsync(topicArn, queueArn, logger, cancellationToken);
+        await snsClient.AttachQueueToTopicAsync(topicArn, queueArn, logger, cancellationToken);
     }
 
-    #endregion //  SubscribeSQSToSNSAsync
+    #endregion //  SubscribeQueueToTopicAsync
 
     #region SNSToMessageRecord
 
