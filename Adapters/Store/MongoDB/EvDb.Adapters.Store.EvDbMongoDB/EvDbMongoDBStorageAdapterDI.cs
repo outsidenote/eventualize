@@ -6,6 +6,7 @@ using EvDb.Core;
 using EvDb.Core.Store.Internals;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -69,6 +70,44 @@ public static class EvDbMongoDBStorageAdapterDI
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger<EvDbMongoDBStorageAdapter>();
                     IEvDbStorageStreamAdapter adapter = EvDbMongoDBStorageAdapterFactory.CreateStreamAdapter(logger, connectionString, ctx, transformers, creationMode);
+                    return adapter;
+                });
+    }
+
+
+    public static void UseMongoDBStoreForEvDbStream(
+        this EvDbStreamStoreRegistrationContext instance,
+        MongoClientSettings settings,
+        params IEvDbOutboxTransformer[] transformers)
+        => instance.UseMongoDBStoreForEvDbStream(transformers, settings, EvDbMongoDBCreationMode.None);
+
+    public static void UseMongoDBStoreForEvDbStream(
+        this EvDbStreamStoreRegistrationContext instance,
+        MongoClientSettings settings,
+        EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None,
+        params IEvDbOutboxTransformer[] transformers)
+        => instance.UseMongoDBStoreForEvDbStream(transformers, settings, creationMode);
+
+    public static void UseMongoDBStoreForEvDbStream(
+            this EvDbStreamStoreRegistrationContext instance,
+            IEnumerable<IEvDbOutboxTransformer> transformers,
+            MongoClientSettings settings,
+            EvDbMongoDBCreationMode creationMode = EvDbMongoDBCreationMode.None)
+    {
+        IEvDbRegistrationContext entry = instance;
+        IServiceCollection services = entry.Services;
+        EvDbStreamTypeName key = entry.Address;
+        var context = entry.Context;
+        services.AddKeyedSingleton(
+            key.ToString(),
+            (sp, _) =>
+                {
+                    var ctx = sp.GetEvDbStorageContextFallback(context);
+
+
+                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+                    var logger = loggerFactory.CreateLogger<EvDbMongoDBStorageAdapter>();
+                    IEvDbStorageStreamAdapter adapter = EvDbMongoDBStorageAdapterFactory.CreateStreamAdapter(logger, settings, ctx, transformers, creationMode);
                     return adapter;
                 });
     }
