@@ -4,7 +4,7 @@ using static EvDb.Core.Adapters.Internals.EvDbStoreNames;
 
 namespace EvDb.Adapters.Store.SqlServer;
 
-internal static class Sctipts
+internal static class Scripts
 {
     private const int DEFAULT_TEXT_LIMIT = 100;
 
@@ -12,7 +12,7 @@ internal static class Sctipts
                             EvDbStorageContext storageContext,
                             StorageFeatures features,
                             IEnumerable<EvDbShardName> outboxShardNames)
-    {
+    {   
         string schema = storageContext.Schema.HasValue
             ? $"{storageContext.Schema}."
             : string.Empty;

@@ -18,9 +18,17 @@
       "commandName": "Project",
       "commandLineArgs": "-a create -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo create.sql"
     },
+    "EvDb.Cli.CreateScriptLight": {
+      "commandName": "Project",
+      "commandLineArgs": "-a create -d postgres -n public -p demo create.sql"
+    },
     "EvDb.Cli.DropScript": {
       "commandName": "Project",
       "commandLineArgs": "-a drop -d sql-server -e Development -n master -c MY_CONN -p demo -s dbo drop.sql"
+    },
+    "EvDb.Cli.DropScriptLight": {
+      "commandName": "Project",
+      "commandLineArgs": "-a drop -d postgres -n public -p demo drop.sql"
     },
     "EvDb.Cli.Create,Dry": {
       "commandName": "Project",
