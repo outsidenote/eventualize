@@ -71,15 +71,16 @@ await app.RunAsync(async (
 
     EvDbShardName[] outboxNames = outbox ?? Array.Empty<EvDbShardName>();
 
-    IEvDbStorageAdmin admin = db switch
-    {
-        "sql-server" => SqlServerStorageAdminFactory.Create(logger, connectionString!, context, storageFeatures, outboxNames),
-        "postgres" => PostgresStorageAdminFactory.Create(logger, connectionString!, context, storageFeatures, outboxNames),
-        _ => throw new NotImplementedException()
-    };
 
     if (!dryRun && string.IsNullOrWhiteSpace(path))
     {
+        IEvDbStorageAdmin admin = db switch
+        {
+            "sql-server" => SqlServerStorageAdminFactory.Create(logger, connectionString!, context, storageFeatures, outboxNames),
+            "postgres" => PostgresStorageAdminFactory.Create(logger, connectionString!, context, storageFeatures, outboxNames),
+            _ => throw new NotImplementedException()
+        };
+
         if (operation == Operation.Create)
         {
             logger.LogInformation("Creating...");
@@ -93,7 +94,13 @@ await app.RunAsync(async (
     }
     else
     {
-        EvDbAdminQueryTemplates scripts = admin.Scripts;
+        
+        EvDbAdminQueryTemplates scripts = db switch
+        {
+            "sql-server" => SqlServerStorageAdminFactory.CreateScripts(context, storageFeatures, outboxNames),
+            "postgres" => PostgresStorageAdminFactory.CreateScripts(context, storageFeatures, outboxNames),
+            _ => throw new NotImplementedException()
+        };
 
         if (operation == Operation.Create)
         {

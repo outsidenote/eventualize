@@ -15,7 +15,7 @@ public class SqlServerStorageScripting : IEvDbStorageAdminScripting
             StorageFeatures features,
             IEnumerable<EvDbShardName> shardNames)
     {
-        EvDbAdminQueryTemplates scripts = Sctipts.Create(context, features, shardNames);
+        EvDbAdminQueryTemplates scripts = Scripts.Create(context, features, shardNames);
         return scripts;
     }
 }

@@ -12,6 +12,25 @@ public static class PostgresStorageAdminFactory
 {
     #region Overloads
 
+    public static EvDbAdminQueryTemplates CreateScripts(
+        EvDbStorageContext context,
+        params EvDbShardName[] shardNames)
+    {
+        return CreateScripts(context, StorageFeatures.All, shardNames);
+    }
+
+    #endregion //  Overloads
+
+    public static EvDbAdminQueryTemplates CreateScripts(
+        EvDbStorageContext context,
+        StorageFeatures features,
+        params EvDbShardName[] shardNames)
+    {
+        return Scripts.Create(context, features, shardNames);
+    }
+
+    #region Overloads
+
     public static IEvDbStorageAdmin Create(
         ILogger logger,
         IEvDbConnectionFactory factory,
