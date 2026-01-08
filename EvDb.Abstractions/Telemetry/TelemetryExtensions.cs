@@ -1,11 +1,12 @@
-﻿using EvDb.Core.Adapters;
+﻿using EvDb.Core;
+using EvDb.Core.Adapters;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
 using static EvDb.Core.Internals.OtelConstants;
 
-namespace EvDb.Core;
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class TelemetryExtensions
 {
